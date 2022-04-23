@@ -2,3 +2,10 @@
 
 .vscode/
 build/
+
+*.o
+*.out
+*.Po
+*.po
+*.Plo
+*.plo

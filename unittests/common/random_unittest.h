@@ -13,7 +13,7 @@ namespace ym::unittest
 {
 
 /**
- * 
+ * <https://www.systutorials.com/docs/linux/man/1-dieharder/>
  */
 class Random_UnitTest : public UnitTestBase
 {

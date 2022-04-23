@@ -17,6 +17,23 @@ ym::Random::Random(void)
 {
 }
 
+void ym::Random::seed(uint64 const S0,
+                      uint64 const S1,
+                      uint64 const S2,
+                      uint64 const S3)
+{
+   if (!(S0 == 0ull &&
+         S1 == 0ull &&
+         S2 == 0ull &&
+         S3 == 0ull))
+   { // not zero everywhere - seed is accepted
+      _s0 = S0;
+      _s1 = S1;
+      _s2 = S2;
+      _s3 = S3;
+   }
+}
+
 /**
  * 
  */
