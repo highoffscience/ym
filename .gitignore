@@ -1,11 +1,37 @@
+##
 # @author Forrest Jablonski
+#
 
+# vs specific
 .vscode/
+
+# build (cmake) specific
 build/
 
+# tmp files
 *.o
 *.out
 *.Po
 *.po
 *.Plo
 *.plo
+*.lo
+
+# dieharder files
+unittests/common/random_test_tools/dieharder-3.31.1/Makefile
+unittests/common/random_test_tools/dieharder-3.31.1/config.h
+unittests/common/random_test_tools/dieharder-3.31.1/config.log
+unittests/common/random_test_tools/dieharder-3.31.1/config.status
+unittests/common/random_test_tools/dieharder-3.31.1/dieharder-config
+unittests/common/random_test_tools/dieharder-3.31.1/dieharder.html
+unittests/common/random_test_tools/dieharder-3.31.1/dieharder.spec
+unittests/common/random_test_tools/dieharder-3.31.1/dieharder/.libs/
+unittests/common/random_test_tools/dieharder-3.31.1/dieharder/Makefile
+unittests/common/random_test_tools/dieharder-3.31.1/dieharder/dieharder
+unittests/common/random_test_tools/dieharder-3.31.1/dieharder_version.h
+unittests/common/random_test_tools/dieharder-3.31.1/include/Makefile
+unittests/common/random_test_tools/dieharder-3.31.1/libdieharder/.libs/
+unittests/common/random_test_tools/dieharder-3.31.1/libdieharder/Makefile
+unittests/common/random_test_tools/dieharder-3.31.1/libdieharder/libdieharder.la
+unittests/common/random_test_tools/dieharder-3.31.1/libtool
+unittests/common/random_test_tools/dieharder-3.31.1/stamp-h1
