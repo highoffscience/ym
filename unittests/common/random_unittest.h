@@ -24,12 +24,6 @@ public:
    virtual void runTests(void) override;
 
 private:
-   void minMaxAveTest(void);
-   void binTest(void);
-   void piTest(void);
-
-   // f32PiTest and f64PiTest
-
    Random _rand;
 };
 
