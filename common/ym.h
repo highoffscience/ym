@@ -39,22 +39,22 @@
 namespace ym
 {
 
-typedef char const *       str;
+typedef char const *   str;
 
-typedef unsigned char      uchar;
+typedef unsigned char  uchar;
 
-typedef signed char        int8;
-typedef signed short       int16;
-typedef signed int         int32;
-typedef signed long long   int64;
+typedef   signed char  int8;
+typedef   signed short int16;
+typedef   signed int   int32;
+typedef   signed long  int64;
 
-typedef unsigned char      uint8;
-typedef unsigned short     uint16;
-typedef unsigned int       uint32;
-typedef unsigned long long uint64;
+typedef unsigned char  uint8;
+typedef unsigned short uint16;
+typedef unsigned int   uint32;
+typedef unsigned long  uint64;
 
-typedef float              float32;
-typedef double             float64;
+typedef float          float32;
+typedef double         float64;
 
 static_assert(sizeof(int8 ) == 1, "int8 not 1 byte"  );
 static_assert(sizeof(int16) == 2, "int16 not 2 bytes");
