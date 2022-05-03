@@ -3,15 +3,20 @@
  */
 
 #include <cstdio>
+#include <memory>
 #include <new>
+
+struct S
+{
+   double d1;
+   double d2;
+};
 
 int main(void)
 {
-   for (int i = 1; i < 10; ++i)
-   {
-      auto * const data_Ptr = ::operator new(i * 10000, std::align_val_t{32});
-      std::printf("%p -- %lu\n", data_Ptr, reinterpret_cast<unsigned long>(data_Ptr) % 32ul);
-   }
+   std::allocator<S> a;
+
+   std::printf("%lu\n", sizeof(std::allocator<S>));
 
    return 0;
 }
