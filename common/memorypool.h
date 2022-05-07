@@ -23,9 +23,8 @@ public:
 
    ~MemoryPool(void);
 
-   YM_NO_COPY          (MemoryPool)
-   YM_NO_MOVE_ASSIGN   (MemoryPool)
-   YM_NO_MOVE_CONSTRUCT(MemoryPool)
+   YM_NO_COPY  (MemoryPool)
+   YM_NO_ASSIGN(MemoryPool)
 
    T * allocate(void);
    T * allocate(uint64 const NObjects);

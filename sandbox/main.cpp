@@ -2,21 +2,17 @@
  * @author Forrest Jablonski
  */
 
+#include <atomic>
 #include <cstdio>
+#include <fstream>
+#include <iostream>
 #include <memory>
 #include <new>
-
-struct S
-{
-   double d1;
-   double d2;
-};
+#include <semaphore>
 
 int main(void)
 {
-   std::allocator<S> a;
-
-   std::printf("%lu\n", sizeof(std::allocator<S>));
+   sizeof(std::counting_semaphore<64>);
 
    return 0;
 }
