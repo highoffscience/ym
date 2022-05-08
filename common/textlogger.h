@@ -86,6 +86,7 @@ private:
    std::atomic<uint32> /* ---------------------- */ _writePos; //  :
    std::atomic<uint32>                              _verbosityCap;
    TimeStampMode_T const /* -------------------- */ _TimeStampMode;
+   std::atomic_flag                                 _writerStarted;
 };
 
 /**
@@ -124,21 +125,23 @@ inline void TextLogger::printfError(str    const    Format,
 /**
  * TODO what if the consumer thread isn't running yet? Theoretically possible,
  *      _messagesSem.release() would post to on one.
+ * 
+ * TODO record time stamp stuff
  */
 template <typename... Args_T>
 void TextLogger::printf_Helper(str    const    Format,
                                Args_T const... Args)
 {
    _availableSem.acquire();
-   
-   auto   const WritePos  = _writePos.fetch_add(1, std::memory_order_relaxed) % getMaxNMessagesInBuffer();
-   auto * const write_Ptr = _buffer_Ptr + (WritePos * getMaxMessageSize_bytes());
 
    static_assert(getMaxMessageSize_bytes() > getTimeStampSize_bytes(), "No room for time stamp");
    auto const AdjustedMsgSize_bytes = getMaxMessageSize_bytes() - getTimeStampSize_bytes();
+   
+   auto const WritePos = _writePos.fetch_add(1, std::memory_order_acquire) % getMaxNMessagesInBuffer();
+   str  const WritePtr = _buffer + (WritePos * getMaxMessageSize_bytes()) + getTimeStampSize_bytes();
 
    // snprintf writes a null terminator for us
-   auto const NCharsWrittenInTheory = std::snprintf(write_Ptr + getTimeStampSize_bytes(),
+   auto const NCharsWrittenInTheory = std::snprintf(WritePtr,
                                                     AdjustedMsgSize_bytes,
                                                     Format,
                                                     Args...);
@@ -148,7 +151,7 @@ void TextLogger::printf_Helper(str    const    Format,
       printfError("std::snprintf failed with error code %d! "
                   "Message was '%s'\n",
                   NCharsWrittenInTheory,
-                  write_Ptr);
+                  WritePtr);
 
       // don't fail here - just keep going
    }
@@ -159,7 +162,7 @@ void TextLogger::printf_Helper(str    const    Format,
                   NCharsWrittenInTheory,
                   getMaxMessageSize_bytes(),
                   AdjustedMsgSize_bytes,
-                  write_Ptr + getTimeStampSize_bytes());
+                  WritePtr);
 
       // don't fail here - just keep going
    }

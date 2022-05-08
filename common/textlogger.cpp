@@ -29,7 +29,8 @@ ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
      _readPos       {0u                       },
      _writePos      {0u                       },
      _verbosityCap  {0u                       },
-     _TimeStampMode {TimeStampMode            }
+     _TimeStampMode {TimeStampMode            },
+     _writerStarted {/*default*/              } // defaults to cleared
 {
 }
 
@@ -97,25 +98,21 @@ bool ym::TextLogger::open(str const Filename)
    if (wasOpened)
    { // file opened successfully
       _writer = std::thread(&TextLogger::writeMessagesToFile, this); // starts the thread
+      _writerStarted.wait(false);
    }
 
    return wasOpened;
 }
 
 /**
- *
+ * TODO 
  */
 void ym::TextLogger::close(void)
 {
-   bool       expected = true;
-   bool const Desired  = false;
-
-   if (_isOpen.compare_exchange_strong(expected, Desired, std::memory_order_relaxed))
+   if (_writerStarted.test())
    { // file open
-
-      // this call is necessary to wake the semaphore and check the closing flag
-      printf_Helper("File closing...");
-
+      _writerStarted.clear();
+      printf_Helper("File closing..."); // this call is necessary to wake the semaphore and check the closing flag
       _writer.join(); // wait until all messages have been written before closing the file
 
       Logger::close();
@@ -143,6 +140,9 @@ void ym::TextLogger::setVerbosityCap(uint32 const VerbosityCap)
  */
 void ym::TextLogger::writeMessagesToFile(void)
 {
+   _writerStarted.test_and_set();
+   _writerStarted.notify_one();
+
    do
    { // wait for messages to print while logger is still active
 
@@ -157,6 +157,7 @@ void ym::TextLogger::writeMessagesToFile(void)
 
       auto const * const Read_Ptr = _buffer + (_readPos * getMaxMessageSize_bytes());
 
+      // TODO record time stamp appends newline, otherwise not
       auto const NCharsWritten = std::fprintf(_outfile_ptr, "%s\n", Read_Ptr);
 
       if (NCharsWritten < 0)
@@ -174,14 +175,14 @@ void ym::TextLogger::writeMessagesToFile(void)
       }
    #endif // YM_PRINT_TO_SCREEN
 
-      _msgReady_bf.fetch_and(~(1 << _readPos), std::memory_order_relaxed);
+      _msgReady_bf.fetch_and(~(1ul << _readPos), std::memory_order_release);
 
-      _readPos = (_readPos + 1) & (getMaxNMessagesInBuffer() - 1);
+      _readPos = (_readPos + 1) % getMaxNMessagesInBuffer();
 
       _availableSem.release();
 
-   } while (_isOpen     .load(std::memory_order_relaxed) ||     // still open for business?
-            _msgReady_bf.load(std::memory_order_relaxed) != 0); // messages still in the buffer?
+   } while (_writerStarted.test() ||                            // still open for business?
+            _msgReady_bf.load(std::memory_order_release) != 0); // messages still in the buffer?
 }
 
 /**
