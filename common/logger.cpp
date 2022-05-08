@@ -17,15 +17,15 @@ ym::Logger::Logger(void)
  */
 bool ym::Logger::open(str const Filename)
 {
-   bool didOpen = false; // until told otherwise
+   bool wasOpened = false;
 
    if (!_outfile.is_open())
    {
       _outfile.open(Filename);
-      didOpen = _outfile.is_open();
+      wasOpened = _outfile.is_open();
    }
 
-   return didOpen;
+   return wasOpened;
 }
 
 /**

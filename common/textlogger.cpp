@@ -2,48 +2,34 @@
  * @author Forrest Jablonski
  */
 
-#include "TextLogger.h"
-
-#include "TimerDefs.h"
-#include "Ymception.h"
+#include "textlogger.h"
 
 #include <ctime>
 
+// for debugging
 #define YM_PRINT_TO_SCREEN
-
-/**
- * Semaphore                 _availableSem;
-   Semaphore                 _messagesSem;
-   std::thread               _writer;
-   std::atomic<MsgReadyBF_T> _msgReady_bf;
-   char * const              _buffer_Ptr;
-   uint32                    _readPos;  // these positions are slot numbers [0.._s_MaxNMessagesInBuffer)
-   std::atomic<uint32>       _writePos; //  :
-   uint32                    _verbosityCap;
-   TimeStampMode_T const     _TimeStampMode;
- */
-ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
-   : Logger             {                                             },
-     _outfile_ptr       {nullptr                                      },
-     _readPos           {0                                            },
-     _writePos          {0                                            },
-     _msgReady_bf       {0                                            },
-     _availableSem      {static_cast<int32>(getMaxNMessagesInBuffer())},
-     _messagesSem       {0                                            },
-     _writer            {                                             },
-     _isOpen            {false                                        },
-     _activeVerbosities {0                                            },
-     _openingGuard      {                                             },
-     _isGlobalInstance  {IsGlobalInstance                             },
-     _buffer            {'\0'                                         }
-{
-}
 
 /**
  * 
  */
-ym::TextLogger::TextLogger(SStr_T const Filename)
-   : TextLogger {Filename, false}
+ym::TextLogger::TextLogger(void)
+   : TextLogger(TextLogger::RecordTimeStamp)
+{
+}
+
+/**
+ *
+ */
+ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
+   : _buffer        {'\0'                     },
+     _writer        {/*default*/              },
+     _msgReady_bf   {0ul                      },
+     _availableSem  {getMaxNMessagesInBuffer()},
+     _messagesSem   {0                        },
+     _readPos       {0u                       },
+     _writePos      {0u                       },
+     _verbosityCap  {0u                       },
+     _TimeStampMode {TimeStampMode            }
 {
 }
 
@@ -104,33 +90,23 @@ ym::TextLogger::~TextLogger(void)
 /**
  *
  */
-bool ym::TextLogger::open(void)
+bool ym::TextLogger::open(str const Filename)
 {
-   std::scoped_lock const Lock(_openingGuard);
+   bool wasOpened = Logger::open(Filename);
 
-   auto const [outfile_Ptr, ErrorCode] = Logger::open(getName());
-
-   if (ErrorCode == 0)
+   if (wasOpened)
    { // file opened successfully
-      _outfile_ptr = outfile_Ptr;
-      _isOpen.store(true, std::memory_order_release);
       _writer = std::thread(&TextLogger::writeMessagesToFile, this); // starts the thread
    }
-   else
-   { // something went wrong
-      printfError("Failed to open %s! Error code %d.\n", getName(), ErrorCode);
-   }
 
-   return _isOpen.load(std::memory_order_relaxed);
+   return wasOpened;
 }
 
 /**
  *
  */
-bool ym::TextLogger::close(void)
+void ym::TextLogger::close(void)
 {
-   bool didCloseSuccessfully = false;
-
    bool       expected = true;
    bool const Desired  = false;
 
@@ -138,82 +114,28 @@ bool ym::TextLogger::close(void)
    { // file open
 
       // this call is necessary to wake the semaphore and check the closing flag
-      printf_Helper("File %s closing...", getName());
+      printf_Helper("File closing...");
 
       _writer.join(); // wait until all messages have been written before closing the file
 
-      auto const ErrorCode = Logger::close(_outfile_ptr);
-      didCloseSuccessfully = (ErrorCode == 0);
-
-      if (!didCloseSuccessfully)
-      {
-         // _outfile_ptr is still flushed and dissociated
-         printfError("Failed to close %s! With error code %d!\n", getName(), ErrorCode);
-      }
-
-      _outfile_ptr = nullptr;
+      Logger::close();
    }
-
-   return didCloseSuccessfully;
 }
 
 /**
  *
  */
-void ym::TextLogger::enableClients(uint64 const Clients_mask)
+auto ym::TextLogger::getVerbosityCap(void) const -> uint32
 {
-   ymAssert(Clients_mask >= 4, "Clients mask must be >= 4 (last 2 bits reserved for verbosity)!");
-
-   _activeVerbosities |= Clients_mask;
+   return _verbosityCap.load(std::memory_order_relaxed);
 }
 
 /**
  *
  */
-void ym::TextLogger::disableClients(uint64 const Clients_mask)
+void ym::TextLogger::setVerbosityCap(uint32 const VerbosityCap)
 {
-   ymAssert(Clients_mask >= 4, "Clients mask must be >= 4 (last 2 bits reserved for verbosity)!");
-
-   _activeVerbosities &= ~Clients_mask;
-}
-
-/**
- *
- */
-auto ym::TextLogger::getVerbosityCap(void) const -> uint64
-{
-   return _activeVerbosities.load(std::memory_order_relaxed) & 3ull;
-}
-
-/**
- *
- */
-void ym::TextLogger::setVerbosityCap(uint64 const VerbosityCap)
-{
-   ymAssert(VerbosityCap <= 3, "Verbosity cap must be <= 3!");
-
-   _activeVerbosities.fetch_and(~3ull,        std::memory_order_relaxed);
-   _activeVerbosities.fetch_or (VerbosityCap, std::memory_order_relaxed);
-}
-
-/**
- * _verbosities has the form
- * -------------
- * |00|00|00|00|
- * -------------
- * Last 2 bits are the verbosity level.
- */
-bool ym::TextLogger::willPrint(uint64 const Verbosities)
-{
-   auto const Clients_mask       = Verbosities & ~3ull;
-   auto const Verbosity          = Verbosities &  3ull;
-   auto const ActiveClients_mask = _activeVerbosities.load(std::memory_order_relaxed) & ~3ull;
-
-   auto const IsActive           = (Clients_mask == 0) ||                   // global verbosity
-                                   (Clients_mask & ActiveClients_mask) > 0; // group  verbosity
-
-   return IsActive ? (Verbosity <= getVerbosityCap())
-                   : false;
+   _verbosityCap.store(VerbosityCap, std::memory_order_relaxed);
 }
 
 /**
@@ -224,13 +146,13 @@ void ym::TextLogger::writeMessagesToFile(void)
    do
    { // wait for messages to print while logger is still active
 
-      while ((_msgReady_bf.load(std::memory_order_acquire) & (1 << _readPos)) == 0)
-      { // wait until THIS message is in the buffer
+      while ((_msgReady_bf.load(std::memory_order_acquire) & (1ul << _readPos)) == 0ul)
+      { // wait until *this* message is in the buffer
 
          // when we close an ending message will be printed, waking the semaphore,
          //  so no need to check for closing here, it can be safely done at the
          //  end of this function
-         _messagesSem.acquire(); // waits until A message is in the buffer
+         _messagesSem.acquire(); // waits until *a* message is in the buffer
       }
 
       auto const * const Read_Ptr = _buffer + (_readPos * getMaxMessageSize_bytes());
@@ -266,7 +188,7 @@ void ym::TextLogger::writeMessagesToFile(void)
  * Returns the current time, in microseconds, since the creation of the log in the format
  *  (xxxxxxxxxxxx) xxx:xx:xx.xxx'xxx
  */
-auto ym::TextLogger::populateFormattedTime(char * const write_Ptr) const -> uint32
+void ym::TextLogger::populateFormattedTime(char * const write_Ptr) const
 {
    auto const ElapsedTime_us  = ymGetGlobalTime<std::micro>();
    auto const ElapsedTime_sec = (ElapsedTime_us /  1'000'000ll      ) % 60;
@@ -307,7 +229,4 @@ auto ym::TextLogger::populateFormattedTime(char * const write_Ptr) const -> uint
    write_Ptr[31] = write_Ptr[12];
    write_Ptr[32] = ':';
    write_Ptr[33] = ' ';
-   
-   // -1 to ignore null terminator
-   return sizeof("(000000000000) 000:00:00.000'000: ") - 1;
 }

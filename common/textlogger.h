@@ -11,7 +11,6 @@
 
 #include <atomic>
 #include <cstdio>
-#include <mutex>
 #include <semaphore>
 #include <thread>
 
@@ -45,6 +44,7 @@ public:
 
    static constexpr auto getMaxMessageSize_bytes(void) { return _s_MaxMessageSize_bytes; }
    static constexpr auto getMaxNMessagesInBuffer(void) { return _s_MaxNMessagesInBuffer; }
+   static constexpr auto getBufferSize_bytes    (void) { return _s_BufferSize_bytes;     }
 
    template <typename... Args_T>
    bool printf(uint32 const    Verbosity,
@@ -52,8 +52,6 @@ public:
                Args_T const... Args);
 
 private:
-   typedef uint64 MsgReadyBF_T; // BF = BitField
-
    template <typename... Args_T>
    void printf_Helper(str    const    Format,
                       Args_T const... Args);
@@ -64,9 +62,11 @@ private:
 
    void writeMessagesToFile(void);
 
-   void populateFormattedTime(char * const buffer_Ptr) const;
+   void populateFormattedTime(char * const write_Ptr) const;
 
    static constexpr auto getTimeStampSize_bytes(void) { return 34u; }
+
+   typedef uint64 MsgReadyBF_T; // BF = BitField
 
    static constexpr uint32 _s_MaxMessageSize_bytes = 256u;
    static constexpr uint32 _s_MaxNMessagesInBuffer = sizeof(MsgReadyBF_T) * 8ul; // 8 bits per byte
@@ -75,14 +75,16 @@ private:
    static_assert((_s_MaxNMessagesInBuffer & (_s_MaxNMessagesInBuffer - 1u)) == 0u,
       "_s_MaxNMessagesInBuffer needs to be power of 2");
 
-   std::thread                                      _writer;
-   std::atomic<MsgReadyBF_T> /* ---------------- */ _msgReady_bf;
-   char * const                                     _buffer_Ptr;
+   typedef std::counting_semaphore<_s_MaxNMessagesInBuffer> Semaphore_T;
+
+   char                                             _buffer[_s_BufferSize_bytes];
+   std::thread  /* --------------------------- */   _writer;
+   std::atomic<MsgReadyBF_T>                        _msgReady_bf;
    std::counting_semaphore<_s_MaxNMessagesInBuffer> _availableSem;
    std::counting_semaphore<_s_MaxNMessagesInBuffer> _messagesSem;
    uint32                                           _readPos;  // these positions are slot numbers [0.._s_MaxNMessagesInBuffer)
    std::atomic<uint32> /* ---------------------- */ _writePos; //  :
-   uint32                                           _verbosityCap;
+   std::atomic<uint32>                              _verbosityCap;
    TimeStampMode_T const /* -------------------- */ _TimeStampMode;
 };
 
@@ -120,14 +122,15 @@ inline void TextLogger::printfError(str    const    Format,
 }
 
 /**
- *
+ * TODO what if the consumer thread isn't running yet? Theoretically possible,
+ *      _messagesSem.release() would post to on one.
  */
 template <typename... Args_T>
 void TextLogger::printf_Helper(str    const    Format,
                                Args_T const... Args)
 {
    _availableSem.acquire();
-      
+   
    auto   const WritePos  = _writePos.fetch_add(1, std::memory_order_relaxed) % getMaxNMessagesInBuffer();
    auto * const write_Ptr = _buffer_Ptr + (WritePos * getMaxMessageSize_bytes());
 
@@ -142,8 +145,10 @@ void TextLogger::printf_Helper(str    const    Format,
 
    if (NCharsWrittenInTheory < 0)
    { // snprintf hit an internal error
-      printfError("std::snprintf failed with error code %d!\n", NCharsWrittenInTheory);
-      printfError(" Message was '%s'\n", write_Ptr);
+      printfError("std::snprintf failed with error code %d! "
+                  "Message was '%s'\n",
+                  NCharsWrittenInTheory,
+                  write_Ptr);
 
       // don't fail here - just keep going
    }
