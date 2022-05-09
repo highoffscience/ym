@@ -4,13 +4,15 @@
 
 #include "textlogger.h"
 
+#include "memorypool.h"
+
 #include <ctime>
 
 // for debugging
 #define YM_PRINT_TO_SCREEN
 
 /**
- * 
+ *
  */
 ym::TextLogger::TextLogger(void)
    : TextLogger(TextLogger::RecordTimeStamp)
@@ -21,16 +23,16 @@ ym::TextLogger::TextLogger(void)
  *
  */
 ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
-   : _buffer        {'\0'                     },
-     _writer        {/*default*/              },
-     _msgReady_bf   {0ul                      },
-     _availableSem  {getMaxNMessagesInBuffer()},
-     _messagesSem   {0                        },
-     _readPos       {0u                       },
-     _writePos      {0u                       },
-     _verbosityCap  {0u                       },
-     _TimeStampMode {TimeStampMode            },
-     _writerStarted {/*default*/              } // defaults to cleared
+   : _writer        {/*default*/                                      },
+     _msgReady_bf   {0ul                                              },
+     _buffer_Ptr    {MemoryPool<char>::allocate(getBufferSize_bytes())},
+     _availableSem  {static_cast<int32>(getMaxNMessagesInBuffer())    },
+     _messagesSem   {0                                                },
+     _readPos       {0u                                               },
+     _writePos      {0u                                               },
+     _verbosityCap  {0u                                               },
+     _TimeStampMode {TimeStampMode                                    },
+     _writerStarted {/*default*/                                      } // defaults to cleared
 {
 }
 
@@ -105,7 +107,7 @@ bool ym::TextLogger::open(str const Filename)
 }
 
 /**
- * TODO 
+ * TODO
  */
 void ym::TextLogger::close(void)
 {

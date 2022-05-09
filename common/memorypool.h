@@ -26,12 +26,12 @@ public:
    YM_NO_COPY  (MemoryPool)
    YM_NO_ASSIGN(MemoryPool)
 
-   T * allocate(void);
-   T * allocate(uint64 const NObjects);
+          T * allocate(void);
+   static T * allocate(uint64 const NObjects);
 
-   void free(T *    const data_Ptr);
-   void free(T *    const data_Ptr,
-             uint64 const NObjects);
+          void free(T *    const data_Ptr);
+   static void free(T *    const data_Ptr,
+                    uint64 const NObjects);
 
 private:
    /**
@@ -50,7 +50,6 @@ private:
 
    Chunk *           _nextFreeChunk_ptr;
    uint64 const      _NChunksPerBlock;
-   std::allocator<T> _allocator;
 };
 
 /**
@@ -68,14 +67,13 @@ MemoryPool<T>::MemoryPool(void)
 template <typename T>
 MemoryPool<T>::MemoryPool(uint64 const NChunksPerBlock)
    : _nextFreeChunk_ptr {nullptr        },
-     _NChunksPerBlock   {NChunksPerBlock},
-     _allocator         {               }
+     _NChunksPerBlock   {NChunksPerBlock}
 {
    // ymAssert(_NChunksPerBlock > 0ul, "Block size must be > 0");
 }
 
 /**
- * TODO
+ * TODO deallocate chunks
  */
 template <typename T>
 MemoryPool<T>::~MemoryPool(void)
@@ -92,7 +90,8 @@ T * MemoryPool<T>::allocate(void)
 
    if (!data_ptr)
    {
-      data_ptr = _allocator.allocate(_NChunksPerBlock);
+      std::allocator<T> a;
+      data_ptr = a.allocate(_NChunksPerBlock);
       _nextFreeChunk_ptr = reinterpret_cast<Chunk *>(data_ptr);
 
       for (uint64 i = 0ul; i < _NChunksPerBlock; ++i)
@@ -112,7 +111,8 @@ T * MemoryPool<T>::allocate(void)
 template <typename T>
 T * MemoryPool<T>::allocate(uint64 const NObjects)
 {
-   return _allocator.allocate(NObjects);
+   std::allocator<T> a;
+   return a.allocate(NObjects);
 }
 
 /**
@@ -133,7 +133,8 @@ template <typename T>
 void MemoryPool<T>::free(T *    const data_Ptr,
                          uint64 const NObjects)
 {
-   _allocator.deallocate(data_Ptr, NObjects);
+   std::allocator<T> a;
+   a.deallocate(data_Ptr, NObjects);
 }
 
 } // ym

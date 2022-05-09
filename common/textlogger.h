@@ -77,16 +77,16 @@ private:
 
    typedef std::counting_semaphore<_s_MaxNMessagesInBuffer> Semaphore_T;
 
-   char                                             _buffer[_s_BufferSize_bytes];
-   std::thread  /* --------------------------- */   _writer;
-   std::atomic<MsgReadyBF_T>                        _msgReady_bf;
-   std::counting_semaphore<_s_MaxNMessagesInBuffer> _availableSem;
-   std::counting_semaphore<_s_MaxNMessagesInBuffer> _messagesSem;
-   uint32                                           _readPos;  // these positions are slot numbers [0.._s_MaxNMessagesInBuffer)
-   std::atomic<uint32> /* ---------------------- */ _writePos; //  :
-   std::atomic<uint32>                              _verbosityCap;
-   TimeStampMode_T const /* -------------------- */ _TimeStampMode;
-   std::atomic_flag                                 _writerStarted;
+   std::thread               _writer;
+   std::atomic<MsgReadyBF_T> _msgReady_bf;
+   char * const              _buffer_Ptr;
+   Semaphore_T               _availableSem;
+   Semaphore_T               _messagesSem;
+   uint32                    _readPos;  // these positions are slot numbers [0.._s_MaxNMessagesInBuffer)
+   std::atomic<uint32>       _writePos; //  :
+   std::atomic<uint32>       _verbosityCap;
+   TimeStampMode_T const     _TimeStampMode;
+   std::atomic_flag          _writerStarted;
 };
 
 /**
@@ -108,7 +108,7 @@ bool TextLogger::printf(uint32 const    Verbosity,
          wasPrinted = true;
       }
    }
-   
+
    return wasPrinted;
 }
 
@@ -125,7 +125,7 @@ inline void TextLogger::printfError(str    const    Format,
 /**
  * TODO what if the consumer thread isn't running yet? Theoretically possible,
  *      _messagesSem.release() would post to on one.
- * 
+ *
  * TODO record time stamp stuff
  */
 template <typename... Args_T>
@@ -136,7 +136,7 @@ void TextLogger::printf_Helper(str    const    Format,
 
    static_assert(getMaxMessageSize_bytes() > getTimeStampSize_bytes(), "No room for time stamp");
    auto const AdjustedMsgSize_bytes = getMaxMessageSize_bytes() - getTimeStampSize_bytes();
-   
+
    auto const WritePos = _writePos.fetch_add(1, std::memory_order_acquire) % getMaxNMessagesInBuffer();
    str  const WritePtr = _buffer + (WritePos * getMaxMessageSize_bytes()) + getTimeStampSize_bytes();
 
