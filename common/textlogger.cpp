@@ -7,6 +7,7 @@
 #include "memorypool.h"
 
 #include <ctime>
+#include <exception>
 
 // for debugging
 #define YM_PRINT_TO_SCREEN
@@ -26,60 +27,15 @@ ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
    : _writer        {/*default*/                                      },
      _msgReady_bf   {0ul                                              },
      _buffer_Ptr    {MemoryPool<char>::allocate(getBufferSize_bytes())},
+     _timer         {                                                 },
      _availableSem  {static_cast<int32>(getMaxNMessagesInBuffer())    },
      _messagesSem   {0                                                },
      _readPos       {0u                                               },
      _writePos      {0u                                               },
      _verbosityCap  {0u                                               },
      _TimeStampMode {TimeStampMode                                    },
-     _writerStarted {/*default*/                                      } // defaults to cleared
+     _writerEnabled {false                                            }
 {
-}
-
-/**
- * Follows the singleton pattern.
- */
-auto ym::TextLogger::getGlobalInstancePtr(void) -> TextLogger *
-{
-   static char globalName[6 + // global
-                          1 + // _
-                          4 + // year
-                          1 + // _
-                          3 + // month
-                          1 + // _
-                          2 + // day
-                          1 + // _
-                          2 + // hour
-                          1 + // _
-                          2 + // minute
-                          1 + // _
-                          2 + // second
-                          4 + // .txt
-                          1 ] /* null */ = {'\0'};
-
-   static TextLogger s_globalInstance(globalName, true);
-
-   if (!s_globalInstance.isOpen())
-   {
-      { // finish populating name
-         auto t = std::time(nullptr);
-         std::tm timeinfo = {0};
-         localtime_s(&timeinfo, &t); // vs doesn't have the standard localtime_s function
-         auto const NBytesWritten =
-            std::strftime(       globalName,
-                          sizeof(globalName),
-                          "global_%Y_%b_%d_%H_%M_%S.txt",
-                          &timeinfo);
-
-         ymAssert(NBytesWritten > 0, "Failure to store datetime!");
-      }
-
-      auto const DidOpen = s_globalInstance.open();
-
-      ymAssert(DidOpen, "%s could not open!", globalName);
-   }
-
-   return &s_globalInstance;
 }
 
 /**
@@ -100,7 +56,7 @@ bool ym::TextLogger::open(str const Filename)
    if (wasOpened)
    { // file opened successfully
       _writer = std::thread(&TextLogger::writeMessagesToFile, this); // starts the thread
-      _writerStarted.wait(false);
+      _writerEnabled.wait(false);
    }
 
    return wasOpened;
@@ -111,9 +67,11 @@ bool ym::TextLogger::open(str const Filename)
  */
 void ym::TextLogger::close(void)
 {
-   if (_writerStarted.test())
+   bool       expected = true;
+   bool const Desired = false;
+
+   if (_writerEnabled.compare_exchange_strong(expected, Desired))
    { // file open
-      _writerStarted.clear();
       printf_Helper("File closing..."); // this call is necessary to wake the semaphore and check the closing flag
       _writer.join(); // wait until all messages have been written before closing the file
 
@@ -138,53 +96,54 @@ void ym::TextLogger::setVerbosityCap(uint32 const VerbosityCap)
 }
 
 /**
- * TODO populateFormattedTime, we want to do it in this thread
+ *
  */
 void ym::TextLogger::writeMessagesToFile(void)
 {
-   _writerStarted.test_and_set();
-   _writerStarted.notify_one();
+   _writerEnabled.store(true);
+   _writerEnabled.notify_one();
 
    do
    { // wait for messages to print while logger is still active
 
-      while ((_msgReady_bf.load(std::memory_order_acquire) & (1ul << _readPos)) == 0ul)
-      { // wait until *this* message is in the buffer
-
+      do
+      {
          // when we close an ending message will be printed, waking the semaphore,
          //  so no need to check for closing here, it can be safely done at the
          //  end of this function
          _messagesSem.acquire(); // waits until *a* message is in the buffer
-      }
 
-      auto const * const Read_Ptr = _buffer + (_readPos * getMaxMessageSize_bytes());
+      } // wait until *this* message is in the buffer
+      while (_msgReady_bf.load() & (1ul << _readPos) == 0ul);
 
-      // TODO record time stamp appends newline, otherwise not
-      auto const NCharsWritten = std::fprintf(_outfile_ptr, "%s\n", Read_Ptr);
+      _msgReady_bf.fetch_and(~(1ul << _readPos));
 
-      if (NCharsWritten < 0)
-      { // fprintf hit an internal error
-         printfError("std::fprintf failed with error code %d!\n", NCharsWritten);
-         printfError(" Message was \"%s\"\n", Read_Ptr);
-
-         // don't fail here - just keep going
-      }
-
-   #if defined(YM_PRINT_TO_SCREEN)
-      if (isGlobalInstance())
-      {
-         std::fprintf(stdout, "%s\n", Read_Ptr);
-      }
-   #endif // YM_PRINT_TO_SCREEN
-
-      _msgReady_bf.fetch_and(~(1ul << _readPos), std::memory_order_release);
+      auto * const read_Ptr = _buffer_Ptr + (_readPos * getMaxMessageSize_bytes());
 
       _readPos = (_readPos + 1) % getMaxNMessagesInBuffer();
 
+      if (_TimeStampMode == RecordTimeStamp)
+      {
+         populateFormattedTime(read_Ptr);
+      }
+
+      try
+      {
+         _outfile.write(read_Ptr, getMaxMessageSize_bytes());
+      }
+      catch (std::exception const & Exc)
+      {
+         printfError("Logger write failed. Exc = '%s'\n", Exc.what());
+      }
+
+   #if defined(YM_PRINT_TO_SCREEN)
+      std::fprintf(stdout, read_Ptr);
+   #endif // YM_PRINT_TO_SCREEN
+
       _availableSem.release();
 
-   } while (_writerStarted.test() ||                            // still open for business?
-            _msgReady_bf.load(std::memory_order_release) != 0); // messages still in the buffer?
+   } while (_writerEnabled.load() ||       // still open
+            _msgReady_bf  .load() != 0ul); // still messages
 }
 
 /**
@@ -193,7 +152,7 @@ void ym::TextLogger::writeMessagesToFile(void)
  */
 void ym::TextLogger::populateFormattedTime(char * const write_Ptr) const
 {
-   auto const ElapsedTime_us  = ymGetGlobalTime<std::micro>();
+   auto const ElapsedTime_us  = _timer.getStartTime<std::micro>();
    auto const ElapsedTime_sec = (ElapsedTime_us /  1'000'000ll      ) % 60;
    auto const ElapsedTime_min = (ElapsedTime_us / (1'000'000ll * 60)) % 60;
    auto const ElapsedTime_hrs =  ElapsedTime_us / (1'000'000ll * 3'600);

@@ -80,13 +80,14 @@ private:
    std::thread               _writer;
    std::atomic<MsgReadyBF_T> _msgReady_bf;
    char * const              _buffer_Ptr;
+   Timer                     _timer;
    Semaphore_T               _availableSem;
    Semaphore_T               _messagesSem;
    uint32                    _readPos;  // these positions are slot numbers [0.._s_MaxNMessagesInBuffer)
    std::atomic<uint32>       _writePos; //  :
    std::atomic<uint32>       _verbosityCap;
    TimeStampMode_T const     _TimeStampMode;
-   std::atomic_flag          _writerStarted;
+   std::atomic<bool>         _writerEnabled;
 };
 
 /**
@@ -123,10 +124,7 @@ inline void TextLogger::printfError(str    const    Format,
 }
 
 /**
- * TODO what if the consumer thread isn't running yet? Theoretically possible,
- *      _messagesSem.release() would post to on one.
- *
- * TODO record time stamp stuff
+ * 
  */
 template <typename... Args_T>
 void TextLogger::printf_Helper(str    const    Format,
@@ -134,15 +132,23 @@ void TextLogger::printf_Helper(str    const    Format,
 {
    _availableSem.acquire();
 
-   static_assert(getMaxMessageSize_bytes() > getTimeStampSize_bytes(), "No room for time stamp");
-   auto const AdjustedMsgSize_bytes = getMaxMessageSize_bytes() - getTimeStampSize_bytes();
-
    auto const WritePos = _writePos.fetch_add(1, std::memory_order_acquire) % getMaxNMessagesInBuffer();
-   str  const WritePtr = _buffer + (WritePos * getMaxMessageSize_bytes()) + getTimeStampSize_bytes();
+   str        writePtr = _buffer_Ptr + (WritePos * getMaxMessageSize_bytes());
+   auto       maxMsgSize_bytes = getMaxMessageSize_bytes();
+
+   if (_TimeStampMode == RecordTimeStamp)
+   {
+      writePtr += getTimeStampSize_bytes();
+
+      // +1 to account for newline
+      static_assert(getMaxMessageSize_bytes() > getTimeStampSize_bytes() + 1u,
+         "No room for time stamp plus newline");
+      maxMsgSize_bytes -= getTimeStampSize_bytes() + 1u;
+   }
 
    // snprintf writes a null terminator for us
-   auto const NCharsWrittenInTheory = std::snprintf(WritePtr,
-                                                    AdjustedMsgSize_bytes,
+   auto const NCharsWrittenInTheory = std::snprintf(writePtr,
+                                                    maxMsgSize_bytes,
                                                     Format,
                                                     Args...);
 
@@ -151,20 +157,30 @@ void TextLogger::printf_Helper(str    const    Format,
       printfError("std::snprintf failed with error code %d! "
                   "Message was '%s'\n",
                   NCharsWrittenInTheory,
-                  WritePtr);
+                  writePtr);
 
       // don't fail here - just keep going
    }
-   else if (static_cast<uint32>(NCharsWrittenInTheory) >= AdjustedMsgSize_bytes)
+   else if (static_cast<uint32>(NCharsWrittenInTheory) >= maxMsgSize_bytes)
    { // not everything was printed to the buffer
       printfError("Failed to write everything to the buffer! NCharsWrittenInTheory = %ld. "
-                  "Max message size = %lu (adjusted = %lu). Message = '%s'\n",
+                  "Msg size = %lu bytes. Message = '%s'\n",
                   NCharsWrittenInTheory,
-                  getMaxMessageSize_bytes(),
-                  AdjustedMsgSize_bytes,
-                  WritePtr);
+                  maxMsgSize_bytes,
+                  writePtr);
+
+      if (_TimeStampMode == RecordTimeStamp)
+      {
+         writePtr[maxMsgSize_bytes - 2u] = '\n';
+         // last index already null
+      }
 
       // don't fail here - just keep going
+   }
+   else if (_TimeStampMode == RecordTimeStamp)
+   {
+      writePtr[NCharsWrittenInTheory     ] = '\n';
+      writePtr[NCharsWrittenInTheory + 1u] = '\0';
    }
 
    _msgReady_bf.fetch_or(1ul << WritePos, std::memory_order_release);

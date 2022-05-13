@@ -8,7 +8,7 @@
  *
  */
 ym::Timer::Timer(void)
-   : _startTime {clock_t::now()}
+   : _startTime {Clock_T::now()}
 {
 }
 
@@ -17,5 +17,5 @@ ym::Timer::Timer(void)
  */
 void ym::Timer::reset(void)
 {
-   _startTime = clock_t::now();
+   _startTime = Clock_T::now();
 }
