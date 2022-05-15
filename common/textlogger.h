@@ -101,7 +101,7 @@ bool TextLogger::printf(uint32 const    Verbosity,
 {
    bool wasPrinted = false;
 
-   if (isOpen())
+   if (_writerEnabled.load(std::memory_order_relaxed))
    { // ok to print
       if (Verbosity <= getVerbosityCap())
       { // verbose enough to print this message

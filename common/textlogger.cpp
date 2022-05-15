@@ -56,7 +56,8 @@ bool ym::TextLogger::open(str const Filename)
    if (wasOpened)
    { // file opened successfully
       _writer = std::thread(&TextLogger::writeMessagesToFile, this); // starts the thread
-      _writerEnabled.wait(false);
+      _writerEnabled.wait(false); // writer thread officially started
+      std::this_thread::yield();  // allow writer thread to acquire semaphore
    }
 
    return wasOpened;
@@ -70,7 +71,7 @@ void ym::TextLogger::close(void)
    bool       expected = true;
    bool const Desired = false;
 
-   if (_writerEnabled.compare_exchange_strong(expected, Desired))
+   if (_writerEnabled.compare_exchange_strong(expected, Desired, std::memory_order_relaxed))
    { // file open
       printf_Helper("File closing..."); // this call is necessary to wake the semaphore and check the closing flag
       _writer.join(); // wait until all messages have been written before closing the file
@@ -103,7 +104,9 @@ void ym::TextLogger::writeMessagesToFile(void)
    _writerEnabled.store(true);
    _writerEnabled.notify_one();
 
-   do
+   bool writerEnabled = true;
+
+   while (writerEnabled)
    { // wait for messages to print while logger is still active
 
       do
@@ -114,9 +117,9 @@ void ym::TextLogger::writeMessagesToFile(void)
          _messagesSem.acquire(); // waits until *a* message is in the buffer
 
       } // wait until *this* message is in the buffer
-      while (_msgReady_bf.load() & (1ul << _readPos) == 0ul);
+      while (_msgReady_bf.load(std::memory_order_acquire) & (1ul << _readPos) == 0ul);
 
-      _msgReady_bf.fetch_and(~(1ul << _readPos));
+      _msgReady_bf.fetch_and(~(1ul << _readPos), std::memory_order_relaxed);
 
       auto * const read_Ptr = _buffer_Ptr + (_readPos * getMaxMessageSize_bytes());
 
@@ -140,10 +143,16 @@ void ym::TextLogger::writeMessagesToFile(void)
       std::fprintf(stdout, read_Ptr);
    #endif // YM_PRINT_TO_SCREEN
 
-      _availableSem.release();
+      if (!_writerEnabled.load(std::memory_order_relaxed))
+      { // close requested
+         if (_msgReady_bf.load(std::memory_order_relaxed) == 0ul)
+         { // no more messages in buffer
+            writerEnabled = false;
+         }
+      }
 
-   } while (_writerEnabled.load() ||       // still open
-            _msgReady_bf  .load() != 0ul); // still messages
+      _availableSem.release();
+   }
 }
 
 /**
