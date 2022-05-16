@@ -117,7 +117,7 @@ bool ym::TextLogger::open(str const Filename)
 }
 
 /**
- * TODO
+ *
  */
 void ym::TextLogger::close(void)
 {
@@ -150,7 +150,7 @@ void ym::TextLogger::setVerbosityCap(uint32 const VerbosityCap)
 }
 
 /**
- *
+ * TODO read todo about msg ready bitfield
  */
 void ym::TextLogger::writeMessagesToFile(void)
 {
@@ -171,6 +171,9 @@ void ym::TextLogger::writeMessagesToFile(void)
 
       } // wait until *this* message is in the buffer
       while (_msgReady_bf.load(std::memory_order_acquire) & (1ul << _readPos) == 0ul);
+      // TODO is above a bug? What if we have to reacquire the semaphore? Do we simply
+      //      ignore the previous message? We acquire it twice but release once, that
+      //      seems wrong
 
       _msgReady_bf.fetch_and(~(1ul << _readPos), std::memory_order_relaxed);
 
