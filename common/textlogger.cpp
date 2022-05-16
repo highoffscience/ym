@@ -44,6 +44,8 @@ ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
 ym::TextLogger::~TextLogger(void)
 {
    close();
+
+   MemoryPool<char>::deallocate(_buffer_Ptr, getBufferSize_bytes());
 }
 
 /**

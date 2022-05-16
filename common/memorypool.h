@@ -29,9 +29,9 @@ public:
           T * allocate(void);
    static T * allocate(uint64 const NObjects);
 
-          void free(T *    const data_Ptr);
-   static void free(T *    const data_Ptr,
-                    uint64 const NObjects);
+          void deallocate(T *    const data_Ptr);
+   static void deallocate(T *    const data_Ptr,
+                          uint64 const NObjects);
 
 private:
    /**
@@ -119,7 +119,7 @@ T * MemoryPool<T>::allocate(uint64 const NObjects)
  *
  */
 template <typename T>
-void MemoryPool<T>::free(T * const data_Ptr)
+void MemoryPool<T>::deallocate(T * const data_Ptr)
 {
    auto * const chunk_Ptr = reinterpret_cast<Chunk *>(data_Ptr);
    chunk_Ptr->next_ptr = _nextFreeChunk_ptr;
@@ -130,8 +130,8 @@ void MemoryPool<T>::free(T * const data_Ptr)
  *
  */
 template <typename T>
-void MemoryPool<T>::free(T *    const data_Ptr,
-                         uint64 const NObjects)
+void MemoryPool<T>::deallocate(T *    const data_Ptr,
+                               uint64 const NObjects)
 {
    std::allocator<T> a;
    a.deallocate(data_Ptr, NObjects);
