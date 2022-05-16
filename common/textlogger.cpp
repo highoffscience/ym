@@ -49,6 +49,57 @@ ym::TextLogger::~TextLogger(void)
 }
 
 /**
+ * TODO make generic (I want to ba able to timestamp any filename)
+ */
+bool::ym::TextLogger::open(void)
+{
+   char globalName[6 + // global
+                   1 + // _
+                   4 + // year
+                   1 + // _
+                   3 + // month
+                   1 + // _
+                   2 + // day
+                   1 + // _
+                   2 + // hour
+                   1 + // _
+                   2 + // minute
+                   1 + // _
+                   2 + // second
+                   4 + // .txt
+                   1 ] /* null */ = {'\0'};
+
+   auto t = std::time(nullptr);
+   std::tm timeinfo = {0};
+   auto * timeinfo_ptr = &timeinfo;
+#if defined(_WIN32)
+   localtime_s(timeinfo_ptr, &t); // vs doesn't have the standard localtime_s function
+#else
+   timeinfo_ptr = std::localtime(&t);
+#endif // _WIN32
+
+   auto const NBytesWritten =
+      std::strftime(       globalName,
+                    sizeof(globalName),
+                    "global_%Y_%b_%d_%H_%M_%S.txt",
+                    timeinfo_ptr);
+
+   bool wasOpened = false;
+
+   if (NBytesWritten > 0ul)
+   {
+      wasOpened = open(globalName);
+   }
+   else
+   {
+      printfError("Failure to store datetime!");
+      wasOpened = false;
+   }
+
+   return wasOpened;
+}
+
+/**
  *
  */
 bool ym::TextLogger::open(str const Filename)

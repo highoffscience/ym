@@ -36,6 +36,8 @@ public:
    YM_NO_COPY  (TextLogger)
    YM_NO_ASSIGN(TextLogger)
 
+   bool open(void); // constructs timestamp filename
+
    virtual bool open(str const Filename) override;
    virtual void close(void) override;
 
