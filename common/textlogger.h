@@ -132,7 +132,7 @@ void TextLogger::printf_Helper(str    const    Format,
 {
    _availableSem.acquire();
 
-   auto const WritePos = _writePos.fetch_add(1, std::memory_order_acquire) % getMaxNMessagesInBuffer();
+   auto const WritePos = _writePos.fetch_add(1, std::memory_order_relaxed) % getMaxNMessagesInBuffer();
    str        writePtr = _buffer_Ptr + (WritePos * getMaxMessageSize_bytes());
    auto       maxMsgSize_bytes = getMaxMessageSize_bytes();
 
