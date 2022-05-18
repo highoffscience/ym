@@ -68,10 +68,8 @@ private:
 
    static constexpr auto getTimeStampSize_bytes(void) { return 34u; }
 
-   typedef uint64 MsgReadyBF_T; // BF = BitField
-
    static constexpr uint32 _s_MaxMessageSize_bytes = 256u;
-   static constexpr uint32 _s_MaxNMessagesInBuffer = sizeof(MsgReadyBF_T) * 8ul; // 8 bits per byte
+   static constexpr uint32 _s_MaxNMessagesInBuffer = 64ul;
    static constexpr uint32 _s_BufferSize_bytes     = _s_MaxMessageSize_bytes * _s_MaxNMessagesInBuffer;
 
    static_assert((_s_MaxNMessagesInBuffer & (_s_MaxNMessagesInBuffer - 1u)) == 0u,
@@ -80,12 +78,11 @@ private:
    typedef std::counting_semaphore<_s_MaxNMessagesInBuffer> Semaphore_T;
 
    std::thread               _writer;
-   std::atomic<MsgReadyBF_T> _msgReady_bf;
    char * const              _buffer_Ptr;
    Timer                     _timer;
    Semaphore_T               _availableSem;
    Semaphore_T               _messagesSem;
-   uint32                    _readPos;  // these positions are slot numbers [0.._s_MaxNMessagesInBuffer)
+   std::atomic<uint32>       _readPos;  // these positions are slot numbers [0.._s_MaxNMessagesInBuffer)
    std::atomic<uint32>       _writePos; //  :
    std::atomic<uint32>       _verbosityCap;
    TimeStampMode_T const     _TimeStampMode;
@@ -134,8 +131,9 @@ void TextLogger::printf_Helper(str    const    Format,
 {
    _availableSem.acquire();
 
-   auto const WritePos = _writePos.fetch_add(1, std::memory_order_relaxed) % getMaxNMessagesInBuffer();
-   str        writePtr = _buffer_Ptr + (WritePos * getMaxMessageSize_bytes());
+   // _writePos doesn't need to wrap, so just incrementing until it rolls over is ok
+   auto const WritePos         = _writePos.fetch_add(1u, std::memory_order_relaxed) % getMaxNMessagesInBuffer();
+   str        writePtr         = _buffer_Ptr + (WritePos * getMaxMessageSize_bytes());
    auto       maxMsgSize_bytes = getMaxMessageSize_bytes();
 
    if (_TimeStampMode == RecordTimeStamp)
@@ -185,7 +183,8 @@ void TextLogger::printf_Helper(str    const    Format,
       writePtr[NCharsWrittenInTheory + 1u] = '\0';
    }
 
-   _msgReady_bf.fetch_or(1ul << WritePos, std::memory_order_release);
+   // _readPos doesn't need to wrap, so just incrementing until it rolls over is ok
+   _readPos.fetch_add(1u, std::memory_order_release);
 
    _messagesSem.release();
 }

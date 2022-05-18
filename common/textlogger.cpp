@@ -25,9 +25,8 @@ ym::TextLogger::TextLogger(void)
  */
 ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
    : _writer        {/*default*/                                      },
-     _msgReady_bf   {0ul                                              },
      _buffer_Ptr    {MemoryPool<char>::allocate(getBufferSize_bytes())},
-     _timer         {                                                 },
+     _timer         {/*default*/                                      },
      _availableSem  {static_cast<int32>(getMaxNMessagesInBuffer())    },
      _messagesSem   {0                                                },
      _readPos       {0u                                               },
@@ -162,24 +161,10 @@ void ym::TextLogger::writeMessagesToFile(void)
    while (writerEnabled)
    { // wait for messages to print while logger is still active
 
-      do
-      {
-         // when we close an ending message will be printed, waking the semaphore,
-         //  so no need to check for closing here, it can be safely done at the
-         //  end of this function
-         _messagesSem.acquire(); // waits until *a* message is in the buffer
+      _messagesSem.acquire(); // _readPos has been updated
 
-      } // wait until *this* message is in the buffer
-      while (_msgReady_bf.load(std::memory_order_acquire) & (1ul << _readPos) == 0ul);
-      // TODO is above a bug? What if we have to reacquire the semaphore? Do we simply
-      //      ignore the previous message? We acquire it twice but release once, that
-      //      seems wrong
-
-      _msgReady_bf.fetch_and(~(1ul << _readPos), std::memory_order_relaxed);
-
-      auto * const read_Ptr = _buffer_Ptr + (_readPos * getMaxMessageSize_bytes());
-
-      _readPos = (_readPos + 1) % getMaxNMessagesInBuffer();
+      auto const ReadPos = _readPos.load(std::memory_order_acquire) % getMaxNMessagesInBuffer();
+      auto * const read_Ptr = _buffer_Ptr + (ReadPos * getMaxMessageSize_bytes());
 
       if (_TimeStampMode == RecordTimeStamp)
       {
@@ -201,7 +186,8 @@ void ym::TextLogger::writeMessagesToFile(void)
 
       if (!_writerEnabled.load(std::memory_order_relaxed))
       { // close requested
-         if (_msgReady_bf.load(std::memory_order_relaxed) == 0ul)
+         if (_readPos .load(std::memory_order_acquire) ==
+             _writePos.load(std::memory_order_relaxed))
          { // no more messages in buffer
             writerEnabled = false;
          }
