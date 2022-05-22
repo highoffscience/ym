@@ -13,6 +13,14 @@ ym::Logger::Logger(void)
 }
 
 /**
+ * 
+ */
+bool ym::Logger::isOpen(void) const
+{
+   return _outfile.is_open();
+}
+
+/**
  *
  */
 bool ym::Logger::open(str const Filename)

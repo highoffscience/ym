@@ -27,13 +27,13 @@ ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
    : _writer        {/*default*/                                      },
      _buffer_Ptr    {MemoryPool<char>::allocate(getBufferSize_bytes())},
      _timer         {/*default*/                                      },
-     _availableSem  {static_cast<int32>(getMaxNMessagesInBuffer())    },
+     _availableSem  {static_cast<int64>(getMaxNMessagesInBuffer())    },
      _messagesSem   {0                                                },
      _readPos       {0u                                               },
      _writePos      {0u                                               },
      _verbosityCap  {0u                                               },
-     _TimeStampMode {TimeStampMode                                    },
-     _writerEnabled {false                                            }
+     _writerMode    {WriterMode_T::Closed                             },
+     _TimeStampMode {TimeStampMode                                    }
 {
 }
 
@@ -45,6 +45,14 @@ ym::TextLogger::~TextLogger(void)
    close();
 
    MemoryPool<char>::deallocate(_buffer_Ptr, getBufferSize_bytes());
+}
+
+/**
+ * 
+ */
+bool ym::TextLogger::isOpen(void) const
+{
+   return _writerMode.load(std::memory_order_relaxed) == WriterMode_T::Open;
 }
 
 /**
@@ -108,8 +116,7 @@ bool ym::TextLogger::open(str const Filename)
    if (wasOpened)
    { // file opened successfully
       _writer = std::thread(&TextLogger::writeMessagesToFile, this); // starts the thread
-      _writerEnabled.wait(false); // writer thread officially started
-      std::this_thread::yield();  // allow writer thread to acquire semaphore
+      _writerMode = WriterMode_T::Open;
    }
 
    return wasOpened;
@@ -120,15 +127,21 @@ bool ym::TextLogger::open(str const Filename)
  */
 void ym::TextLogger::close(void)
 {
-   bool       expected = true;
-   bool const Desired = false;
+   auto       expected = WriterMode_T::Open;
+   auto const Desired  = WriterMode_T::PreparingToClose;
 
-   if (_writerEnabled.compare_exchange_strong(expected, Desired, std::memory_order_relaxed))
+   if (_writerMode.compare_exchange_strong(expected, Desired,
+                                           std::memory_order_acquire,  // success
+                                           std::memory_order_relaxed)) // failure
    { // file open
+
       printf_Helper("File closing..."); // this call is necessary to wake the semaphore and check the closing flag
+      _writerMode.store(WriterMode_T::Closing, std::memory_order_release);
       _writer.join(); // wait until all messages have been written before closing the file
 
       Logger::close();
+
+      _writerMode.store(WriterMode_T::Closed, std::memory_order_relaxed);
    }
 }
 
@@ -149,13 +162,10 @@ void ym::TextLogger::setVerbosityCap(uint32 const VerbosityCap)
 }
 
 /**
- * TODO read todo about msg ready bitfield
+ *
  */
 void ym::TextLogger::writeMessagesToFile(void)
 {
-   _writerEnabled.store(true);
-   _writerEnabled.notify_one();
-
    bool writerEnabled = true;
 
    while (writerEnabled)
@@ -173,7 +183,7 @@ void ym::TextLogger::writeMessagesToFile(void)
 
       try
       {
-         _outfile.write(read_Ptr, getMaxMessageSize_bytes());
+         _outfile << read_Ptr;
       }
       catch (std::exception const & Exc)
       {
@@ -184,7 +194,9 @@ void ym::TextLogger::writeMessagesToFile(void)
       std::fprintf(stdout, read_Ptr);
    #endif // YM_PRINT_TO_SCREEN
 
-      if (!_writerEnabled.load(std::memory_order_relaxed))
+      _availableSem.release();
+
+      if (_writerMode.load(std::memory_order_relaxed) == WriterMode_T::Closing)
       { // close requested
          if (_readPos .load(std::memory_order_acquire) ==
              _writePos.load(std::memory_order_relaxed))
@@ -192,8 +204,6 @@ void ym::TextLogger::writeMessagesToFile(void)
             writerEnabled = false;
          }
       }
-
-      _availableSem.release();
    }
 }
 

@@ -20,7 +20,7 @@ public:
    explicit Logger(void);
    virtual ~Logger(void) = default;
 
-   inline auto isOpen(void) const { return _outfile.is_open(); }
+   virtual bool isOpen(void) const;
 
    YM_NO_COPY  (Logger);
    YM_NO_ASSIGN(Logger);

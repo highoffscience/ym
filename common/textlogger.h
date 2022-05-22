@@ -11,6 +11,7 @@
 
 #include <atomic>
 #include <cstdio>
+#include <cstring>
 #include <semaphore>
 #include <thread>
 
@@ -36,6 +37,8 @@ public:
    YM_NO_COPY  (TextLogger)
    YM_NO_ASSIGN(TextLogger)
 
+   virtual bool isOpen(void) const override;
+
    bool open(void); // constructs timestamp filename
 
    virtual bool open(str const Filename) override;
@@ -49,7 +52,7 @@ public:
    static constexpr auto getBufferSize_bytes    (void) { return _s_BufferSize_bytes;     }
 
    template <typename... Args_T>
-   bool printf(uint32 const    Verbosity,
+   void printf(uint32 const    Verbosity,
                str    const    Format,
                Args_T const... Args);
 
@@ -75,18 +78,26 @@ private:
    static_assert((_s_MaxNMessagesInBuffer & (_s_MaxNMessagesInBuffer - 1u)) == 0u,
       "_s_MaxNMessagesInBuffer needs to be power of 2");
 
-   typedef std::counting_semaphore<_s_MaxNMessagesInBuffer> Semaphore_T;
+   enum WriterMode_T : uint32
+   {
+      Closed,
+      PreparingToClose,
+      Closing,
+      Open
+   };
+
+   typedef std::counting_semaphore<_s_MaxNMessagesInBuffer> MsgSemaphore_T;
 
    std::thread               _writer;
    char * const              _buffer_Ptr;
    Timer                     _timer;
-   Semaphore_T               _availableSem;
-   Semaphore_T               _messagesSem;
+   MsgSemaphore_T            _availableSem;
+   MsgSemaphore_T            _messagesSem;
    std::atomic<uint32>       _readPos;  // these positions are slot numbers [0.._s_MaxNMessagesInBuffer)
    std::atomic<uint32>       _writePos; //  :
    std::atomic<uint32>       _verbosityCap;
+   std::atomic<WriterMode_T> _writerMode;
    TimeStampMode_T const     _TimeStampMode;
-   std::atomic<bool>         _writerEnabled;
 };
 
 /**
@@ -94,22 +105,17 @@ private:
  * the arguments are going to be primitives.
  */
 template <typename... Args_T>
-bool TextLogger::printf(uint32 const    Verbosity,
+void TextLogger::printf(uint32 const    Verbosity,
                         str    const    Format,
                         Args_T const... Args)
 {
-   bool wasPrinted = false;
-
-   if (_writerEnabled.load(std::memory_order_relaxed))
+   if (isOpen())
    { // ok to print
       if (Verbosity <= getVerbosityCap())
       { // verbose enough to print this message
          printf_Helper(Format, Args...);
-         wasPrinted = true;
       }
    }
-
-   return wasPrinted;
 }
 
 /**
@@ -132,7 +138,7 @@ void TextLogger::printf_Helper(str    const    Format,
    _availableSem.acquire();
 
    // _writePos doesn't need to wrap, so just incrementing until it rolls over is ok
-   auto const WritePos         = _writePos.fetch_add(1u, std::memory_order_relaxed) % getMaxNMessagesInBuffer();
+   auto const WritePos         = _writePos.fetch_add(1u, std::memory_order_acquire) % getMaxNMessagesInBuffer();
    str        writePtr         = _buffer_Ptr + (WritePos * getMaxMessageSize_bytes());
    auto       maxMsgSize_bytes = getMaxMessageSize_bytes();
 
@@ -158,6 +164,8 @@ void TextLogger::printf_Helper(str    const    Format,
                   "Message was '%s'\n",
                   NCharsWrittenInTheory,
                   writePtr);
+
+      std::strncpy(writePtr, "error in printf (internal snprintf error)", getMaxMessageSize_bytes());
 
       // don't fail here - just keep going
    }
