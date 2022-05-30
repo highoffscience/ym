@@ -58,23 +58,32 @@ bool ym::TextLogger::isOpen(void) const
 /**
  * TODO make generic (I want to ba able to timestamp any filename)
  */
-bool::ym::TextLogger::open(void)
+bool::ym::TextLogger::open_appendTimeStamp(str const Filename)
 {
-   char globalName[6 + // global
-                   1 + // _
-                   4 + // year
-                   1 + // _
-                   3 + // month
-                   1 + // _
-                   2 + // day
-                   1 + // _
-                   2 + // hour
-                   1 + // _
-                   2 + // minute
-                   1 + // _
-                   2 + // second
-                   4 + // .txt
-                   1 ] /* null */ = {'\0'};
+   auto const FilenameSize_bytes = std::strlen(Filename);
+   auto const TimeStampSize_bytes =
+      1u + // _
+      4u + // year
+      1u + // _
+      3u + // month
+      1u + // _
+      2u + // day
+      1u + // _
+      2u + // hour
+      1u + // _
+      2u + // minute
+      1u + // _
+      2u;  // second
+
+   auto const TimeStampedFilenameSize_bytes = FilenameSize_bytes + TimeStampSize_bytes + 1u; // +1 for null terminator
+   auto * const timeStampedFilename_Ptr = MemoryPool<char>::allocate(TimeStampedFilenameSize_bytes); 
+
+   std::strncpy(timeStampedFilename_Ptr, Filename, FilenameSize_bytes);
+
+   if (auto * const ext_Ptr = std::strrchr(timeStampedFilename_Ptr, '.'))
+   {
+      
+   }
 
    auto t = std::time(nullptr);
    std::tm timeinfo = {0};
@@ -102,6 +111,8 @@ bool::ym::TextLogger::open(void)
       printfError("Failure to store datetime!");
       wasOpened = false;
    }
+
+   MemoryPool<char>::deallocate(timeStampedFilename_Ptr, TimeStampedFilenameSize_bytes);
 
    return wasOpened;
 }

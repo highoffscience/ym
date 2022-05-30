@@ -39,8 +39,7 @@ public:
 
    virtual bool isOpen(void) const override;
 
-   bool open(void); // constructs timestamp filename
-
+           bool open_appendTimeStamp(str const Filename);
    virtual bool open(str const Filename) override;
    virtual void close(void) override;
 
