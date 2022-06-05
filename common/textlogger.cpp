@@ -24,17 +24,19 @@ ym::TextLogger::TextLogger(void)
  *
  */
 ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
-   : _writer        {/*default*/                                      },
-     _buffer_Ptr    {MemoryPool<char>::allocate(getBufferSize_bytes())},
-     _timer         {/*default*/                                      },
-     _availableSem  {static_cast<int64>(getMaxNMessagesInBuffer())    },
-     _messagesSem   {0                                                },
-     _readPos       {0u                                               },
-     _writePos      {0u                                               },
-     _verbosityCap  {0u                                               },
-     _writerMode    {WriterMode_T::Closed                             },
-     _TimeStampMode {TimeStampMode                                    }
+   : _verbosityGuard  {/*default*/                                      },
+     _verbosityGroups {/*default*/                                      },
+     _writer          {/*default*/                                      },
+     _buffer_Ptr      {MemoryPool<char>::allocate(getBufferSize_bytes())},
+     _timer           {/*default*/                                      },
+     _availableSem    {static_cast<int64>(getMaxNMessagesInBuffer())    },
+     _messagesSem     {0                                                },
+     _readPos         {0u                                               },
+     _writePos        {0u                                               },
+     _writerMode      {WriterMode_T::Closed                             },
+     _TimeStampMode   {TimeStampMode                                    }
 {
+   _verbosityGroups.reserve(8u);
 }
 
 /**
@@ -61,6 +63,9 @@ bool ym::TextLogger::isOpen(void) const
 bool::ym::TextLogger::open_appendTimeStamp(str const Filename)
 {
    auto const FilenameSize_bytes = std::strlen(Filename);
+   auto const Ext = std::strchr(Filename, '.');
+   auto const StemSize_bytes = (Ext) ? (Ext - Filename) : FilenameSize_bytes;
+
    auto const TimeStampSize_bytes =
       1u + // _
       4u + // year
@@ -78,12 +83,10 @@ bool::ym::TextLogger::open_appendTimeStamp(str const Filename)
    auto const TimeStampedFilenameSize_bytes = FilenameSize_bytes + TimeStampSize_bytes + 1u; // +1 for null terminator
    auto * const timeStampedFilename_Ptr = MemoryPool<char>::allocate(TimeStampedFilenameSize_bytes); 
 
-   std::strncpy(timeStampedFilename_Ptr, Filename, FilenameSize_bytes);
-
-   if (auto * const ext_Ptr = std::strrchr(timeStampedFilename_Ptr, '.'))
-   {
-      
-   }
+   std::strncpy(timeStampedFilename_Ptr, Filename, StemSize_bytes);
+   std::strncpy(timeStampedFilename_Ptr + StemSize_bytes + TimeStampSize_bytes,
+                Filename + StemSize_bytes,
+                FilenameSize_bytes - StemSize_bytes);
 
    auto t = std::time(nullptr);
    std::tm timeinfo = {0};
@@ -95,16 +98,16 @@ bool::ym::TextLogger::open_appendTimeStamp(str const Filename)
 #endif // _WIN32
 
    auto const NBytesWritten =
-      std::strftime(       globalName,
-                    sizeof(globalName),
-                    "global_%Y_%b_%d_%H_%M_%S.txt",
+      std::strftime(timeStampedFilename_Ptr + StemSize_bytes,
+                    TimeStampSize_bytes,
+                    "_%Y_%b_%d_%H_%M_%S.txt",
                     timeinfo_ptr);
 
    bool wasOpened = false;
 
    if (NBytesWritten > 0ul)
    {
-      wasOpened = open(globalName);
+      wasOpened = open(timeStampedFilename_Ptr);
    }
    else
    {
@@ -159,17 +162,38 @@ void ym::TextLogger::close(void)
 /**
  *
  */
-auto ym::TextLogger::getVerbosityCap(void) const -> uint32
+auto ym::TextLogger::addNewVGroup(void) -> VGroup_T
 {
-   return _verbosityCap.load(std::memory_order_relaxed);
+   std::scoped_lock const Lock(_verbosityGuard);
+
+   auto const Slot = _verbosityGroups.size();
+
+   _verbosityGroups.emplace_back(0u);
+
+   return Slot;
 }
 
 /**
  *
  */
-void ym::TextLogger::setVerbosityCap(uint32 const VerbosityCap)
+void ym::TextLogger::setVGroupEnable(VGroup const VGroupEnable,
+                                     bool   const Enable)
 {
-   _verbosityCap.store(VerbosityCap, std::memory_order_relaxed);
+   try
+   {
+      if (Enable)
+      {
+         _verbosityGroups.at(VGroupEnable.Slot) |= VGroupEnable.Mask;
+      }
+      else
+      {
+         _verbosityGroups.at(VGroupEnable.Slot) &= ~VGroupEnable.Mask;
+      }
+   }
+   catch (std::exception const & E)
+   {
+      // TODO throw ymception
+   }
 }
 
 /**
@@ -196,9 +220,9 @@ void ym::TextLogger::writeMessagesToFile(void)
       {
          _outfile << read_Ptr;
       }
-      catch (std::exception const & Exc)
+      catch (std::exception const & E)
       {
-         printfError("Logger write failed. Exc = '%s'\n", Exc.what());
+         printfError("Logger write failed. Exc = '%s'\n", E.what());
       }
 
    #if defined(YM_PRINT_TO_SCREEN)
@@ -221,6 +245,8 @@ void ym::TextLogger::writeMessagesToFile(void)
 /**
  * Returns the current time, in microseconds, since the creation of the log in the format
  *  (xxxxxxxxxxxx) xxx:xx:xx.xxx'xxx
+ * 
+ * Note! If changing this function don't forget to update getTimeStampSize_bytes()
  */
 void ym::TextLogger::populateFormattedTime(char * const write_Ptr) const
 {

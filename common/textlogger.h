@@ -10,10 +10,13 @@
 #include "timer.h"
 
 #include <atomic>
+#include <bit>
 #include <cstdio>
 #include <cstring>
+#include <mutex>
 #include <semaphore>
 #include <thread>
+#include <vector>
 
 namespace ym
 {
@@ -43,15 +46,24 @@ public:
    virtual bool open(str const Filename) override;
    virtual void close(void) override;
 
-   uint32 getVerbosityCap(void) const;
-   void   setVerbosityCap(uint32 const VerbosityCap);
+   struct VGroup // verbosity group
+   {
+      typedef uint8 T;
+
+      T const Slot;
+      T const Mask;
+   };
+
+   VGroup::T addNewVGroup(void);
+   void setVGroupEnable(VGroup const VGroupEnable,
+                        bool   const Enable);
 
    static constexpr auto getMaxMessageSize_bytes(void) { return _s_MaxMessageSize_bytes; }
    static constexpr auto getMaxNMessagesInBuffer(void) { return _s_MaxNMessagesInBuffer; }
    static constexpr auto getBufferSize_bytes    (void) { return _s_BufferSize_bytes;     }
 
    template <typename... Args_T>
-   void printf(uint32 const    Verbosity,
+   void printf(VGroup const    VGroupEnable,
                str    const    Format,
                Args_T const... Args);
 
@@ -74,8 +86,7 @@ private:
    static constexpr uint32 _s_MaxNMessagesInBuffer = 64ul;
    static constexpr uint32 _s_BufferSize_bytes     = _s_MaxMessageSize_bytes * _s_MaxNMessagesInBuffer;
 
-   static_assert((_s_MaxNMessagesInBuffer & (_s_MaxNMessagesInBuffer - 1u)) == 0u,
-      "_s_MaxNMessagesInBuffer needs to be power of 2");
+   static_assert(std::has_single_bit(_s_MaxNMessagesInBuffer), "_s_MaxNMessagesInBuffer needs to be power of 2");
 
    enum WriterMode_T : uint32
    {
@@ -87,6 +98,8 @@ private:
 
    typedef std::counting_semaphore<_s_MaxNMessagesInBuffer> MsgSemaphore_T;
 
+   std::mutex                _verbosityGuard;
+   std::vector<VGroup>       _verbosityGroups;
    std::thread               _writer;
    char * const              _buffer_Ptr;
    Timer                     _timer;
@@ -94,7 +107,6 @@ private:
    MsgSemaphore_T            _messagesSem;
    std::atomic<uint32>       _readPos;  // these positions are slot numbers [0.._s_MaxNMessagesInBuffer)
    std::atomic<uint32>       _writePos; //  :
-   std::atomic<uint32>       _verbosityCap;
    std::atomic<WriterMode_T> _writerMode;
    TimeStampMode_T const     _TimeStampMode;
 };
@@ -104,13 +116,20 @@ private:
  * the arguments are going to be primitives.
  */
 template <typename... Args_T>
-void TextLogger::printf(uint32 const    Verbosity,
+void TextLogger::printf(VGroup const    VGroupEnable,
                         str    const    Format,
                         Args_T const... Args)
 {
    if (isOpen())
    { // ok to print
-      if (Verbosity <= getVerbosityCap())
+      bool isEnabled = false;
+
+      {
+         std::scoped_lock const Lock(_verbosityGroups);
+         isEnabled = (_verbosityGroups.at(VGroupEnable.Slot) & VGroupEnable.Mask) > 0u;
+      }
+
+      if (isEnabled)
       { // verbose enough to print this message
          printf_Helper(Format, Args...);
       }
