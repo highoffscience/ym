@@ -160,9 +160,11 @@ void ym::TextLogger::close(void)
 }
 
 /**
- *
+ * TODO catch and throw ymception
+ * 
+ * TODO throw if Slot > max_value(VGroup::T)
  */
-auto ym::TextLogger::addNewVGroup(void) -> VGroup_T
+auto ym::TextLogger::addNewVGroup(void) -> VGroup::T
 {
    std::scoped_lock const Lock(_verbosityGuard);
 
