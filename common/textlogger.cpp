@@ -59,12 +59,14 @@ bool ym::TextLogger::isOpen(void) const
 
 /**
  * TODO make generic (I want to ba able to timestamp any filename)
+ * 
+ * TODO come up with a way to destruct allocate() calls when exiting scope
  */
 bool::ym::TextLogger::open_appendTimeStamp(str const Filename)
 {
    auto const FilenameSize_bytes = std::strlen(Filename);
-   auto const Ext = std::strchr(Filename, '.');
-   auto const StemSize_bytes = (Ext) ? (Ext - Filename) : FilenameSize_bytes;
+   auto const Extension = std::strchr(Filename, '.');
+   auto const StemSize_bytes = (Extension) ? (Extension - Filename) : FilenameSize_bytes;
 
    auto const TimeStampSize_bytes =
       1u + // _
@@ -81,7 +83,9 @@ bool::ym::TextLogger::open_appendTimeStamp(str const Filename)
       2u;  // second
 
    auto const TimeStampedFilenameSize_bytes = FilenameSize_bytes + TimeStampSize_bytes + 1u; // +1 for null terminator
-   auto * const timeStampedFilename_Ptr = MemoryPool<char>::allocate(TimeStampedFilenameSize_bytes); 
+
+   // TODO should this return a smart pointer?
+   auto * const timeStampedFilename_Ptr = MemoryPool<char>::allocate(TimeStampedFilenameSize_bytes);
 
    std::strncpy(timeStampedFilename_Ptr, Filename, StemSize_bytes);
    std::strncpy(timeStampedFilename_Ptr + StemSize_bytes + TimeStampSize_bytes,
@@ -160,42 +164,35 @@ void ym::TextLogger::close(void)
 }
 
 /**
- * TODO catch and throw ymception
- * 
- * TODO throw if Slot > max_value(VGroup::T)
+ *
  */
-auto ym::TextLogger::addNewVGroup(void) -> VGroup::T
+void ym::TextLogger::enable(VGGroup_T const VGGroup)
 {
-   std::scoped_lock const Lock(_verbosityGuard);
-
-   auto const Slot = _verbosityGroups.size();
-
-   _verbosityGroups.emplace_back(0u);
-
-   return Slot;
+   _vGroups[static_cast<uint32>(VGGroup)] = 0xffu;
 }
 
 /**
  *
  */
-void ym::TextLogger::setVGroupEnable(VGroup const VGroupEnable,
-                                     bool   const Enable)
+void ym::TextLogger::enable(VGMask_T const VGMask)
 {
-   try
-   {
-      if (Enable)
-      {
-         _verbosityGroups.at(VGroupEnable.Slot) |= VGroupEnable.Mask;
-      }
-      else
-      {
-         _verbosityGroups.at(VGroupEnable.Slot) &= ~VGroupEnable.Mask;
-      }
-   }
-   catch (std::exception const & E)
-   {
-      // TODO throw ymception
-   }
+   _vGroups[static_cast<uint32>(VGMask) >> 8u] |= static_cast<uint8>(VGMask);
+}
+
+/**
+ *
+ */
+void ym::TextLogger::disable(VGGroup_T const VGGroup)
+{
+   _vGroups[static_cast<uint32>(VGGroup)] = 0u;
+}
+
+/**
+ *
+ */
+void ym::TextLogger::disable(VGMask_T const VGMask)
+{
+   _vGroups[static_cast<uint32>(VGMask) >> 8u] &= ~static_cast<uint8>(VGMask);
 }
 
 /**

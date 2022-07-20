@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "Standard.h"
+#include "ym.h"
 
-#include "TextLogger.h"
+#include "textlogger.h"
 
 #include <atomic>
 #include <exception>
@@ -27,22 +27,26 @@ namespace ym
 
 template <typename... Args_T>
 inline void ymAssert(   bool   const    Condition,
-                        SStr_T const    Format,
+                        TextLogger &    txtlog_ref,
+                        str    const    Format,
                         Args_T const... Args);
 
 template <typename... Args_T>
 inline void ymAssertDbg(bool   const    Condition,
-                        SStr_T const    Format,
+                        TextLogger &    txtlog_ref,
+                        str    const    Format,
                         Args_T const... Args);
 
 template <typename... Args_T>
 inline void ymThrow(    bool   const    Condition,
-                        SStr_T const    Format,
+                        TextLogger &    txtlog_ref,
+                        str    const    Format,
                         Args_T const... Args);
 
 template <typename... Args_T>
 inline void ymThrowDbg( bool   const    Condition,
-                        SStr_T const    Format,
+                        TextLogger &    txtlog_ref,
+                        str    const    Format,
                         Args_T const... Args);
 
 /* -------------------------------------------------------------------------- */
@@ -53,18 +57,20 @@ inline void ymThrowDbg( bool   const    Condition,
 class Ymception : public std::exception
 {
 public:
-   explicit Ymception(SStr_T const Msg);
+   explicit Ymception(str const Msg);
 
    virtual ~Ymception(void) = default;
 
    template <typename... Args_T>
    friend void ymAssert(bool   const    Condition,
-                        SStr_T const    Format,
+                        TextLogger &    txtlog_ref,
+                        str    const    Format,
                         Args_T const... Args);
 
    template <typename... Args_T>
    friend void ymThrow(bool   const    Condition,
-                       SStr_T const    Format,
+                       TextLogger &    txtlog_ref,
+                       str    const    Format,
                        Args_T const... Args);
 
    inline auto getTag(void) const { return _Tag; }
@@ -73,7 +79,8 @@ private:
    template <typename... Args_T>
    static void assertPrintToLogAndConditionallyThrow(bool   const    Condition,
                                                      bool   const    TerminateOnFailure,
-                                                     SStr_T const    Format,
+                                                     TextLogger &    txtlog_ref,
+                                                     str    const    Format,
                                                      Args_T const... Args);
 
    static std::atomic<uint32> _s_tagCount;
@@ -86,10 +93,11 @@ private:
  */
 template <typename... Args_T>
 inline void ymAssert(bool   const    Condition,
-                     SStr_T const    Format,
+                     TextLogger &    txtlog_ref,
+                     str    const    Format,
                      Args_T const... Args)
 {
-   Ymception::assertPrintToLogAndConditionallyThrow(Condition, true, Format, Args...);
+   Ymception::assertPrintToLogAndConditionallyThrow(Condition, true, txtlog_ref, Format, Args...);
 }
 
 /**
@@ -97,11 +105,12 @@ inline void ymAssert(bool   const    Condition,
  */
 template <typename... Args_T>
 inline void ymAssertDbg(bool   const    Condition,
-                        SStr_T const    Format,
+                        TextLogger &    txtlog_ref,
+                        str    const    Format,
                         Args_T const... Args)
 {
 #if defined(YM_DBG)
-   ymAssert(Condition, Format, Args...);
+   ymAssert(Condition, txtlog_ref, Format, Args...);
 #endif // YM_DBG
 }
 
@@ -110,10 +119,11 @@ inline void ymAssertDbg(bool   const    Condition,
  */
 template <typename... Args_T>
 inline void ymThrow(bool   const    Condition,
-                    SStr_T const    Format,
+                    TextLogger &    txtlog_ref,
+                    str    const    Format,
                     Args_T const... Args)
 {
-   Ymception::assertPrintToLogAndConditionallyThrow(Condition, false, Format, Args...);
+   Ymception::assertPrintToLogAndConditionallyThrow(Condition, false, txtlog_ref, Format, Args...);
 }
 
 /**
@@ -121,11 +131,12 @@ inline void ymThrow(bool   const    Condition,
  */
 template <typename... Args_T>
 inline void ymThrowDbg(bool   const    Condition,
-                       SStr_T const    Format,
+                       TextLogger &    txtlog_ref,
+                       str    const    Format,
                        Args_T const... Args)
 {
 #if defined(YM_DBG)
-   ymThrow(Condition, Format, Args...);
+   ymThrow(Condition, txtlog_ref, Format, Args...);
 #endif // YM_DBG
 }
 
@@ -135,12 +146,13 @@ inline void ymThrowDbg(bool   const    Condition,
 template <typename... Args_T>
 void Ymception::assertPrintToLogAndConditionallyThrow(bool   const    Condition,
                                                       bool   const    TerminateOnFailure,
-                                                      SStr_T const    Format,
+                                                      TextLogger &    txtlog_ref,
+                                                      str    const    Format,
                                                       Args_T const... Args)
 {
    if (!Condition)
    { // assert failed
-      ymLog(0, "Assert failed!");
+      txtlog_ref.printf(0, "Assert failed!");
 
       Ymception e("Assertion failure!");
       if (TerminateOnFailure)

@@ -2,14 +2,14 @@
  * @author Forrest Jablonski
  */
 
-#include "Ymception.h"
+#include "ymception.h"
 
-std::atomic<ym::uint32> ym::Ymception::_s_tagCount = 0;
+std::atomic<ym::uint32> ym::Ymception::_s_tagCount = 0u;
 
 /**
  *
  */
-ym::Ymception::Ymception(SStr_T const Msg)
+ym::Ymception::Ymception(str const Msg)
    : std::exception {Msg                                                },
      _Tag           {_s_tagCount.fetch_add(1, std::memory_order_relaxed)}
 {
