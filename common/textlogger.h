@@ -36,16 +36,16 @@ public:
 
    explicit TextLogger(void);
    explicit TextLogger(TimeStampMode_T const TimeStampMode);
-   virtual ~TextLogger(void);
+   ~TextLogger(void);
 
    YM_NO_COPY  (TextLogger)
    YM_NO_ASSIGN(TextLogger)
 
-   virtual bool isOpen(void) const override;
+   bool isOpen(void) const;
 
-           bool open_appendTimeStamp(str const Filename);
-   virtual bool open(str const Filename) override;
-   virtual void close(void) override;
+   bool open_appendTimeStamp(str const Filename);
+   bool open(str const Filename);
+   void close(void);
 
    static constexpr auto getMaxMessageSize_bytes(void) { return _s_MaxMessageSize_bytes; }
    static constexpr auto getMaxNMessagesInBuffer(void) { return _s_MaxNMessagesInBuffer; }
@@ -91,8 +91,8 @@ private:
       Open
    };
 
-   typedef std::counting_semaphore<_s_MaxNMessagesInBuffer>                          MsgSemaphore_T;
-   typedef std::array<std::atomic<uint8>, static_cast<uint32>(VGGroup_T::NVGGroups)> VGroups_T;
+   typedef std::counting_semaphore<_s_MaxNMessagesInBuffer>                         MsgSemaphore_T;
+   typedef std::array<std::atomic<uint8>, static_cast<uint32>(VGGroup_T::NVGroups)> VGroups_T;
 
    VGroups_T                       _vGroups;
    std::thread                     _writer;
@@ -142,7 +142,7 @@ inline void TextLogger::printfError(str    const    Format,
 }
 
 /**
- * 
+ *
  */
 template <typename... Args_T>
 void TextLogger::printf_Helper(str    const    Format,

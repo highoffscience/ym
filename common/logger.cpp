@@ -8,38 +8,35 @@
  *
  */
 ym::Logger::Logger(void)
-   : _outfile {}
+   : _outfile_ptr {nullptr}
 {
-}
-
-/**
- * 
- */
-bool ym::Logger::isOpen(void) const
-{
-   return _outfile.is_open();
 }
 
 /**
  *
  */
-bool ym::Logger::open(str const Filename)
+ym::Logger::~Logger(void)
 {
-   bool wasOpened = false;
+   closeOutfile();
+}
 
-   if (!_outfile.is_open())
+/**
+ *
+ */
+bool ym::Logger::openOutfile(str const Filename)
+{
+   if (!_outfile_ptr)
    {
-      _outfile.open(Filename);
-      wasOpened = _outfile.is_open();
+      _outfile_ptr = std::fopen(Filename, "w");
    }
 
-   return wasOpened;
+   return _outfile_ptr != nullptr;
 }
 
 /**
  *
  */
-void ym::Logger::close(void)
+void ym::Logger::closeOutfile(void)
 {
-   _outfile.close();
+   std::fclose(_outfile_ptr);
 }

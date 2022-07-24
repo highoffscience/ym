@@ -27,10 +27,10 @@ public:
    YM_NO_ASSIGN(MemoryPool)
 
           T * allocate(void);
-   static T * allocate(uint64 const NObjects);
+   static std::unique_ptr<T> allocate(uint64 const NObjects);
 
           void deallocate(T *    const data_Ptr);
-   static void deallocate(T *    const data_Ptr,
+   static void deallocate(std::unique_ptr<T>    const data_Ptr,
                           uint64 const NObjects);
 
 private:
@@ -42,9 +42,6 @@ private:
       Chunk * next_ptr;
       T       data;
    };
-
-   static_assert(sizeof(T) >= sizeof(Chunk *), "Chunk is of insufficient size"  );
-   static_assert(sizeof(T) == sizeof(Chunk  ), "Chunk and T should be same size");
 
    static constexpr uint64 s_DefaultNChunksPerBlock = 4096ul;
 
@@ -86,6 +83,9 @@ MemoryPool<T>::~MemoryPool(void)
 template <typename T>
 T * MemoryPool<T>::allocate(void)
 {
+   static_assert(sizeof(T) >= sizeof(Chunk *), "Chunk is of insufficient size"  );
+   static_assert(sizeof(T) == sizeof(Chunk  ), "Chunk and T should be same size");
+
    auto * data_ptr = reinterpret_cast<T *>(_nextFreeChunk_ptr);
 
    if (!data_ptr)
@@ -109,10 +109,10 @@ T * MemoryPool<T>::allocate(void)
  * TODO log exceptions and return null maybe?
  */
 template <typename T>
-T * MemoryPool<T>::allocate(uint64 const NObjects)
+std::unique_ptr<T> MemoryPool<T>::allocate(uint64 const NObjects)
 {
    std::allocator<T> a;
-   return a.allocate(NObjects);
+   return std::make_unique<T>(a.allocate(NObjects));
 }
 
 /**
@@ -130,11 +130,11 @@ void MemoryPool<T>::deallocate(T * const data_Ptr)
  *
  */
 template <typename T>
-void MemoryPool<T>::deallocate(T *    const data_Ptr,
+void MemoryPool<T>::deallocate(std::unique_ptr<T>    const data_Ptr,
                                uint64 const NObjects)
 {
    std::allocator<T> a;
-   a.deallocate(data_Ptr, NObjects);
+   a.deallocate(data_Ptr.release(), NObjects);
 }
 
 } // ym

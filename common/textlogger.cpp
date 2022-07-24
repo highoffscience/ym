@@ -24,8 +24,7 @@ ym::TextLogger::TextLogger(void)
  *
  */
 ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
-   : _verbosityGuard  {/*default*/                                      },
-     _verbosityGroups {/*default*/                                      },
+   : _vGroups         {/*default*/                                      },
      _writer          {/*default*/                                      },
      _buffer_Ptr      {MemoryPool<char>::allocate(getBufferSize_bytes())},
      _timer           {/*default*/                                      },
@@ -36,7 +35,6 @@ ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
      _writerMode      {WriterMode_T::Closed                             },
      _TimeStampMode   {TimeStampMode                                    }
 {
-   _verbosityGroups.reserve(8u);
 }
 
 /**
@@ -50,7 +48,7 @@ ym::TextLogger::~TextLogger(void)
 }
 
 /**
- * 
+ *
  */
 bool ym::TextLogger::isOpen(void) const
 {
@@ -58,9 +56,7 @@ bool ym::TextLogger::isOpen(void) const
 }
 
 /**
- * TODO make generic (I want to ba able to timestamp any filename)
- * 
- * TODO come up with a way to destruct allocate() calls when exiting scope
+ * TODO come up with a way to destruct allocate() calls when exiting scopes
  */
 bool::ym::TextLogger::open_appendTimeStamp(str const Filename)
 {
@@ -82,7 +78,8 @@ bool::ym::TextLogger::open_appendTimeStamp(str const Filename)
       1u + // _
       2u;  // second
 
-   auto const TimeStampedFilenameSize_bytes = FilenameSize_bytes + TimeStampSize_bytes + 1u; // +1 for null terminator
+   auto const TimeStampedFilenameSize_bytes =
+      FilenameSize_bytes + TimeStampSize_bytes + 1u; // +1 for null terminator
 
    // TODO should this return a smart pointer?
    auto * const timeStampedFilename_Ptr = MemoryPool<char>::allocate(TimeStampedFilenameSize_bytes);
@@ -244,7 +241,7 @@ void ym::TextLogger::writeMessagesToFile(void)
 /**
  * Returns the current time, in microseconds, since the creation of the log in the format
  *  (xxxxxxxxxxxx) xxx:xx:xx.xxx'xxx
- * 
+ *
  * Note! If changing this function don't forget to update getTimeStampSize_bytes()
  */
 void ym::TextLogger::populateFormattedTime(char * const write_Ptr) const

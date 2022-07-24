@@ -6,7 +6,7 @@
 
 #include "ym.h"
 
-#include <fstream>
+#include <cstdio>
 
 namespace ym
 {
@@ -18,18 +18,16 @@ class Logger
 {
 public:
    explicit Logger(void);
-   virtual ~Logger(void) = default;
-
-   virtual bool isOpen(void) const;
+   ~Logger(void);
 
    YM_NO_COPY  (Logger);
    YM_NO_ASSIGN(Logger);
 
 protected:
-   virtual bool open(str const Filename);
-   virtual void close(void);
+   bool openOutfile(str const Filename);
+   void closeOutfile(void);
 
-   std::ofstream _outfile;
+   FILE * _outfile_ptr;
 };
 
 } // ym
