@@ -34,7 +34,9 @@ bool ym::Logger::openOutfile(str const Filename)
 }
 
 /**
- *
+ * TODO make this private and have the form of a custom deleter for unique_ptr,
+ *  since going out of scope will trigger the closing of the file we dont need
+ *  this function in its current form anyway...just call outfile.reset()
  */
 void ym::Logger::closeOutfile(void)
 {

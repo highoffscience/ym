@@ -7,6 +7,7 @@
 #include "ym.h"
 
 #include <cstdio>
+#include <memory>
 
 namespace ym
 {
@@ -27,7 +28,7 @@ protected:
    bool openOutfile(str const Filename);
    void closeOutfile(void);
 
-   FILE * _outfile_ptr;
+   std::unique_ptr<FILE> _outfile_ptr;
 };
 
 } // ym
