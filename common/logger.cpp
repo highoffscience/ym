@@ -8,16 +8,8 @@
  *
  */
 ym::Logger::Logger(void)
-   : _outfile_ptr {nullptr}
+   : _outfile_uptr {nullptr, [](std::FILE * const Ptr) { std::fclose(Ptr); }}
 {
-}
-
-/**
- *
- */
-ym::Logger::~Logger(void)
-{
-   closeOutfile();
 }
 
 /**
@@ -25,20 +17,10 @@ ym::Logger::~Logger(void)
  */
 bool ym::Logger::openOutfile(str const Filename)
 {
-   if (!_outfile_ptr)
+   if (!_outfile_uptr)
    {
-      _outfile_ptr = std::fopen(Filename, "w");
+      _outfile_uptr.reset(std::fopen(Filename, "w"));
    }
 
-   return _outfile_ptr != nullptr;
-}
-
-/**
- * TODO make this private and have the form of a custom deleter for unique_ptr,
- *  since going out of scope will trigger the closing of the file we dont need
- *  this function in its current form anyway...just call outfile.reset()
- */
-void ym::Logger::closeOutfile(void)
-{
-   std::fclose(_outfile_ptr);
+   return static_cast<bool>(_outfile_uptr);
 }

@@ -19,16 +19,14 @@ class Logger
 {
 public:
    explicit Logger(void);
-   ~Logger(void);
 
    YM_NO_COPY  (Logger);
    YM_NO_ASSIGN(Logger);
 
 protected:
    bool openOutfile(str const Filename);
-   void closeOutfile(void);
 
-   std::unique_ptr<FILE> _outfile_ptr;
+   std::unique_ptr<std::FILE, void(*)(std::FILE * const)> _outfile_uptr;
 };
 
 } // ym

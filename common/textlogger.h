@@ -81,7 +81,8 @@ private:
    static constexpr uint32 _s_MaxNMessagesInBuffer = 64ul;
    static constexpr uint32 _s_BufferSize_bytes     = _s_MaxMessageSize_bytes * _s_MaxNMessagesInBuffer;
 
-   static_assert(std::has_single_bit(_s_MaxNMessagesInBuffer), "_s_MaxNMessagesInBuffer needs to be power of 2");
+   static_assert(std::has_single_bit(_s_MaxNMessagesInBuffer),
+      "_s_MaxNMessagesInBuffer needs to be power of 2");
 
    enum WriterMode_T : uint32
    {
