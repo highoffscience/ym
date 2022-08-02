@@ -12,6 +12,23 @@ ym::Logger::Logger(void)
 {
 }
 
+/*
+ TODO! Why doesn't this compile?
+*/
+#include <memory>
+std::unique_ptr<int> get(int const NObjects)
+{
+   std::allocator<int> a;
+   auto * const data_Ptr = (NObjects > 0ul) ? a.allocate(NObjects) : nullptr;
+   auto deleterr = [&](int * p) { a.deallocate(data_Ptr, NObjects); };
+   return std::unique_ptr<int, decltype(deleterr)>{data_Ptr, deleterr};
+}
+
+void test(void)
+{
+   auto u = get(10);
+}
+
 /**
  *
  */
