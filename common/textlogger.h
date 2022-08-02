@@ -15,6 +15,7 @@
 #include <bit>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <semaphore>
 #include <thread>
 #include <vector>
@@ -75,10 +76,11 @@ private:
 
    void populateFormattedTime(char * const write_Ptr) const;
 
+   // For description of magic # 34 see populateFormattedTime()
    static constexpr auto getTimeStampSize_bytes(void) { return 34u; }
 
    static constexpr uint32 _s_MaxMessageSize_bytes = 256u;
-   static constexpr uint32 _s_MaxNMessagesInBuffer = 64ul;
+   static constexpr uint32 _s_MaxNMessagesInBuffer = 64u;
    static constexpr uint32 _s_BufferSize_bytes     = _s_MaxMessageSize_bytes * _s_MaxNMessagesInBuffer;
 
    static_assert(std::has_single_bit(_s_MaxNMessagesInBuffer),
@@ -95,16 +97,16 @@ private:
    typedef std::counting_semaphore<_s_MaxNMessagesInBuffer>                         MsgSemaphore_T;
    typedef std::array<std::atomic<uint8>, static_cast<uint32>(VGGroup_T::NVGroups)> VGroups_T;
 
-   VGroups_T                       _vGroups;
-   std::thread                     _writer;
-   char * const                    _buffer_Ptr;
-   Timer                           _timer;
-   MsgSemaphore_T                  _availableSem;
-   MsgSemaphore_T                  _messagesSem;
-   std::atomic<uint32>             _readPos;  // these positions are slot numbers [0.._s_MaxNMessagesInBuffer)
-   std::atomic<uint32>             _writePos; //  :
-   std::atomic<WriterMode_T>       _writerMode;
-   TimeStampMode_T const           _TimeStampMode;
+   VGroups_T                 _vGroups;
+   std::thread               _writer;
+   char * const              _buffer_Ptr;
+   Timer                     _timer;
+   MsgSemaphore_T            _availableSem;
+   MsgSemaphore_T            _messagesSem;
+   std::atomic<uint32>       _readPos;  // these positions are slot numbers [0.._s_MaxNMessagesInBuffer)
+   std::atomic<uint32>       _writePos; //  :
+   std::atomic<WriterMode_T> _writerMode;
+   TimeStampMode_T const     _TimeStampMode;
 };
 
 /**

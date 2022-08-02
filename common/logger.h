@@ -18,15 +18,16 @@ namespace ym
 class Logger
 {
 public:
-   explicit Logger(void);
-
    YM_NO_COPY  (Logger);
    YM_NO_ASSIGN(Logger);
 
 protected:
+   explicit Logger(void);
+
    bool openOutfile(str const Filename);
 
-   std::unique_ptr<std::FILE, void(*)(std::FILE * const)> _outfile_uptr;
+   using FileDeleter_T = void(*)(std::FILE * const);
+   std::unique_ptr<std::FILE, FileDeleter_T> _outfile_uptr;
 };
 
 } // ym

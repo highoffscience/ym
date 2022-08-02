@@ -12,7 +12,7 @@ namespace ym
 {
 
 /**
- *
+ * TODO I want Logger/Ymception to be in this file
  */
 template <typename T>
 class MemoryPool
@@ -26,16 +26,17 @@ public:
    YM_NO_COPY  (MemoryPool)
    YM_NO_ASSIGN(MemoryPool)
 
-          T * allocate(void);
-   static std::unique_ptr<T> allocate(uint64 const NObjects);
+   T * allocate(void);
 
-          void deallocate(T *    const data_Ptr);
-   static void deallocate(std::unique_ptr<T>    const data_Ptr,
-                          uint64 const NObjects);
+   using Deleter_T = void(*)(T * const);
+   using UPtr_T    = std::unique_ptr<T, Deleter_T>;
+   static UPtr_T allocate(uint64 const NObjects);
+
+   void deallocate(T * const data_Ptr);
 
 private:
    /**
-    *
+    * One element per chunk
     */
    union Chunk
    {
@@ -71,6 +72,7 @@ MemoryPool<T>::MemoryPool(uint64 const NChunksPerBlock)
 
 /**
  * TODO deallocate chunks
+ *      Only deallocate free chunks, the others are being used by clients
  */
 template <typename T>
 MemoryPool<T>::~MemoryPool(void)
@@ -78,7 +80,7 @@ MemoryPool<T>::~MemoryPool(void)
 }
 
 /**
- * TODO log exceptions and return null maybe?
+ * We are guaranteed _NChunksPerBlock > 0ul
  */
 template <typename T>
 T * MemoryPool<T>::allocate(void)
@@ -86,33 +88,36 @@ T * MemoryPool<T>::allocate(void)
    static_assert(sizeof(T) >= sizeof(Chunk *), "Chunk is of insufficient size"  );
    static_assert(sizeof(T) == sizeof(Chunk  ), "Chunk and T should be same size");
 
-   auto * data_ptr = reinterpret_cast<T *>(_nextFreeChunk_ptr);
-
-   if (!data_ptr)
+   if (!_nextFreeChunk_ptr)
    {
-      std::allocator<T> a;
-      data_ptr = a.allocate(_NChunksPerBlock);
-      _nextFreeChunk_ptr = reinterpret_cast<Chunk *>(data_ptr);
+      std::allocator<Chunk> a;
+      _nextFreeChunk_ptr = a.allocate(_NChunksPerBlock);
 
-      for (uint64 i = 0ul; i < _NChunksPerBlock; ++i)
+      auto * chunk_ptr = _nextFreeChunk_ptr;
+      for (uint64 i = 0ul; i < _NChunksPerBlock - 1ul; ++i)
       {
-         (_nextFreeChunk_ptr + i)->next_ptr = _nextFreeChunk_ptr + i + 1ul;
+         chunk_ptr->next_ptr = chunk_ptr + 1ul;
+         chunk_ptr = chunk_ptr->next_ptr;
       }
-      (_nextFreeChunk_ptr + _NChunksPerBlock - 1ul)->next_ptr = nullptr;
+      chunk_ptr->next_ptr = nullptr;
    }
 
+   auto * const data_Ptr = reinterpret_cast<T *>(_nextFreeChunk_ptr);
    _nextFreeChunk_ptr = _nextFreeChunk_ptr->next_ptr;
-   return data_ptr;
+   return data_Ptr;
 }
 
 /**
- * TODO log exceptions and return null maybe?
+ * 
  */
 template <typename T>
-std::unique_ptr<T> MemoryPool<T>::allocate(uint64 const NObjects)
+auto MemoryPool<T>::allocate(uint64 const NObjects) -> UPtr_T
 {
    std::allocator<T> a;
-   return std::make_unique<T>(a.allocate(NObjects));
+   auto * const data_Ptr = (NObjects > 0ul) ? a.allocate(NObjects) : nullptr;
+   return {data_Ptr, [](T * const data_Ptr) {
+      a.deallocate(data_Ptr, NObjects); // TODO is "a" and "NObjects" captured in this lambda?
+   }};
 }
 
 /**
@@ -130,11 +135,14 @@ void MemoryPool<T>::deallocate(T * const data_Ptr)
  *
  */
 template <typename T>
-void MemoryPool<T>::deallocate(std::unique_ptr<T>    const data_Ptr,
+void MemoryPool<T>::deallocate(std::unique_ptr<T> & data_uptr_ref,
                                uint64 const NObjects)
 {
-   std::allocator<T> a;
-   a.deallocate(data_Ptr.release(), NObjects);
+   if (data_uptr_ref)
+   {
+      std::allocator<T> a;
+      a.deallocate(data_uptr_ref.release(), NObjects);
+   }
 }
 
 } // ym
