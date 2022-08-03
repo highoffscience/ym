@@ -6,13 +6,15 @@
 
 #include "ym.h"
 
+#include "ymception.h"
+
 #include <memory>
 
 namespace ym
 {
 
 /**
- * TODO I want Logger/Ymception to be in this file
+ *
  */
 template <typename T>
 class MemoryPool
@@ -26,12 +28,9 @@ public:
    YM_NO_COPY  (MemoryPool)
    YM_NO_ASSIGN(MemoryPool)
 
+   static auto /*unique_ptr*/ allocate(uint64 const NElements);
+
    T * allocate(void);
-
-   using Deleter_T = void(*)(T * const);
-   using UPtr_T    = std::unique_ptr<T, Deleter_T>;
-   static UPtr_T allocate(uint64 const NObjects);
-
    void deallocate(T * const data_Ptr);
 
 private:
@@ -46,8 +45,8 @@ private:
 
    static constexpr uint64 s_DefaultNChunksPerBlock = 4096ul;
 
-   Chunk *           _nextFreeChunk_ptr;
-   uint64 const      _NChunksPerBlock;
+   Chunk *      _nextFreeChunk_ptr;
+   uint64 const _NChunksPerBlock;
 };
 
 /**
@@ -67,7 +66,7 @@ MemoryPool<T>::MemoryPool(uint64 const NChunksPerBlock)
    : _nextFreeChunk_ptr {nullptr        },
      _NChunksPerBlock   {NChunksPerBlock}
 {
-   // ymAssert(_NChunksPerBlock > 0ul, "Block size must be > 0");
+   ymAssert(_NChunksPerBlock > 0ul, "Block size must be > 0");
 }
 
 /**
@@ -77,6 +76,18 @@ MemoryPool<T>::MemoryPool(uint64 const NChunksPerBlock)
 template <typename T>
 MemoryPool<T>::~MemoryPool(void)
 {
+}
+
+/**
+ *
+ */
+template <typename T>
+auto MemoryPool<T>::allocate(uint64 const NElements)
+{
+   std::allocator<T> a;
+   auto * const data_Ptr = (NElements > 0ul) ? a.allocate(NElements) : nullptr;
+   auto deleter = [&](T * data_Ptr) { a.deallocate(data_Ptr, NElements); };
+   return std::unique_ptr<int, decltype(deleter)>(data_Ptr, deleter);
 }
 
 /**
@@ -105,19 +116,6 @@ T * MemoryPool<T>::allocate(void)
    auto * const data_Ptr = reinterpret_cast<T *>(_nextFreeChunk_ptr);
    _nextFreeChunk_ptr = _nextFreeChunk_ptr->next_ptr;
    return data_Ptr;
-}
-
-/**
- * 
- */
-template <typename T>
-auto MemoryPool<T>::allocate(uint64 const NObjects) -> UPtr_T
-{
-   std::allocator<T> a;
-   auto * const data_Ptr = (NObjects > 0ul) ? a.allocate(NObjects) : nullptr;
-   return {data_Ptr, [](T * const data_Ptr) {
-      a.deallocate(data_Ptr, NObjects); // TODO is "a" and "NObjects" captured in this lambda?
-   }};
 }
 
 /**

@@ -52,7 +52,7 @@ inline void ymThrowDbg( bool   const    Condition,
 /* -------------------------------------------------------------------------- */
 
 /**
- *
+ * TODO should we have a global logger? Or register the global logger?
  */
 class Ymception : public std::exception
 {
