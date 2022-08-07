@@ -5,9 +5,13 @@
 #include "lightlogger.h"
 
 /**
- *
+ * TODO timestamp filename
  */
-ym::LightLogger::~LightLogger(void)
+auto ym::LightLogger::getGlobalInstance(void) -> LightLogger *
 {
-   _outfile_uptr.reset();
+   static LightLogger s_instance;
+
+   s_instance.openOutfile("global_light.log");
+
+   return &s_instance;
 }

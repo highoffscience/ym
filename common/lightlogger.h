@@ -8,6 +8,8 @@
 
 #include "logger.h"
 
+// TODO should _outfile_uptr default to pointing at std::cout?
+
 namespace ym
 {
 
@@ -18,10 +20,11 @@ class LightLogger : public Logger
 {
 public:
    explicit LightLogger(void) = default;
-   ~LightLogger(void);
 
    YM_NO_COPY  (LightLogger);
    YM_NO_ASSIGN(LightLogger);
+
+   static LightLogger * getGlobalInstance(void);
 
    inline bool open(str const Filename) { return openOutfile(Filename); }
 
