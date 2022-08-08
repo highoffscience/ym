@@ -24,7 +24,8 @@ public:
 protected:
    explicit Logger(void);
 
-   bool openOutfile(str const Filename);
+   bool openOutfile                (str const Filename);
+   bool openOutfile_appendTimeStamp(str const Filename);
 
    using FileDeleter_T = void(*)(std::FILE * const);
    std::unique_ptr<std::FILE, FileDeleter_T> _outfile_uptr;

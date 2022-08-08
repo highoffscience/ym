@@ -27,25 +27,21 @@ namespace ym
 
 template <typename... Args_T>
 inline void ymAssert(   bool   const    Condition,
-                        TextLogger &    txtlog_ref,
                         str    const    Format,
                         Args_T const... Args);
 
 template <typename... Args_T>
 inline void ymAssertDbg(bool   const    Condition,
-                        TextLogger &    txtlog_ref,
                         str    const    Format,
                         Args_T const... Args);
 
 template <typename... Args_T>
 inline void ymThrow(    bool   const    Condition,
-                        TextLogger &    txtlog_ref,
                         str    const    Format,
                         Args_T const... Args);
 
 template <typename... Args_T>
 inline void ymThrowDbg( bool   const    Condition,
-                        TextLogger &    txtlog_ref,
                         str    const    Format,
                         Args_T const... Args);
 

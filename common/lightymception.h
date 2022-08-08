@@ -10,6 +10,9 @@
 
 #include <exception>
 
+// TODO is this class necessary?
+//      need to draw out links with memory pool, textlogger, and ymception
+
 namespace ym
 {
 
@@ -19,27 +22,23 @@ namespace ym
 
 template <typename... Args_T>
 inline void ymLightAssert(   bool   const    Condition,
-                        TextLogger &    txtlog_ref,
-                        str    const    Format,
-                        Args_T const... Args);
+                             str    const    Format,
+                             Args_T const... Args);
 
 template <typename... Args_T>
 inline void ymLightAssertDbg(bool   const    Condition,
-                        TextLogger &    txtlog_ref,
-                        str    const    Format,
-                        Args_T const... Args);
+                             str    const    Format,
+                             Args_T const... Args);
 
 template <typename... Args_T>
 inline void ymLightThrow(    bool   const    Condition,
-                        TextLogger &    txtlog_ref,
-                        str    const    Format,
-                        Args_T const... Args);
+                             str    const    Format,
+                             Args_T const... Args);
 
 template <typename... Args_T>
 inline void ymLightThrowDbg( bool   const    Condition,
-                        TextLogger &    txtlog_ref,
-                        str    const    Format,
-                        Args_T const... Args);
+                             str    const    Format,
+                             Args_T const... Args);
 
 /* -------------------------------------------------------------------------- */
 
