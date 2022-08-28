@@ -8,8 +8,6 @@
 
 #include "logger.h"
 
-// TODO should _outfile_uptr default to pointing at stdout?
-
 namespace ym
 {
 

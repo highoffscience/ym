@@ -68,10 +68,6 @@ private:
    void printf_Helper(str    const    Format,
                       Args_T const... Args);
 
-   template <typename... Args_T>
-   inline void printfError(str    const    Format,
-                           Args_T const... Args);
-
    void writeMessagesToFile(void);
 
    void populateFormattedTime(char * const write_Ptr) const;
@@ -132,16 +128,6 @@ void TextLogger::printf(uint32 const    VerbosityGroup,
          printf_Helper(Format, Args...);
       }
    }
-}
-
-/**
- *
- */
-template <typename... Args_T>
-inline void TextLogger::printfError(str    const    Format,
-                                    Args_T const... Args)
-{
-   std::fprintf(stderr, Format, Args...);
 }
 
 /**

@@ -13,12 +13,15 @@
  *
  */
 ym::Logger::Logger(void)
-   : _outfile_uptr {nullptr, [](std::FILE * const Ptr) { std::fclose(Ptr); }}
+   : _outfile_uptr {nullptr, [](std::FILE * const file_Ptr) { std::fclose(file_Ptr); }}
 {
 }
 
 /**
- *
+ * We open the file here instead of the constructor to allow flexibility with
+ * derived classes handling the file operations.
+ * 
+ * The conditional assures the logger is only associated with one file.
  */
 bool ym::Logger::openOutfile(str const Filename)
 {
@@ -37,8 +40,11 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
 {
    auto const FilenameSize_bytes = std::strlen(Filename);
    auto const Extension = std::strchr(Filename, '.');
+
+   // Extension pointer is guaranteed to be at least as large as Filename pointer
    auto const StemSize_bytes = (Extension) ? (Extension - Filename) : FilenameSize_bytes;
 
+   // _%Y_%b_%d_%H_%M_%S
    auto const TimeStampSize_bytes =
       1u + // _
       4u + // year
@@ -54,13 +60,12 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
       2u;  // second
 
    auto const TimeStampedFilenameSize_bytes =
-      FilenameSize_bytes + TimeStampSize_bytes + 1u; // +1 for null terminator
+      FilenameSize_bytes + TimeStampSize_bytes + 1ul; // +1 for null terminator
 
-   // TODO should this return a smart pointer?
-   auto * const timeStampedFilename_Ptr = MemoryPool<char>::allocate(TimeStampedFilenameSize_bytes);
+   auto timeStampedFilename_uptr = MemoryPool<char>::allocate(TimeStampedFilenameSize_bytes);
 
-   std::strncpy(timeStampedFilename_Ptr, Filename, StemSize_bytes);
-   std::strncpy(timeStampedFilename_Ptr + StemSize_bytes + TimeStampSize_bytes,
+   std::strncpy(timeStampedFilename_uptr.get(), Filename, StemSize_bytes);
+   std::strncpy(timeStampedFilename_uptr.get() + StemSize_bytes + TimeStampSize_bytes,
                 Filename + StemSize_bytes,
                 FilenameSize_bytes - StemSize_bytes);
 
@@ -74,24 +79,26 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
 #endif // _WIN32
 
    auto const NBytesWritten =
-      std::strftime(timeStampedFilename_Ptr + StemSize_bytes,
+      std::strftime(timeStampedFilename_uptr.get() + StemSize_bytes,
                     TimeStampSize_bytes,
-                    "_%Y_%b_%d_%H_%M_%S.txt",
+                    "_%Y_%b_%d_%H_%M_%S",
                     timeinfo_ptr);
 
-   bool wasOpened = false;
+   /*
+    * Attempting to open file now
+    */
+
+   bool opened = false;
 
    if (NBytesWritten > 0ul)
    {
-      wasOpened = open(timeStampedFilename_Ptr);
+      opened = openOutfile(timeStampedFilename_uptr.get());
    }
    else
    {
       printfError("Failure to store datetime!");
-      wasOpened = false;
+      opened = openOutfile(Filename);
    }
 
-   MemoryPool<char>::deallocate(timeStampedFilename_Ptr, TimeStampedFilenameSize_bytes);
-
-   return wasOpened;
+   return opened;
 }

@@ -86,8 +86,8 @@ auto MemoryPool<T>::allocate(uint64 const NElements)
 {
    std::allocator<T> a;
    auto * const data_Ptr = (NElements > 0ul) ? a.allocate(NElements) : nullptr;
-   auto deleter = [&](T * data_Ptr) { a.deallocate(data_Ptr, NElements); };
-   return std::unique_ptr<int, decltype(deleter)>(data_Ptr, deleter);
+   auto deleter = [&](T * const data_Ptr) { a.deallocate(data_Ptr, NElements); };
+   return std::unique_ptr<T, decltype(deleter)>(data_Ptr, deleter);
 }
 
 /**
