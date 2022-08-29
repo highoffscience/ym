@@ -13,7 +13,7 @@ namespace ym
 {
 
 /**
- *
+ * Base class for logging related classes.
  */
 class Logger
 {
