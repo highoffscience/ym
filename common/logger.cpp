@@ -1,5 +1,7 @@
 /**
- * @author Forrest Jablonski
+ * @file    logger.cpp
+ * @version 1.0.0
+ * @author  Forrest Jablonski
  */
 
 #include "logger.h"
@@ -10,7 +12,9 @@
 #include <ctime>
 
 /**
+ * Constructor.
  *
+ * _outfile_uptr is set to null to serve as a flag that the logger is uninitialized.
  */
 ym::Logger::Logger(void)
    : _outfile_uptr {nullptr, [](std::FILE * const file_Ptr) { std::fclose(file_Ptr); }}
@@ -20,8 +24,12 @@ ym::Logger::Logger(void)
 /**
  * We open the file here instead of the constructor to allow flexibility with
  * derived classes handling the file operations.
- * 
+ *
  * The conditional assures the logger is only associated with one file.
+ *
+ * @param Filename
+ *
+ * @return bool -- true if the file was opened, false otherwise
  */
 bool ym::Logger::openOutfile(str const Filename)
 {
@@ -62,6 +70,8 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
    auto const TimeStampedFilenameSize_bytes =
       FilenameSize_bytes + TimeStampSize_bytes + 1ul; // +1 for null terminator
 
+   // TODO I want this, I think
+   // auto uptr = MemoryPool::getInstancePtr()->allocate<char>(TimeStampedFilenameSize_bytes);
    auto timeStampedFilename_uptr = MemoryPool<char>::allocate(TimeStampedFilenameSize_bytes);
 
    std::strncpy(timeStampedFilename_uptr.get(), Filename, StemSize_bytes);

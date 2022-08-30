@@ -92,6 +92,9 @@ auto MemoryPool<T>::allocate(uint64 const NElements)
 
 /**
  * We are guaranteed _NChunksPerBlock > 0ul
+ *
+ * TODO We might be able to just make allocate a template function instead
+ *       of requiring the whole class to be a template
  */
 template <typename T>
 T * MemoryPool<T>::allocate(void)

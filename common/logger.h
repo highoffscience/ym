@@ -1,5 +1,7 @@
 /**
- * @author Forrest Jablonski
+ * @file    logger.h
+ * @version 1.0.0
+ * @author  Forrest Jablonski
  */
 
 #pragma once
@@ -36,7 +38,11 @@ protected:
 };
 
 /**
+ * If something goes wrong in the logger then printing to stderr is our
+ *  only choice.
  *
+ * @param Format
+ * @param Args
  */
 template <typename... Args_T>
 inline void Logger::printfError(str    const    Format,
