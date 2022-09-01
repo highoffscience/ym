@@ -27,9 +27,9 @@ ym::Logger::Logger(void)
  *
  * The conditional assures the logger is only associated with one file.
  *
- * @param Filename
+ * @param Filename -- Name of file to open.
  *
- * @return bool -- true if the file was opened, false otherwise
+ * @return bool -- True if the file was opened, false otherwise.
  */
 bool ym::Logger::openOutfile(str const Filename)
 {
@@ -52,8 +52,10 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
    // Extension pointer is guaranteed to be at least as large as Filename pointer
    auto const StemSize_bytes = (Extension) ? (Extension - Filename) : FilenameSize_bytes;
 
+   // TS = Time Stamp
+
    // _%Y_%b_%d_%H_%M_%S
-   auto const TimeStampSize_bytes =
+   constexpr auto TSSize_bytes =
       1u + // _
       4u + // year
       1u + // _
@@ -67,48 +69,48 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
       1u + // _
       2u;  // second
 
-   auto const TimeStampedFilenameSize_bytes =
-      FilenameSize_bytes + TimeStampSize_bytes + 1ul; // +1 for null terminator
+   auto const TSFilenameSize_bytes = FilenameSize_bytes + TSSize_bytes + 1ul; // +1 for null terminator
 
    // TODO I want this, I think
    // auto uptr = MemoryPool::getInstancePtr()->allocate<char>(TimeStampedFilenameSize_bytes);
-   auto timeStampedFilename_uptr = MemoryPool<char>::allocate(TimeStampedFilenameSize_bytes);
+   auto tsFilename_uptr = MemoryPool<char>::allocate(TSFilenameSize_bytes);
 
-   std::strncpy(timeStampedFilename_uptr.get(), Filename, StemSize_bytes);
-   std::strncpy(timeStampedFilename_uptr.get() + StemSize_bytes + TimeStampSize_bytes,
+   // write stem
+   std::strncpy(tsFilename_uptr.get(), Filename, StemSize_bytes + 1u); // include null terminator for safety
+
+   { // getting current time
+      auto t = std::time(nullptr);
+      std::tm timeinfo = {0};
+      auto * timeinfo_ptr = &timeinfo;
+   #if defined(_WIN32)
+      localtime_s(timeinfo_ptr, &t); // vs doesn't have the standard localtime_s function
+   #else
+      timeinfo_ptr = std::localtime(&t);
+   #endif // _WIN32
+
+      auto const NBytesWritten =
+         // write time stamp
+         std::strftime(tsFilename_uptr.get() + StemSize_bytes,
+                       TSSize_bytes + 1u, // needs room for null terminator
+                       "_%Y_%b_%d_%H_%M_%S",
+                       timeinfo_ptr);
+
+      if (NBytesWritten != TSSize_bytes)
+      {
+         std::strncpy(tsFilename_uptr.get() + StemSize_bytes,
+                      "_0000_000_00_00_00_00",
+                      TSSize_bytes + 1u); // include null terminator for safety
+      }
+   }
+
+   // write extension
+   std::strncpy(tsFilename_uptr.get() + StemSize_bytes + TSSize_bytes,
                 Filename + StemSize_bytes,
-                FilenameSize_bytes - StemSize_bytes);
-
-   auto t = std::time(nullptr);
-   std::tm timeinfo = {0};
-   auto * timeinfo_ptr = &timeinfo;
-#if defined(_WIN32)
-   localtime_s(timeinfo_ptr, &t); // vs doesn't have the standard localtime_s function
-#else
-   timeinfo_ptr = std::localtime(&t);
-#endif // _WIN32
-
-   auto const NBytesWritten =
-      std::strftime(timeStampedFilename_uptr.get() + StemSize_bytes,
-                    TimeStampSize_bytes,
-                    "_%Y_%b_%d_%H_%M_%S",
-                    timeinfo_ptr);
+                FilenameSize_bytes - StemSize_bytes + 1ul); // include null terminator
 
    /*
     * Attempting to open file now
     */
 
-   bool opened = false;
-
-   if (NBytesWritten > 0ul)
-   {
-      opened = openOutfile(timeStampedFilename_uptr.get());
-   }
-   else
-   {
-      printfError("Failure to store datetime!");
-      opened = openOutfile(Filename);
-   }
-
-   return opened;
+   return openOutfile(tsFilename_uptr.get());
 }
