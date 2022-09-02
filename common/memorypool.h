@@ -14,7 +14,7 @@ namespace ym
 {
 
 /**
- *
+ * TODO this whole class needs to be thought about more carefully
  */
 template <typename T>
 class MemoryPool
@@ -86,7 +86,7 @@ auto MemoryPool<T>::allocate(uint64 const NElements)
 {
    std::allocator<T> a;
    auto * const data_Ptr = (NElements > 0ul) ? a.allocate(NElements) : nullptr;
-   auto deleter = [&](T * const data_Ptr) { a.deallocate(data_Ptr, NElements); };
+   auto deleter = [&](T * const data_Ptr) { if (data_Ptr) { a.deallocate(data_Ptr, NElements); } };
    return std::unique_ptr<T, decltype(deleter)>(data_Ptr, deleter);
 }
 
