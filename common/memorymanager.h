@@ -14,12 +14,16 @@ namespace ym
 {
 
 /**
- * 
+ *
  */
+template <typename T>
 class MemoryManager
 {
 public:
-   char * allocate(uint64 const NElements);
+   T * allocate(void); // TODO make undefined for data types < sizeof(T*),
+                       //      especially char *! Don't want users confusing
+                       //      it with a printable string.
+   T * allocate(uint64 const NElements);
 
 private:
    /**
@@ -40,10 +44,13 @@ private:
 /**
  * TODO will eventually be a template
  */
-char * MemoryManager::allocate(uint64 const NElements)
+template <typename T>
+T * MemoryManager::allocate(uint64 const NElements)
 {
    // TODO assert NElements > 0ul
    // TODO assert _NChunksPerBlock
+
+   auto const NChunks = ((NElements * sizeof(T)) + (sizeof(T*) - 1ul)) / sizeof(T*);
 
    if (!_nextFreeChunk_ptr)
    {
@@ -63,7 +70,7 @@ char * MemoryManager::allocate(uint64 const NElements)
    // NElements -- sizeof(T) -- NChunks
    //    25           1            4  // (NElements + (sizeof(Chunk) / sizeof(T)) - 1ul) / sizeof(Chunk)
    //    25           2            7
-   //    25           4            13 
+   //    25           4            13
    //    25           8            25 // sizeof(Chunk) == sizeof(T) from here onwards
    //    25           12           25
    //    25           16           25
