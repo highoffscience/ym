@@ -1,12 +1,14 @@
 /**
- * @author Forrest Jablonski
+ * @file    memorypool.h
+ * @version 1.0.0
+ * @author  Forrest Jablonski
  */
 
 #pragma once
 
 #include "ym.h"
 
-#include "ymception.h"
+#include "lightymception.h"
 
 #include <memory>
 
@@ -14,7 +16,7 @@ namespace ym
 {
 
 /**
- * TODO this whole class needs to be thought about more carefully
+ * TODO have lightlogger included for error reporting
  */
 template <typename T>
 class MemoryPool
@@ -28,10 +30,27 @@ public:
    YM_NO_COPY  (MemoryPool)
    YM_NO_ASSIGN(MemoryPool)
 
-   static auto /*unique_ptr*/ allocate(uint64 const NElements);
+   static MemoryPool<T> * getInstancePtr(void);
 
    T * allocate(void);
+   std::unique_ptr<T> allocate_safe(void);
+
    void deallocate(T * const data_Ptr);
+
+   /**
+    * 
+    */
+   template <uint32 NElements = 128>
+   struct MediaryStr
+   {
+      static_assert(NElements >= sizeof(T *), "NElements must be at least sizeof(T *)");
+
+      explicit constexpr MediaryStr(void) : data{'\0'} {}
+
+      /*implicit*/ constexpr operator char * (void) { return data; }
+
+      char data[NElements];
+   };
 
 private:
    /**
@@ -43,7 +62,7 @@ private:
       T       data;
    };
 
-   static constexpr uint64 s_DefaultNChunksPerBlock = 4096ul;
+   static constexpr uint64 s_DefaultNChunksPerBlock = 1024ul;
 
    Chunk *      _nextFreeChunk_ptr;
    uint64 const _NChunksPerBlock;
@@ -66,12 +85,11 @@ MemoryPool<T>::MemoryPool(uint64 const NChunksPerBlock)
    : _nextFreeChunk_ptr {nullptr        },
      _NChunksPerBlock   {NChunksPerBlock}
 {
-   ymAssert(_NChunksPerBlock > 0ul, "Block size must be > 0");
+   ymLightAssert(_NChunksPerBlock > 0ul, "Block size must be > 0");
 }
 
 /**
- * TODO deallocate chunks
- *      Only deallocate free chunks, the others are being used by clients
+ * TODO don't let exceptions escape destructor - add cleanup() method
  */
 template <typename T>
 MemoryPool<T>::~MemoryPool(void)
@@ -79,22 +97,19 @@ MemoryPool<T>::~MemoryPool(void)
 }
 
 /**
- *
+ * TODO with this method (treating it as singleton) removes easy control over
+ *      setting manually the _NChunksPerBlock
  */
 template <typename T>
-auto MemoryPool<T>::allocate(uint64 const NElements)
+auto MemoryPool<T>::getInstancePtr(void) -> MemoryPool<T> *
 {
-   std::allocator<T> a;
-   auto * const data_Ptr = (NElements > 0ul) ? a.allocate(NElements) : nullptr;
-   auto deleter = [&](T * const data_Ptr) { if (data_Ptr) { a.deallocate(data_Ptr, NElements); } };
-   return std::unique_ptr<T, decltype(deleter)>(data_Ptr, deleter);
+   static MemoryPool<T> instance;
+
+   return &instance;
 }
 
 /**
- * We are guaranteed _NChunksPerBlock > 0ul
- *
- * TODO We might be able to just make allocate a template function instead
- *       of requiring the whole class to be a template
+ * 
  */
 template <typename T>
 T * MemoryPool<T>::allocate(void)
@@ -122,6 +137,15 @@ T * MemoryPool<T>::allocate(void)
 }
 
 /**
+ * 
+ */
+template <typename T>
+std::unique_ptr<T> MemoryPool<T>::allocate_safe(void)
+{
+   return std::unique_ptr<T, decltype(deallocate)>(data_Ptr, deallocate);
+}
+
+/**
  *
  */
 template <typename T>
@@ -130,20 +154,6 @@ void MemoryPool<T>::deallocate(T * const data_Ptr)
    auto * const chunk_Ptr = reinterpret_cast<Chunk *>(data_Ptr);
    chunk_Ptr->next_ptr = _nextFreeChunk_ptr;
    _nextFreeChunk_ptr = chunk_Ptr;
-}
-
-/**
- *
- */
-template <typename T>
-void MemoryPool<T>::deallocate(std::unique_ptr<T> & data_uptr_ref,
-                               uint64 const NObjects)
-{
-   if (data_uptr_ref)
-   {
-      std::allocator<T> a;
-      a.deallocate(data_uptr_ref.release(), NObjects);
-   }
 }
 
 } // ym
