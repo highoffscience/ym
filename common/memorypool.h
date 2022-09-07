@@ -8,48 +8,55 @@
 
 #include "ym.h"
 
+#include "lightlogger.h"
 #include "lightymception.h"
 
 #include <memory>
+#include <vector>
 
 namespace ym
 {
 
 /**
  * TODO have lightlogger included for error reporting
+ * TODO since we cannot cleanly have a destructor, we need
+ *      to make it private, which means we need static instance,
+ *      which means it needs to be thread safe. Am I missing
+ *      something here?
  */
 template <typename T>
 class MemoryPool
 {
 public:
-   MemoryPool(void);
-   MemoryPool(uint64 const NChunksPerBlock);
+   explicit MemoryPool(uint64 const NChunksPerBlock);
 
    ~MemoryPool(void);
 
    YM_NO_COPY  (MemoryPool)
    YM_NO_ASSIGN(MemoryPool)
 
-   static MemoryPool<T> * getInstancePtr(void);
-
    T * allocate(void);
    std::unique_ptr<T> allocate_safe(void);
 
    void deallocate(T * const data_Ptr);
 
+   bool deallocateAll(void);
+
    /**
     * 
     */
-   template <uint32 NElements = 128>
-   struct MediaryStr
+   template <typename T,
+             uint32   NElements = 128>
+   struct ByteSegment
    {
+      static_assert(sizeof(T) == 1ul, "Byte segments can only contain bytes");
       static_assert(NElements >= sizeof(T *), "NElements must be at least sizeof(T *)");
 
-      explicit constexpr MediaryStr(void) : data{'\0'} {}
+      explicit constexpr ByteSegment(void) : data{0} {}
 
-      /*implicit*/ constexpr operator char * (void) { return data; }
+      /*implicit*/ constexpr operator T * (void) { return data; }
 
-      char data[NElements];
+      T data[NElements];
    };
 
 private:
@@ -62,20 +69,9 @@ private:
       T       data;
    };
 
-   static constexpr uint64 s_DefaultNChunksPerBlock = 1024ul;
-
    Chunk *      _nextFreeChunk_ptr;
    uint64 const _NChunksPerBlock;
 };
-
-/**
- *
- */
-template <typename T>
-MemoryPool<T>::MemoryPool(void)
-   : MemoryPool(s_DefaultNChunksPerBlock)
-{
-}
 
 /**
  * TODO
@@ -90,22 +86,15 @@ MemoryPool<T>::MemoryPool(uint64 const NChunksPerBlock)
 
 /**
  * TODO don't let exceptions escape destructor - add cleanup() method
+ * TODO add more robust handling and error reporting
  */
 template <typename T>
 MemoryPool<T>::~MemoryPool(void)
 {
-}
-
-/**
- * TODO with this method (treating it as singleton) removes easy control over
- *      setting manually the _NChunksPerBlock
- */
-template <typename T>
-auto MemoryPool<T>::getInstancePtr(void) -> MemoryPool<T> *
-{
-   static MemoryPool<T> instance;
-
-   return &instance;
+   if (!deallocateAll())
+   { // some chunks are still being used by the client - this is a memory leak!
+      LightLogger::getGlobalInstance()->printf("Some chunks are still in use!");
+   }
 }
 
 /**
