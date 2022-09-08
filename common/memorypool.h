@@ -35,6 +35,8 @@ public:
    YM_NO_COPY  (MemoryPool)
    YM_NO_ASSIGN(MemoryPool)
 
+   T * allocatePool(uint64 const NChunksPerBlock);
+
    T * allocate(void);
    std::unique_ptr<T> allocate_safe(void);
 
@@ -96,6 +98,30 @@ MemoryPool<T>::~MemoryPool(void)
       LightLogger::getGlobalInstance()->printf("Some chunks are still in use!");
    }
 }
+
+
+// ----------------- TODO -----------------
+
+// /**
+//  * 
+//  */
+// template <typename T>
+// T * MemoryPool::allocatePool<T>(uint64 const NChunksPerBlock)
+// {
+//     std::allocator<T> a;
+//     _nextFreeChunk_ptr = a.allocate(NChunksPerBlock);
+// }
+
+/**
+ * 
+ */
+template <typename T>
+T * MemoryPool::allocate<T>(T * const pool_Ptr)
+{
+   
+}
+
+// ----------------------------------------
 
 /**
  * 
