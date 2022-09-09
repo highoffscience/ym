@@ -24,7 +24,6 @@ namespace ym
  *      which means it needs to be thread safe. Am I missing
  *      something here?
  */
-template <typename T>
 class MemoryPool
 {
 public:
@@ -34,6 +33,60 @@ public:
 
    YM_NO_COPY  (MemoryPool)
    YM_NO_ASSIGN(MemoryPool)
+
+   template <typename T>
+   struct Pool
+   {
+      T       * const _startingBlock_Ptr;
+      T const *       _sentinelChunk_ptr; // not for reading or writing - T const is defensive programming
+      T       *       _nextFreeChunk_ptr;
+   };
+
+   template <typename T>
+   Pool<T> * getNewPool(uint64 const NChunksPerBlock)
+   {
+      auto * const startingBlock_Ptr = allocateBlock(NChunksPerBlock + 1ul, sizeof(T));
+      auto * const sentinelChunk_Ptr = startingBlock_Ptr + NChunksPerBlock;
+      auto * const nextFreeChunk_Ptr = startingBlock_Ptr;
+
+      Pool<T> pool{startingBlock_Ptr, sentinelChunk_Ptr, nextFreeChunk_Ptr};
+   }
+
+   uint64 * allocateBlock(uint64 const NChunksPerBlock,
+                          uint64 const ChunkSize_bytes)
+   {
+      std::allocator<uint64> a;
+
+      // TODO look at email for calculating minimum number of uint64's will hold ChunkSize_bytes
+      auto * const block_Ptr = a.allocate(NChunksPerBlock * ChunkSize_bytes / );
+
+      auto * curr_ptr = block_Ptr;
+      for (uint64 i = 0ul; i < NElements; ++i)
+      {
+         curr_ptr->next_ptr = chunk_ptr + 1ul;
+         chunk_ptr = chunk_ptr->next_ptr;
+      }
+
+      return block_Ptr;
+   }
+
+   template <typename T>
+   T * allocate(Pool<T> * const pool_Ptr)
+   {
+      if (pool_Ptr->_nextFreeChunk_ptr == pool_Ptr->_sentinelChunk_ptr)
+      {
+         std::allocator<Chunk> a;
+         _nextFreeChunk_ptr = a.allocate(_NChunksPerBlock);
+
+         auto * chunk_ptr = _nextFreeChunk_ptr;
+         for (uint64 i = 0ul; i < _NChunksPerBlock - 1ul; ++i)
+         {
+            chunk_ptr->next_ptr = chunk_ptr + 1ul;
+            chunk_ptr = chunk_ptr->next_ptr;
+         }
+         chunk_ptr->next_ptr = nullptr;
+      }
+   }
 
    T * allocatePool(uint64 const NChunksPerBlock);
 
