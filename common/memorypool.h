@@ -1,5 +1,5 @@
 /**
- * @file    memorypool.h
+ * @file    MemoryPool.h
  * @version 1.0.0
  * @author  Forrest Jablonski
  */
@@ -12,7 +12,6 @@
 #include "lightymception.h"
 
 #include <memory>
-#include <vector>
 
 namespace ym
 {
@@ -27,25 +26,32 @@ namespace ym
 class MemoryPool
 {
 public:
-   explicit MemoryPool(uint64 const NChunksPerBlock);
+   YM_NO_DEFAULT(MemoryPool)
 
-   ~MemoryPool(void);
+   typedef uint64 U;
 
-   YM_NO_COPY  (MemoryPool)
-   YM_NO_ASSIGN(MemoryPool)
-
+   /**
+    * Chunk - memory segment that contains the desired data type, T
+    * Piece - word sized memory segment
+    * Block - memory segment containing the desired amount of Chunks plus a sentinel Piece
+    */
    template <typename T>
    struct Pool
    {
-      T       * const _startingBlock_Ptr;
-      T const *       _sentinelChunk_ptr; // not for reading or writing - T const is defensive programming
-      T       *       _nextFreeChunk_ptr;
+      T * const _startingBlock_Ptr;
+      U *       _sentinelPiece_ptr;
+      T *       _nextFreeChunk_ptr;
    };
 
    template <typename T>
    Pool<T> * getNewPool(uint64 const NChunksPerBlock)
    {
-      auto * const startingBlock_Ptr = allocateBlock(NChunksPerBlock + 1ul, sizeof(T));
+      // TODO throw if NChunksPerBlock == 0ul
+
+      static_assert(sizeof(U *) == sizeof(U), "Pointer must fit perfectly in Piece size");
+      static_assert(sizeof(T  ) >= sizeof(U), "Type must be size of chunk or greater");
+
+      auto * const startingBlock_Ptr = allocateBlock(NChunksPerBlock, sizeof(T));
       auto * const sentinelChunk_Ptr = startingBlock_Ptr + NChunksPerBlock;
       auto * const nextFreeChunk_Ptr = startingBlock_Ptr;
 
@@ -55,10 +61,11 @@ public:
    uint64 * allocateBlock(uint64 const NChunksPerBlock,
                           uint64 const ChunkSize_bytes)
    {
-      std::allocator<uint64> a;
+      // calc how many Pieces can hold NChunks plus a sentinel Piece
+      auto const NPiecesPerBlock = ((NChunksPerBlock * ChunkSize_bytes) + (sizeof(U) + 1ul)) / sizeof(U);
 
-      // TODO look at email for calculating minimum number of uint64's will hold ChunkSize_bytes
-      auto * const block_Ptr = a.allocate(NChunksPerBlock * ChunkSize_bytes / );
+      std::allocator<U> a;
+      auto * const block_Ptr = a.allocate(NPiecesPerBlock);
 
       auto * curr_ptr = block_Ptr;
       for (uint64 i = 0ul; i < NElements; ++i)
