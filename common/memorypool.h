@@ -11,6 +11,7 @@
 #include "lightlogger.h"
 #include "lightymception.h"
 
+#include <cstdint>
 #include <memory>
 
 namespace ym
@@ -28,7 +29,11 @@ class MemoryPool
 public:
    YM_NO_DEFAULT(MemoryPool)
 
-   typedef uint64 U;
+   union U
+   {
+      U * next_ptr;
+   };
+   static_assert(sizeof(U) == sizeof(uintptr_t), "Must be abble to hold pointer value");
 
    /**
     * Chunk - memory segment that contains the desired data type, T
@@ -48,8 +53,7 @@ public:
    {
       // TODO throw if NChunksPerBlock == 0ul
 
-      static_assert(sizeof(U *) == sizeof(U), "Pointer must fit perfectly in Piece size");
-      static_assert(sizeof(T  ) >= sizeof(U), "Type must be size of chunk or greater");
+      static_assert(sizeof(T) >= sizeof(U), "Type must be size of chunk or greater");
 
       auto * const startingBlock_Ptr = allocateBlock(NChunksPerBlock, sizeof(T));
       auto * const sentinelChunk_Ptr = startingBlock_Ptr + NChunksPerBlock;
@@ -58,21 +62,29 @@ public:
       Pool<T> pool{startingBlock_Ptr, sentinelChunk_Ptr, nextFreeChunk_Ptr};
    }
 
-   uint64 * allocateBlock(uint64 const NChunksPerBlock,
-                          uint64 const ChunkSize_bytes)
+   /**
+    * @param NChunksPerBlock 
+    * @param ChunkSize_bytes 
+    * 
+    * @return U * 
+    */
+   U * allocateBlock(uint64 const NChunksPerBlock,
+                     uint64 const ChunkSize_bytes)
    {
       // calc how many Pieces can hold NChunks plus a sentinel Piece
-      auto const NPiecesPerBlock = ((NChunksPerBlock * ChunkSize_bytes) + (sizeof(U) + 1ul)) / sizeof(U);
+      auto const NPiecesPerBlock = (((NChunksPerBlock * ChunkSize_bytes) + (sizeof(U) - 1ul)) / sizeof(U)) + 1ul;
 
       std::allocator<U> a;
       auto * const block_Ptr = a.allocate(NPiecesPerBlock);
 
+      // TODO this is wrong! We need to increment by ChunkSize_bytes, not by sizeof(U)!
       auto * curr_ptr = block_Ptr;
-      for (uint64 i = 0ul; i < NElements; ++i)
+      for (uint64 i = 0ul; i < NChunksPerBlock; ++i)
       {
-         curr_ptr->next_ptr = chunk_ptr + 1ul;
-         chunk_ptr = chunk_ptr->next_ptr;
+         curr_ptr->next_ptr = curr_ptr + 1ul;
+         curr_ptr           = curr_ptr->next_ptr;
       }
+      curr_ptr->next_ptr = nullptr;
 
       return block_Ptr;
    }
