@@ -31,7 +31,8 @@ public:
 
    union U
    {
-      U * next_ptr;
+      U     * next_ptr;
+      uint8 * byte_ptr;
    };
    static_assert(sizeof(U) == sizeof(uintptr_t), "Must be abble to hold pointer value");
 
@@ -43,11 +44,15 @@ public:
    template <typename T>
    struct Pool
    {
-      T * const _startingBlock_Ptr;
+      T * const _originalBlock_Ptr;
+      T *       _activeBlock_ptr;
       U *       _sentinelPiece_ptr;
       T *       _nextFreeChunk_ptr;
    };
 
+   /**
+    *
+    */
    template <typename T>
    Pool<T> * getNewPool(uint64 const NChunksPerBlock)
    {
@@ -55,18 +60,19 @@ public:
 
       static_assert(sizeof(T) >= sizeof(U), "Type must be size of chunk or greater");
 
-      auto * const startingBlock_Ptr = allocateBlock(NChunksPerBlock, sizeof(T));
-      auto * const sentinelChunk_Ptr = startingBlock_Ptr + NChunksPerBlock;
-      auto * const nextFreeChunk_Ptr = startingBlock_Ptr;
+      auto * const originalBlock_Ptr = allocateBlock(NChunksPerBlock, sizeof(T));
+      auto * const activeBlock_ptr   = originalBlock_Ptr;
+      auto * const sentinelChunk_Ptr = activeBlock_ptr + NChunksPerBlock;
+      auto * const nextFreeChunk_Ptr = activeBlock_ptr;
 
-      Pool<T> pool{startingBlock_Ptr, sentinelChunk_Ptr, nextFreeChunk_Ptr};
+      Pool<T> pool{originalBlock_Ptr, activeBlock_ptr, sentinelChunk_Ptr, nextFreeChunk_Ptr};
    }
 
    /**
-    * @param NChunksPerBlock 
-    * @param ChunkSize_bytes 
-    * 
-    * @return U * 
+    * @param NChunksPerBlock
+    * @param ChunkSize_bytes
+    *
+    * @return U *
     */
    U * allocateBlock(uint64 const NChunksPerBlock,
                      uint64 const ChunkSize_bytes)
@@ -81,7 +87,7 @@ public:
       auto * curr_ptr = block_Ptr;
       for (uint64 i = 0ul; i < NChunksPerBlock; ++i)
       {
-         curr_ptr->next_ptr = curr_ptr + 1ul;
+         curr_ptr->next_ptr = curr_ptr->byte_ptr + ChunkSize_bytes;
          curr_ptr           = curr_ptr->next_ptr;
       }
       curr_ptr->next_ptr = nullptr;
@@ -89,21 +95,18 @@ public:
       return block_Ptr;
    }
 
+   /**
+    *
+    */
    template <typename T>
    T * allocate(Pool<T> * const pool_Ptr)
    {
       if (pool_Ptr->_nextFreeChunk_ptr == pool_Ptr->_sentinelChunk_ptr)
       {
-         std::allocator<Chunk> a;
-         _nextFreeChunk_ptr = a.allocate(_NChunksPerBlock);
-
-         auto * chunk_ptr = _nextFreeChunk_ptr;
-         for (uint64 i = 0ul; i < _NChunksPerBlock - 1ul; ++i)
-         {
-            chunk_ptr->next_ptr = chunk_ptr + 1ul;
-            chunk_ptr = chunk_ptr->next_ptr;
-         }
-         chunk_ptr->next_ptr = nullptr;
+         auto const NChunksPerBlock = pool_Ptr->_sentinelChunk_ptr -
+         auto * const startingBlock_Ptr = allocateBlock(NChunksPerBlock, sizeof(T));
+         auto * const sentinelChunk_Ptr = startingBlock_Ptr + NChunksPerBlock;
+         auto * const nextFreeChunk_Ptr = startingBlock_Ptr;
       }
    }
 
@@ -117,7 +120,7 @@ public:
    bool deallocateAll(void);
 
    /**
-    * 
+    *
     */
    template <typename T,
              uint32   NElements = 128>
@@ -175,7 +178,7 @@ MemoryPool<T>::~MemoryPool(void)
 // ----------------- TODO -----------------
 
 // /**
-//  * 
+//  *
 //  */
 // template <typename T>
 // T * MemoryPool::allocatePool<T>(uint64 const NChunksPerBlock)
@@ -185,18 +188,18 @@ MemoryPool<T>::~MemoryPool(void)
 // }
 
 /**
- * 
+ *
  */
 template <typename T>
 T * MemoryPool::allocate<T>(T * const pool_Ptr)
 {
-   
+
 }
 
 // ----------------------------------------
 
 /**
- * 
+ *
  */
 template <typename T>
 T * MemoryPool<T>::allocate(void)
@@ -224,7 +227,7 @@ T * MemoryPool<T>::allocate(void)
 }
 
 /**
- * 
+ *
  */
 template <typename T>
 std::unique_ptr<T> MemoryPool<T>::allocate_safe(void)
