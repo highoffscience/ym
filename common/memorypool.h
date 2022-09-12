@@ -12,6 +12,7 @@
 #include "lightymception.h"
 
 #include <cstdint>
+#include <cstring>
 #include <memory>
 
 namespace ym
@@ -72,38 +73,36 @@ public:
     * @param NChunksPerBlock
     * @param ChunkSize_bytes
     *
-    * @return U *
+    * @return uint8 *
     */
-   U * allocateBlock(uint64 const NChunksPerBlock,
-                     uint64 const ChunkSize_bytes)
+   uint8 * allocateBlock(uint64 const NChunksPerBlock,
+                         uint64 const ChunkSize_bytes)
    {
-      // calc how many Pieces can hold NChunks plus a sentinel Piece
-      auto const NPiecesPerBlock = (((NChunksPerBlock * ChunkSize_bytes) + (sizeof(U) - 1ul)) / sizeof(U)) + 1ul;
+      std::allocator<uint8> a;
+      auto * const block_Ptr = a.allocate(NChunksPerBlock * ChunkSize_bytes + sizeof(std::uintptr_t));
 
-      std::allocator<U> a;
-      auto * const block_Ptr = a.allocate(NPiecesPerBlock);
-
-      // TODO this is wrong! We need to increment by ChunkSize_bytes, not by sizeof(U)!
       auto * curr_ptr = block_Ptr;
       for (uint64 i = 0ul; i < NChunksPerBlock; ++i)
       {
-         curr_ptr->next_ptr = curr_ptr->byte_ptr + ChunkSize_bytes;
-         curr_ptr           = curr_ptr->next_ptr;
+         auto const Next = curr_ptr + ChunkSize_bytes;
+         std::memcpy(curr_ptr, &Next, sizeof(curr_ptr));
+         curr_ptr = Next;
       }
-      curr_ptr->next_ptr = nullptr;
+      std::memset(curr_ptr, 0, sizeof(curr_ptr));
 
       return block_Ptr;
    }
 
    /**
-    *
+    * TODO I don't think pool needs to be template - just store sizeof object and/or sizeof block
+    * TODO Maybe read <https://articles.emptycrate.com/2015/04/27/template_code_bloat_revisited_a_smaller_makeshared.html>
     */
    template <typename T>
    T * allocate(Pool<T> * const pool_Ptr)
    {
       if (pool_Ptr->_nextFreeChunk_ptr == pool_Ptr->_sentinelChunk_ptr)
       {
-         auto const NChunksPerBlock = pool_Ptr->_sentinelChunk_ptr -
+         // auto const NChunksPerBlock = pool_Ptr->_sentinelChunk_ptr -
          auto * const startingBlock_Ptr = allocateBlock(NChunksPerBlock, sizeof(T));
          auto * const sentinelChunk_Ptr = startingBlock_Ptr + NChunksPerBlock;
          auto * const nextFreeChunk_Ptr = startingBlock_Ptr;
