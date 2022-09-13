@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <new>
 
 namespace ym
 {
@@ -35,7 +36,7 @@ public:
       U     * next_ptr;
       uint8 * byte_ptr;
    };
-   static_assert(sizeof(U) == sizeof(uintptr_t), "Must be abble to hold pointer value");
+   static_assert(sizeof(U) == sizeof(uintptr_t), "Must be able to hold pointer value");
 
    /**
     * Chunk - memory segment that contains the desired data type, T
@@ -75,20 +76,26 @@ public:
     *
     * @return uint8 *
     */
-   uint8 * allocateBlock(uint64 const NChunksPerBlock,
-                         uint64 const ChunkSize_bytes)
+   void * allocateBlock(uint64 const NChunksPerBlock,
+                        uint64 const ChunkSize_bytes)
    {
       std::allocator<uint8> a;
       auto * const block_Ptr = a.allocate(NChunksPerBlock * ChunkSize_bytes + sizeof(std::uintptr_t));
 
-      auto * curr_ptr = block_Ptr;
+      union W { uint64 * next; uint64 data; };
+      W w;
+
+      auto * curr_ptr = &w; //block_Ptr;
       for (uint64 i = 0ul; i < NChunksPerBlock; ++i)
       {
+         // TODO speed check
+         *curr_ptr->next = curr_ptr->data + ChunkSize_bytes;
+
          auto const Next = curr_ptr + ChunkSize_bytes;
          std::memcpy(curr_ptr, &Next, sizeof(curr_ptr));
          curr_ptr = Next;
       }
-      std::memset(curr_ptr, 0, sizeof(curr_ptr));
+      std::memset(curr_ptr, 0, sizeof(curr_ptr)); // init sentinel to nullptr
 
       return block_Ptr;
    }
