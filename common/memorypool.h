@@ -31,12 +31,7 @@ class MemoryPool
 public:
    YM_NO_DEFAULT(MemoryPool)
 
-   union U
-   {
-      U     * next_ptr;
-      uint8 * byte_ptr;
-   };
-   static_assert(sizeof(U) == sizeof(uintptr_t), "Must be able to hold pointer value");
+   typedef std::uintptr_t uintptr;
 
    /**
     * Chunk - memory segment that contains the desired data type, T
@@ -60,7 +55,7 @@ public:
    {
       // TODO throw if NChunksPerBlock == 0ul
 
-      static_assert(sizeof(T) >= sizeof(U), "Type must be size of chunk or greater");
+      static_assert(sizeof(T) >= sizeof(uintptr), "Type must be size of chunk or greater");
 
       auto * const originalBlock_Ptr = allocateBlock(NChunksPerBlock, sizeof(T));
       auto * const activeBlock_ptr   = originalBlock_Ptr;
@@ -74,35 +69,33 @@ public:
     * @param NChunksPerBlock
     * @param ChunkSize_bytes
     *
-    * @return uint8 *
+    * @return void *
     */
    void * allocateBlock(uint64 const NChunksPerBlock,
                         uint64 const ChunkSize_bytes)
    {
-      std::allocator<uint8> a;
-      auto * const block_Ptr = a.allocate(NChunksPerBlock * ChunkSize_bytes + sizeof(std::uintptr_t));
+      auto * const block_Ptr =
+         static_cast<uintptr *>(
+            ::operator new(NChunksPerBlock * ChunkSize_bytes + sizeof(uintptr)));
 
-      union W { uint64 * next; uint64 data; };
-      W w;
+      union
+      {
+         uintptr * ptr;
+         uintptr   uint;
+      } curr{block_Ptr};
 
-      auto * curr_ptr = &w; //block_Ptr;
       for (uint64 i = 0ul; i < NChunksPerBlock; ++i)
       {
-         // TODO speed check
-         *curr_ptr->next = curr_ptr->data + ChunkSize_bytes;
-
-         auto const Next = curr_ptr + ChunkSize_bytes;
-         std::memcpy(curr_ptr, &Next, sizeof(curr_ptr));
-         curr_ptr = Next;
+         *curr.ptr = curr.uint + ChunkSize_bytes;
+         curr.uint = *curr.ptr;
       }
-      std::memset(curr_ptr, 0, sizeof(curr_ptr)); // init sentinel to nullptr
+      *curr.ptr = 0ul; // init sentinel to nullptr
 
       return block_Ptr;
    }
 
    /**
     * TODO I don't think pool needs to be template - just store sizeof object and/or sizeof block
-    * TODO Maybe read <https://articles.emptycrate.com/2015/04/27/template_code_bloat_revisited_a_smaller_makeshared.html>
     */
    template <typename T>
    T * allocate(Pool<T> * const pool_Ptr)
