@@ -43,7 +43,7 @@ public:
    {
       T * const _originalBlock_Ptr;
       T *       _activeBlock_ptr;
-      U *       _sentinelPiece_ptr;
+      uintptr *       _sentinelPiece_ptr;
       T *       _nextFreeChunk_ptr;
    };
 
@@ -86,8 +86,8 @@ public:
 
       for (uint64 i = 0ul; i < NChunksPerBlock; ++i)
       {
-         *curr.ptr = curr.uint + ChunkSize_bytes;
-         curr.uint = *curr.ptr;
+         *curr.ptr  =  curr.uint + ChunkSize_bytes;
+          curr.uint = *curr.ptr;
       }
       *curr.ptr = 0ul; // init sentinel to nullptr
 
@@ -100,13 +100,22 @@ public:
    template <typename T>
    T * allocate(Pool<T> * const pool_Ptr)
    {
-      if (pool_Ptr->_nextFreeChunk_ptr == pool_Ptr->_sentinelChunk_ptr)
+      if (!_nextFreeChunk_ptr)
       {
-         // auto const NChunksPerBlock = pool_Ptr->_sentinelChunk_ptr -
-         auto * const startingBlock_Ptr = allocateBlock(NChunksPerBlock, sizeof(T));
-         auto * const sentinelChunk_Ptr = startingBlock_Ptr + NChunksPerBlock;
-         auto * const nextFreeChunk_Ptr = startingBlock_Ptr;
+         
       }
+
+      union
+      {
+         T       * ptr;
+         uintptr   uint;
+      } data{pool_Ptr->_nextFreeChunk_ptr};
+
+      // TODO this is wrong. maybe the union needs an additional member uintptr *?
+
+      pool_Ptr->_nextFreeChunk_ptr = *data.ptr;
+
+      return data.ptr;
    }
 
    T * allocatePool(uint64 const NChunksPerBlock);
