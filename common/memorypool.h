@@ -43,7 +43,7 @@ public:
    {
       T * const _originalBlock_Ptr;
       T *       _activeBlock_ptr;
-      uintptr *       _sentinelPiece_ptr;
+      T *       _sentinel_ptr;
       T *       _nextFreeChunk_ptr;
    };
 
@@ -100,20 +100,22 @@ public:
    template <typename T>
    T * allocate(Pool<T> * const pool_Ptr)
    {
-      if (!_nextFreeChunk_ptr)
+      if (pool_Ptr->_nextFreeChunk_ptr == pool_Ptr->_sentinel_ptr)
       {
-         
+         auto const NChunksPerBlock = pool_Ptr->_sentinel_ptr - pool_Ptr->_activeBlock_ptr;
+
+         pool_Ptr->_activeBlock_ptr   = allocateBlock(NChunksPerBlock, sizeof(T));
+         pool_Ptr->_sentinel_ptr      = pool_Ptr->_activeBlock_ptr + NChunksPerBlock;
+         pool_Ptr->_nextFreeChunk_ptr = pool_Ptr->_activeBlock_ptr;
       }
 
       union
       {
-         T       * ptr;
-         uintptr   uint;
+         T *   ptr;
+         T * * ptrptr;
       } data{pool_Ptr->_nextFreeChunk_ptr};
 
-      // TODO this is wrong. maybe the union needs an additional member uintptr *?
-
-      pool_Ptr->_nextFreeChunk_ptr = *data.ptr;
+      pool_Ptr->_nextFreeChunk_ptr = *data.ptrptr;
 
       return data.ptr;
    }
