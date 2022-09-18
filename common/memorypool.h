@@ -39,8 +39,13 @@ public:
     * Block - memory segment containing the desired amount of Chunks plus a sentinel Piece
     */
    template <typename T>
-   struct Pool
+   class Pool
    {
+   public:
+      explicit Pool(T *    const block_Ptr,
+                    uint64 const NChunksPerBlock);
+
+   private:
       T * const _originalBlock_Ptr;
       T *       _activeBlock_ptr;
       T *       _sentinel_ptr;
@@ -95,7 +100,9 @@ public:
    }
 
    /**
-    * TODO I don't think pool needs to be template - just store sizeof object and/or sizeof block
+    * @param pool_Ptr
+    *
+    * @return T *
     */
    template <typename T>
    T * allocate(Pool<T> * const pool_Ptr)
@@ -118,6 +125,33 @@ public:
       pool_Ptr->_nextFreeChunk_ptr = *data.ptrptr;
 
       return data.ptr;
+   }
+
+   /**
+    * @param 
+    *
+    * @return void *
+    */
+   void * allocate()
+   {
+      if (nextFreeChunk_ptr_ref == sentinel_ptr_ref)
+      {
+         auto const NUserBytesPerBlock = static_cast<uint8 *>(sentinel_Ptr) - static_cast<uint8 *>(activeBlock_Ptr);
+
+         pool_Ptr->_activeBlock_Ptr   = allocateBlock(NUserBytesPerBlock);
+         pool_Ptr->_sentinel_ptr      = static_cast<uint8 *>(pool_Ptr->_activeBlock_ptr) + NChunksPerBlock;
+         pool_Ptr->_nextFreeChunk_ptr = pool_Ptr->_activeBlock_ptr;
+      }
+
+      union
+      {
+         void    *   vptr;
+         uintptr * * uptrptr;
+      } data{pool_Ptr->_nextFreeChunk_ptr};
+
+      pool_Ptr->_nextFreeChunk_ptr = *data.uptrptr;
+
+      return data.vptr;
    }
 
    T * allocatePool(uint64 const NChunksPerBlock);
