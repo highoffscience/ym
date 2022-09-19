@@ -45,6 +45,8 @@ public:
       explicit Pool(T *    const block_Ptr,
                     uint64 const NChunksPerBlock);
 
+      inline auto getOriginalBlockPtr(void) const { return _originalBlock_Ptr; }
+
    private:
       T * const _originalBlock_Ptr;
       T *       _activeBlock_ptr;
@@ -139,7 +141,7 @@ public:
          auto const NUserBytesPerBlock = static_cast<uint8 *>(sentinel_Ptr) - static_cast<uint8 *>(activeBlock_Ptr);
 
          pool_Ptr->_activeBlock_Ptr   = allocateBlock(NUserBytesPerBlock);
-         pool_Ptr->_sentinel_ptr      = static_cast<uint8 *>(pool_Ptr->_activeBlock_ptr) + NChunksPerBlock;
+         pool_Ptr->_sentinel_ptr      = static_cast<uint8 *>(pool_Ptr->_activeBlock_ptr) + NUserBytesPerBlock;
          pool_Ptr->_nextFreeChunk_ptr = pool_Ptr->_activeBlock_ptr;
       }
 
