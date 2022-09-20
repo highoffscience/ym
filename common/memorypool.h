@@ -43,9 +43,41 @@ public:
    {
    public:
       explicit Pool(T *    const block_Ptr,
-                    uint64 const NChunksPerBlock);
+                    uint64 const NChunksPerBlock)
+         : _originalBlock_Ptr {block_Ptr                  },
+           _activeBlock_ptr   {block_Ptr                  },
+           _sentinel_ptr      {block_Ptr + NChunksPerBlock},
+           _nextFreeChunk_ptr {block_Ptr                  }
+         {
+         }
 
-      inline auto getOriginalBlockPtr(void) const { return _originalBlock_Ptr; }
+      /**
+       * @return T *
+       * 
+       * TODO try catch if allocation fails?
+       */
+      template <typename T>
+      T * allocate(void)
+      {
+         if (_nextFreeChunk_ptr == _sentinel_ptr)
+         {
+            auto const NChunksPerBlock = _sentinel_ptr - _activeBlock_ptr;
+
+            _activeBlock_ptr   = allocateBlock(NChunksPerBlock, sizeof(T));
+            _sentinel_ptr      = _activeBlock_ptr + NChunksPerBlock;
+            _nextFreeChunk_ptr = _activeBlock_ptr;
+         }
+
+         union
+         {
+            T *   ptr;
+            T * * ptrptr;
+         } data{_nextFreeChunk_ptr};
+
+         _nextFreeChunk_ptr = *data.ptrptr;
+
+         return data.ptr;
+      }
 
    private:
       T * const _originalBlock_Ptr;
@@ -58,18 +90,17 @@ public:
     *
     */
    template <typename T>
-   Pool<T> * getNewPool(uint64 const NChunksPerBlock)
+   Pool<T> getNewPool(uint64 const NChunksPerBlock)
    {
       // TODO throw if NChunksPerBlock == 0ul
 
       static_assert(sizeof(T) >= sizeof(uintptr), "Type must be size of chunk or greater");
 
-      auto * const originalBlock_Ptr = allocateBlock(NChunksPerBlock, sizeof(T));
-      auto * const activeBlock_ptr   = originalBlock_Ptr;
-      auto * const sentinelChunk_Ptr = activeBlock_ptr + NChunksPerBlock;
-      auto * const nextFreeChunk_Ptr = activeBlock_ptr;
+      auto * const originalBlock_Ptr = static_cast<T *>(allocateBlock(NChunksPerBlock, sizeof(T)));
 
-      Pool<T> pool{originalBlock_Ptr, activeBlock_ptr, sentinelChunk_Ptr, nextFreeChunk_Ptr};
+      // TODO try catch if allocation fails?
+
+      return Pool<T>(originalBlock_Ptr, NChunksPerBlock);
    }
 
    /**
@@ -99,34 +130,6 @@ public:
       *curr.ptr = 0ul; // init sentinel to nullptr
 
       return block_Ptr;
-   }
-
-   /**
-    * @param pool_Ptr
-    *
-    * @return T *
-    */
-   template <typename T>
-   T * allocate(Pool<T> * const pool_Ptr)
-   {
-      if (pool_Ptr->_nextFreeChunk_ptr == pool_Ptr->_sentinel_ptr)
-      {
-         auto const NChunksPerBlock = pool_Ptr->_sentinel_ptr - pool_Ptr->_activeBlock_ptr;
-
-         pool_Ptr->_activeBlock_ptr   = allocateBlock(NChunksPerBlock, sizeof(T));
-         pool_Ptr->_sentinel_ptr      = pool_Ptr->_activeBlock_ptr + NChunksPerBlock;
-         pool_Ptr->_nextFreeChunk_ptr = pool_Ptr->_activeBlock_ptr;
-      }
-
-      union
-      {
-         T *   ptr;
-         T * * ptrptr;
-      } data{pool_Ptr->_nextFreeChunk_ptr};
-
-      pool_Ptr->_nextFreeChunk_ptr = *data.ptrptr;
-
-      return data.ptr;
    }
 
    /**
