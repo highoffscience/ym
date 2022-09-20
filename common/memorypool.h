@@ -11,9 +11,9 @@
 #include "lightlogger.h"
 #include "lightymception.h"
 
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <memory>
 #include <new>
 
 namespace ym
@@ -43,41 +43,9 @@ public:
    {
    public:
       explicit Pool(T *    const block_Ptr,
-                    uint64 const NChunksPerBlock)
-         : _originalBlock_Ptr {block_Ptr                  },
-           _activeBlock_ptr   {block_Ptr                  },
-           _sentinel_ptr      {block_Ptr + NChunksPerBlock},
-           _nextFreeChunk_ptr {block_Ptr                  }
-         {
-         }
+                    uint64 const NChunksPerBlock);
 
-      /**
-       * @return T *
-       * 
-       * TODO try catch if allocation fails?
-       */
-      template <typename T>
-      T * allocate(void)
-      {
-         if (_nextFreeChunk_ptr == _sentinel_ptr)
-         {
-            auto const NChunksPerBlock = _sentinel_ptr - _activeBlock_ptr;
-
-            _activeBlock_ptr   = allocateBlock(NChunksPerBlock, sizeof(T));
-            _sentinel_ptr      = _activeBlock_ptr + NChunksPerBlock;
-            _nextFreeChunk_ptr = _activeBlock_ptr;
-         }
-
-         union
-         {
-            T *   ptr;
-            T * * ptrptr;
-         } data{_nextFreeChunk_ptr};
-
-         _nextFreeChunk_ptr = *data.ptrptr;
-
-         return data.ptr;
-      }
+      T * allocate(void);
 
    private:
       T * const _originalBlock_Ptr;
@@ -86,96 +54,20 @@ public:
       T *       _nextFreeChunk_ptr;
    };
 
-   /**
-    *
-    */
    template <typename T>
-   Pool<T> getNewPool(uint64 const NChunksPerBlock)
-   {
-      // TODO throw if NChunksPerBlock == 0ul
+   Pool<T> getNewPool(uint64 const NChunksPerBlock);
 
-      static_assert(sizeof(T) >= sizeof(uintptr), "Type must be size of chunk or greater");
-
-      auto * const originalBlock_Ptr = static_cast<T *>(allocateBlock(NChunksPerBlock, sizeof(T)));
-
-      // TODO try catch if allocation fails?
-
-      return Pool<T>(originalBlock_Ptr, NChunksPerBlock);
-   }
-
-   /**
-    * @param NChunksPerBlock
-    * @param ChunkSize_bytes
-    *
-    * @return void *
-    */
    void * allocateBlock(uint64 const NChunksPerBlock,
-                        uint64 const ChunkSize_bytes)
-   {
-      auto * const block_Ptr =
-         static_cast<uintptr *>(
-            ::operator new(NChunksPerBlock * ChunkSize_bytes + sizeof(uintptr)));
-
-      union
-      {
-         uintptr * ptr;
-         uintptr   uint;
-      } curr{block_Ptr};
-
-      for (uint64 i = 0ul; i < NChunksPerBlock; ++i)
-      {
-         *curr.ptr  =  curr.uint + ChunkSize_bytes;
-          curr.uint = *curr.ptr;
-      }
-      *curr.ptr = 0ul; // init sentinel to nullptr
-
-      return block_Ptr;
-   }
-
-   /**
-    * @param 
-    *
-    * @return void *
-    */
-   void * allocate()
-   {
-      if (nextFreeChunk_ptr_ref == sentinel_ptr_ref)
-      {
-         auto const NUserBytesPerBlock = static_cast<uint8 *>(sentinel_Ptr) - static_cast<uint8 *>(activeBlock_Ptr);
-
-         pool_Ptr->_activeBlock_Ptr   = allocateBlock(NUserBytesPerBlock);
-         pool_Ptr->_sentinel_ptr      = static_cast<uint8 *>(pool_Ptr->_activeBlock_ptr) + NUserBytesPerBlock;
-         pool_Ptr->_nextFreeChunk_ptr = pool_Ptr->_activeBlock_ptr;
-      }
-
-      union
-      {
-         void    *   vptr;
-         uintptr * * uptrptr;
-      } data{pool_Ptr->_nextFreeChunk_ptr};
-
-      pool_Ptr->_nextFreeChunk_ptr = *data.uptrptr;
-
-      return data.vptr;
-   }
-
-   T * allocatePool(uint64 const NChunksPerBlock);
-
-   T * allocate(void);
-   std::unique_ptr<T> allocate_safe(void);
-
-   void deallocate(T * const data_Ptr);
-
-   bool deallocateAll(void);
+                        uint64 const ChunkSize_bytes);
 
    /**
     *
     */
-   template <typename T,
-             uint32   NElements = 128>
+   template <typename T         = std::byte,
+             uint64   NElements = 128>
    struct ByteSegment
    {
-      static_assert(sizeof(T) == 1ul, "Byte segments can only contain bytes");
+      static_assert(sizeof(T) == 1ul, "Byte segments can only contain byte sized elements");
       static_assert(NElements >= sizeof(T *), "NElements must be at least sizeof(T *)");
 
       explicit constexpr ByteSegment(void) : data{0} {}
@@ -184,20 +76,65 @@ public:
 
       T data[NElements];
    };
-
-private:
-   /**
-    * One element per chunk
-    */
-   union Chunk
-   {
-      Chunk * next_ptr;
-      T       data;
-   };
-
-   Chunk *      _nextFreeChunk_ptr;
-   uint64 const _NChunksPerBlock;
 };
+
+/**
+ *
+ */
+template <typename T>
+MemoryPool::Pool<T>::Pool(T *    const block_Ptr,
+                          uint64 const NChunksPerBlock)
+   : _originalBlock_Ptr {block_Ptr                  },
+     _activeBlock_ptr   {block_Ptr                  },
+     _sentinel_ptr      {block_Ptr + NChunksPerBlock},
+     _nextFreeChunk_ptr {block_Ptr                  }
+{
+}
+
+/**
+ * @return T *
+ * 
+ * TODO try catch if allocation fails? report and rethrow?
+ */
+template <typename T>
+T * MemoryPool::Pool<T>::allocate(void)
+{
+   if (_nextFreeChunk_ptr == _sentinel_ptr)
+   {
+      auto const NChunksPerBlock = _sentinel_ptr - _activeBlock_ptr;
+
+      _activeBlock_ptr   = allocateBlock(NChunksPerBlock, sizeof(T));
+      _sentinel_ptr      = _activeBlock_ptr + NChunksPerBlock;
+      _nextFreeChunk_ptr = _activeBlock_ptr;
+   }
+
+   union
+   {
+      T *   ptr;
+      T * * ptrptr;
+   } data{_nextFreeChunk_ptr};
+
+   _nextFreeChunk_ptr = *data.ptrptr;
+
+   return data.ptr;
+}
+
+/**
+ * TODO try catch if allocation fails? report and rethrow?
+ */
+template <typename T>
+auto MemoryPool::getNewPool<T>(uint64 const NChunksPerBlock) -> Pool<T>
+{
+   // TODO throw if NChunksPerBlock == 0ul
+
+   static_assert(sizeof(T) >= sizeof(uintptr), "Type must be size of chunk or greater");
+
+   auto * const originalBlock_Ptr = static_cast<T *>(allocateBlock(NChunksPerBlock, sizeof(T)));
+
+   // TODO try catch if allocation fails?
+
+   return Pool<T>(originalBlock_Ptr, NChunksPerBlock);
+}
 
 /**
  * TODO
