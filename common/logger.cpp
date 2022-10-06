@@ -6,8 +6,6 @@
 
 #include "logger.h"
 
-#include "memorypool.h"
-
 #include <cstring>
 #include <ctime>
 
@@ -27,9 +25,9 @@ ym::Logger::Logger(void)
  *
  * The conditional assures the logger is only associated with one file.
  *
- * @param Filename -- Name of file to open.
+ * @param Filename -- Name of file to open
  *
- * @return bool -- True if the file was opened, false otherwise.
+ * @return bool -- True if the file was opened, false otherwise
  */
 bool ym::Logger::openOutfile(str const Filename)
 {
@@ -71,12 +69,16 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
 
    auto const TSFilenameSize_bytes = FilenameSize_bytes + TSSize_bytes + 1ul; // +1 for null terminator
 
-   // TODO I want this, I think
-   // auto uptr = MemoryPool::getInstancePtr()->allocate<char>(TimeStampedFilenameSize_bytes);
-   auto tsFilename_uptr = MemoryPool<char>::allocate(TSFilenameSize_bytes);
+   constexpr auto MaxTSFilenameSize_bytes = 256ul;
+   if (TSFilenameSize_bytes > MaxTSFilenameSize_bytes)
+   {
+      return false;
+   }
+
+   char tsFilename[MaxTSFilenameSize_bytes] = {'\0'};
 
    // write stem
-   std::strncpy(tsFilename_uptr.get(), Filename, StemSize_bytes + 1u); // include null terminator for safety
+   std::strncpy(tsFilename, Filename, StemSize_bytes + 1u); // include null terminator for safety
 
    { // getting current time
       auto t = std::time(nullptr);
@@ -90,21 +92,21 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
 
       auto const NBytesWritten =
          // write time stamp
-         std::strftime(tsFilename_uptr.get() + StemSize_bytes,
+         std::strftime(tsFilename + StemSize_bytes,
                        TSSize_bytes + 1u, // needs room for null terminator
                        "_%Y_%b_%d_%H_%M_%S",
                        timeinfo_ptr);
 
       if (NBytesWritten != TSSize_bytes)
       {
-         std::strncpy(tsFilename_uptr.get() + StemSize_bytes,
+         std::strncpy(tsFilename + StemSize_bytes,
                       "_0000_000_00_00_00_00",
                       TSSize_bytes + 1u); // include null terminator for safety
       }
    }
 
    // write extension
-   std::strncpy(tsFilename_uptr.get() + StemSize_bytes + TSSize_bytes,
+   std::strncpy(tsFilename + StemSize_bytes + TSSize_bytes,
                 Filename + StemSize_bytes,
                 FilenameSize_bytes - StemSize_bytes + 1ul); // include null terminator
 
@@ -112,5 +114,5 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
     * Attempting to open file now
     */
 
-   return openOutfile(tsFilename_uptr.get());
+   return openOutfile(tsFilename);
 }
