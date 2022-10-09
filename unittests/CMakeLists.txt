@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_executable(UnitTest unittest.cpp)
 
-set_target_properties(UnitTest PROPERTIES OUTPUT_NAME a.out)
+set_target_properties(UnitTest PROPERTIES OUTPUT_NAME unittest)
 
 target_compile_options(UnitTest PRIVATE -Werror -Wall -Wextra -O2)
 

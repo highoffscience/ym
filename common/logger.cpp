@@ -45,15 +45,12 @@ bool ym::Logger::openOutfile(str const Filename)
 bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
 {
    auto const FilenameSize_bytes = std::strlen(Filename);
-   auto const Extension = std::strchr(Filename, '.');
-
-   // Extension pointer is guaranteed to be at least as large as Filename pointer
-   auto const StemSize_bytes = (Extension) ? (Extension - Filename) : FilenameSize_bytes;
-
-   // TS = Time Stamp
+   auto const Extension          = std::strchr(Filename, '.');
+   auto const StemSize_bytes     = (Extension) ? (Extension - Filename) // Extension >= Filename
+                                               :  FilenameSize_bytes;
 
    // _%Y_%b_%d_%H_%M_%S
-   constexpr auto TSSize_bytes =
+   constexpr auto TSSize_bytes = // TS = Time Stamp
       1u + // _
       4u + // year
       1u + // _
@@ -67,52 +64,66 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
       1u + // _
       2u;  // second
 
-   auto const TSFilenameSize_bytes = FilenameSize_bytes + TSSize_bytes + 1ul; // +1 for null terminator
-
    constexpr auto MaxTSFilenameSize_bytes = 256ul;
-   if (TSFilenameSize_bytes > MaxTSFilenameSize_bytes)
+
+   auto const TSFilenameSize_bytes = FilenameSize_bytes + TSSize_bytes + 1ul; // include null terminator
+
+   bool wasFileOpened = false; // until told otherwise
+
+   if (TSFilenameSize_bytes <= MaxTSFilenameSize_bytes)
    {
-      return false;
+      char tsFilename[MaxTSFilenameSize_bytes] = {'\0'};
+
+      // write stem
+      std::strncpy(tsFilename, Filename, StemSize_bytes); // do not include null terminator
+
+      // write time stamp
+      populateTimeStamp(tsFilename + StemSize_bytes, TSSize_bytes);
+
+      // write extension
+      std::strncpy(tsFilename + StemSize_bytes + TSSize_bytes,
+                  Filename + StemSize_bytes,
+                  FilenameSize_bytes - StemSize_bytes + 1ul); // include null terminator
+
+      wasFileOpened = openOutfile(tsFilename);
+   }
+   else
+   {
+      printfInternalError("Filename too large! Max bytes %lu, was %lu.\n",
+                          MaxTSFilenameSize_bytes, TSFilenameSize_bytes);
+                          
+      wasFileOpened = false;
    }
 
-   char tsFilename[MaxTSFilenameSize_bytes] = {'\0'};
+   return wasFileOpened;
+}
 
-   // write stem
-   std::strncpy(tsFilename, Filename, StemSize_bytes + 1u); // include null terminator for safety
+/**
+ *
+ */
+void ym::Logger::populateTimeStamp(char * const timeStamp_Ptr,
+                                   uint64 const TSSize_bytes) const
+{
+   auto t = std::time(nullptr);
+   std::tm timeinfo = {0};
+   auto * timeinfo_ptr = &timeinfo;
+#if defined(_WIN32)
+   localtime_s(timeinfo_ptr, &t); // vs doesn't have the standard localtime_s function
+#else
+   timeinfo_ptr = std::localtime(&t);
+#endif // _WIN32
 
-   { // getting current time
-      auto t = std::time(nullptr);
-      std::tm timeinfo = {0};
-      auto * timeinfo_ptr = &timeinfo;
-   #if defined(_WIN32)
-      localtime_s(timeinfo_ptr, &t); // vs doesn't have the standard localtime_s function
-   #else
-      timeinfo_ptr = std::localtime(&t);
-   #endif // _WIN32
+   auto const NBytesWritten =
+      // write time stamp
+      std::strftime(timeStamp_Ptr,
+                    TSSize_bytes + 1u, // needs room for null terminator
+                    "_%Y_%b_%d_%H_%M_%S",
+                    timeinfo_ptr);
 
-      auto const NBytesWritten =
-         // write time stamp
-         std::strftime(tsFilename + StemSize_bytes,
-                       TSSize_bytes + 1u, // needs room for null terminator
-                       "_%Y_%b_%d_%H_%M_%S",
-                       timeinfo_ptr);
-
-      if (NBytesWritten != TSSize_bytes)
-      {
-         std::strncpy(tsFilename + StemSize_bytes,
-                      "_0000_000_00_00_00_00",
-                      TSSize_bytes + 1u); // include null terminator for safety
-      }
+   if (NBytesWritten != TSSize_bytes)
+   { // failed to write time and contents of buffer are undefined
+      std::strncpy(timeStamp_Ptr,
+                   "_0000_000_00_00_00_00",
+                   TSSize_bytes + 1u); // include null terminator
    }
-
-   // write extension
-   std::strncpy(tsFilename + StemSize_bytes + TSSize_bytes,
-                Filename + StemSize_bytes,
-                FilenameSize_bytes - StemSize_bytes + 1ul); // include null terminator
-
-   /*
-    * Attempting to open file now
-    */
-
-   return openOutfile(tsFilename);
 }

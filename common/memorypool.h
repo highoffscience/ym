@@ -63,8 +63,8 @@ public:
    /**
     *
     */
-   template <typename T         = std::byte,
-             uint64   NElements = 128>
+   template <typename     T     = std::byte,
+             uint64   NElements =    128   >
    struct ByteSegment
    {
       static_assert(sizeof(T) == 1ul, "Byte segments can only contain byte sized elements");
@@ -93,8 +93,6 @@ MemoryPool::Pool<T>::Pool(T *    const block_Ptr,
 
 /**
  * @return T *
- * 
- * TODO try catch if allocation fails? report and rethrow?
  */
 template <typename T>
 T * MemoryPool::Pool<T>::allocate(void)
@@ -120,7 +118,9 @@ T * MemoryPool::Pool<T>::allocate(void)
 }
 
 /**
- * TODO try catch if allocation fails? report and rethrow?
+ * @param NChunksPerBlock
+ * 
+ * @return Pool<T>
  */
 template <typename T>
 auto MemoryPool::getNewPool<T>(uint64 const NChunksPerBlock) -> Pool<T>
@@ -131,33 +131,7 @@ auto MemoryPool::getNewPool<T>(uint64 const NChunksPerBlock) -> Pool<T>
 
    auto * const originalBlock_Ptr = static_cast<T *>(allocateBlock(NChunksPerBlock, sizeof(T)));
 
-   // TODO try catch if allocation fails?
-
    return Pool<T>(originalBlock_Ptr, NChunksPerBlock);
-}
-
-/**
- * TODO
- */
-template <typename T>
-MemoryPool<T>::MemoryPool(uint64 const NChunksPerBlock)
-   : _nextFreeChunk_ptr {nullptr        },
-     _NChunksPerBlock   {NChunksPerBlock}
-{
-   ymLightAssert(_NChunksPerBlock > 0ul, "Block size must be > 0");
-}
-
-/**
- * TODO don't let exceptions escape destructor - add cleanup() method
- * TODO add more robust handling and error reporting
- */
-template <typename T>
-MemoryPool<T>::~MemoryPool(void)
-{
-   if (!deallocateAll())
-   { // some chunks are still being used by the client - this is a memory leak!
-      LightLogger::getGlobalInstance()->printf("Some chunks are still in use!");
-   }
 }
 
 

@@ -5,21 +5,23 @@
 #include "ym_unittest.h"
 
 #include "unittestbase.h"
+
 #include "random_unittest.h"
 
 #include <cstdio>
 
-int main(int const /*Argc*/, ym::str const * const /*Argv_Ptr*/)
+int main(void)
 {
-   std::printf("Go! Torchic!\n");
+   ym::unittest::UnitTestBase * unitTestPtrs[] =
+   {
+      new ym::unittest::Random_UnitTest
+   };
 
-   using namespace ym;
-   using namespace ym::unittest;
-
-   UnitTestBase * unitTest_ptr = new Random_UnitTest();
-   unitTest_ptr->runTests();
-   delete unitTest_ptr;
-   unitTest_ptr = nullptr;
+   for (auto * unitTest_ptr : unitTestPtrs)
+   {
+      unitTest_ptr->runTests();
+      delete unitTest_ptr;
+   }
 
    return 0;
 }

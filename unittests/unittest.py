@@ -20,7 +20,8 @@ class TestManager:
    def __init__(self):
       timeStamp = datetime.datetime.now().strftime("%Y_%m_%d_%H:%M:%S")
       resultsDir = os.path.join("results/", timeStamp)
-      self.logger = open(f"unittest_log_{timeStamp}.txt", "w")
+      #self.logger = open(f"unittest_log_{timeStamp}.txt", "w")
+      self.logger = open(f"unittest_log.txt", "w")
 
    ##
    #
@@ -84,8 +85,18 @@ def main():
 ##
 #
 #
+def test_main():
+   mgr = TestManager()
+   print(mgr.runCmd(["cmake", "--build", "build/", "--target", "clean"]))
+   print(mgr.runCmd(["cmake", "--build", "build/"]))
+   print(mgr.runCmd(["./build/unittest"]))
+
+##
+#
+#
 if __name__ == "__main__":
-   main()
+   #main()
+   test_main()
 else:
    print("Module meant to run stand-alone - not to be imported.")
    sys.exit(1)
