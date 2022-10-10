@@ -1,5 +1,7 @@
 ##
-# @author Forrest Jablonski
+# @file    CMakeLists.txt
+# @version 1.0.0
+# @author  Forrest Jablonski
 #
 
 cmake_minimum_required(VERSION 3.16)
@@ -20,7 +22,7 @@ set(CommonUnitTestDir ${CMAKE_CURRENT_SOURCE_DIR}/common/)
 
 target_sources(UnitTest PUBLIC
    ${CommonDir}/random.cpp
-   ${CommonUnitTestDir}/random_unittest.cpp
+   ${CommonUnitTestDir}/random/random_unittest.cpp
    ${CMAKE_CURRENT_SOURCE_DIR}/unittestbase.cpp)
 
 target_include_directories(UnitTest PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
