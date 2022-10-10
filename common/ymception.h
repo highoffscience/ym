@@ -8,9 +8,8 @@
 
 #include "textlogger.h"
 
-#include <atomic>
+#include <cstdio>
 #include <exception>
-#include <string>
 #include <type_traits>
 #include <utility>
 
@@ -25,23 +24,14 @@ namespace ym
  * Convenience functions.
  * -------------------------------------------------------------------------- */
 
-template <typename... Args_T>
-inline void ymAssert(   bool   const    Condition,
+template <typename    DerivedYmception_T,
+          typename... Args_T>
+void ymAssert(          bool   const    Condition,
                         str    const    Format,
                         Args_T const... Args);
 
 template <typename... Args_T>
 inline void ymAssertDbg(bool   const    Condition,
-                        str    const    Format,
-                        Args_T const... Args);
-
-template <typename... Args_T>
-inline void ymThrow(    bool   const    Condition,
-                        str    const    Format,
-                        Args_T const... Args);
-
-template <typename... Args_T>
-inline void ymThrowDbg( bool   const    Condition,
                         str    const    Format,
                         Args_T const... Args);
 
@@ -53,47 +43,56 @@ inline void ymThrowDbg( bool   const    Condition,
 class Ymception : public std::exception
 {
 public:
-   explicit Ymception(str const Msg);
+   template <typename... Args_T>
+   explicit Ymception(str    const    Format,
+                      Args_T const... Args);
 
    virtual ~Ymception(void) = default;
 
-   template <typename... Args_T>
-   friend void ymAssert(bool   const    Condition,
-                        TextLogger &    txtlog_ref,
-                        str    const    Format,
-                        Args_T const... Args);
+   virtual str what(void) const noexcept override;
 
-   template <typename... Args_T>
-   friend void ymThrow(bool   const    Condition,
-                       TextLogger &    txtlog_ref,
-                       str    const    Format,
-                       Args_T const... Args);
-
-   inline auto getTag(void) const { return _Tag; }
+   void assertHandler(void) const;
 
 private:
-   template <typename... Args_T>
-   static void assertPrintToLogAndConditionallyThrow(bool   const    Condition,
-                                                     bool   const    TerminateOnFailure,
-                                                     TextLogger &    txtlog_ref,
-                                                     str    const    Format,
-                                                     Args_T const... Args);
-
-   static std::atomic<uint32> _s_tagCount;
-
-   uint32 const _Tag;
+   static constexpr auto s_MaxMsgSize_bytes = 256u;
+   char _msg[s_MaxMsgSize_bytes];
 };
 
 /**
  *
  */
 template <typename... Args_T>
-inline void ymAssert(bool   const    Condition,
-                     TextLogger &    txtlog_ref,
-                     str    const    Format,
+Ymception::Ymception(str    const    Format,
                      Args_T const... Args)
+   : _msg{'\0'}
 {
-   Ymception::assertPrintToLogAndConditionallyThrow(Condition, true, txtlog_ref, Format, Args...);
+   std::snprintf(_msg, sizeof(_msg), Format, Args...);
+}
+
+/**
+ * 
+ */
+auto Ymception::what(void) const -> str
+{
+   return _msg;
+}
+
+/**
+ *
+ */
+template <typename    DerivedYmception_T,
+          typename... Args_T>
+void ymAssert(bool   const    Condition,
+              str    const    Format,
+              Args_T const... Args)
+{
+   static_assert(std::is_base_of_v<Ymception, DerivedYmception_T>, "Derived must be a Ymception based type");
+
+   if (!Condition)
+   { // assert failed
+      DerivedYmception_T e(Format, Args...);
+      e.assertHandler();
+   }
 }
 
 /**
@@ -101,12 +100,11 @@ inline void ymAssert(bool   const    Condition,
  */
 template <typename... Args_T>
 inline void ymAssertDbg(bool   const    Condition,
-                        TextLogger &    txtlog_ref,
                         str    const    Format,
                         Args_T const... Args)
 {
 #if defined(YM_DBG)
-   ymAssert(Condition, txtlog_ref, Format, Args...);
+   ymAssert(Condition, Format, Args...);
 #endif // YM_DBG
 }
 
@@ -137,57 +135,32 @@ inline void ymThrowDbg(bool   const    Condition,
 }
 
 /**
- *
+ * TODO replace verbose level from 0 with correct mask
+ * TODO moce to cpp
  */
-template <typename... Args_T>
-void Ymception::assertPrintToLogAndConditionallyThrow(bool   const    Condition,
-                                                      bool   const    TerminateOnFailure,
-                                                      TextLogger &    txtlog_ref,
-                                                      str    const    Format,
-                                                      Args_T const... Args)
+void Ymception::assertHandler(void) const
 {
-   if (!Condition)
-   { // assert failed
-      txtlog_ref.printf(0, "Assert failed!");
+   ymLog(0, "Assert failed!");
+   ymLog(0, what());
 
-      Ymception e("Assertion failure!");
-      if (TerminateOnFailure)
-      { // let user know we are about to terminate
-         ymLog(0, "About to terminate!");
-      }
-      else
-      { // let user know we are about to throw
-         ymLog(0, "Throwing Ymception with tag %lu.", e.getTag());
-      }
+#if defined(YM_DBG)
+   ymLog(0, "Stack dump follows...");
 
-      ymLog(0, Format, Args...);
+   { // split and print stack dump
+      std::string const StackDumpStr = boost::stacktrace::to_string(boost::stacktrace::stacktrace());
 
-   #if defined(YM_DBG)
-      ymLog(0, "Stack dump follows...");
-
-      { // split and print stack dump
-         std::string const StackDumpStr = boost::stacktrace::to_string(boost::stacktrace::stacktrace());
-
-         for (auto startPos = StackDumpStr.find_first_not_of('\n', 0);
-              startPos != std::string::npos;
-              /*empty*/)
-         { // print each line of the stack dump separately
-            auto const EndPos = StackDumpStr.find_first_of('\n', startPos);
-            ymLog(0, StackDumpStr.substr(startPos, EndPos - startPos).c_str());
-            startPos = StackDumpStr.find_first_not_of('\n', EndPos);
-         }
-      }
-   #endif // YM_DBG
-
-      if (TerminateOnFailure)
-      { // terminate
-         std::terminate();
-      }
-      else
-      { // throw
-         throw e;
+      for (auto startPos = StackDumpStr.find_first_not_of('\n', 0);
+            startPos != std::string::npos;
+            /*empty*/)
+      { // print each line of the stack dump separately
+         auto const EndPos = StackDumpStr.find_first_of('\n', startPos);
+         ymLog(0, StackDumpStr.substr(startPos, EndPos - startPos).c_str());
+         startPos = StackDumpStr.find_first_not_of('\n', EndPos);
       }
    }
+#endif // YM_DBG
+
+   throw *this;
 }
 
 } // ym

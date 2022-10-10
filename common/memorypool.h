@@ -8,30 +8,19 @@
 
 #include "ym.h"
 
-#include "lightlogger.h"
-#include "lightymception.h"
-
-#include <cstddef>
 #include <cstdint>
-#include <cstring>
 #include <new>
 
 namespace ym
 {
 
 /**
- * TODO have lightlogger included for error reporting
- * TODO since we cannot cleanly have a destructor, we need
- *      to make it private, which means we need static instance,
- *      which means it needs to be thread safe. Am I missing
- *      something here?
+ * 
  */
 class MemoryPool
 {
 public:
    YM_NO_DEFAULT(MemoryPool)
-
-   typedef std::uintptr_t uintptr;
 
    /**
     * Chunk - memory segment that contains the desired data type, T
@@ -59,23 +48,6 @@ public:
 
    void * allocateBlock(uint64 const NChunksPerBlock,
                         uint64 const ChunkSize_bytes);
-
-   /**
-    *
-    */
-   template <typename     T     = std::byte,
-             uint64   NElements =    128   >
-   struct ByteSegment
-   {
-      static_assert(sizeof(T) == 1ul, "Byte segments can only contain byte sized elements");
-      static_assert(NElements >= sizeof(T *), "NElements must be at least sizeof(T *)");
-
-      explicit constexpr ByteSegment(void) : data{0} {}
-
-      /*implicit*/ constexpr operator T * (void) { return data; }
-
-      T data[NElements];
-   };
 };
 
 /**
@@ -127,7 +99,9 @@ auto MemoryPool::getNewPool<T>(uint64 const NChunksPerBlock) -> Pool<T>
 {
    // TODO throw if NChunksPerBlock == 0ul
 
-   static_assert(sizeof(T) >= sizeof(uintptr), "Type must be size of chunk or greater");
+   static_assert(sizeof(T) >= sizeof(std::uintptr_t), "Type must be at least size of chunk (min size sizeof(uintptr))");
+
+
 
    auto * const originalBlock_Ptr = static_cast<T *>(allocateBlock(NChunksPerBlock, sizeof(T)));
 
