@@ -4,13 +4,37 @@
 
 #include "ymception.h"
 
-std::atomic<ym::uint32> ym::Ymception::_s_tagCount = 0u;
+#include "groupings.h"
+
+#if defined(YM_DBG)
+#include <boost/stacktrace.hpp>
+#include <string>
+#endif // YM_DBG
 
 /**
- *
+ * 
  */
-ym::Ymception::Ymception(str const Msg)
-   : std::exception {Msg                                                },
-     _Tag           {_s_tagCount.fetch_add(1, std::memory_order_relaxed)}
+void ym::Ymception::assertHandler(void) const
 {
+   ymLog(GMask_T::Ymception_Assert, "Assert failed!");
+   ymLog(GMask_T::Ymception_Assert, what());
+
+#if defined(YM_DBG)
+   ymLog(0, "Stack dump follows...");
+
+   { // split and print stack dump
+      std::string const StackDumpStr = boost::stacktrace::to_string(boost::stacktrace::stacktrace());
+
+      for (auto startPos = StackDumpStr.find_first_not_of('\n', 0);
+            startPos != std::string::npos;
+            /*empty*/)
+      { // print each line of the stack dump separately
+         auto const EndPos = StackDumpStr.find_first_of('\n', startPos);
+         ymLog(GMask_T::Ymception_Assert, StackDumpStr.substr(startPos, EndPos - startPos).c_str());
+         startPos = StackDumpStr.find_first_not_of('\n', EndPos);
+      }
+   }
+#endif // YM_DBG
+
+   throw *this;
 }

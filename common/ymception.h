@@ -6,16 +6,9 @@
 
 #include "ym.h"
 
-#include "textlogger.h"
-
 #include <cstdio>
 #include <exception>
 #include <type_traits>
-#include <utility>
-
-#if defined(YM_DBG)
-#include <boost/stacktrace.hpp>
-#endif // YM_DBG
 
 namespace ym
 {
@@ -24,21 +17,23 @@ namespace ym
  * Convenience functions.
  * -------------------------------------------------------------------------- */
 
-template <typename    DerivedYmception_T,
+template <typename    Ymception_T = Ymception,
           typename... Args_T>
-void ymAssert(          bool   const    Condition,
-                        str    const    Format,
-                        Args_T const... Args);
+void ymAssert(   bool   const    Condition,
+                 str    const    Format,
+                 Args_T const... Args);
 
-template <typename... Args_T>
-inline void ymAssertDbg(bool   const    Condition,
-                        str    const    Format,
-                        Args_T const... Args);
+template <typename    Ymception_T = Ymception,
+          typename... Args_T>
+inline
+void ymAssertDbg(bool   const    Condition,
+                 str    const    Format,
+                 Args_T const... Args);
 
 /* -------------------------------------------------------------------------- */
 
 /**
- * TODO should we have a global logger? Or register the global logger?
+ * Base class for all custom exceptions in the ym namespace.
  */
 class Ymception : public std::exception
 {
@@ -51,15 +46,24 @@ public:
 
    virtual str what(void) const noexcept override;
 
-   void assertHandler(void) const;
+   template <typename    DerivedYmception_T,
+             typename... Args_T>
+   friend void ymAssert(bool   const    Condition,
+                        str    const    Format,
+                        Args_T const... Args); // calls assertHandler()
 
 private:
+   void assertHandler(void) const;
+
    static constexpr auto s_MaxMsgSize_bytes = 256u;
    char _msg[s_MaxMsgSize_bytes];
 };
 
 /**
- *
+ * Constructor.
+ * 
+ * @param Format -- Format string
+ * @param Args   -- Arguments
  */
 template <typename... Args_T>
 Ymception::Ymception(str    const    Format,
@@ -70,7 +74,9 @@ Ymception::Ymception(str    const    Format,
 }
 
 /**
+ * Returns the saved off message describing the exception.
  * 
+ * @return str -- The saved off message
  */
 auto Ymception::what(void) const -> str
 {
@@ -78,89 +84,47 @@ auto Ymception::what(void) const -> str
 }
 
 /**
- *
+ * Asserts on the given condition and throws an instance of the desired
+ *  exception if the assert fails.
+ * 
+ * @param Condition -- Condition to evaluate (failure if false)
+ * @param Format    -- Format string
+ * @param Args      -- Arguments
  */
-template <typename    DerivedYmception_T,
+template <typename    Ymception_T = Ymception,
           typename... Args_T>
 void ymAssert(bool   const    Condition,
               str    const    Format,
               Args_T const... Args)
 {
-   static_assert(std::is_base_of_v<Ymception, DerivedYmception_T>, "Derived must be a Ymception based type");
+   static_assert(std::is_base_of_v<Ymception, Ymception_T>,
+                 "Ymception_T must be a Ymception based type");
 
    if (!Condition)
    { // assert failed
-      DerivedYmception_T e(Format, Args...);
-      e.assertHandler();
+      Ymception_T e(Format, Args...);
+      e.assertHandler(); // throws
    }
 }
 
 /**
- *
+ * Asserts on the given condition and throws an instance of the desired
+ *  exception if the assert fails. Assert is only enabled if the
+ *  debug flag is set.
+ * 
+ * @param Condition -- Condition to evaluate (failure if false)
+ * @param Format    -- Format string
+ * @param Args      -- Arguments
  */
-template <typename... Args_T>
+template <typename    Ymception_T = Ymception,
+          typename... Args_T>
 inline void ymAssertDbg(bool   const    Condition,
                         str    const    Format,
                         Args_T const... Args)
 {
 #if defined(YM_DBG)
-   ymAssert(Condition, Format, Args...);
+   ymAssert<Ymception_T>(Condition, Format, Args...);
 #endif // YM_DBG
-}
-
-/**
- *
- */
-template <typename... Args_T>
-inline void ymThrow(bool   const    Condition,
-                    TextLogger &    txtlog_ref,
-                    str    const    Format,
-                    Args_T const... Args)
-{
-   Ymception::assertPrintToLogAndConditionallyThrow(Condition, false, txtlog_ref, Format, Args...);
-}
-
-/**
- *
- */
-template <typename... Args_T>
-inline void ymThrowDbg(bool   const    Condition,
-                       TextLogger &    txtlog_ref,
-                       str    const    Format,
-                       Args_T const... Args)
-{
-#if defined(YM_DBG)
-   ymThrow(Condition, txtlog_ref, Format, Args...);
-#endif // YM_DBG
-}
-
-/**
- * TODO replace verbose level from 0 with correct mask
- * TODO moce to cpp
- */
-void Ymception::assertHandler(void) const
-{
-   ymLog(0, "Assert failed!");
-   ymLog(0, what());
-
-#if defined(YM_DBG)
-   ymLog(0, "Stack dump follows...");
-
-   { // split and print stack dump
-      std::string const StackDumpStr = boost::stacktrace::to_string(boost::stacktrace::stacktrace());
-
-      for (auto startPos = StackDumpStr.find_first_not_of('\n', 0);
-            startPos != std::string::npos;
-            /*empty*/)
-      { // print each line of the stack dump separately
-         auto const EndPos = StackDumpStr.find_first_of('\n', startPos);
-         ymLog(0, StackDumpStr.substr(startPos, EndPos - startPos).c_str());
-         startPos = StackDumpStr.find_first_not_of('\n', EndPos);
-      }
-   }
-#endif // YM_DBG
-
-   throw *this;
 }
 
 } // ym
