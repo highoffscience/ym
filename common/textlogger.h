@@ -105,7 +105,8 @@ private:
    TimeStampMode_T const     _TimeStampMode;
 };
 
-/**
+/** printf
+ * 
  * Using a universal reference here would not be better (ie Args_T && ...), since
  * the arguments are going to be primitives.
  */

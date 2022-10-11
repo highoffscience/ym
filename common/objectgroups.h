@@ -1,5 +1,5 @@
 /**
- * @file    groupings.h
+ * @file    objectgroups.h
  * @version 1.0.0
  * @author  Forrest Jablonski
  */
@@ -8,10 +8,14 @@
 
 #include "ym.h"
 
+#include <utility>
+
 namespace ym
 {
 
 /**
+ * @name ObjectGroup_T
+ * 
  * This grouping is a two-tiered mechanism to organize, to a minimal extent,
  *  groups of related functionality. The Grouping_T is used for the higher
  *  level groups and GroupingsMask_T is used for the finer groups within
@@ -20,7 +24,7 @@ namespace ym
  *
  * Keep in alphabetical order.
  */
-enum Grouping_T : uint32
+enum class ObjectGroup_T : uint32
 {
    Logger,
    Ymception,
@@ -29,10 +33,12 @@ enum Grouping_T : uint32
 };
 
 // see below documentation for explanation on this check
-static_assert(Grouping_T::NGroups < (1u << 24u),
+static_assert(std::to_underlying(ObjectGroup_T::NGroups) < (1u << 24u),
               "Underlying type cannot support # of desired groups");
 
 /**
+ * @name ObjectGroupMask_T
+ * 
  * We can have a maximum of 2^24 groups, and each group can contain a maximum
  *  of 8 flags.
  *
@@ -42,18 +48,18 @@ static_assert(Grouping_T::NGroups < (1u << 24u),
  * | xxxx'xxxx | xxxx'xxxx | xxxx'xxxx | yyyy'yyyy |
  * -------------------------------------------------
  */
-enum GroupingsMask_T : uint32
+enum class ObjectGroupMask_T : uint32
 {
-#define YM_GROUPING_FMT_MASK(Group, Mask) ((Grouping_T::Group << 8u) | Mask)
+#define YM_OG_FMT_MASK(Group, Mask) ((std::to_underlying(ObjectGroup_T::Group) << 8u) | Mask)
 
-   Logger_Basic     = YM_GROUPING_FMT_MASK(Logger,    0b0000'0001u),
+   Logger_Basic     = YM_OG_FMT_MASK(Logger,    0b0000'0001u),
 
-   Ymception_Assert = YM_GROUPING_FMT_MASK(Ymception, 0b0000'0001u)
+   Ymception_Assert = YM_OG_FMT_MASK(Ymception, 0b0000'0001u)
 
-#undef YM_GROUPING_FMT_MASK
+#undef YM_OG_FMT_MASK
 };
 
 // type alias for convenience
-using GMask_T = GroupingsMask_T;
+using OGMask_T = ObjectGroupMask_T;
 
 } // ym

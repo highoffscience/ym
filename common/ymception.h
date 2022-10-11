@@ -33,6 +33,8 @@ void ymAssertDbg(bool   const    Condition,
 /* -------------------------------------------------------------------------- */
 
 /**
+ * @name Ymception
+ * 
  * Base class for all custom exceptions in the ym namespace.
  */
 class Ymception : public std::exception
@@ -46,7 +48,7 @@ public:
 
    virtual str what(void) const noexcept override;
 
-   template <typename    DerivedYmception_T,
+   template <typename    Ymception_T,
              typename... Args_T>
    friend void ymAssert(bool   const    Condition,
                         str    const    Format,
@@ -60,6 +62,8 @@ private:
 };
 
 /**
+ * @name Ymception
+ * 
  * Constructor.
  *
  * @param Format -- Format string
@@ -74,6 +78,8 @@ Ymception::Ymception(str    const    Format,
 }
 
 /**
+ * @name what
+ * 
  * Returns the saved off message describing the exception.
  *
  * @return str -- The saved off message
@@ -84,6 +90,8 @@ auto Ymception::what(void) const -> str
 }
 
 /**
+ * @name ymAssert
+ * 
  * Asserts on the given condition and throws an instance of the desired
  *  exception if the assert fails.
  *
@@ -108,6 +116,8 @@ void ymAssert(bool   const    Condition,
 }
 
 /**
+ * @name ymAssertDbg
+ * 
  * Asserts on the given condition and throws an instance of the desired
  *  exception if the assert fails. Assert is only enabled if the
  *  debug flag is set.

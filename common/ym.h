@@ -1,5 +1,7 @@
 /**
- * @author Forrest Jablonski
+ * @file    ym.h
+ * @version 1.0.0
+ * @author  Forrest Jablonski
  */
 
 /*
