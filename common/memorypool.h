@@ -1,5 +1,5 @@
 /**
- * @file    MemoryPool.h
+ * @file    memorypool.h
  * @version 1.0.0
  * @author  Forrest Jablonski
  */
@@ -15,7 +15,7 @@ namespace ym
 {
 
 /**
- * 
+ *
  */
 class MemoryPool
 {
@@ -91,7 +91,7 @@ T * MemoryPool::Pool<T>::allocate(void)
 
 /**
  * @param NChunksPerBlock
- * 
+ *
  * @return Pool<T>
  */
 template <typename T>

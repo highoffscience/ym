@@ -17,13 +17,13 @@ namespace ym
  * Convenience functions.
  * -------------------------------------------------------------------------- */
 
-template <typename    Ymception_T = Ymception,
+template <typename    Ymception_T = class Ymception,
           typename... Args_T>
 void ymAssert(   bool   const    Condition,
                  str    const    Format,
                  Args_T const... Args);
 
-template <typename    Ymception_T = Ymception,
+template <typename    Ymception_T = class Ymception,
           typename... Args_T>
 inline
 void ymAssertDbg(bool   const    Condition,
@@ -61,7 +61,7 @@ private:
 
 /**
  * Constructor.
- * 
+ *
  * @param Format -- Format string
  * @param Args   -- Arguments
  */
@@ -75,7 +75,7 @@ Ymception::Ymception(str    const    Format,
 
 /**
  * Returns the saved off message describing the exception.
- * 
+ *
  * @return str -- The saved off message
  */
 auto Ymception::what(void) const -> str
@@ -86,12 +86,12 @@ auto Ymception::what(void) const -> str
 /**
  * Asserts on the given condition and throws an instance of the desired
  *  exception if the assert fails.
- * 
+ *
  * @param Condition -- Condition to evaluate (failure if false)
  * @param Format    -- Format string
  * @param Args      -- Arguments
  */
-template <typename    Ymception_T = Ymception,
+template <typename    Ymception_T = class Ymception,
           typename... Args_T>
 void ymAssert(bool   const    Condition,
               str    const    Format,
@@ -111,12 +111,12 @@ void ymAssert(bool   const    Condition,
  * Asserts on the given condition and throws an instance of the desired
  *  exception if the assert fails. Assert is only enabled if the
  *  debug flag is set.
- * 
+ *
  * @param Condition -- Condition to evaluate (failure if false)
  * @param Format    -- Format string
  * @param Args      -- Arguments
  */
-template <typename    Ymception_T = Ymception,
+template <typename    Ymception_T = class Ymception,
           typename... Args_T>
 inline void ymAssertDbg(bool   const    Condition,
                         str    const    Format,
