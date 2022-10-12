@@ -15,7 +15,7 @@ namespace ym
 
 /**
  * @name ObjectGroup_T
- * 
+ *
  * This grouping is a two-tiered mechanism to organize, to a minimal extent,
  *  groups of related functionality. The Grouping_T is used for the higher
  *  level groups and GroupingsMask_T is used for the finer groups within
@@ -33,12 +33,12 @@ enum class ObjectGroup_T : uint32
 };
 
 // see below documentation for explanation on this check
-static_assert(std::to_underlying(ObjectGroup_T::NGroups) < (1u << 24u),
+static_assert(std::to_underlying(ObjectGroup_T::NGroups) <= (1u << 24u),
               "Underlying type cannot support # of desired groups");
 
 /**
  * @name ObjectGroupMask_T
- * 
+ *
  * We can have a maximum of 2^24 groups, and each group can contain a maximum
  *  of 8 flags.
  *

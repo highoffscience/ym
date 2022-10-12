@@ -1,14 +1,20 @@
 /**
- * @author Forrest Jablonski
+ * @file    test_main.cpp
+ * @version 1.0.0
+ * @author  Forrest Jablonski
  */
 
-#include "lightlogger.h"
+#include "objectgroups.h"
+
+#include <iostream>
 
 int main(void)
 {
    using namespace ym;
 
-   LightLogger::getGlobalInstance()->printf("ff");
+   auto const E = std::to_underlying(ym::ObjectGroupMask_T::Ymception_Assert);
+
+   std::cout << E << std::endl;
 
    return 0;
 }
