@@ -9,14 +9,17 @@
  * standard declarations to be shared throughout.
  */
 
-/*
- * For pragma doc
- * https://docs.microsoft.com/en-us/cpp/preprocessor/warning?view=vs-2019
- */
+// TODO use using directives
+// TODO better comment this file
 
 #pragma once
 
 #if defined(_WIN32)
+
+/*
+ * For pragma doc
+ * https://docs.microsoft.com/en-us/cpp/preprocessor/warning?view=vs-2019
+ */
 
 #pragma warning(disable: 26812) // stop bugging me about unscoped enums
 #pragma warning(error:    4062) // switch on all enum values
