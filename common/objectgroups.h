@@ -21,6 +21,9 @@ namespace ym
  *  level groups and GroupingsMask_T is used for the finer groups within
  *  those higher level groups. They occupy different enums to make switching
  *  groups of bits, not just individual bits, easier to implement.
+ * 
+ * This is a scoped enum to prevent accidental bitwise or'ing with masks, as
+ *  this enum represents groups of masks - it is not a mask itself.
  *
  * Keep in alphabetical order.
  */
@@ -32,15 +35,19 @@ enum class ObjectGroup_T : uint32
    NGroups
 };
 
-// see below documentation for explanation on this check
-static_assert(std::to_underlying(ObjectGroup_T::NGroups) <= (1u << 24u),
-              "Underlying type cannot support # of desired groups");
+// type alias for convenience
+using OG_T = ObjectGroup_T;
 
 /**
  * @name ObjectGroupMask_T
  *
  * We can have a maximum of 2^24 groups, and each group can contain a maximum
  *  of 8 flags.
+ * 
+ * These masks are contained in a struct to scope them. We do not want a scoped
+ *  enum because that prevents us doing math on them easily, like bitwise
+ *  or'ing. The containing structure is a struct not a namespace so we can
+ *  type alias it.
  *
  * x = group
  * y = mask
@@ -48,13 +55,20 @@ static_assert(std::to_underlying(ObjectGroup_T::NGroups) <= (1u << 24u),
  * | xxxx'xxxx | xxxx'xxxx | xxxx'xxxx | yyyy'yyyy |
  * -------------------------------------------------
  */
-enum class ObjectGroupMask_T : uint32
+struct ObjectGroupMask_T
 {
-#define YM_OG_FMT_MASK(Group, Mask) ((std::to_underlying(ObjectGroup_T::Group) << 8u) | Mask)
+   static_assert(std::to_underlying(OG_T::NGroups) <= (1u << 24u),
+      "Underlying type cannot support # of desired groups");
 
-   Logger_Basic     = YM_OG_FMT_MASK(Logger,    0b0000'0001u),
+#define YM_OG_FMT_MASK(Group_, Mask_) ((std::to_underlying(OG_T::Group_) << 8u) | Mask_)
 
-   Ymception_Assert = YM_OG_FMT_MASK(Ymception, 0b0000'0001u)
+   /// object group mask definitions
+   enum : uint32
+   {
+      Logger_Basic     = YM_OG_FMT_MASK(Logger,    0b0000'0001u),
+
+      Ymception_Assert = YM_OG_FMT_MASK(Ymception, 0b0000'0001u)
+   };
 
 #undef YM_OG_FMT_MASK
 };
