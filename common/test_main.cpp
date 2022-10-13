@@ -14,7 +14,11 @@ int main(void)
 
    auto const E = std::to_underlying(ym::ObjectGroupMask_T::Ymception_Assert);
 
-   std::cout << E << std::endl;
+   using T = long double;// __float80;
+   T i = 3.1415;
+   T j = 2.0;
+
+   std::cout << sizeof(i) << " :: " << static_cast<float64>(i * j) << std::endl;
 
    return 0;
 }
