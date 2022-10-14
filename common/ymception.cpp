@@ -6,6 +6,8 @@
 
 #include "objectgroups.h"
 
+// TODO add boost (apt-get install libboost-all-dev) to cmake build dependencies
+
 #include <boost/stacktrace.hpp>
 #include <string>
 
