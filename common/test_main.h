@@ -25,7 +25,7 @@ struct Event
 
    static constexpr uint64 getClassID_func(void)
    {
-      return ymPtrToUint(&getClassID_func);
+      return 0; //ymPtrToUint(&getClassID_func);
    }
 };
 

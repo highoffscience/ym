@@ -6,14 +6,19 @@
 
 #include "ym.h"
 
+#include <type_traits>
+
 namespace ym
 {
 
-/**
- * PRNG
+/** Random
  * 
- * Note: If modifying the implementation don't forget to update
- *  rng_ym_rand.h in the dieharder test suite.
+ * @brief PRNG 
+ * 
+ * @todo You are using the link annotation incorrectly Forrest
+ * 
+ * @note If modifying the implementation don't forget to update
+ *       < @link rng_ym_rand.h @endlink > in the dieharder test suite.
  */
 class Random
 {
@@ -25,8 +30,12 @@ public:
              uint64 const S2,
              uint64 const S3);
 
-   template <typename dim_t>
-   dim_t gen(void);
+   template <typename T>
+   requires(std::is_same_v<T, uint32 > ||
+            std::is_same_v<T, uint64 > ||
+            std::is_same_v<T, float32> ||
+            std::is_same_v<T, float64>)
+   T gen(void);
 
    void jump(uint32 const NJumps);
 
@@ -39,8 +48,8 @@ private:
    uint64 _s3;
 };
 
-template <> uint32 Random::gen<uint32>(void);
-template <> uint64 Random::gen<uint64>(void);
+template <> uint32  Random::gen<uint32 >(void);
+template <> uint64  Random::gen<uint64 >(void);
 
 template <> float32 Random::gen<float32>(void);
 template <> float64 Random::gen<float64>(void);

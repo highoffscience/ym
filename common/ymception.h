@@ -6,6 +6,7 @@
 
 #include "ym.h"
 
+#include <array>
 #include <cstdio>
 #include <exception>
 #include <type_traits>
@@ -19,12 +20,14 @@ namespace ym
 
 template <typename    Ymception_T = class Ymception,
           typename... Args_T>
+//requires(std::is_base_of_v<Ymception, Ymception_T>)
 void ymAssert(   bool   const    Condition,
                  str    const    Format,
                  Args_T const... Args);
 
 template <typename    Ymception_T = class Ymception,
           typename... Args_T>
+//requires(std::is_base_of_v<Ymception, Ymception_T>)
 inline
 void ymAssertDbg(bool   const    Condition,
                  str    const    Format,
@@ -32,10 +35,9 @@ void ymAssertDbg(bool   const    Condition,
 
 /* -------------------------------------------------------------------------- */
 
-/**
- * @name Ymception
+/** Ymception
  * 
- * Base class for all custom exceptions in the ym namespace.
+ * @brief Base class for all custom exceptions in the ym namespace.
  */
 class Ymception : public std::exception
 {
@@ -57,15 +59,15 @@ public:
 private:
    void assertHandler(void) const;
 
-   static constexpr auto s_MaxMsgSize_bytes = 256u;
-   char _msg[s_MaxMsgSize_bytes];
+   std::array<char, 256u /* max msg size (bytes) */> _msg;
 };
 
-/**
- * @name Ymception
+/** Ymception
  * 
- * Constructor.
+ * @brief Constructor.
  *
+ * @tparam Args_T -- List of argument types
+ * 
  * @param Format -- Format string
  * @param Args   -- Arguments
  */
@@ -74,40 +76,27 @@ Ymception::Ymception(str    const    Format,
                      Args_T const... Args)
    : _msg{'\0'}
 {
-   std::snprintf(_msg, sizeof(_msg), Format, Args...);
+   std::snprintf(_msg.data(), _msg.size(), Format, Args...);
 }
 
-/**
- * @name what
+/** ymAssert
  * 
- * Returns the saved off message describing the exception.
+ * @brief Asserts on the given condition and throws an instance of the desired
+ *        exception if the assert fails.
  *
- * @return str -- The saved off message
- */
-auto Ymception::what(void) const -> str
-{
-   return _msg;
-}
-
-/**
- * @name ymAssert
+ * @tparam Ymception_T -- Ymception based type
+ * @tparam Args_T      -- List of argument types
  * 
- * Asserts on the given condition and throws an instance of the desired
- *  exception if the assert fails.
- *
  * @param Condition -- Condition to evaluate (failure if false)
  * @param Format    -- Format string
  * @param Args      -- Arguments
  */
-template <typename    Ymception_T = class Ymception,
+template <typename    Ymception_T,
           typename... Args_T>
 void ymAssert(bool   const    Condition,
               str    const    Format,
               Args_T const... Args)
 {
-   static_assert(std::is_base_of_v<Ymception, Ymception_T>,
-                 "Ymception_T must be a Ymception based type");
-
    if (!Condition)
    { // assert failed
       Ymception_T e(Format, Args...);
@@ -115,18 +104,20 @@ void ymAssert(bool   const    Condition,
    }
 }
 
-/**
- * @name ymAssertDbg
+/** ymAssertDbg
  * 
- * Asserts on the given condition and throws an instance of the desired
- *  exception if the assert fails. Assert is only enabled if the
- *  debug flag is set.
+ * @brief Asserts on the given condition and throws an instance of the desired
+ *        exception if the assert fails. Assert is only enabled if the
+ *        debug flag is set.
  *
+ * @tparam Ymception_T -- Ymception based type
+ * @tparam Args_T      -- List of argument types
+ * 
  * @param Condition -- Condition to evaluate (failure if false)
  * @param Format    -- Format string
  * @param Args      -- Arguments
  */
-template <typename    Ymception_T = class Ymception,
+template <typename    Ymception_T = Ymception,
           typename... Args_T>
 inline void ymAssertDbg(bool   const    Condition,
                         str    const    Format,

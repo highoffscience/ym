@@ -65,11 +65,11 @@ using uint64  = unsigned long  ; static_assert(sizeof(uint64 ) ==  8, "uint64  n
 using float32 = float          ; static_assert(sizeof(float32) ==  4, "float32 not 4 bytes");
 using float64 = double         ; static_assert(sizeof(float64) ==  8, "float64 not 8 bytes");
 
-// Could also use std::uintptr_t. See <https://en.cppreference.com/w/cpp/types/integer>.
+/// Could also use std::uintptr_t.
+/// @ref <https://en.cppreference.com/w/cpp/types/integer>.
 using uintptr = uint64; static_assert(sizeof(uintptr) >= sizeof(void *), "uintptr cannot hold ptr value");
 
-/**
- * @name ymPtrToUint
+/** ymPtrToUint
  * 
  * @brief Casts non-member pointer to an appropriately sized uint.
  * 
@@ -80,8 +80,8 @@ using uintptr = uint64; static_assert(sizeof(uintptr) >= sizeof(void *), "uintpt
  * @return uintptr -- Ptr as an appropriately sized uint
  */
 template <typename T>
-requires(std::is_pointer_v<T> &&
-         sizeof(uintptr) >= sizeof(T))
+//requires(std::is_pointer_v<T> &&       // is non-member function pointer or data pointer
+//         sizeof(uintptr) >= sizeof(T)) // is size small enough to store
 constexpr auto ymPtrToUint(T const Ptr)
 {
    return reinterpret_cast<uintptr>(Ptr);
@@ -90,8 +90,8 @@ constexpr auto ymPtrToUint(T const Ptr)
 #if defined(YM_EXPERIMENTAL)
 #if !defined(_WIN32)
 
-/*
- * See <https://en.cppreference.com/w/cpp/language/types>.
+/**
+ * @ref <https://en.cppreference.com/w/cpp/language/types>.
  */
 
 using  int128  = __int128_t  ; static_assert(sizeof(int128 )  == 16, "int128  not 16 bytes");
@@ -105,38 +105,6 @@ using uint128  = __uint128_t ; static_assert(sizeof(uint128)  == 16, "uint128 no
  */
 using float80  = __float80  ; static_assert(sizeof(float80 ) >= 10, "float80  not at least 10 bytes");
 using float128 = __float128 ; static_assert(sizeof(float128) == 16, "float128 not 16 bytes");
-
-/**
- * @name ymPtrToUint
- * 
- * @brief Casts non-member pointer to an appropriately sized uint.
- * 
- * @note Member function pointers are tricky - try to manipulate them using as strict
- *       as strong typing rules will allow you. If all else fails this function is
- *       provided but not recommended.
- * 
- * @note This function can return varying types depending on the overload.
- * 
- * @tparam T -- Pointer type
- * 
- * @param Ptr -- Pointer value
- * 
- * @return auto -- Ptr as an appropriately sized uint
- */
-template <typename T>
-requires(std::is_member_pointer_v<T> &&
-         sizeof(uint128) >= sizeof(T))
-constexpr auto ymPtrToUint(T const Ptr)
-{
-   if constexpr (sizeof(uintptr) >= sizeof(T))
-   { // can fit in a portable standard primitive
-      return reinterpret_cast<uintptr>(Ptr);
-   }
-   else
-   { // cannot fit in a portable standard primitive - rely on experimental data type
-      return reinterpret_cast<uint128>(Ptr);
-   }  
-}
 
 #endif //!_WIN32
 #endif // YM_EXPERIMENTAL
