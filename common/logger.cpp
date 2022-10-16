@@ -6,24 +6,30 @@
 
 #include "logger.h"
 
+#include "ymception.h"
+
 #include <cstring>
 #include <ctime>
 
-/**
- * Constructor.
+/** Logger
+ * 
+ * @brief Constructor.
  *
- * _outfile_uptr is set to null to serve as a flag that the logger is uninitialized.
+ * @note _outfile_uptr is set to null to serve as a flag that the logger is uninitialized.
  */
 ym::Logger::Logger(void)
    : _outfile_uptr {nullptr, [](std::FILE * const file_Ptr) { std::fclose(file_Ptr); }}
 {
 }
 
-/**
- * We open the file here instead of the constructor to allow flexibility with
- * derived classes handling the file operations.
+/** openOutfile
+ * 
+ * @brief Attempts to open a write-file.
+ * 
+ * @note We open the file here instead of the constructor to allow flexibility with
+ *       derived classes handling the file operations.
  *
- * The conditional assures the logger is only associated with one file.
+ * @note The conditional assures the logger is only associated with one file.
  *
  * @param Filename -- Name of file to open
  *
@@ -40,7 +46,7 @@ bool ym::Logger::openOutfile(str const Filename)
 }
 
 /**
- *
+ * TODO
  */
 bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
 {
@@ -48,6 +54,11 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
    auto const Extension          = std::strchr(Filename, '.');
    auto const StemSize_bytes     = (Extension) ? (Extension - Filename) // Extension >= Filename
                                                :  FilenameSize_bytes;
+
+   constexpr auto MaxTSFilenameSize_bytes = 256ul;
+   ymAssert<Ymception>(FilenameSize_bytes < MaxTSFilenameSize_bytes,
+      "Filename size is too big - not technically a hard error but unexpected. "
+      "Got %lu bytes, max %lu bytes", FilenameSize_bytes, MaxTSFilenameSize_bytes);
 
    // _%Y_%b_%d_%H_%M_%S
    constexpr auto TSSize_bytes = // TS = Time Stamp

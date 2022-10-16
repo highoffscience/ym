@@ -11,14 +11,14 @@
 
 #pragma once
 
+#include <alloca.h>
 #include <type_traits>
 
 #if defined(_WIN32)
 
-/*
- * See <https://docs.microsoft.com/en-us/cpp/preprocessor/warning>.
+/**
+ * @ref <https://docs.microsoft.com/en-us/cpp/preprocessor/warning>.
  */
-
 #pragma warning(disable: 26812) // stop bugging me about unscoped enums
 #pragma warning(error:    4062) // switch on all enum values
 #pragma warning(error:    4227) // reference of const should be pointer to const
@@ -37,8 +37,9 @@
 #define YM_EXPERIMENTAL
 #endif // !YM_EXPERIMENTAL
 
-/*
- * Helper macros for the "the big five". See <https://en.cppreference.com/w/cpp/language/rule_of_three>.
+/**
+ * Helper macros for the "the big five".
+ * @ref <https://en.cppreference.com/w/cpp/language/rule_of_three>.
  */
 #define YM_NO_DEFAULT(        ClassName_ ) ClassName_              (void              ) = delete;
 #define YM_NO_COPY(           ClassName_ ) ClassName_              (ClassName_ const &) = delete;
@@ -65,13 +66,13 @@ using uint64  = unsigned long  ; static_assert(sizeof(uint64 ) ==  8, "uint64  n
 using float32 = float          ; static_assert(sizeof(float32) ==  4, "float32 not 4 bytes");
 using float64 = double         ; static_assert(sizeof(float64) ==  8, "float64 not 8 bytes");
 
-/// Could also use std::uintptr_t.
-/// @ref <https://en.cppreference.com/w/cpp/types/integer>.
 using uintptr = uint64; static_assert(sizeof(uintptr) >= sizeof(void *), "uintptr cannot hold ptr value");
 
 /** ymPtrToUint
  * 
  * @brief Casts non-member pointer to an appropriately sized uint.
+ * 
+ * @ref <https://en.cppreference.com/w/cpp/types/integer>.
  * 
  * @tparam T -- Pointer type
  * 
@@ -80,8 +81,8 @@ using uintptr = uint64; static_assert(sizeof(uintptr) >= sizeof(void *), "uintpt
  * @return uintptr -- Ptr as an appropriately sized uint
  */
 template <typename T>
-//requires(std::is_pointer_v<T> &&       // is non-member function pointer or data pointer
-//         sizeof(uintptr) >= sizeof(T)) // is size small enough to store
+requires( (std::is_pointer_v<T>        ) && // is non-member function pointer or data pointer
+          (sizeof(uintptr) >= sizeof(T)) )  // is size small enough to store
 constexpr auto ymPtrToUint(T const Ptr)
 {
    return reinterpret_cast<uintptr>(Ptr);
@@ -108,5 +109,30 @@ using float128 = __float128 ; static_assert(sizeof(float128) == 16, "float128 no
 
 #endif //!_WIN32
 #endif // YM_EXPERIMENTAL
+
+/** ymStackAlloc
+ * 
+ * @brief Allocates requested amount of bytes on the stack at runtime.
+ * 
+ * @note Functionally moves the stack pointer to where you want. We mimic the
+ *       behaviour of variable length arrays.
+ * 
+ * @note Memory allocated by this function automatically gets freed when the
+ *       embedding function goes out of scope.
+ * 
+ * @ref <https://man7.org/linux/man-pages/man3/alloca.3.html>.
+ * @ref <https://en.cppreference.com/w/c/language/array>.
+ * 
+ * @tparam T -- Type to allocate
+ * 
+ * @param NElements -- Number of T elements to allocate room for
+ * 
+ * @return T * -- Pointer to newly allocated stack memory
+ */
+template <typename T>
+inline T * ymStackAlloc(uint32 const NElements)
+{
+   return static_cast<T *>(alloca(NElements * sizeof(T)));
+}
 
 } // ym

@@ -8,12 +8,13 @@
 
 // TODO add boost (apt-get install libboost-all-dev) to cmake build dependencies
 
-//#include <boost/stacktrace.hpp>
+#include <boost/stacktrace.hpp>
 #include <string>
 
-/**
- * @name assertHandler
+/** assertHandler
  *
+ * TODO
+ * 
  * We enter here when the assert has failed. Print the error and the stack trace
  *  to the log and throw.
  */

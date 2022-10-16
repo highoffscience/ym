@@ -18,16 +18,16 @@ namespace ym
  * Convenience functions.
  * -------------------------------------------------------------------------- */
 
-template <typename    Ymception_T = class Ymception,
+template <typename    Ymception_T,
           typename... Args_T>
-//requires(std::is_base_of_v<Ymception, Ymception_T>)
+requires(std::is_base_of_v<class Ymception, Ymception_T>)
 void ymAssert(   bool   const    Condition,
                  str    const    Format,
                  Args_T const... Args);
 
-template <typename    Ymception_T = class Ymception,
+template <typename    Ymception_T,
           typename... Args_T>
-//requires(std::is_base_of_v<Ymception, Ymception_T>)
+requires(std::is_base_of_v<class Ymception, Ymception_T>)
 inline
 void ymAssertDbg(bool   const    Condition,
                  str    const    Format,
@@ -52,6 +52,7 @@ public:
 
    template <typename    Ymception_T,
              typename... Args_T>
+   requires(std::is_base_of_v<Ymception, Ymception_T>)
    friend void ymAssert(bool   const    Condition,
                         str    const    Format,
                         Args_T const... Args); // calls assertHandler()
@@ -59,14 +60,14 @@ public:
 private:
    void assertHandler(void) const;
 
-   std::array<char, 256u /* max msg size (bytes) */> _msg;
+   std::array<char, 1024u /* max msg size (bytes) */> _msg;
 };
 
 /** Ymception
  * 
  * @brief Constructor.
  *
- * @tparam Args_T -- List of argument types
+ * @tparam Args_T -- Argument types
  * 
  * @param Format -- Format string
  * @param Args   -- Arguments
@@ -85,7 +86,7 @@ Ymception::Ymception(str    const    Format,
  *        exception if the assert fails.
  *
  * @tparam Ymception_T -- Ymception based type
- * @tparam Args_T      -- List of argument types
+ * @tparam Args_T      -- Argument types
  * 
  * @param Condition -- Condition to evaluate (failure if false)
  * @param Format    -- Format string
@@ -93,6 +94,7 @@ Ymception::Ymception(str    const    Format,
  */
 template <typename    Ymception_T,
           typename... Args_T>
+requires(std::is_base_of_v<Ymception, Ymception_T>)
 void ymAssert(bool   const    Condition,
               str    const    Format,
               Args_T const... Args)
@@ -111,13 +113,13 @@ void ymAssert(bool   const    Condition,
  *        debug flag is set.
  *
  * @tparam Ymception_T -- Ymception based type
- * @tparam Args_T      -- List of argument types
+ * @tparam Args_T      -- Argument types
  * 
  * @param Condition -- Condition to evaluate (failure if false)
  * @param Format    -- Format string
  * @param Args      -- Arguments
  */
-template <typename    Ymception_T = Ymception,
+template <typename    Ymception_T,
           typename... Args_T>
 inline void ymAssertDbg(bool   const    Condition,
                         str    const    Format,

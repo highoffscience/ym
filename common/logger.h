@@ -14,8 +14,9 @@
 namespace ym
 {
 
-/**
- * Base class for logging related classes.
+/** Logger
+ * 
+ * @brief Base class for logging related classes.
  */
 class Logger
 {
@@ -41,10 +42,13 @@ private:
                           uint64 const TSSize_bytes) const;
 };
 
-/**
- * If something goes wrong in the logger then printing to stderr is our
- *  only choice.
+/** printfInternalError
+ * 
+ * @brief If something goes wrong in the logger then printing to stderr is our
+ *        only choice.
  *
+ * @tparam Args_T -- Argument types
+ * 
  * @param Format -- Format string
  * @param Args   -- Arguments
  */

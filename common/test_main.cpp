@@ -17,7 +17,7 @@ int main(void)
 {
    using namespace ym;
 
-   ymAssert(false, "test main failure id %u", 9);
+   ymAssert<Ymception>(false, "test main failure id %u", 9);
 
    return 0;
 }
