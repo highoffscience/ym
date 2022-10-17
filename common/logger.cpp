@@ -12,7 +12,7 @@
 #include <ctime>
 
 /** Logger
- * 
+ *
  * @brief Constructor.
  *
  * @note _outfile_uptr is set to null to serve as a flag that the logger is uninitialized.
@@ -23,9 +23,9 @@ ym::Logger::Logger(void)
 }
 
 /** openOutfile
- * 
+ *
  * @brief Attempts to open a write-file.
- * 
+ *
  * @note We open the file here instead of the constructor to allow flexibility with
  *       derived classes handling the file operations.
  *
@@ -45,7 +45,8 @@ bool ym::Logger::openOutfile(str const Filename)
    return static_cast<bool>(_outfile_uptr);
 }
 
-/**
+/** openOutfile_appendTimeStamp
+ *
  * TODO
  */
 bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
@@ -56,7 +57,7 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
                                                :  FilenameSize_bytes;
 
    constexpr auto MaxTSFilenameSize_bytes = 256ul;
-   ymAssert<Ymception>(FilenameSize_bytes < MaxTSFilenameSize_bytes,
+   ymAssert<LoggerError>(FilenameSize_bytes < MaxTSFilenameSize_bytes,
       "Filename size is too big - not technically a hard error but unexpected. "
       "Got %lu bytes, max %lu bytes", FilenameSize_bytes, MaxTSFilenameSize_bytes);
 
@@ -102,7 +103,7 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
    {
       printfInternalError("Filename too large! Max bytes %lu, was %lu.\n",
                           MaxTSFilenameSize_bytes, TSFilenameSize_bytes);
-                          
+
       wasFileOpened = false;
    }
 

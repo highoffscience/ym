@@ -8,6 +8,8 @@
 
 #include "ym.h"
 
+#include "ymception.h"
+
 #include <cstdio>
 #include <memory>
 
@@ -15,7 +17,7 @@ namespace ym
 {
 
 /** Logger
- * 
+ *
  * @brief Base class for logging related classes.
  */
 class Logger
@@ -23,6 +25,8 @@ class Logger
 public:
    YM_NO_COPY  (Logger);
    YM_NO_ASSIGN(Logger);
+
+   YM_DECL_YMEXC(LoggerError)
 
 protected:
    explicit Logger(void);
@@ -43,12 +47,12 @@ private:
 };
 
 /** printfInternalError
- * 
+ *
  * @brief If something goes wrong in the logger then printing to stderr is our
  *        only choice.
  *
  * @tparam Args_T -- Argument types
- * 
+ *
  * @param Format -- Format string
  * @param Args   -- Arguments
  */
