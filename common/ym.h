@@ -2,10 +2,10 @@
  * @file    ym.h
  * @version 1.0.0
  * @author  Forrest Jablonski
- * 
+ *
  * This file should be included in every file of the project. It provides
  *  standard declarations to be shared throughout.
- * 
+ *
  * _WIN32 refers to using the Windows API - not necessarily 32-bit Windows.
  */
 
@@ -38,8 +38,11 @@
 #endif // !YM_EXPERIMENTAL
 
 /**
- * Helper macros for the "the big five".
+ * @brief Helper macros for the "the big five".
+ *
  * @ref <https://en.cppreference.com/w/cpp/language/rule_of_three>.
+ *
+ * @param ClassName_ -- Name of class
  */
 #define YM_NO_DEFAULT(        ClassName_ ) ClassName_              (void              ) = delete;
 #define YM_NO_COPY(           ClassName_ ) ClassName_              (ClassName_ const &) = delete;
@@ -69,24 +72,74 @@ using float64 = double         ; static_assert(sizeof(float64) ==  8, "float64 n
 using uintptr = uint64; static_assert(sizeof(uintptr) >= sizeof(void *), "uintptr cannot hold ptr value");
 
 /** ymPtrToUint
- * 
+ *
  * @brief Casts non-member pointer to an appropriately sized uint.
- * 
+ *
  * @ref <https://en.cppreference.com/w/cpp/types/integer>.
- * 
+ *
+ * @note It is important to make sure the size of the pointer is the exact size of the
+ *       type we're trying to cast too. Too small or large will lead to undefined
+ *       behaviour and subtle bugs.
+ *
+ * @note It is unrecommended to store function pointers as a pointer to void, and thus
+ *       as a uint. However many compilers allow it because of the days of C, and hence
+ *       a reinterpret_cast instead of a static_cast. As long as the type we are casting
+ *       is the same size we will be ok. We explicitly disqualify member function
+ *       pointers because they usually occupy 16 bytes. If necessary a convenience
+ *       casting method similar to this one can be made and placed in the experimental
+ *       block but there is no need and usually cleaner solutions exist.
+ *
  * @tparam T -- Pointer type
- * 
+ *
  * @param Ptr -- Pointer value
- * 
+ *
  * @return uintptr -- Ptr as an appropriately sized uint
  */
 template <typename T>
 requires( (std::is_pointer_v<T>        ) && // is non-member function pointer or data pointer
-          (sizeof(uintptr) >= sizeof(T)) )  // is size small enough to store
+          (sizeof(uintptr) == sizeof(T)) )  // is pointer size equal to uint size
 constexpr auto ymPtrToUint(T const Ptr)
 {
    return reinterpret_cast<uintptr>(Ptr);
 }
+
+/** YM_LITERAL_DECL
+ *
+ * @brief Defines a set of user-defined literals for commonly used types.
+ *
+ * @ref <https://en.cppreference.com/w/cpp/language/user_literal>
+ *
+ * @param UDL_          -- Name of User Defined Literal
+ * @param TypeToCastTo_ -- Type to cast to
+ *
+ * @return auto -- Input casted to TypeToCastTo_
+ */
+#define YM_LITERAL_DECL(UDL_, TypeToCastTo_)                                                                \
+   constexpr auto operator"" _##UDL_(unsigned long long int    i) { return static_cast<TypeToCastTo_>(i); } \
+   constexpr auto operator"" _##UDL_(              long double d) { return static_cast<TypeToCastTo_>(d); } \
+                                                                                                            \
+   static_assert(std::is_same_v<decltype(  0_##UDL_), TypeToCastTo_> &&                                     \
+                 std::is_same_v<decltype(0.0_##UDL_), TypeToCastTo_>,                                       \
+                 "User defined literal "#UDL_" failed to cast");
+
+YM_LITERAL_DECL(i8,  int8   )
+YM_LITERAL_DECL(i16, int16  )
+YM_LITERAL_DECL(i32, int32  )
+YM_LITERAL_DECL(i64, int64  )
+
+YM_LITERAL_DECL(u8,  uint8  )
+YM_LITERAL_DECL(u16, uint16 )
+YM_LITERAL_DECL(u32, uint32 )
+YM_LITERAL_DECL(u64, uint64 )
+
+YM_LITERAL_DECL(f32, float32)
+YM_LITERAL_DECL(f64, float64)
+
+#undef YM_LITERAL_DECL
+
+/*
+ * Experimental defines.
+ */
 
 #if defined(YM_EXPERIMENTAL)
 #if !defined(_WIN32)
@@ -111,22 +164,22 @@ using float128 = __float128 ; static_assert(sizeof(float128) == 16, "float128 no
 #endif // YM_EXPERIMENTAL
 
 /** ymStackAlloc
- * 
+ *
  * @brief Allocates requested amount of bytes on the stack at runtime.
- * 
+ *
  * @note Functionally moves the stack pointer to where you want. We mimic the
  *       behaviour of variable length arrays.
- * 
+ *
  * @note Memory allocated by this function automatically gets freed when the
  *       embedding function goes out of scope.
- * 
+ *
  * @ref <https://man7.org/linux/man-pages/man3/alloca.3.html>.
- * @ref <https://en.cppreference.com/w/c/language/array>.
- * 
+ * @ref <https://en.cppreference.com/w/c/language/array>. See section on VLA's.
+ *
  * @tparam T -- Type to allocate
- * 
+ *
  * @param NElements -- Number of T elements to allocate room for
- * 
+ *
  * @return T * -- Pointer to newly allocated stack memory
  */
 template <typename T>

@@ -42,8 +42,7 @@ protected:
    std::unique_ptr<std::FILE, FileDeleter_T> _outfile_uptr;
 
 private:
-   void populateTimeStamp(char * const timeStamp_Ptr,
-                          uint64 const TSSize_bytes) const;
+   void populateTimeStamp(char * const timeStamp_Ptr) const;
 };
 
 /** printfInternalError
