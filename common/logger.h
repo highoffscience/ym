@@ -12,6 +12,7 @@
 
 #include <cstdio>
 #include <memory>
+#include <string_view>
 
 namespace ym
 {
@@ -19,6 +20,8 @@ namespace ym
 /** Logger
  *
  * @brief Base class for logging related classes.
+ *
+ * @note TS = Time Stamp
  */
 class Logger
 {
@@ -42,6 +45,8 @@ protected:
    std::unique_ptr<std::FILE, FileDeleter_T> _outfile_uptr;
 
 private:
+   static constexpr std::string_view s_DefaultTS{"_0000_000_00_00_00_00"};
+
    void populateTimeStamp(char * const timeStamp_Ptr) const;
 };
 

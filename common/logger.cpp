@@ -60,42 +60,40 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
    auto const StemSize_bytes     = (Extension) ? (Extension - Filename) // Extension >= Filename
                                                :  FilenameSize_bytes;
 
-   // TS = Time Stamp(ed)
-
    constexpr auto MaxFilenameSize_bytes = 256_u64;
    ymAssert<LoggerError>(FilenameSize_bytes < MaxFilenameSize_bytes,
       "Filename size is too big - not technically a hard error but unexpected. "
       "Got %lu bytes, max %lu bytes", FilenameSize_bytes, MaxFilenameSize_bytes);
 
-   // TODO @link to populateTimeStamp()
-   //                                            _%Y  _%b_ %d_%H_%M_%S
-   constexpr auto TSSize_bytes         = sizeof("_0000_000_00_00_00_00"); // includes null terminator
-   auto const     TSFilenameSize_bytes = FilenameSize_bytes + TSSize_bytes;
-
-   auto * tsFilename = ymStackAlloc<char>(TSFilenameSize_bytes);
+   auto const TSFilenameSize_bytes =
+      FilenameSize_bytes + s_DefaultTS.length() + 1_u64; // include null terminator
+   auto * const tsFilename_Ptr = ymStackAlloc<char>(TSFilenameSize_bytes);
 
    // write stem
-   std::strncpy(tsFilename, Filename, StemSize_bytes); // do not include null terminator
+   std::strncpy(tsFilename_Ptr, Filename, StemSize_bytes);
 
    // write time stamp
-   populateTimeStamp(tsFilename + StemSize_bytes);
+   populateTimeStamp(tsFilename_Ptr + StemSize_bytes);
 
    // write extension
-   std::strncpy(tsFilename + StemSize_bytes + TSSize_bytes,
-                  Filename + StemSize_bytes,
-                  FilenameSize_bytes - StemSize_bytes + 1ul); // include null terminator
+   std::strncpy(tsFilename_Ptr + StemSize_bytes + s_DefaultTS.length(),
+                Filename + StemSize_bytes,
+                FilenameSize_bytes - StemSize_bytes + 1ul); // include null terminator
 
-   return openOutfile(tsFilename);
+   return openOutfile(tsFilename_Ptr);
 }
 
-/**
+/** populateTimeStamp
+ *
+ * @brief Writes the current timestamp to the specified buffer.
+ *
+ * @note If the current timestamp cannot be fetched 0's will be written instead.
+ *
+ * TODO link to s_DefaultTS
  *
  */
 void ym::Logger::populateTimeStamp(char * const timeStamp_Ptr) const
 {
-   constexpr auto * EmptyTS      =        "_0000_000_00_00_00_00";
-   constexpr auto   TSSize_bytes = sizeof("_0000_000_00_00_00_00"); // sizeof EmptyTS = 8
-
    auto t = std::time(nullptr);
    std::tm timeinfo = {0};
    auto * timeinfo_ptr = &timeinfo;
@@ -108,12 +106,14 @@ void ym::Logger::populateTimeStamp(char * const timeStamp_Ptr) const
    auto const NBytesWritten =
       // write time stamp
       std::strftime(timeStamp_Ptr,
-                    TSSize_bytes, // null terminator is included in this size
+                    s_DefaultTS.length() + 1_u64, // include null terminator
                     "_%Y_%b_%d_%H_%M_%S",
                     timeinfo_ptr);
 
-   if (NBytesWritten != TSSize_bytes)
+   if (NBytesWritten != s_DefaultTS.length())
    { // failed to write time and contents of buffer are undefined
-      std::strncpy(timeStamp_Ptr, EmptyTS, TSSize_bytes);
+      std::strncpy(timeStamp_Ptr,
+                   s_DefaultTS.data(),
+                   s_DefaultTS.length() + 1_u64); // include null terminator
    }
 }
