@@ -22,6 +22,10 @@ namespace ym
  * @brief Base class for logging related classes.
  *
  * @note TS = Time Stamp
+ *
+ * @note We don't pass the file in via the constructor because we don't want to
+ *       give the impression we'll try to open it there. We might throw an exception
+ *       or the user might want to open multiple files using the same instance.
  */
 class Logger
 {
