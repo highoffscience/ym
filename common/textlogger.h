@@ -8,7 +8,7 @@
 
 #include "logger.h"
 #include "timer.h"
-#include "verbositygroups.h"
+#include "objectgroups.h"
 
 #include <array>
 #include <atomic>
@@ -23,12 +23,29 @@
 namespace ym
 {
 
-/**
- * Uses the multi-producer/single-consumer model.
+/*
+ * Convenience functions.
+ * -------------------------------------------------------------------------- */
+
+template <typename... Args_T>
+void ymLog(OGB_T  const    OG,
+           str    const    Format,
+           Args_T const... Args);
+
+/* -------------------------------------------------------------------------- */
+
+/** TextLogger
+ *
+ * @brief Logs text to the given outfile - similary to std::printf.
+ *
+ * @note Uses the multi-producer/single-consumer model.
  */
 class TextLogger : public Logger
 {
 public:
+   /**
+    * TODO
+    */
    enum TimeStampMode_T : uint32
    {
       RecordTimeStamp,
@@ -44,7 +61,6 @@ public:
 
    bool isOpen(void) const;
 
-   bool open_appendTimeStamp(str const Filename);
    bool open(str const Filename);
    void close(void);
 
@@ -52,14 +68,14 @@ public:
    static constexpr auto getMaxNMessagesInBuffer(void) { return _s_MaxNMessagesInBuffer; }
    static constexpr auto getBufferSize_bytes    (void) { return _s_BufferSize_bytes;     }
 
-   void enable(VGGroup_T const VGGroup);
-   void enable(VGMask_T  const VGMask );
+   void enable (OG_T  const OG );
+   void enable (OGM_T const OGM);
 
-   void disable(VGGroup_T const VGGroup);
-   void disable(VGMask_T  const VGMask );
+   void disable(OG_T  const OG );
+   void disable(OGM_T const OGM);
 
    template <typename... Args_T>
-   void printf(uint32 const    VerbosityGroup,
+   void printf(OGB_T  const    OG,
                str    const    Format,
                Args_T const... Args);
 
@@ -82,6 +98,9 @@ private:
    static_assert(std::has_single_bit(_s_MaxNMessagesInBuffer),
       "_s_MaxNMessagesInBuffer needs to be power of 2");
 
+   /**
+    * TODO
+    */
    enum WriterMode_T : uint32
    {
       Closed,
@@ -106,7 +125,7 @@ private:
 };
 
 /** printf
- * 
+ *
  * Using a universal reference here would not be better (ie Args_T && ...), since
  * the arguments are going to be primitives.
  */

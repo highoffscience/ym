@@ -4,7 +4,7 @@
 
 #include "ymception.h"
 
-// #include "objectgroups.h"
+#include "objectgroups.h"
 
 // TODO add boost (apt-get install libboost-all-dev) to cmake build dependencies
 
@@ -14,7 +14,7 @@
 /** assertHandler
  *
  * TODO
- * 
+ *
  * We enter here when the assert has failed. Print the error and the stack trace
  *  to the log and throw.
  */
@@ -41,7 +41,7 @@ void ym::Ymception::assertHandler(void) const
 }
 
 /** what
- * 
+ *
  * @brief Returns the saved off message describing the exception.
  *
  * @return str -- The saved off message

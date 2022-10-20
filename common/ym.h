@@ -56,18 +56,18 @@ namespace ym
 using str     = char const * ;
 using uchar   = unsigned char;
 
-using int8    = signed char    ; static_assert(sizeof(int8   ) ==  1, "int8    not 1 byte" );
-using int16   = signed short   ; static_assert(sizeof(int16  ) ==  2, "int16   not 2 bytes");
-using int32   = signed int     ; static_assert(sizeof(int32  ) ==  4, "int32   not 4 bytes");
-using int64   = signed long    ; static_assert(sizeof(int64  ) ==  8, "int64   not 8 bytes");
+using int8    = signed char    ; static_assert(sizeof(int8   ) ==  1ul, "int8    not 1 byte" );
+using int16   = signed short   ; static_assert(sizeof(int16  ) ==  2ul, "int16   not 2 bytes");
+using int32   = signed int     ; static_assert(sizeof(int32  ) ==  4ul, "int32   not 4 bytes");
+using int64   = signed long    ; static_assert(sizeof(int64  ) ==  8ul, "int64   not 8 bytes");
 
-using uint8   = unsigned char  ; static_assert(sizeof(uint8  ) ==  1, "uint8   not 1 byte" );
-using uint16  = unsigned short ; static_assert(sizeof(uint16 ) ==  2, "uint16  not 2 bytes");
-using uint32  = unsigned int   ; static_assert(sizeof(uint32 ) ==  4, "uint32  not 4 bytes");
-using uint64  = unsigned long  ; static_assert(sizeof(uint64 ) ==  8, "uint64  not 8 bytes");
+using uint8   = unsigned char  ; static_assert(sizeof(uint8  ) ==  1ul, "uint8   not 1 byte" );
+using uint16  = unsigned short ; static_assert(sizeof(uint16 ) ==  2ul, "uint16  not 2 bytes");
+using uint32  = unsigned int   ; static_assert(sizeof(uint32 ) ==  4ul, "uint32  not 4 bytes");
+using uint64  = unsigned long  ; static_assert(sizeof(uint64 ) ==  8ul, "uint64  not 8 bytes");
 
-using float32 = float          ; static_assert(sizeof(float32) ==  4, "float32 not 4 bytes");
-using float64 = double         ; static_assert(sizeof(float64) ==  8, "float64 not 8 bytes");
+using float32 = float          ; static_assert(sizeof(float32) ==  4ul, "float32 not 4 bytes");
+using float64 = double         ; static_assert(sizeof(float64) ==  8ul, "float64 not 8 bytes");
 
 using uintptr = uint64; static_assert(sizeof(uintptr) >= sizeof(void *), "uintptr cannot hold ptr value");
 
@@ -148,8 +148,8 @@ YM_LITERAL_DECL(f64, float64)
  * @ref <https://en.cppreference.com/w/cpp/language/types>.
  */
 
-using  int128  = __int128_t  ; static_assert(sizeof(int128 )  == 16, "int128  not 16 bytes");
-using uint128  = __uint128_t ; static_assert(sizeof(uint128)  == 16, "uint128 not 16 bytes");
+using  int128  = __int128_t  ; static_assert(sizeof(int128 )  == 16ul, "int128  not 16 bytes");
+using uint128  = __uint128_t ; static_assert(sizeof(uint128)  == 16ul, "uint128 not 16 bytes");
 
 /*
  * Cpp Standard says float80 usually occupies 16 bytes.
@@ -157,8 +157,8 @@ using uint128  = __uint128_t ; static_assert(sizeof(uint128)  == 16, "uint128 no
  * Type 'long double' not 16 bytes on all platforms - Cpp Standard only guarantees it is at least as large
  *  as type 'double', which is why we alias instead type '__float128'.
  */
-using float80  = __float80  ; static_assert(sizeof(float80 ) >= 10, "float80  not at least 10 bytes");
-using float128 = __float128 ; static_assert(sizeof(float128) == 16, "float128 not 16 bytes");
+using float80  = __float80  ; static_assert(sizeof(float80 ) >= 10ul, "float80  not at least 10 bytes");
+using float128 = __float128 ; static_assert(sizeof(float128) == 16ul, "float128 not 16 bytes");
 
 #endif //!_WIN32
 #endif // YM_EXPERIMENTAL

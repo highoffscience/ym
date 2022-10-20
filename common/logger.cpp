@@ -89,13 +89,14 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
  *
  * @note If the current timestamp cannot be fetched 0's will be written instead.
  *
- * TODO link to s_DefaultTS
+ * @link Logger::s_DefaultTS @endlink
  *
+ * @param timeStamp_Ptr -- Pointer to buffer to write timestamp to
  */
 void ym::Logger::populateTimeStamp(char * const timeStamp_Ptr) const
 {
    auto t = std::time(nullptr);
-   std::tm timeinfo = {0};
+   std::tm timeinfo;
    auto * timeinfo_ptr = &timeinfo;
 #if defined(_WIN32)
    localtime_s(timeinfo_ptr, &t); // vs doesn't have the standard localtime_s function

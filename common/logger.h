@@ -41,6 +41,8 @@ protected:
    bool openOutfile                (str const Filename);
    bool openOutfile_appendTimeStamp(str const Filename);
 
+   void close(void); // TODO implement
+
    using FileDeleter_T = void(*)(std::FILE * const);
    std::unique_ptr<std::FILE, FileDeleter_T> _outfile_uptr;
 
