@@ -23,7 +23,7 @@
  * @note We define our own macros because BOOST_COMP_XXX is always defined, just
  *       set to zero. Error prone since the programmer might forget to use the
  *       BOOST_COMP_XXX_AVAILABLE macro instead.
- * 
+ *
  * @note GNUC, CLANG, and MSVC are the only compilers tested.
  */
 
@@ -45,7 +45,7 @@
 
 /**
  * @brief MSVC shenanigans.
- * 
+ *
  * @ref <https://docs.microsoft.com/en-us/cpp/preprocessor/warning>.
  */
 
@@ -110,6 +110,10 @@ namespace ym
    static_assert( std::numeric_limits<Unt_T_>::digits == ExpectedNUsefulBits_,  \
       #Unt_T_" doesn't have expected range of values");
 
+// TODO is_iec564 or whatever
+void foo() {
+std::numeric_limits<float>::is_iec559;
+}
 #define YM_FLT_INTEGRITY(Flt_T_, ExpectedNMantissaBits_)                          \
    static_assert(std::is_floating_point_v<Flt_T_>, #Flt_T_" not floating point"); \
    static_assert(std::numeric_limits<Flt_T_>::digits == ExpectedNMantissaBits_,   \
