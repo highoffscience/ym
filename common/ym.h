@@ -3,10 +3,8 @@
  * @version 1.0.0
  * @author  Forrest Jablonski
  *
- * This file should be included in every file of the project. It provides
- *  standard declarations to be shared throughout.
- *
- * _WIN32 refers to using the Windows API - not necessarily 32-bit Windows.
+ * @note This file should be included in every file of the project. It provides
+ *       standard declarations to be shared throughout.
  */
 
 #pragma once
@@ -15,25 +13,59 @@
 #include <limits>
 #include <type_traits>
 
-#if defined(_WIN32)
+#include <boost/predef.h>
+
+// ----------------------------------------------------------------------------
 
 /**
+ * @brief Helper macros for compiler detection.
+ *
+ * @note We define our own macros because BOOST_COMP_XXX is always defined, just
+ *       set to zero. Error prone since the programmer might forget to use the
+ *       BOOST_COMP_XXX_AVAILABLE macro instead.
+ * 
+ * @note GNUC, CLANG, and MSVC are the only compilers tested.
+ */
+
+#if defined(BOOST_COMP_GNUC_AVAILABLE)
+#define YM_IS_GNUC
+#endif // BOOST_COMP_GNUC_AVAILABLE
+
+#if defined(BOOST_COMP_CLANG_AVAILABLE)
+#define YM_IS_CLANG
+#endif // BOOST_COMP_CLANG_AVAILABLE
+
+#if defined(BOOST_COMP_MSVC_AVAILABLE)
+#define YM_IS_MSVC
+#endif // BOOST_COMP_MSVC_AVAILABLE
+
+// ----------------------------------------------------------------------------
+
+#if defined(YM_IS_MSVC)
+
+/**
+ * @brief MSVC shenanigans.
+ * 
  * @ref <https://docs.microsoft.com/en-us/cpp/preprocessor/warning>.
  */
+
 #pragma warning(disable: 26812) // stop bugging me about unscoped enums
 #pragma warning(error:    4062) // switch on all enum values
 #pragma warning(error:    4227) // reference of const should be pointer to const
 
-#endif // _WIN32
+#endif // YM_IS_MSVC
 
-namespace ym
-{
+// ----------------------------------------------------------------------------
 
-#if defined(_WIN32)
+/**
+ * @brief Custom defines.
+ */
+
+#if defined(YM_IS_MSVC)
 #if defined(_DEBUG)
 #define YM_DBG
 #endif // _DEBUG
-#endif // _WIN32
+#endif // YM_IS_MSVC
 
 #if !defined(YM_DBG)
 #define YM_DBG
@@ -43,6 +75,11 @@ namespace ym
 #define YM_EXPERIMENTAL
 #endif // !YM_EXPERIMENTAL
 
+// ----------------------------------------------------------------------------
+
+namespace ym
+{
+
 /**
  * @brief Helper macros for the "the big five".
  *
@@ -50,36 +87,50 @@ namespace ym
  *
  * @param ClassName_ -- Name of class
  */
+
 #define YM_NO_DEFAULT(        ClassName_ ) ClassName_              (void              ) = delete;
 #define YM_NO_COPY(           ClassName_ ) ClassName_              (ClassName_ const &) = delete;
 #define YM_NO_ASSIGN(         ClassName_ ) ClassName_ & operator = (ClassName_ const &) = delete;
 #define YM_NO_MOVE_CONSTRUCT( ClassName_ ) ClassName_              (ClassName_ &&     ) = delete;
 #define YM_NO_MOVE_ASSIGN(    ClassName_ ) ClassName_ & operator = (ClassName_ &&     ) = delete;
 
-using str     = char const * ;
-using uchar   = unsigned char;
+// ----------------------------------------------------------------------------
 
-using int8    = signed char    ; static_assert(sizeof(int8   ) ==  1ul, "int8    not 1 byte" );
-using int16   = signed short   ; static_assert(sizeof(int16  ) ==  2ul, "int16   not 2 bytes");
-using int32   = signed int     ; static_assert(sizeof(int32  ) ==  4ul, "int32   not 4 bytes");
-using int64   = signed long    ; static_assert(sizeof(int64  ) ==  8ul, "int64   not 8 bytes");
+/**
+ * @brief Primitive typedefs.
+ */
 
-using uint8   = unsigned char  ; static_assert(sizeof(uint8  ) ==  1ul, "uint8   not 1 byte" );
-using uint16  = unsigned short ; static_assert(sizeof(uint16 ) ==  2ul, "uint16  not 2 bytes");
-using uint32  = unsigned int   ; static_assert(sizeof(uint32 ) ==  4ul, "uint32  not 4 bytes");
-using uint64  = unsigned long  ; static_assert(sizeof(uint64 ) ==  8ul, "uint64  not 8 bytes");
+#define YM_INT_INTEGRITY(Int_T_, ExpectedNUsefulBits_)                            \
+   static_assert(std::numeric_limits<Int_T_>::is_signed, #Int_T_" not signed");   \
+   static_assert(std::numeric_limits<Int_T_>::digits + 1 == ExpectedNUsefulBits_, \
+      #Int_T_" doesn't have expected range of values");
 
-// TODO look up is defined
-using int128 = std::conditional_t<sizeof(long long) == 16ul,
-                                  unsigned long long,
-                                  std::conditional<__int128_t, __int128_t, void>>;
+#define YM_UNT_INTEGRITY(Unt_T_, ExpectedNUsefulBits_)                          \
+   static_assert(!std::numeric_limits<Unt_T_>::is_signed, #Unt_T_" is signed"); \
+   static_assert( std::numeric_limits<Unt_T_>::digits == ExpectedNUsefulBits_,  \
+      #Unt_T_" doesn't have expected range of values");
 
-static_assert(std::numeric_limits<int128>::digits == 16ul, "uint128 not 16 bytes");
+#define YM_FLT_INTEGRITY(Flt_T_, ExpectedNMantissaBits_)                          \
+   static_assert(std::is_floating_point_v<Flt_T_>, #Flt_T_" not floating point"); \
+   static_assert(std::numeric_limits<Flt_T_>::digits == ExpectedNMantissaBits_,   \
+      #Flt_T_" doesn't have expected range of values");
 
-using float32 = float          ; static_assert(sizeof(float32) ==  4ul, "float32 not 4 bytes");
-using float64 = double         ; static_assert(sizeof(float64) ==  8ul, "float64 not 8 bytes");
+using str     = char const *   ;
+using uchar   = unsigned char  ;
 
-using float80 = long double    ; static_assert(sizeof(float80) ==  16ul, "float64 not 8 bytes");
+using int8    = signed char    ; YM_INT_INTEGRITY(int8    ,  8)
+using int16   = signed short   ; YM_INT_INTEGRITY(int16   , 16)
+using int32   = signed int     ; YM_INT_INTEGRITY(int32   , 32)
+using int64   = signed long    ; YM_INT_INTEGRITY(int64   , 64)
+
+using uint8   = unsigned char  ; YM_UNT_INTEGRITY(uint8   ,  8)
+using uint16  = unsigned short ; YM_UNT_INTEGRITY(uint16  , 16)
+using uint32  = unsigned int   ; YM_UNT_INTEGRITY(uint32  , 32)
+using uint64  = unsigned long  ; YM_UNT_INTEGRITY(uint64  , 64)
+
+using float32 = float          ; YM_FLT_INTEGRITY(float32 , 24)
+using float64 = double         ; YM_FLT_INTEGRITY(float64 , 53)
+using float80 = long double    ; YM_FLT_INTEGRITY(float80 , 64)
 
 using uintptr = uint64; static_assert(sizeof(uintptr) >= sizeof(void *), "uintptr cannot hold ptr value");
 
