@@ -12,6 +12,7 @@
 #pragma once
 
 #include <alloca.h>
+#include <limits>
 #include <type_traits>
 
 #if defined(_WIN32)
@@ -23,10 +24,15 @@
 #pragma warning(error:    4062) // switch on all enum values
 #pragma warning(error:    4227) // reference of const should be pointer to const
 
+#endif // _WIN32
+
+namespace ym
+{
+
+#if defined(_WIN32)
 #if defined(_DEBUG)
 #define YM_DBG
 #endif // _DEBUG
-
 #endif // _WIN32
 
 #if !defined(YM_DBG)
@@ -50,9 +56,6 @@
 #define YM_NO_MOVE_CONSTRUCT( ClassName_ ) ClassName_              (ClassName_ &&     ) = delete;
 #define YM_NO_MOVE_ASSIGN(    ClassName_ ) ClassName_ & operator = (ClassName_ &&     ) = delete;
 
-namespace ym
-{
-
 using str     = char const * ;
 using uchar   = unsigned char;
 
@@ -66,8 +69,17 @@ using uint16  = unsigned short ; static_assert(sizeof(uint16 ) ==  2ul, "uint16 
 using uint32  = unsigned int   ; static_assert(sizeof(uint32 ) ==  4ul, "uint32  not 4 bytes");
 using uint64  = unsigned long  ; static_assert(sizeof(uint64 ) ==  8ul, "uint64  not 8 bytes");
 
+// TODO look up is defined
+using int128 = std::conditional_t<sizeof(long long) == 16ul,
+                                  unsigned long long,
+                                  std::conditional<__int128_t, __int128_t, void>>;
+
+static_assert(std::numeric_limits<int128>::digits == 16ul, "uint128 not 16 bytes");
+
 using float32 = float          ; static_assert(sizeof(float32) ==  4ul, "float32 not 4 bytes");
 using float64 = double         ; static_assert(sizeof(float64) ==  8ul, "float64 not 8 bytes");
+
+using float80 = long double    ; static_assert(sizeof(float80) ==  16ul, "float64 not 8 bytes");
 
 using uintptr = uint64; static_assert(sizeof(uintptr) >= sizeof(void *), "uintptr cannot hold ptr value");
 
@@ -148,8 +160,8 @@ YM_LITERAL_DECL(f64, float64)
  * @ref <https://en.cppreference.com/w/cpp/language/types>.
  */
 
-using  int128  = __int128_t  ; static_assert(sizeof(int128 )  == 16ul, "int128  not 16 bytes");
-using uint128  = __uint128_t ; static_assert(sizeof(uint128)  == 16ul, "uint128 not 16 bytes");
+// using  int128  = __int128_t  ; static_assert(sizeof(int128 )  == 16ul, "int128  not 16 bytes");
+// using uint128  = __uint128_t ; static_assert(sizeof(uint128)  == 16ul, "uint128 not 16 bytes");
 
 /*
  * Cpp Standard says float80 usually occupies 16 bytes.
@@ -157,8 +169,8 @@ using uint128  = __uint128_t ; static_assert(sizeof(uint128)  == 16ul, "uint128 
  * Type 'long double' not 16 bytes on all platforms - Cpp Standard only guarantees it is at least as large
  *  as type 'double', which is why we alias instead type '__float128'.
  */
-using float80  = __float80  ; static_assert(sizeof(float80 ) >= 10ul, "float80  not at least 10 bytes");
-using float128 = __float128 ; static_assert(sizeof(float128) == 16ul, "float128 not 16 bytes");
+// using float80  = __float80  ; static_assert(sizeof(float80 ) >= 10ul, "float80  not at least 10 bytes");
+// using float128 = __float128 ; static_assert(sizeof(float128) == 16ul, "float128 not 16 bytes");
 
 #endif //!_WIN32
 #endif // YM_EXPERIMENTAL
