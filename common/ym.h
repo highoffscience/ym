@@ -62,9 +62,9 @@
  */
 
 #if defined(YM_IS_MSVC)
-#if defined(_DEBUG)
+#if defined(_DEBUG) && !defined(YM_DBG)
 #define YM_DBG
-#endif // _DEBUG
+#endif // _DEBUG && !YM_DBG
 #endif // YM_IS_MSVC
 
 #if !defined(YM_DBG)
@@ -97,27 +97,36 @@ namespace ym
 // ----------------------------------------------------------------------------
 
 /**
- * @brief Primitive typedefs.
+ * @brief Helper macros to perform integrity/sanity checks on primitive typedefs.
+ *
+ * @note We use std::numeric_limits<>::digits to verify range instead of sizeof
+ *       because type may include padding or reserved bits. For example, sizeof
+ *       float80 is typically 16, and aligned as such, even though it is only a
+ *       10 byte type. To avoid confusion on how big a type actually is and to
+ *       uniquely express the types expected range, use std::numeric_limits<>::digits.
+ *
+ * @param Prim_T_           -- Data type to perform integrity checks on
+ * @param ExpectedNSigBits_ -- # of unique useful bits to verify range of type
  */
 
-#define YM_INT_INTEGRITY(Int_T_, ExpectedNUsefulBits_)                            \
-   static_assert(std::numeric_limits<Int_T_>::is_signed, #Int_T_" not signed");   \
-   static_assert(std::numeric_limits<Int_T_>::digits + 1 == ExpectedNUsefulBits_, \
-      #Int_T_" doesn't have expected range of values");
+#define YM_INT_INTEGRITY(Prim_T_, ExpectedNSigBits_)                              \
+   static_assert(std::numeric_limits<Prim_T_>::is_signed, #Prim_T_" not signed"); \
+   static_assert(std::numeric_limits<Prim_T_>::digits + 1 == ExpectedNSigBits_,   \
+      #Prim_T_" doesn't have expected range of values");
 
-#define YM_UNT_INTEGRITY(Unt_T_, ExpectedNUsefulBits_)                          \
-   static_assert(!std::numeric_limits<Unt_T_>::is_signed, #Unt_T_" is signed"); \
-   static_assert( std::numeric_limits<Unt_T_>::digits == ExpectedNUsefulBits_,  \
-      #Unt_T_" doesn't have expected range of values");
+#define YM_UNT_INTEGRITY(Prim_T_, ExpectedNSigBits_)                              \
+   static_assert(!std::numeric_limits<Prim_T_>::is_signed, #Prim_T_" is signed"); \
+   static_assert( std::numeric_limits<Prim_T_>::digits == ExpectedNSigBits_,      \
+      #Prim_T_" doesn't have expected range of values");
 
-// TODO is_iec564 or whatever
-void foo() {
-std::numeric_limits<float>::is_iec559;
-}
-#define YM_FLT_INTEGRITY(Flt_T_, ExpectedNMantissaBits_)                          \
-   static_assert(std::is_floating_point_v<Flt_T_>, #Flt_T_" not floating point"); \
-   static_assert(std::numeric_limits<Flt_T_>::digits == ExpectedNMantissaBits_,   \
-      #Flt_T_" doesn't have expected range of values");
+#define YM_FLT_INTEGRITY(Prim_T_, ExpectedNSigBits_)                                \
+   static_assert(std::is_floating_point_v<Prim_T_>, #Prim_T_" not floating point"); \
+   static_assert(std::numeric_limits<Prim_T_>::digits == ExpectedNSigBits_,         \
+      #Prim_T_" doesn't have expected range of values");
+
+/**
+ * @brief Primitive typedefs.
+ */
 
 using str     = char const *   ;
 using uchar   = unsigned char  ;
@@ -132,11 +141,31 @@ using uint16  = unsigned short ; YM_UNT_INTEGRITY(uint16  , 16)
 using uint32  = unsigned int   ; YM_UNT_INTEGRITY(uint32  , 32)
 using uint64  = unsigned long  ; YM_UNT_INTEGRITY(uint64  , 64)
 
+//                                                       mantissa
 using float32 = float          ; YM_FLT_INTEGRITY(float32 , 24)
 using float64 = double         ; YM_FLT_INTEGRITY(float64 , 53)
-using float80 = long double    ; YM_FLT_INTEGRITY(float80 , 64)
 
-using uintptr = uint64; static_assert(sizeof(uintptr) >= sizeof(void *), "uintptr cannot hold ptr value");
+using float80 = std::conditional_t<std::numeric_limits<long double>::digits == 64,
+                                   long double, void>;
+   static_assert(!std::is_void_v<float80>) && std::is_floating_point_v<float80>
+
+// TODO
+void foo(void)
+{
+   using f80 = std::conditional_t<std::numeric_limits<long double>::digits == 64,
+                                  long double, void>; YM_FLT_INTEGRITY(float80 , 64)
+
+   using f128 = std::conditional_t<std::numeric_limits<long double>::digits == 113,
+      long double, void>;
+}
+
+// don't pollute namespace
+#undef YM_INT_INTEGRITY
+#undef YM_UNT_INTEGRITY
+#undef YM_FLT_INTEGRITY
+
+using uintptr = uint64; static_assert(sizeof(uintptr) >= sizeof(void *),
+                           "uintptr cannot hold ptr value");
 
 /** ymPtrToUint
  *
@@ -170,6 +199,8 @@ constexpr auto ymPtrToUint(T const Ptr)
    return reinterpret_cast<uintptr>(Ptr);
 }
 
+// ----------------------------------------------------------------------------
+
 /** YM_LITERAL_DECL
  *
  * @brief Defines a set of user-defined literals for commonly used types.
@@ -201,7 +232,9 @@ YM_LITERAL_DECL(u64, uint64 )
 
 YM_LITERAL_DECL(f32, float32)
 YM_LITERAL_DECL(f64, float64)
+YM_LITERAL_DECL(f80, float80)
 
+// don't pollute namespace
 #undef YM_LITERAL_DECL
 
 /*
