@@ -10,10 +10,17 @@
 
 #include <utility>
 
+/* TODO
+ *
+ * printf(ymL_Logger | ymL_Ymcept_Basic, ...)
+ *
+ * ymL_Logger expands to OGM_T::Logger_Basic | OGM_T::Logger_Detail | ... | OGM_T::Ymcept_Basic
+ */
+
 namespace ym
 {
 
-/// Object Group Base type
+/// @brief Object Group Base type.
 using OGB_T = uint32;
 
 /** ObjectGroup_T
@@ -26,21 +33,33 @@ using OGB_T = uint32;
  *       those higher level groups. They occupy different enums to make switching
  *       groups of bits, not just individual bits, easier to implement.
  *
- * @note This is a scoped enum to prevent accidental bitwise or'ing with masks, as
- *       this enum represents groups of masks - it is not a mask itself.
+ * @note This is a wrapped scoped enum to prevent accidental bitwise or'ing with
+ *       masks, as this enum represents groups of masks - it is not a mask itself.
  *
  * @note Keep in alphabetical order.
  */
-enum class ObjectGroup_T : OGB_T
+struct ObjectGroup
 {
-   Logger,
-   Ymception,
+   /// @brief Object group definitions
+   enum class T : OGB_T
+   {
+      Logger,
+      Ymception,
 
-   NGroups
+      NGroups
+   };
+
+   /** getNGroups
+    *
+    * @brief Convenience method to get the # of object groups.
+    *
+    * @return OGB_T -- # of object groups defined.
+    */
+   static constexpr auto getNGroups(void) { return std::to_underlying(T::NGroups); }
 };
 
-// type alias for convenience
-using OG_T = ObjectGroup_T;
+/// @brief Type alias for convenience.
+using OG_T = ObjectGroup::T;
 
 /** ObjectGroupMask_T
  *
@@ -60,14 +79,14 @@ using OG_T = ObjectGroup_T;
  *       | xxxx'xxxx | xxxx'xxxx | xxxx'xxxx | yyyy'yyyy |
  *       -------------------------------------------------
  */
-struct ObjectGroupMask_T
+struct ObjectGroupMask
 {
-   static_assert(std::to_underlying(OG_T::NGroups) <= (1_u32 << 24_u32),
-      "Underlying type cannot support # of desired groups");
+   static_assert(ObjectGroup::getNGroups() <= (1_u32 << 24_u32),
+                 "Underlying type cannot support # of desired groups");
 
 #define YM_OG_FMT_MASK(Group_, Mask_) ((std::to_underlying(OG_T::Group_) << 8_u32) | Mask_)
 
-   /// object group mask definitions
+   /// @brief Object group mask definitions.
    enum : OGB_T
    {
       Logger_Basic     = YM_OG_FMT_MASK(Logger,    0b0000'0001u),
@@ -78,7 +97,7 @@ struct ObjectGroupMask_T
 #undef YM_OG_FMT_MASK
 };
 
-// type alias for convenience
-using OGM_T = ObjectGroupMask_T;
+/// @brief Type alias for convenience.
+using OGM_T = ObjectGroupMask;
 
 } // ym

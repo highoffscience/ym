@@ -1,5 +1,7 @@
 /**
- * @author Forrest Jablonski
+ * @file    textlogger.h
+ * @version 1.0.0
+ * @author  Forrest Jablonski
  */
 
 #pragma once
@@ -18,19 +20,24 @@
 #include <memory>
 #include <semaphore>
 #include <thread>
+#include <type_traits>
 #include <vector>
 
 namespace ym
 {
 
 /*
- * Convenience functions.
+ * Convenience functions/concepts.
  * -------------------------------------------------------------------------- */
 
 template <typename... Args_T>
 void ymLog(OGB_T  const    OG,
            str    const    Format,
            Args_T const... Args);
+
+template <typename T>
+concept Loggable_T = std::is_fundamental_v<T> ||
+                     std::is_pointer_v<T>;
 
 /* -------------------------------------------------------------------------- */
 
@@ -43,8 +50,9 @@ void ymLog(OGB_T  const    OG,
 class TextLogger : public Logger
 {
 public:
-   /**
-    * TODO
+   /** TimeStampMode_T
+    *
+    * @brief Flag to indicate whether to time stamp the logged line or not.
     */
    enum TimeStampMode_T : uint32
    {
@@ -74,10 +82,11 @@ public:
    void disable(OG_T  const OG );
    void disable(OGM_T const OGM);
 
-   template <typename... Args_T>
-   void printf(OGB_T  const    OG,
-               str    const    Format,
-               Args_T const... Args);
+   // TODO finish implementing this concept
+   template <Loggable_T... Loggable>
+   void printf(OGB_T    const    OG,
+               str      const    Format,
+               Loggable const... Args);
 
 private:
    template <typename... Args_T>
@@ -89,6 +98,7 @@ private:
    void populateFormattedTime(char * const write_Ptr) const;
 
    // For description of magic # 34 see populateFormattedTime()
+   // TODO provide link
    static constexpr auto getTimeStampSize_bytes(void) { return 34u; }
 
    static constexpr uint32 _s_MaxMessageSize_bytes = 256u;
@@ -96,10 +106,16 @@ private:
    static constexpr uint32 _s_BufferSize_bytes     = _s_MaxMessageSize_bytes * _s_MaxNMessagesInBuffer;
 
    static_assert(std::has_single_bit(_s_MaxNMessagesInBuffer),
-      "_s_MaxNMessagesInBuffer needs to be power of 2");
+                 "_s_MaxNMessagesInBuffer needs to be power of 2");
 
-   /**
-    * TODO
+   /** WriterMode_T
+    *
+    * @brief State of the logger.
+    *
+    * @note We differentiate between PreparingToClose and Closing as a way to properly
+    *       flush and stop the consumer thread. Communication between the client,
+    *       consumer thread, and producer thread requires at least this many states
+    *       in this implementation.
     */
    enum WriterMode_T : uint32
    {
@@ -109,8 +125,8 @@ private:
       Open
    };
 
-   typedef std::counting_semaphore<_s_MaxNMessagesInBuffer>                         MsgSemaphore_T;
-   typedef std::array<std::atomic<uint8>, static_cast<uint32>(VGGroup_T::NVGroups)> VGroups_T;
+   using MsgSemaphore_T = std::counting_semaphore<_s_MaxNMessagesInBuffer>;
+   using VGroups_T      = std::array<std::atomic<uint8>, ObjectGroup::getNGroups()>;
 
    VGroups_T                 _vGroups;
    std::thread               _writer;

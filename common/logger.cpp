@@ -83,6 +83,15 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
    return openOutfile(tsFilename_Ptr);
 }
 
+/** closeOutfile
+ *
+ * @brief Closes the file and disassociates the file handle.
+ */
+void ym::Logger::closeOutfile(void)
+{
+   _outfile_uptr.reset(nullptr);
+}
+
 /** populateTimeStamp
  *
  * @brief Writes the current timestamp to the specified buffer.

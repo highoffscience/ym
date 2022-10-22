@@ -42,15 +42,20 @@ protected:
    inline void printfInternalError(str    const    Format,
                                    Args_T const... Args);
 
+   // Don't name simply "open" or "close" because we want to allow derived
+   // classes to implement these functions without the overhead of
+   // virtual calls.
+
    bool openOutfile                (str const Filename);
    bool openOutfile_appendTimeStamp(str const Filename);
 
-   void close(void); // TODO implement
+   void closeOutfile(void);
 
    using FileDeleter_T = void(*)(std::FILE * const);
    std::unique_ptr<std::FILE, FileDeleter_T> _outfile_uptr;
 
 private:
+   // TS = Time Stamp
    static constexpr std::string_view s_DefaultTS{"_0000_000_00_00_00_00"};
 
    void populateTimeStamp(char * const timeStamp_Ptr) const;

@@ -25,19 +25,52 @@
  *       BOOST_COMP_XXX_AVAILABLE macro instead.
  *
  * @note GNUC, CLANG, and MSVC are the only compilers tested.
+ *
+ * @note We define YM_IS_XXX_ID to verify compiler mutual exclusion. We don't
+ *       want to define YM_IS_GNUC to have a value since it is now technically
+ *       defined no matter the value so errors like
+ *
+ *          #define YM_IS_XXX 0
+ *          #if defined(YM_IS_XXX)
+ *             // this code executes!
+ *          #endif
+ *
+ *        will be avoided.
  */
 
 #if defined(BOOST_COMP_GNUC_AVAILABLE)
 #define YM_IS_GNUC
+#define YM_IS_GNUC_ID 1
+#else
+#define YM_IS_GNUC_ID 0
 #endif // BOOST_COMP_GNUC_AVAILABLE
 
 #if defined(BOOST_COMP_CLANG_AVAILABLE)
 #define YM_IS_CLANG
+#define YM_IS_CLANG_ID 1
+#else
+#define YM_IS_CLANG_ID 0
 #endif // BOOST_COMP_CLANG_AVAILABLE
 
 #if defined(BOOST_COMP_MSVC_AVAILABLE)
 #define YM_IS_MSVC
+#define YM_IS_MSVC_ID 1
+#else
+#define YM_IS_MSVC_ID 0
 #endif // BOOST_COMP_MSVC_AVAILABLE
+
+// mutual exclusion test
+#if YM_IS_GNUC_ID  + \
+    YM_IS_CLANG_ID + \
+    YM_IS_MSVC_ID  + \
+    0 != 1
+static_assert(false, "Multiple (or no) compilers detected");
+#endif
+
+// don't pollute namespace
+#undef YM_IS_GNUC_ID
+#undef YM_IS_CLANG_ID
+#undef YM_IS_MSVC_ID
 
 // ----------------------------------------------------------------------------
 
@@ -57,28 +90,25 @@
 
 // ----------------------------------------------------------------------------
 
-/**
- * @brief Custom defines.
+/*
+ * Custom global defines and macros.
  */
-
-#if defined(YM_IS_MSVC)
-#if defined(_DEBUG) && !defined(YM_DBG)
-#define YM_DBG
-#endif // _DEBUG && !YM_DBG
-#endif // YM_IS_MSVC
 
 #if !defined(YM_DBG)
 #define YM_DBG
+#endif // YM_DBG
+
+#if defined(YM_IS_MSVC)
+#if defined(_DEBUG)
+#if !defined(YM_DBG)
+static_assert(false, "Clashing intentions of debug levels detected")
 #endif // !YM_DBG
+#endif // _DEBUG
+#endif // YM_IS_MSVC
 
 #if !defined(YM_EXPERIMENTAL)
-#define YM_EXPERIMENTAL
+// #define YM_EXPERIMENTAL
 #endif // !YM_EXPERIMENTAL
-
-// ----------------------------------------------------------------------------
-
-namespace ym
-{
 
 /**
  * @brief Helper macros for the "the big five".
@@ -96,6 +126,9 @@ namespace ym
 
 // ----------------------------------------------------------------------------
 
+namespace ym
+{
+
 /**
  * @brief Helper macros to perform integrity/sanity checks on primitive typedefs.
  *
@@ -105,24 +138,33 @@ namespace ym
  *       10 byte type. To avoid confusion on how big a type actually is and to
  *       uniquely express the types expected range, use std::numeric_limits<>::digits.
  *
- * @param Prim_T_           -- Data type to perform integrity checks on
- * @param ExpectedNSigBits_ -- # of unique useful bits to verify range of type
+ * @param Prim_T_        -- Data type to perform integrity checks on
+ * @param NMantissaBits_ -- Expected # of bits in mantissa
  */
 
-#define YM_INT_INTEGRITY(Prim_T_, ExpectedNSigBits_)                              \
-   static_assert(std::numeric_limits<Prim_T_>::is_signed, #Prim_T_" not signed"); \
-   static_assert(std::numeric_limits<Prim_T_>::digits + 1 == ExpectedNSigBits_,   \
-      #Prim_T_" doesn't have expected range of values");
+// int = signed integer
+#define YM_INT_INTEGRITY(Prim_T_, NMantissaBits_)                        \
+   static_assert(std::numeric_limits<Prim_T_>::is_signed,                \
+                 #Prim_T_" not signed");                                 \
+                                                                         \
+   static_assert(std::numeric_limits<Prim_T_>::digits == NMantissaBits_, \
+                 #Prim_T_" doesn't have expected range");
 
-#define YM_UNT_INTEGRITY(Prim_T_, ExpectedNSigBits_)                              \
-   static_assert(!std::numeric_limits<Prim_T_>::is_signed, #Prim_T_" is signed"); \
-   static_assert( std::numeric_limits<Prim_T_>::digits == ExpectedNSigBits_,      \
-      #Prim_T_" doesn't have expected range of values");
+// unt = unsigned integer
+#define YM_UNT_INTEGRITY(Prim_T_, NMantissaBits_)                        \
+   static_assert(!std::numeric_limits<Prim_T_>::is_signed,               \
+                 #Prim_T_" is signed");                                  \
+                                                                         \
+   static_assert(std::numeric_limits<Prim_T_>::digits == NMantissaBits_, \
+                 #Prim_T_" doesn't have expected range");
 
-#define YM_FLT_INTEGRITY(Prim_T_, ExpectedNSigBits_)                                \
-   static_assert(std::is_floating_point_v<Prim_T_>, #Prim_T_" not floating point"); \
-   static_assert(std::numeric_limits<Prim_T_>::digits == ExpectedNSigBits_,         \
-      #Prim_T_" doesn't have expected range of values");
+// flt = float
+#define YM_FLT_INTEGRITY(Prim_T_, NMantissaBits_)                        \
+   static_assert(std::is_floating_point_v<Prim_T_>,                      \
+                 #Prim_T_" not floating point");                         \
+                                                                         \
+   static_assert(std::numeric_limits<Prim_T_>::digits == NMantissaBits_, \
+                 #Prim_T_" doesn't have expected range");
 
 /**
  * @brief Primitive typedefs.
@@ -131,33 +173,43 @@ namespace ym
 using str     = char const *   ;
 using uchar   = unsigned char  ;
 
-using int8    = signed char    ; YM_INT_INTEGRITY(int8    ,  8)
-using int16   = signed short   ; YM_INT_INTEGRITY(int16   , 16)
-using int32   = signed int     ; YM_INT_INTEGRITY(int32   , 32)
-using int64   = signed long    ; YM_INT_INTEGRITY(int64   , 64)
+using int8    = signed char    ; YM_INT_INTEGRITY(int8    ,  7)
+using int16   = signed short   ; YM_INT_INTEGRITY(int16   , 15)
+using int32   = signed int     ; YM_INT_INTEGRITY(int32   , 31)
+using int64   = signed long    ; YM_INT_INTEGRITY(int64   , 63)
 
 using uint8   = unsigned char  ; YM_UNT_INTEGRITY(uint8   ,  8)
 using uint16  = unsigned short ; YM_UNT_INTEGRITY(uint16  , 16)
 using uint32  = unsigned int   ; YM_UNT_INTEGRITY(uint32  , 32)
 using uint64  = unsigned long  ; YM_UNT_INTEGRITY(uint64  , 64)
 
-//                                                       mantissa
 using float32 = float          ; YM_FLT_INTEGRITY(float32 , 24)
 using float64 = double         ; YM_FLT_INTEGRITY(float64 , 53)
 
 using float80 = std::conditional_t<std::numeric_limits<long double>::digits == 64,
-                                   long double, void>;
-   static_assert(!std::is_void_v<float80>) && std::is_floating_point_v<float80>
+                   long double,
+                   std::conditional_t<std::numeric_limits<long double>::digits == 113,
+                      void,
+                   #if defined(YM_IS_GNUC)
+                      __float80
+                   #else
+                      void
+                   #endif // YM_IS_GNUC
+                   >
+                >;
+   static_assert(std::is_void_v<float80> || sizeof(float80) >= 10ul,
+                 "float80 doesn't have expected size (range)");
 
-// TODO
-void foo(void)
-{
-   using f80 = std::conditional_t<std::numeric_limits<long double>::digits == 64,
-                                  long double, void>; YM_FLT_INTEGRITY(float80 , 64)
-
-   using f128 = std::conditional_t<std::numeric_limits<long double>::digits == 113,
-      long double, void>;
-}
+using float128 = std::conditional_t<std::numeric_limits<long double>::digits == 113,
+                    long double,
+                 #if defined(YM_IS_GNUC)
+                    __float128
+                 #else
+                    void
+                 #endif // YM_IS_GNUC
+                 >;
+   static_assert(std::is_void_v<float128> || sizeof(float128) == 16ul,
+                 "float128 doesn't have expected size (range)");
 
 // don't pollute namespace
 #undef YM_INT_INTEGRITY
@@ -165,7 +217,7 @@ void foo(void)
 #undef YM_FLT_INTEGRITY
 
 using uintptr = uint64; static_assert(sizeof(uintptr) >= sizeof(void *),
-                           "uintptr cannot hold ptr value");
+                                      "uintptr cannot hold ptr value");
 
 /** ymPtrToUint
  *
@@ -237,31 +289,7 @@ YM_LITERAL_DECL(f80, float80)
 // don't pollute namespace
 #undef YM_LITERAL_DECL
 
-/*
- * Experimental defines.
- */
-
-#if defined(YM_EXPERIMENTAL)
-#if !defined(_WIN32)
-
-/**
- * @ref <https://en.cppreference.com/w/cpp/language/types>.
- */
-
-// using  int128  = __int128_t  ; static_assert(sizeof(int128 )  == 16ul, "int128  not 16 bytes");
-// using uint128  = __uint128_t ; static_assert(sizeof(uint128)  == 16ul, "uint128 not 16 bytes");
-
-/*
- * Cpp Standard says float80 usually occupies 16 bytes.
- *
- * Type 'long double' not 16 bytes on all platforms - Cpp Standard only guarantees it is at least as large
- *  as type 'double', which is why we alias instead type '__float128'.
- */
-// using float80  = __float80  ; static_assert(sizeof(float80 ) >= 10ul, "float80  not at least 10 bytes");
-// using float128 = __float128 ; static_assert(sizeof(float128) == 16ul, "float128 not 16 bytes");
-
-#endif //!_WIN32
-#endif // YM_EXPERIMENTAL
+// ----------------------------------------------------------------------------
 
 /** ymStackAlloc
  *
