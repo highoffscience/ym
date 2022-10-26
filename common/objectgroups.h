@@ -10,20 +10,10 @@
 
 #include <utility>
 
-/* TODO
- *
- * printf(ymL_Logger | ymL_Ymcept_Basic, ...)
- *
- * ymL_Logger expands to OGM_T::Logger_Basic | OGM_T::Logger_Detail | ... | OGM_T::Ymcept_Basic
- */
-
 namespace ym
 {
 
-/// @brief Object Group Base type.
-using OGB_T = uint32;
-
-/** ObjectGroup_T
+/** ObjectGroup
  *
  * @brief Top-level group of registered objects.
  *
@@ -41,7 +31,7 @@ using OGB_T = uint32;
 struct ObjectGroup
 {
    /// @brief Object group definitions
-   enum class T : OGB_T
+   enum class T : uint32
    {
       Logger,
       Ymception,
@@ -58,12 +48,9 @@ struct ObjectGroup
    static constexpr auto getNGroups(void) { return std::to_underlying(T::NGroups); }
 };
 
-/// @brief Type alias for convenience.
-using OG_T = ObjectGroup::T;
-
-/** ObjectGroupMask_T
+/** OGMask
  *
- * @brief Bottom-level group of registered objects.
+ * @brief Object Group Mask. Bottom-level group of registered objects.
  *
  * @note We can have a maximum of 2^24 groups, and each group can contain a maximum
  *       of 8 flags.
@@ -78,26 +65,36 @@ using OG_T = ObjectGroup::T;
  *       -------------------------------------------------
  *       | xxxx'xxxx | xxxx'xxxx | xxxx'xxxx | yyyy'yyyy |
  *       -------------------------------------------------
+ *
+ * @note Example use:
+ *
+ *       void set(OGMask::T const Mask);           set(OGMask::Logger | OGMask::Ymception);
  */
-struct ObjectGroupMask
+ TODO // above example use shows this api is easy to misuse!
+struct OGMask // Object Group Mask
 {
+   /// @brief Base (underlying) type of an object group mask.
+   using T = std::underlying_type_t<ObjectGroup::T>;
+
    static_assert(ObjectGroup::getNGroups() <= (1_u32 << 24_u32),
                  "Underlying type cannot support # of desired groups");
 
-#define YM_OG_FMT_MASK(Group_, Mask_) ((std::to_underlying(OG_T::Group_) << 8_u32) | Mask_)
+#define YM_OG_FMT_MSK(Group_, Mask_) ((std::to_underlying(ObjectGroup::T::Group_) << 8_u32) | Mask_##_u32)
+#define YM_OG_FMT_GRP(Group_       ) YM_OG_FMT_MSK(Group_, 0xff)
 
    /// @brief Object group mask definitions.
-   enum : OGB_T
+   enum : T
    {
-      Logger_Basic     = YM_OG_FMT_MASK(Logger,    0b0000'0001u),
+      Logger           = YM_OG_FMT_GRP(Logger                ),
+      Logger_Basic     = YM_OG_FMT_MSK(Logger,    0b0000'0001),
+      Logger_Detail    = YM_OG_FMT_MSK(Logger,    0b0000'0010),
 
-      Ymception_Assert = YM_OG_FMT_MASK(Ymception, 0b0000'0001u)
+      Ymception        = YM_OG_FMT_GRP(Ymception             ),
+      Ymception_Assert = YM_OG_FMT_MSK(Ymception, 0b0000'0001),
    };
 
-#undef YM_OG_FMT_MASK
+#undef YM_OG_FMT_MSK
+#undef YM_OG_FMT_GRP
 };
-
-/// @brief Type alias for convenience.
-using OGM_T = ObjectGroupMask;
 
 } // ym

@@ -4,9 +4,7 @@
  * @author  Forrest Jablonski
  */
 
-#include "test_main.h"
-
-#include "ymception.h"
+#include "objectgroups.h"
 
 #include <cstdint>
 #include <iostream>
@@ -17,7 +15,7 @@ int main(void)
 {
    using namespace ym;
 
-   ymAssert<Ymception>(false, "test main failure id %u", 9);
+
 
    return 0;
 }
