@@ -212,9 +212,9 @@ using float128 = std::conditional_t<std::numeric_limits<long double>::digits == 
                  "float128 doesn't have expected size (range)");
 
 // don't pollute namespace
-#undef YM_INT_INTEGRITY
-#undef YM_UNT_INTEGRITY
 #undef YM_FLT_INTEGRITY
+#undef YM_UNT_INTEGRITY
+#undef YM_INT_INTEGRITY
 
 using uintptr = uint64; static_assert(sizeof(uintptr) >= sizeof(void *),
                                       "uintptr cannot hold ptr value");

@@ -10,7 +10,7 @@
 
 #include "logger.h"
 #include "timer.h"
-#include "objectgroups.h"
+#include "verbositygroup.h"
 
 #include <array>
 #include <atomic>
@@ -21,6 +21,7 @@
 #include <semaphore>
 #include <thread>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace ym
@@ -31,13 +32,13 @@ namespace ym
  * -------------------------------------------------------------------------- */
 
 template <typename... Args_T>
-void ymLog(OGB_T  const    OG,
+void ymLog(VGMask const    VG,
            str    const    Format,
            Args_T const... Args);
 
 template <typename T>
 concept Loggable_T = std::is_fundamental_v<T> ||
-                     std::is_pointer_v<T>;
+                     std::is_pointer_v    <T>;
 
 /* -------------------------------------------------------------------------- */
 
