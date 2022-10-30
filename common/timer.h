@@ -41,7 +41,7 @@ private:
 template <typename TimeUnit_T /* eg std::nano */>
 auto Timer::getElapsedTime(void) const -> TimeRep_T
 {
-   return std::chrono::duration_cast<std::chrono::duration<TimeRep_T, TimeUnit_T>>(clock_t::now() - _startTime).count();
+   return std::chrono::duration_cast<std::chrono::duration<TimeRep_T, TimeUnit_T>>(Clock_T::now() - _startTime).count();
 }
 
 /**

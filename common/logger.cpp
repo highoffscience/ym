@@ -37,12 +37,15 @@ ym::Logger::Logger(void)
  */
 bool ym::Logger::openOutfile(str const Filename)
 {
-   if (!_outfile_uptr)
+   bool opened = false; // until told otherwise
+
+   if (!isOutfileOpened())
    {
       _outfile_uptr.reset(std::fopen(Filename, "w"));
+      opened = true;
    }
 
-   return static_cast<bool>(_outfile_uptr);
+   return opened;
 }
 
 /** openOutfile_appendTimeStamp

@@ -6,11 +6,11 @@
 
 #include "memorypool.h"
 
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
 #include <ctime>
-#include <exception>
-
-// for debugging
-#define YM_PRINT_TO_SCREEN
+#include <memory>
 
 /**
  *
@@ -24,16 +24,16 @@ ym::TextLogger::TextLogger(void)
  *
  */
 ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
-   : _vGroups         {/*default*/                                      },
-     _writer          {/*default*/                                      },
-     _buffer_Ptr      {MemoryPool<char>::allocate(getBufferSize_bytes())},
-     _timer           {/*default*/                                      },
-     _availableSem    {static_cast<int64>(getMaxNMessagesInBuffer())    },
-     _messagesSem     {0                                                },
-     _readPos         {0u                                               },
-     _writePos        {0u                                               },
-     _writerMode      {WriterMode_T::Closed                             },
-     _TimeStampMode   {TimeStampMode                                    }
+   : _vGroups       {/*default*/                                      },
+     _writer        {/*default*/                                      },
+     _buffer_Ptr    {MemoryPool<char>::allocate(getBufferSize_bytes())},
+     _timer         {/*default*/                                      },
+     _availableSem  {static_cast<int64>(getMaxNMessagesInBuffer())    },
+     _messagesSem   {0                                                },
+     _readPos       {0u                                               },
+     _writePos      {0u                                               },
+     _writerMode    {WriterMode_T::Closed                             },
+     _TimeStampMode {TimeStampMode                                    }
 {
 }
 
@@ -56,85 +56,19 @@ bool ym::TextLogger::isOpen(void) const
 }
 
 /**
- * TODO come up with a way to destruct allocate() calls when exiting scopes
- */
-bool::ym::TextLogger::open_appendTimeStamp(str const Filename)
-{
-   auto const FilenameSize_bytes = std::strlen(Filename);
-   auto const Extension = std::strchr(Filename, '.');
-   auto const StemSize_bytes = (Extension) ? (Extension - Filename) : FilenameSize_bytes;
-
-   auto const TimeStampSize_bytes =
-      1u + // _
-      4u + // year
-      1u + // _
-      3u + // month
-      1u + // _
-      2u + // day
-      1u + // _
-      2u + // hour
-      1u + // _
-      2u + // minute
-      1u + // _
-      2u;  // second
-
-   auto const TimeStampedFilenameSize_bytes =
-      FilenameSize_bytes + TimeStampSize_bytes + 1u; // +1 for null terminator
-
-   // TODO should this return a smart pointer?
-   auto * const timeStampedFilename_Ptr = MemoryPool<char>::allocate(TimeStampedFilenameSize_bytes);
-
-   std::strncpy(timeStampedFilename_Ptr, Filename, StemSize_bytes);
-   std::strncpy(timeStampedFilename_Ptr + StemSize_bytes + TimeStampSize_bytes,
-                Filename + StemSize_bytes,
-                FilenameSize_bytes - StemSize_bytes);
-
-   auto t = std::time(nullptr);
-   std::tm timeinfo = {0};
-   auto * timeinfo_ptr = &timeinfo;
-#if defined(_WIN32)
-   localtime_s(timeinfo_ptr, &t); // vs doesn't have the standard localtime_s function
-#else
-   timeinfo_ptr = std::localtime(&t);
-#endif // _WIN32
-
-   auto const NBytesWritten =
-      std::strftime(timeStampedFilename_Ptr + StemSize_bytes,
-                    TimeStampSize_bytes,
-                    "_%Y_%b_%d_%H_%M_%S.txt",
-                    timeinfo_ptr);
-
-   bool wasOpened = false;
-
-   if (NBytesWritten > 0ul)
-   {
-      wasOpened = open(timeStampedFilename_Ptr);
-   }
-   else
-   {
-      printfError("Failure to store datetime!");
-      wasOpened = false;
-   }
-
-   MemoryPool<char>::deallocate(timeStampedFilename_Ptr, TimeStampedFilenameSize_bytes);
-
-   return wasOpened;
-}
-
-/**
  *
  */
 bool ym::TextLogger::open(str const Filename)
 {
-   bool wasOpened = Logger::open(Filename);
+   bool opened = openOutfile(Filename);
 
-   if (wasOpened)
+   if (opened)
    { // file opened successfully
-      _writer = std::thread(&TextLogger::writeMessagesToFile, this); // starts the thread
+      _writer     = std::thread(&TextLogger::writeMessagesToFile, this); // starts the thread
       _writerMode = WriterMode_T::Open;
    }
 
-   return wasOpened;
+   return opened;
 }
 
 /**
@@ -154,18 +88,10 @@ void ym::TextLogger::close(void)
       _writerMode.store(WriterMode_T::Closing, std::memory_order_release);
       _writer.join(); // wait until all messages have been written before closing the file
 
-      Logger::close();
+      closeOutfile();
 
       _writerMode.store(WriterMode_T::Closed, std::memory_order_relaxed);
    }
-}
-
-/**
- *
- */
-void ym::TextLogger::enable(VGGroup_T const VGGroup)
-{
-   _vGroups[static_cast<uint32>(VGGroup)] = 0xffu;
 }
 
 /**
@@ -179,17 +105,104 @@ void ym::TextLogger::enable(VGMask_T const VGMask)
 /**
  *
  */
-void ym::TextLogger::disable(VGGroup_T const VGGroup)
+void ym::TextLogger::disable(VGMask_T const VGMask)
 {
-   _vGroups[static_cast<uint32>(VGGroup)] = 0u;
+   _vGroups[static_cast<uint32>(VGMask) >> 8u] &= ~static_cast<uint8>(VGMask);
+}
+
+/** printf
+ *
+ * Using a universal reference here would not be better (ie Args_T && ...), since
+ * the arguments are going to be primitives.
+ */
+template <typename... Args_T>
+void TextLogger::printf_Handler(uint32 const    VerbosityGroup,
+                        str    const    Format,
+                        Args_T const... Args)
+{
+   if (isOpen())
+   { // ok to print
+      bool isEnabled = false;
+
+      {
+         std::scoped_lock const Lock(_verbosityGroups);
+         isEnabled = (_verbosityGroups.at(VGroupEnable.Slot) & VGroupEnable.Mask) > 0u;
+      }
+
+      if (isEnabled)
+      { // verbose enough to print this message
+         printf_Helper(Format, Args...);
+      }
+   }
 }
 
 /**
  *
  */
-void ym::TextLogger::disable(VGMask_T const VGMask)
+template <typename... Args_T>
+void TextLogger::printf_Producer(str    const    Format,
+                               Args_T const... Args)
 {
-   _vGroups[static_cast<uint32>(VGMask) >> 8u] &= ~static_cast<uint8>(VGMask);
+   _availableSem.acquire();
+
+   // _writePos doesn't need to wrap, so just incrementing until it rolls over is ok
+   auto const WritePos         = _writePos.fetch_add(1u, std::memory_order_acquire) % getMaxNMessagesInBuffer();
+   str        writePtr         = _buffer_Ptr + (WritePos * getMaxMessageSize_bytes());
+   auto       maxMsgSize_bytes = getMaxMessageSize_bytes();
+
+   if (_TimeStampMode == RecordTimeStamp)
+   {
+      writePtr += getTimeStampSize_bytes();
+
+      // +1 to account for newline
+      static_assert(getMaxMessageSize_bytes() > getTimeStampSize_bytes() + 1u,
+         "No room for time stamp plus newline");
+      maxMsgSize_bytes -= getTimeStampSize_bytes() + 1u;
+   }
+
+   // snprintf writes a null terminator for us
+   auto const NCharsWrittenInTheory = std::snprintf(writePtr,
+                                                    maxMsgSize_bytes,
+                                                    Format,
+                                                    Args...);
+
+   if (NCharsWrittenInTheory < 0)
+   { // snprintf hit an internal error
+      printfError("std::snprintf failed with error code %d! "
+                  "Message was '%s'\n",
+                  NCharsWrittenInTheory,
+                  writePtr);
+
+      std::strncpy(writePtr, "error in printf (internal snprintf error)", getMaxMessageSize_bytes());
+
+      // don't fail here - just keep going
+   }
+   else if (static_cast<uint32>(NCharsWrittenInTheory) >= maxMsgSize_bytes)
+   { // not everything was printed to the buffer
+      printfError("Failed to write everything to the buffer! NCharsWrittenInTheory = %ld. "
+                  "Msg size = %lu bytes. Message = '%s'\n",
+                  NCharsWrittenInTheory,
+                  maxMsgSize_bytes,
+                  writePtr);
+
+      if (_TimeStampMode == RecordTimeStamp)
+      {
+         writePtr[maxMsgSize_bytes - 2u] = '\n';
+         // last index already null
+      }
+
+      // don't fail here - just keep going
+   }
+   else if (_TimeStampMode == RecordTimeStamp)
+   {
+      writePtr[NCharsWrittenInTheory     ] = '\n';
+      writePtr[NCharsWrittenInTheory + 1u] = '\0';
+   }
+
+   // _readPos doesn't need to wrap, so just incrementing until it rolls over is ok
+   _readPos.fetch_add(1u, std::memory_order_release);
+
+   _messagesSem.release();
 }
 
 /**
@@ -246,7 +259,7 @@ void ym::TextLogger::writeMessagesToFile(void)
  */
 void ym::TextLogger::populateFormattedTime(char * const write_Ptr) const
 {
-   auto const ElapsedTime_us  = _timer.getStartTime<std::micro>();
+   auto const ElapsedTime_us  = _timer.getElapsedTime<std::micro>();
    auto const ElapsedTime_sec = (ElapsedTime_us /  1'000'000ll      ) % 60;
    auto const ElapsedTime_min = (ElapsedTime_us / (1'000'000ll * 60)) % 60;
    auto const ElapsedTime_hrs =  ElapsedTime_us / (1'000'000ll * 3'600);

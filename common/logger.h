@@ -13,9 +13,21 @@
 #include <cstdio>
 #include <memory>
 #include <string_view>
+#include <type_traits>
 
 namespace ym
 {
+
+/**
+ * @brief Represents a supported loggable data type.
+ * 
+ * @ref <https://en.cppreference.com/w/cpp/io/c/fprintf>
+ * 
+ * @tparam T -- Type that is loggable
+ */
+template <typename T>
+concept Loggable_T = std::is_fundamental_v<T> ||
+                     std::is_pointer_v    <T> ;
 
 /** Logger
  *
@@ -38,9 +50,11 @@ public:
 protected:
    explicit Logger(void);
 
-   template <typename... Args_T>
+   template <Loggable_T... Args_T>
    inline void printfInternalError(str    const    Format,
                                    Args_T const... Args);
+
+   inline auto isOutfileOpened(void) const { return static_cast<bool>(_outfile_uptr); }
 
    // Don't name simply "open" or "close" because we want to allow derived
    // classes to implement these functions without the overhead of
@@ -71,7 +85,7 @@ private:
  * @param Format -- Format string
  * @param Args   -- Arguments
  */
-template <typename... Args_T>
+template <Loggable_T... Args_T>
 inline void Logger::printfInternalError(str    const    Format,
                                         Args_T const... Args)
 {

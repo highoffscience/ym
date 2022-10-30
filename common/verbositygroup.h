@@ -48,12 +48,13 @@ struct VerbosityGroup
    static constexpr auto getNGroups(void) { return std::to_underlying(T::NGroups); }
 };
 
+/// @link VGMask_T @endlink
 static_assert(VerbosityGroup::getNGroups() <= (1_u32 << 24_u32),
               "Underlying type cannot support # of desired groups");
 
-/** VGMask_T
+/** VerbosityGroupMask
  *
- * @brief Verbosity Group Mask. Sub-groups represented as masks.
+ * @brief Verbosity Group Mask definitions. Sub-groups represented as masks.
  *
  * @note We can have a maximum of 2^24 groups, and each group can contain a maximum
  *       of 8 flags.
@@ -71,32 +72,42 @@ static_assert(VerbosityGroup::getNGroups() <= (1_u32 << 24_u32),
  *
  *       void set(VGMask const Mask);       set(VGMask::Logger_Basic);
  */
-
-struct TODOVG
+struct VerbosityGroupMask
 {
+   /**
+    * @brief Underlying mask definitions.
+    */
+   enum class T : std::underlying_type_t<VerbosityGroup::T>
+   {
+   /// @brief Convenience macros.
+   #define YM_OG_FMT_MSK(Group_, Mask_) ((std::to_underlying(VerbosityGroup::T::Group_) << 8_u32) | Mask_##_u32)
+   #define YM_OG_FMT_GRP(Group_       ) YM_OG_FMT_MSK(Group_, 0xff)
 
-/// @brief Verbosity group mask definitions.
-enum class VGMask_T : std::underlying_type_t<VerbosityGroup::T>
-{
+      Logger           = YM_OG_FMT_GRP(Logger                ),
+      Logger_Basic     = YM_OG_FMT_MSK(Logger,    0b0000'0001),
+      Logger_Detail    = YM_OG_FMT_MSK(Logger,    0b0000'0010),
 
-/// @brief Convenience macros
-#define YM_OG_FMT_MSK(Group_, Mask_) ((std::to_underlying(VerbosityGroup::T::Group_) << 8_u32) | Mask_##_u32)
-#define YM_OG_FMT_GRP(Group_       ) YM_OG_FMT_MSK(Group_, 0xff)
+      Ymception        = YM_OG_FMT_GRP(Ymception             ),
+      Ymception_Assert = YM_OG_FMT_MSK(Ymception, 0b0000'0001),
 
-   Logger           = YM_OG_FMT_GRP(Logger                ),
-   Logger_Basic     = YM_OG_FMT_MSK(Logger,    0b0000'0001),
-   Logger_Detail    = YM_OG_FMT_MSK(Logger,    0b0000'0010),
+   // don't pollute namespace
+   #undef YM_OG_FMT_GRP
+   #undef YM_OG_FMT_MSK
+   };
 
-   Ymception        = YM_OG_FMT_GRP(Ymception             ),
-   Ymception_Assert = YM_OG_FMT_MSK(Ymception, 0b0000'0001),
-
-// don't pollute namespace
-#undef YM_OG_FMT_GRP
-#undef YM_OG_FMT_MSK
+   /**
+    * @brief Convenience functions to grab the group or mask as the underlying type.
+    * 
+    * @param VG -- The verbosity group mask
+    * 
+    * @return auto -- Desired underlying type
+    */
+   static constexpr auto getGroup      (T const VG) { return std::to_underlying (VG) >> 8_u32;    }
+   static constexpr auto getMask       (T const VG) { return std::to_underlying (VG) &  0xff_u32; }
+   static constexpr auto getMask_asByte(T const VG) { return static_cast<uint32>(VG);             }
 };
 
-constexpr auto operator | ()
-
-};
+/// @brief Convenience alias.
+using VGM = VerbosityGroupMask::T;
 
 } // ym

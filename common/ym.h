@@ -98,13 +98,17 @@ static_assert(false, "Multiple (or no) compilers detected");
 #define YM_DBG
 #endif // YM_DBG
 
-#if defined(YM_IS_MSVC)
-#if defined(_DEBUG)
+#if  defined(YM_IS_MSVC)
+#if  defined(_DEBUG)
 #if !defined(YM_DBG)
 static_assert(false, "Clashing intentions of debug levels detected")
 #endif // !YM_DBG
 #endif // _DEBUG
 #endif // YM_IS_MSVC
+
+#if defined(YM_DBG)
+#define YM_PRINT_TO_SCREEN
+#endif // YM_DBG
 
 #if !defined(YM_EXPERIMENTAL)
 // #define YM_EXPERIMENTAL
@@ -173,18 +177,18 @@ namespace ym
 using str     = char const *   ;
 using uchar   = unsigned char  ;
 
-using int8    = signed char    ; YM_INT_INTEGRITY(int8    ,  7)
-using int16   = signed short   ; YM_INT_INTEGRITY(int16   , 15)
-using int32   = signed int     ; YM_INT_INTEGRITY(int32   , 31)
-using int64   = signed long    ; YM_INT_INTEGRITY(int64   , 63)
+using int8    = signed char    ; YM_INT_INTEGRITY(int8   ,  7)
+using int16   = signed short   ; YM_INT_INTEGRITY(int16  , 15)
+using int32   = signed int     ; YM_INT_INTEGRITY(int32  , 31)
+using int64   = signed long    ; YM_INT_INTEGRITY(int64  , 63)
 
-using uint8   = unsigned char  ; YM_UNT_INTEGRITY(uint8   ,  8)
-using uint16  = unsigned short ; YM_UNT_INTEGRITY(uint16  , 16)
-using uint32  = unsigned int   ; YM_UNT_INTEGRITY(uint32  , 32)
-using uint64  = unsigned long  ; YM_UNT_INTEGRITY(uint64  , 64)
+using uint8   = unsigned char  ; YM_UNT_INTEGRITY(uint8  ,  8)
+using uint16  = unsigned short ; YM_UNT_INTEGRITY(uint16 , 16)
+using uint32  = unsigned int   ; YM_UNT_INTEGRITY(uint32 , 32)
+using uint64  = unsigned long  ; YM_UNT_INTEGRITY(uint64 , 64)
 
-using float32 = float          ; YM_FLT_INTEGRITY(float32 , 24)
-using float64 = double         ; YM_FLT_INTEGRITY(float64 , 53)
+using float32 = float          ; YM_FLT_INTEGRITY(float32, 24)
+using float64 = double         ; YM_FLT_INTEGRITY(float64, 53)
 
 using float80 = std::conditional_t<std::numeric_limits<long double>::digits == 64,
                    long double,
