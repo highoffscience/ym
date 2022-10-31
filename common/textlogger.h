@@ -67,33 +67,29 @@ public:
    static constexpr auto getMaxNMessagesInBuffer(void) { return _s_MaxNMessagesInBuffer; }
    static constexpr auto getBufferSize_bytes    (void) { return _s_BufferSize_bytes;     }
 
-   void enable (VGMask_T const VG);
-   void disable(VGMask_T const VG);
+   void enable (VGM const VG);
+   void disable(VGM const VG);
 
    template <Loggable_T... Args_T>
-   inline void printf(VGMask_T const    VG,
-                      str      const    Format,
-                      Args_T   const... Args);
+   inline void printf(VGM    const    VG,
+                      str    const    Format,
+                      Args_T const... Args);
 
 private:
-   void printf_Handler(VGMask_T const VG,
-                       str      const Format,
-                       /*variadic*/   ...);
+   void printf_Handler(VGM const    VG,
+                       str const    Format,
+                       /*variadic*/ ...);
 
    void printf_Producer(str const    Format,
                         /*variadic*/ ...);
 
    void writeMessagesToFile(void);
 
-   void populateFormattedTime(char * const write_Ptr) const;
+   char * populateFormattedTime(char * const write_Ptr) const;
 
-   // For description of magic # 34 see populateFormattedTime()
-   // TODO provide link
-   static constexpr auto getTimeStampSize_bytes(void) { return 34_u32; }
-
-   static constexpr uint32 _s_MaxMessageSize_bytes = 256_u32;
-   static constexpr uint32 _s_MaxNMessagesInBuffer = 64_u32;
-   static constexpr uint32 _s_BufferSize_bytes     = _s_MaxMessageSize_bytes * _s_MaxNMessagesInBuffer;
+   static constexpr auto _s_MaxMessageSize_bytes = 256_u32;
+   static constexpr auto _s_MaxNMessagesInBuffer = 64_u32;
+   static constexpr auto _s_BufferSize_bytes     = _s_MaxMessageSize_bytes * _s_MaxNMessagesInBuffer;
 
    static_assert(std::has_single_bit(_s_MaxNMessagesInBuffer),
                  "_s_MaxNMessagesInBuffer needs to be power of 2");
@@ -118,9 +114,9 @@ private:
    using MsgSemaphore_T = std::counting_semaphore<_s_MaxNMessagesInBuffer>;
    using VGroups_T      = std::array<std::atomic<uint8>, VerbosityGroup::getNGroups()>;
 
+   char *                    _buffer[_s_BufferSize_bytes];
    VGroups_T                 _vGroups;
    std::thread               _writer;
-   char * const              _buffer_Ptr;
    Timer                     _timer;
    MsgSemaphore_T            _availableSem;
    MsgSemaphore_T            _messagesSem;
@@ -141,9 +137,9 @@ private:
  * @param Args   -- Arguments
  */
 template <Loggable_T... Args_T>
-inline void TextLogger::printf(VGMask_T const    VG,
-                               str      const    Format,
-                               Args_T   const... Args)
+inline void TextLogger::printf(VGM    const    VG,
+                               str    const    Format,
+                               Args_T const... Args)
 {
    printf_Handler(VG, Format, Args...);
 }

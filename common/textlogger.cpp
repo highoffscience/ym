@@ -254,10 +254,8 @@ void ym::TextLogger::writeMessagesToFile(void)
 /**
  * Returns the current time, in microseconds, since the creation of the log in the format
  *  (xxxxxxxxxxxx) xxx:xx:xx.xxx'xxx
- *
- * Note! If changing this function don't forget to update getTimeStampSize_bytes()
  */
-void ym::TextLogger::populateFormattedTime(char * const write_Ptr) const
+char * ym::TextLogger::populateFormattedTime(char * const write_Ptr) const
 {
    auto const ElapsedTime_us  = _timer.getElapsedTime<std::micro>();
    auto const ElapsedTime_sec = (ElapsedTime_us /  1'000'000ll      ) % 60;
@@ -298,4 +296,6 @@ void ym::TextLogger::populateFormattedTime(char * const write_Ptr) const
    write_Ptr[31] = write_Ptr[12];
    write_Ptr[32] = ':';
    write_Ptr[33] = ' ';
+
+   return write_Ptr + 34_u64;
 }
