@@ -1,5 +1,5 @@
 /**
- * @file    memorypool.h
+ * @file    memorymanager.h
  * @version 1.0.0
  * @author  Forrest Jablonski
  */
@@ -8,66 +8,80 @@
 
 #include "ym.h"
 
+#include <alloca.h>
 #include <cstdint>
 #include <new>
 
 namespace ym
 {
 
+/// @brief Convenience alias.
+using MemMan = class MemoryManager;
+
+// TODO create concept for chunk
+
 /**
  *
  */
-class MemoryPool
+class MemoryManager
 {
 public:
-   YM_NO_DEFAULT(MemoryPool)
+   YM_NO_DEFAULT(MemoryManager)
 
-   /**
-    * Chunk - memory segment that contains the desired data type, T
-    * Piece - word sized memory segment
-    * Block - memory segment containing the desired amount of Chunks plus a sentinel Piece
+   /** Pool
+    * 
+    * @brief Class that manages a particular pool of memory.
     */
    template <typename T>
    class Pool
    {
    public:
-      explicit Pool(T *    const block_Ptr,
-                    uint64 const NChunksPerBlock);
+      explicit Pool(uint64 const NChunksPerBlock);
 
       T * allocate(void);
 
    private:
-      T * const _originalBlock_Ptr;
       T *       _activeBlock_ptr;
       T *       _sentinel_ptr;
       T *       _nextFreeChunk_ptr;
+      T * const _originalBlock_Ptr; // must be last
    };
 
    template <typename T>
-   Pool<T> getNewPool(uint64 const NChunksPerBlock);
+   static Pool<T> getNewPool(uint64 const NChunksPerBlock);
 
-   void * allocateBlock(uint64 const NChunksPerBlock,
-                        uint64 const ChunkSize_bytes);
+   template <typename T>
+   static inline T * stackAlloc(uint32 const NElements);
+
+private:
+   static void * allocateBlock(uint64 const NChunksPerBlock,
+                               uint64 const ChunkSize_bytes);
 };
 
-/**
- *
+
+
+/** Pool
+ * 
+ * @brief Constructor.
+ * 
+ * @tparam T -- Type the pool contains.
+ * 
+ * @param NChunksPerBlock -- Chunks (datum elements) per block of memory.
  */
 template <typename T>
-MemoryPool::Pool<T>::Pool(T *    const block_Ptr,
-                          uint64 const NChunksPerBlock)
-   : _originalBlock_Ptr {block_Ptr                  },
-     _activeBlock_ptr   {block_Ptr                  },
-     _sentinel_ptr      {block_Ptr + NChunksPerBlock},
-     _nextFreeChunk_ptr {block_Ptr                  }
+MemMan::Pool<T>::Pool(uint64 const NChunksPerBlock)
+   : _activeBlock_ptr   {nullptr                           },
+     _sentinel_ptr      {_activeBlock_ptr + NChunksPerBlock},
+     _nextFreeChunk_ptr {_sentinel_ptr                     }, // forces allocation
+     _originalBlock_Ptr {allocate<T>()                     },
 {
 }
 
 /**
- * @return T *
+ * TODO
  */
 template <typename T>
-T * MemoryPool::Pool<T>::allocate(void)
+T * MemMan::Pool<T>::allocate(void)
 {
    if (_nextFreeChunk_ptr == _sentinel_ptr)
    {
@@ -178,6 +192,31 @@ void MemoryPool<T>::deallocate(T * const data_Ptr)
    auto * const chunk_Ptr = reinterpret_cast<Chunk *>(data_Ptr);
    chunk_Ptr->next_ptr = _nextFreeChunk_ptr;
    _nextFreeChunk_ptr = chunk_Ptr;
+}
+
+/** stackAlloc
+ *
+ * @brief Allocates requested amount of bytes on the stack at runtime.
+ *
+ * @note Functionally moves the stack pointer to where you want. We mimic the
+ *       behaviour of variable length arrays.
+ *
+ * @note Memory allocated by this function automatically gets freed when the
+ *       embedding function goes out of scope.
+ *
+ * @ref <https://man7.org/linux/man-pages/man3/alloca.3.html>.
+ * @ref <https://en.cppreference.com/w/c/language/array>. See section on VLA's.
+ *
+ * @tparam T -- Type to allocate
+ *
+ * @param NElements -- Number of T elements to allocate room for
+ *
+ * @return T * -- Pointer to newly allocated stack memory
+ */
+template <typename T>
+inline T * MemPool::stackAlloc(uint32 const NElements)
+{
+   return static_cast<T *>(alloca(NElements * sizeof(T)));
 }
 
 } // ym

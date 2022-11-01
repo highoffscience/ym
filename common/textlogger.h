@@ -130,11 +130,11 @@ private:
  * 
  * @brief Print function that constrains argument types.
  * 
- * @tparam Args_T -- Constrained argument types
+ * @tparam Args_T -- Constrained argument types.
  * 
- * @param VG     -- Verbosity level
- * @param Format -- Format string
- * @param Args   -- Arguments
+ * @param VG     -- Verbosity level.
+ * @param Format -- Format string.
+ * @param Args   -- Arguments.
  */
 template <Loggable_T... Args_T>
 inline void TextLogger::printf(VGM    const    VG,

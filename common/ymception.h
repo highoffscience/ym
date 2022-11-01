@@ -17,9 +17,9 @@
 
 /** YM_DECL_YMEXC
  *
- * @brief Convenience macro to declare custom Ymception classes.
+ * @brief Convenience macro to declare empty custom Ymception classes.
  *
- * @param DerivedYmception_ -- Name of custom Ymception class
+ * @param DerivedYmception_ -- Name of custom Ymception class.
  */
 #define YM_DECL_YMEXC(DerivedYmception_)                          \
    class DerivedYmception_ : public Ymception                   \
@@ -37,14 +37,20 @@
 namespace ym
 {
 
-/*
- * Convenience functions/concepts.
- * -------------------------------------------------------------------------- */
-
+/** Ymceptable_T
+ *
+ * @brief Represents a Ymception class.
+ *
+ * @tparam T -- Type that is or is derived from Ymception.
+ */
 template <typename T>
 concept Ymceptable_T = std::is_base_of_v<class Ymception, T>;
 
-template <Ymceptable_T  Ymception_T,
+/*
+ * Convenience functions.
+ * -------------------------------------------------------------------------- */
+
+template <Ymceptable_T  Ymception_T = class Ymception,
           Loggable_T... Args_T>
 void ymAssert(bool   const    Condition,
               str    const    Format,
@@ -59,39 +65,38 @@ void ymAssert(bool   const    Condition,
 class Ymception : public std::exception
 {
 public:
-   template <typename... Args_T>
-   explicit Ymception(str    const    Format,
-                      Args_T const... Args);
+   template <Loggable_T... Args_T>
+   explicit inline Ymception(str    const    Format,
+                             Args_T const... Args);
 
    virtual ~Ymception(void) = default;
 
    virtual str what(void) const noexcept override;
 
-   template <typename    Ymception_T,
-             typename... Args_T>
-   requires(std::is_base_of_v<Ymception, Ymception_T>)
+   template <Ymceptable_T  Ymception_T,
+             Loggable_T... Args_T>
    friend void ymAssert(bool   const    Condition,
                         str    const    Format,
-                        Args_T const... Args); // calls assertHandler()
+                        Args_T const... Args);
 
 private:
    void assertHandler(void) const;
 
-   std::array<char, 1024u /* max msg size (bytes) */> _msg;
+   std::array<char, 1024_u32 /* max msg size (bytes) */> _msg;
 };
 
 /** Ymception
  *
  * @brief Constructor.
  *
- * @tparam Args_T -- Argument types
+ * @tparam Args_T -- Argument types.
  *
- * @param Format -- Format string
- * @param Args   -- Arguments
+ * @param Format -- Format string.
+ * @param Args   -- Arguments.
  */
-template <typename... Args_T>
-Ymception::Ymception(str    const    Format,
-                     Args_T const... Args)
+template <Loggable_T... Args_T>
+inline Ymception::Ymception(str    const    Format,
+                            Args_T const... Args)
    : _msg{'\0'}
 {
    std::snprintf(_msg.data(), _msg.size(), Format, Args...);
@@ -102,16 +107,15 @@ Ymception::Ymception(str    const    Format,
  * @brief Asserts on the given condition and throws an instance of the desired
  *        exception if the assert fails.
  *
- * @tparam Ymception_T -- Ymception based type
- * @tparam Args_T      -- Argument types
+ * @tparam Ymception_T -- Ymception based type.
+ * @tparam Args_T      -- Argument types.
  *
- * @param Condition -- Condition to evaluate (failure if false)
- * @param Format    -- Format string
- * @param Args      -- Arguments
+ * @param Condition -- Condition to evaluate (failure if false).
+ * @param Format    -- Format string.
+ * @param Args      -- Arguments.
  */
-template <typename    Ymception_T,
-          typename... Args_T>
-requires(std::is_base_of_v<class Ymception, Ymception_T>)
+template <Ymceptable_T  Ymception_T,
+          Loggable_T... Args_T>
 void ymAssert(bool   const    Condition,
               str    const    Format,
               Args_T const... Args)

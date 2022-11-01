@@ -4,8 +4,6 @@
 
 #include "textlogger.h"
 
-#include "memorypool.h"
-
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
@@ -24,16 +22,16 @@ ym::TextLogger::TextLogger(void)
  *
  */
 ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
-   : _vGroups       {/*default*/                                      },
-     _writer        {/*default*/                                      },
-     _buffer_Ptr    {MemoryPool<char>::allocate(getBufferSize_bytes())},
-     _timer         {/*default*/                                      },
-     _availableSem  {static_cast<int64>(getMaxNMessagesInBuffer())    },
-     _messagesSem   {0                                                },
-     _readPos       {0u                                               },
-     _writePos      {0u                                               },
-     _writerMode    {WriterMode_T::Closed                             },
-     _TimeStampMode {TimeStampMode                                    }
+   : _vGroups       {/*default*/                                  },
+     _writer        {/*default*/                                  },
+     _buffer        {'\0'                                         },
+     _timer         {/*default*/                                  },
+     _availableSem  {static_cast<int64>(getMaxNMessagesInBuffer())},
+     _messagesSem   {0                                            },
+     _readPos       {0u                                           },
+     _writePos      {0u                                           },
+     _writerMode    {WriterMode_T::Closed                         },
+     _TimeStampMode {TimeStampMode                                }
 {
 }
 
