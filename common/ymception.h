@@ -8,6 +8,8 @@
 
 #include "ym.h"
 
+#include "logger.h" // for Loggable_T
+
 #include <array>
 #include <cstdio>
 #include <exception>
@@ -36,12 +38,14 @@ namespace ym
 {
 
 /*
- * Convenience functions.
+ * Convenience functions/concepts.
  * -------------------------------------------------------------------------- */
 
-template <typename    Ymception_T,
-          typename... Args_T>
-requires(std::is_base_of_v<class Ymception, Ymception_T>)
+template <typename T>
+concept Ymceptable_T = std::is_base_of_v<class Ymception, T>;
+
+template <Ymceptable_T  Ymception_T,
+          Loggable_T... Args_T>
 void ymAssert(bool   const    Condition,
               str    const    Format,
               Args_T const... Args);

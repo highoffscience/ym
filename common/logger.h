@@ -8,8 +8,6 @@
 
 #include "ym.h"
 
-#include "ymception.h"
-
 #include <cstdio>
 #include <memory>
 #include <string_view>
@@ -18,11 +16,12 @@
 namespace ym
 {
 
-/**
+/** Loggable_T
+ *
  * @brief Represents a supported loggable data type.
- * 
+ *
  * @ref <https://en.cppreference.com/w/cpp/io/c/fprintf>
- * 
+ *
  * @tparam T -- Type that is loggable
  */
 template <typename T>

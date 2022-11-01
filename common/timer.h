@@ -1,5 +1,7 @@
 /**
- * @author Forrest Jablonski
+ * @file    timer.h
+ * @version 1.0.0
+ * @author  Forrest Jablonski
  */
 
 #pragma once
@@ -7,14 +9,9 @@
 #include "ym.h"
 
 #include <chrono>
-#include <type_traits>
 
 namespace ym
 {
-
-// TODO this doesn't seem right
-template <typename T, int a, int b>
-concept LL_T = std::is_same_v<T, std::ratio<a, b>>;
 
 /** Timer
  *
@@ -31,35 +28,56 @@ public:
 
    void reset(void);
 
-   template <typename TimeUnit_T /* eg std::nano */>
+   template <typename TimeUnit_T> // eg std::nano
    TimeRep_T getStartTime(void) const;
 
-   // TODO
-   template <typename TimeUnit_T /* eg std::nano */>
-   requires(std::chrono::__is_ratio<TimeUnit_T>::value)
+   template <typename TimeUnit_T> // eg std::nano
    TimeRep_T getElapsedTime(void) const;
 
 private:
    Time_T _startTime;
 };
 
-/**
+/** getElapsedTime
  *
+ * @brief Returns the elapsed time.
+ *
+ * @note TimeUnit_T is std::nano, for example.
+ *
+ * @tparam TimeUnit_T -- Unit of returned time will be represented in.
+ *
+ * @return TimeRep_T -- Elapsed time in specified units.
  */
-template <typename TimeUnit_T /* eg std::nano */>
-requires(std::chrono::__is_ratio<TimeUnit_T>::value)
+template <typename TimeUnit_T>
 auto Timer::getElapsedTime(void) const -> TimeRep_T
 {
-   return std::chrono::duration_cast<std::chrono::duration<TimeRep_T, TimeUnit_T>>(Clock_T::now() - _startTime).count();
+   return
+      std::chrono::duration_cast<
+         std::chrono::duration<
+            TimeRep_T, TimeUnit_T
+         >
+      >(Clock_T::now() - _startTime).count();
 }
 
-/**
+ /** getStartTime
  *
+ * @brief Returns the start time.
+ *
+ * @note TimeUnit_T is std::nano, for example.
+ *
+ * @tparam TimeUnit_T -- Unit of returned time will be represented in.
+ *
+ * @return TimeRep_T -- Start time in specified units.
  */
-template <typename TimeUnit_T /* eg std::nano */>
+template <typename TimeUnit_T>
 auto Timer::getStartTime(void) const -> TimeRep_T
 {
-   return std::chrono::duration_cast<std::chrono::duration<TimeRep_T, TimeUnit_T>>(_startTime).count();
+   return
+      std::chrono::duration_cast<
+         std::chrono::duration<
+            TimeRep_T, TimeUnit_T
+         >
+      >(_startTime).count();
 }
 
 } // ym
