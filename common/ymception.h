@@ -21,11 +21,11 @@
  *
  * @param DerivedYmception_ -- Name of custom Ymception class.
  */
-#define YM_DECL_YMEXC(DerivedYmception_)                          \
+#define YM_DECL_YMEXC(DerivedYmception_)                        \
    class DerivedYmception_ : public Ymception                   \
    {                                                            \
    public:                                                      \
-      template <typename... Args_T>                             \
+      template <Loggable_T... Args_T>                           \
       explicit inline DerivedYmception_(str    const    Format, \
                                         Args_T const... Args)   \
          : Ymception(Format, Args...)                           \

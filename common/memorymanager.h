@@ -8,9 +8,11 @@
 
 #include "ym.h"
 
+#include "ymception.h"
+
 #include <alloca.h>
 #include <cstdint>
-#include <new>
+#include <memory>
 
 namespace ym
 {
@@ -18,84 +20,98 @@ namespace ym
 /// @brief Convenience alias.
 using MemMan = class MemoryManager;
 
-// TODO create concept for chunk
-
-/**
+/** Chunk_T
  *
+ * @brief Represents one datum element in a memory pool.
+ *
+ * @tparam T -- Type that is chunkable.
+ */
+template <typename T>
+concept Chunk_T = (sizeof(T) >= sizeof(std::uintptr_t));
+
+/** MemoryManager
+ *
+ * @brief Class that provides memory management utilities.
  */
 class MemoryManager
 {
 public:
    YM_NO_DEFAULT(MemoryManager)
 
+   YM_DECL_YMEXC(MemoryManagerError);
+
    /** Pool
-    * 
+    *
     * @brief Class that manages a particular pool of memory.
     */
-   template <typename T>
+   template <typename Chunk_T>
    class Pool
    {
    public:
       explicit Pool(uint64 const NChunksPerBlock);
 
-      T * allocate(void);
+      Chunk_T *                allocate     (void);
+      std::unique_ptr<Chunk_T> allocate_safe(void);
+
+      void deallocate(Chunk_T * const datum_Ptr);
 
    private:
-      T *       _activeBlock_ptr;
-      T *       _sentinel_ptr;
-      T *       _nextFreeChunk_ptr;
-      T * const _originalBlock_Ptr; // must be last
+      Chunk_T *       _activeBlock_ptr;
+      Chunk_T *       _sentinel_ptr;
+      Chunk_T *       _nextFreeChunk_ptr;
+      Chunk_T * const _originalBlock_Ptr; // must be last
    };
 
-   template <typename T>
-   static Pool<T> getNewPool(uint64 const NChunksPerBlock);
+   template <typename Chunk_T>
+   static Pool<Chunk_T> getNewPool(uint64 const NChunksPerBlock);
 
-   template <typename T>
-   static inline T * stackAlloc(uint32 const NElements);
+   template <typename Chunk_T>
+   static inline Chunk_T * stackAlloc(uint32 const NElements);
 
 private:
    static void * allocateBlock(uint64 const NChunksPerBlock,
                                uint64 const ChunkSize_bytes);
 };
 
-
-
 /** Pool
- * 
+ *
  * @brief Constructor.
- * 
- * @tparam T -- Type the pool contains.
- * 
+ *
+ * @tparam Chunk_T -- Type the pool contains.
+ *
  * @param NChunksPerBlock -- Chunks (datum elements) per block of memory.
  */
-template <typename T>
-MemMan::Pool<T>::Pool(uint64 const NChunksPerBlock)
+template <typename Chunk_T>
+MemMan::Pool<Chunk_T>::Pool(uint64 const NChunksPerBlock)
    : _activeBlock_ptr   {nullptr                           },
      _sentinel_ptr      {_activeBlock_ptr + NChunksPerBlock},
      _nextFreeChunk_ptr {_sentinel_ptr                     }, // forces allocation
-     _originalBlock_Ptr {allocate<T>()                     },
+     _originalBlock_Ptr {allocate<Chunk_T>()               },
 {
 }
 
-/**
- * TODO
+/** allocate
+ *
+ * @brief Returns a pointer to a block of raw memory equal to sizeof(Chunk_T).
+ *
+ * @return Pointer to block of raw memory equal to sizeof(Chunk_T).
  */
-template <typename T>
-T * MemMan::Pool<T>::allocate(void)
+template <typename Chunk_T>
+Chunk_T * MemMan::Pool<Chunk_T>::allocate(void)
 {
    if (_nextFreeChunk_ptr == _sentinel_ptr)
-   {
+   { // current pool is exhausted - create another one
       auto const NChunksPerBlock = _sentinel_ptr - _activeBlock_ptr;
 
-      _activeBlock_ptr   = allocateBlock(NChunksPerBlock, sizeof(T));
+      _activeBlock_ptr   = allocateBlock(NChunksPerBlock, sizeof(Chunk_T));
       _sentinel_ptr      = _activeBlock_ptr + NChunksPerBlock;
       _nextFreeChunk_ptr = _activeBlock_ptr;
    }
 
    union
    {
-      T *   ptr;
-      T * * ptrptr;
+      Chunk_T *   ptr;
+      Chunk_T * * ptrptr;
    } data{_nextFreeChunk_ptr};
 
    _nextFreeChunk_ptr = *data.ptrptr;
@@ -103,82 +119,31 @@ T * MemMan::Pool<T>::allocate(void)
    return data.ptr;
 }
 
-/**
- * @param NChunksPerBlock
+/** getNewPool
  *
- * @return Pool<T>
- */
-template <typename T>
-auto MemoryPool::getNewPool<T>(uint64 const NChunksPerBlock) -> Pool<T>
-{
-   // TODO throw if NChunksPerBlock == 0ul
-
-   static_assert(sizeof(T) >= sizeof(std::uintptr_t), "Type must be at least size of chunk (min size sizeof(uintptr))");
-
-
-
-   auto * const originalBlock_Ptr = static_cast<T *>(allocateBlock(NChunksPerBlock, sizeof(T)));
-
-   return Pool<T>(originalBlock_Ptr, NChunksPerBlock);
-}
-
-
-// ----------------- TODO -----------------
-
-// /**
-//  *
-//  */
-// template <typename T>
-// T * MemoryPool::allocatePool<T>(uint64 const NChunksPerBlock)
-// {
-//     std::allocator<T> a;
-//     _nextFreeChunk_ptr = a.allocate(NChunksPerBlock);
-// }
-
-/**
+ * @brief Creates and returns a new memory pool.
  *
- */
-template <typename T>
-T * MemoryPool::allocate<T>(T * const pool_Ptr)
-{
-
-}
-
-// ----------------------------------------
-
-/**
+ * @param NChunksPerBlock -- Number of chunks (datum elements) per block of memory.
  *
+ * @return Pool<Chunk_T> -- Pool object.
  */
-template <typename T>
-T * MemoryPool<T>::allocate(void)
+template <typename Chunk_T>
+auto MemMan::getNewPool<Chunk_T>(uint64 const NChunksPerBlock) -> Pool<Chunk_T>
 {
-   static_assert(sizeof(T) >= sizeof(Chunk *), "Chunk is of insufficient size"  );
-   static_assert(sizeof(T) == sizeof(Chunk  ), "Chunk and T should be same size");
+   ymAssert<MemoryManagerError>(NChunksPerBlock > 0_u64,
+      "# of chunks must be greater than 0");
 
-   if (!_nextFreeChunk_ptr)
-   {
-      std::allocator<Chunk> a;
-      _nextFreeChunk_ptr = a.allocate(_NChunksPerBlock);
+   auto * const originalBlock_Ptr =
+      static_cast<Chunk_T *>(allocateBlock(NChunksPerBlock, sizeof(Chunk_T)));
 
-      auto * chunk_ptr = _nextFreeChunk_ptr;
-      for (uint64 i = 0ul; i < _NChunksPerBlock - 1ul; ++i)
-      {
-         chunk_ptr->next_ptr = chunk_ptr + 1ul;
-         chunk_ptr = chunk_ptr->next_ptr;
-      }
-      chunk_ptr->next_ptr = nullptr;
-   }
-
-   auto * const data_Ptr = reinterpret_cast<T *>(_nextFreeChunk_ptr);
-   _nextFreeChunk_ptr = _nextFreeChunk_ptr->next_ptr;
-   return data_Ptr;
+   return Pool<Chunk_T>(originalBlock_Ptr, NChunksPerBlock);
 }
 
 /**
  *
  */
 template <typename T>
-std::unique_ptr<T> MemoryPool<T>::allocate_safe(void)
+std::unique_ptr<T> MemMan::Pool<T>::allocate_safe(void)
 {
    return std::unique_ptr<T, decltype(deallocate)>(data_Ptr, deallocate);
 }
@@ -186,10 +151,12 @@ std::unique_ptr<T> MemoryPool<T>::allocate_safe(void)
 /**
  *
  */
-template <typename T>
-void MemoryPool<T>::deallocate(T * const data_Ptr)
+template <typename Chunk_T>
+void MemMan::Pool<Chunk_T>::deallocate(Chunk_T * const datum_Ptr)
 {
-   auto * const chunk_Ptr = reinterpret_cast<Chunk *>(data_Ptr);
+   // TODO use a union
+
+   auto * const chunk_Ptr = reinterpret_cast<Chunk *>(datum_Ptr);
    chunk_Ptr->next_ptr = _nextFreeChunk_ptr;
    _nextFreeChunk_ptr = chunk_Ptr;
 }
@@ -214,7 +181,7 @@ void MemoryPool<T>::deallocate(T * const data_Ptr)
  * @return T * -- Pointer to newly allocated stack memory
  */
 template <typename T>
-inline T * MemPool::stackAlloc(uint32 const NElements)
+inline T * MemMan::stackAlloc(uint32 const NElements)
 {
    return static_cast<T *>(alloca(NElements * sizeof(T)));
 }

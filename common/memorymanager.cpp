@@ -1,10 +1,12 @@
 /**
- * @file    MemoryPool.cpp
+ * @file    memorymanager.cpp
  * @version 1.0.0
  * @author  Forrest Jablonski
  */
 
-#include "memorypool.h"
+#include "memorymanager.h"
+
+#include <new>
 
 /**
  * @param NChunksPerBlock
@@ -12,7 +14,7 @@
  *
  * @return void *
  */
-void * MemoryPool::allocateBlock(uint64 const NChunksPerBlock,
+void * ym::MemMan::allocateBlock(uint64 const NChunksPerBlock,
                                  uint64 const ChunkSize_bytes)
 {
    auto * const block_Ptr =
@@ -25,12 +27,12 @@ void * MemoryPool::allocateBlock(uint64 const NChunksPerBlock,
       uintptr   uint;
    } curr{block_Ptr};
 
-   for (uint64 i = 0ul; i < NChunksPerBlock; ++i)
+   for (uint64 i = 0_u64; i < NChunksPerBlock; ++i)
    {
       *curr.ptr  =  curr.uint + ChunkSize_bytes;
-         curr.uint = *curr.ptr;
+       curr.uint = *curr.ptr;
    }
-   *curr.ptr = 0ul; // init sentinel to nullptr
+   *curr.ptr = 0_u64; // init sentinel to nullptr
 
    return block_Ptr;
 }
