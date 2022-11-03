@@ -19,7 +19,7 @@ void * ym::MemMan::allocateBlock(uint64 const NChunksPerBlock,
 {
    auto * const block_Ptr =
       static_cast<uintptr *>(
-         ::operator new(NChunksPerBlock * ChunkSize_bytes + sizeof(uintptr)));
+         ::operator new((NChunksPerBlock * ChunkSize_bytes) + sizeof(uintptr)));
 
    union
    {

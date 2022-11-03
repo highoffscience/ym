@@ -119,6 +119,28 @@ Chunk_T * MemMan::Pool<Chunk_T>::allocate(void)
    return data.ptr;
 }
 
+/**
+ *
+ */
+template <typename Chunk_T>
+std::unique_ptr<Chunk_T> MemMan::Pool<Chunk_T>::allocate_safe(void)
+{
+   return std::unique_ptr<Chunk_T, decltype(deallocate<Chunk_T>)>(allocate(), &deallocate<Chunk_T>);
+}
+
+/**
+ *
+ */
+template <typename Chunk_T>
+void MemMan::Pool<Chunk_T>::deallocate(Chunk_T * const datum_Ptr)
+{
+   // TODO use a union
+
+   auto * const chunk_Ptr = reinterpret_cast<Chunk *>(datum_Ptr);
+   chunk_Ptr->next_ptr = _nextFreeChunk_ptr;
+   _nextFreeChunk_ptr = chunk_Ptr;
+}
+
 /** getNewPool
  *
  * @brief Creates and returns a new memory pool.
@@ -137,28 +159,6 @@ auto MemMan::getNewPool<Chunk_T>(uint64 const NChunksPerBlock) -> Pool<Chunk_T>
       static_cast<Chunk_T *>(allocateBlock(NChunksPerBlock, sizeof(Chunk_T)));
 
    return Pool<Chunk_T>(originalBlock_Ptr, NChunksPerBlock);
-}
-
-/**
- *
- */
-template <typename T>
-std::unique_ptr<T> MemMan::Pool<T>::allocate_safe(void)
-{
-   return std::unique_ptr<T, decltype(deallocate)>(data_Ptr, deallocate);
-}
-
-/**
- *
- */
-template <typename Chunk_T>
-void MemMan::Pool<Chunk_T>::deallocate(Chunk_T * const datum_Ptr)
-{
-   // TODO use a union
-
-   auto * const chunk_Ptr = reinterpret_cast<Chunk *>(datum_Ptr);
-   chunk_Ptr->next_ptr = _nextFreeChunk_ptr;
-   _nextFreeChunk_ptr = chunk_Ptr;
 }
 
 /** stackAlloc
