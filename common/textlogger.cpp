@@ -1,5 +1,7 @@
 /**
- * @author Forrest Jablonski
+ * @file    textlogger.cpp
+ * @version 1.0.0
+ * @author  Forrest Jablonski
  */
 
 #include "textlogger.h"
@@ -10,16 +12,18 @@
 #include <ctime>
 #include <memory>
 
-/**
- *
+/** TextLogger
+ * 
+ * @brief Constructor.
  */
 ym::TextLogger::TextLogger(void)
    : TextLogger(TextLogger::RecordTimeStamp)
 {
 }
 
-/**
- *
+/** TextLogger
+ * 
+ * @brief Constructor.
  */
 ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
    : _vGroups       {/*default*/                                  },
@@ -27,34 +31,41 @@ ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
      _buffer        {'\0'                                         },
      _timer         {/*default*/                                  },
      _availableSem  {static_cast<int64>(getMaxNMessagesInBuffer())},
-     _messagesSem   {0                                            },
-     _readPos       {0u                                           },
-     _writePos      {0u                                           },
+     _messagesSem   {0_i32                                        },
+     _readPos       {0_u32                                        },
+     _writePos      {0_u32                                        },
      _writerMode    {WriterMode_T::Closed                         },
      _TimeStampMode {TimeStampMode                                }
 {
 }
 
-/**
+/** ~TextLogger
  *
+ * @brief Destructor.
  */
 ym::TextLogger::~TextLogger(void)
 {
    close();
-
-   MemoryPool<char>::deallocate(_buffer_Ptr, getBufferSize_bytes());
 }
 
-/**
+/** isOpen
  *
+ * @brief Returns if outfile is open and able to be written to.
+ * 
+ * @return True if outfile is open and able to be written to, false otherwise.
  */
 bool ym::TextLogger::isOpen(void) const
 {
    return _writerMode.load(std::memory_order_relaxed) == WriterMode_T::Open;
 }
 
-/**
- *
+/** open
+ * 
+ * @brief Opens and prepares the logger to be written to.
+ * 
+ * @param Filename -- Name of outfile to open.
+ * 
+ * @return bool -- Whether the outfile was opened successfully, false otherwise.
  */
 bool ym::TextLogger::open(str const Filename)
 {
@@ -69,8 +80,9 @@ bool ym::TextLogger::open(str const Filename)
    return opened;
 }
 
-/**
+/** close
  *
+ * @brief Closes the outfile and shuts the logger down.
  */
 void ym::TextLogger::close(void)
 {
@@ -92,20 +104,30 @@ void ym::TextLogger::close(void)
    }
 }
 
-/**
- *
+/** enable
+ * 
+ * @brief Enables specified verbosity group.
+ * 
+ * @param VG -- Verbosity group to enable.
  */
-void ym::TextLogger::enable(VGMask_T const VGMask)
+void ym::TextLogger::enable(VGM_T const VG)
 {
-   _vGroups[static_cast<uint32>(VGMask) >> 8u] |= static_cast<uint8>(VGMask);
+   using VGM = VerbosityGroupMask;
+
+   _vGroups[VGM::getGroup(VG)] |= VGM::getMask_asByte(VG);
 }
 
-/**
- *
+/** disable
+ * 
+ * @brief Disables specified verbosity group.
+ * 
+ * @param VG -- Verbosity group to disable.
  */
-void ym::TextLogger::disable(VGMask_T const VGMask)
+void ym::TextLogger::disable(VGM_T const VG)
 {
-   _vGroups[static_cast<uint32>(VGMask) >> 8u] &= ~static_cast<uint8>(VGMask);
+   using VGM = VerbosityGroupMask;
+
+   _vGroups[VGM::getGroup(VG)] &= ~VGM::getMask_asByte(VG);
 }
 
 /** printf

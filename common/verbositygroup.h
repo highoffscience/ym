@@ -104,10 +104,10 @@ struct VerbosityGroupMask
     */
    static constexpr auto getGroup      (T const VG) { return std::to_underlying (VG) >> 8_u32;    }
    static constexpr auto getMask       (T const VG) { return std::to_underlying (VG) &  0xff_u32; }
-   static constexpr auto getMask_asByte(T const VG) { return static_cast<uint32>(VG);             }
+   static constexpr auto getMask_asByte(T const VG) { return static_cast<uint8>(VG);              }
 };
 
 /// @brief Convenience alias.
-using VGM = VerbosityGroupMask::T;
+using VGM_T = VerbosityGroupMask::T;
 
 } // ym

@@ -67,17 +67,17 @@ public:
    static constexpr auto getMaxNMessagesInBuffer(void) { return _s_MaxNMessagesInBuffer; }
    static constexpr auto getBufferSize_bytes    (void) { return _s_BufferSize_bytes;     }
 
-   void enable (VGM const VG);
-   void disable(VGM const VG);
+   void enable (VGM_T const VG);
+   void disable(VGM_T const VG);
 
    template <Loggable_T... Args_T>
-   inline void printf(VGM    const    VG,
+   inline void printf(VGM_T  const    VG,
                       str    const    Format,
                       Args_T const... Args);
 
 private:
-   void printf_Handler(VGM const    VG,
-                       str const    Format,
+   void printf_Handler(VGM_T const  VG,
+                       str   const  Format,
                        /*variadic*/ ...);
 
    void printf_Producer(str const    Format,
@@ -137,7 +137,7 @@ private:
  * @param Args   -- Arguments.
  */
 template <Loggable_T... Args_T>
-inline void TextLogger::printf(VGM    const    VG,
+inline void TextLogger::printf(VGM_T  const    VG,
                                str    const    Format,
                                Args_T const... Args)
 {

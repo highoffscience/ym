@@ -94,6 +94,8 @@ MemMan::Pool<Chunk_T>::Pool(uint64 const NChunksPerBlock)
  *
  * @brief Returns a pointer to a block of raw memory equal to sizeof(Chunk_T).
  *
+ * @tparam Chunk_T -- Type the pool contains.
+ * 
  * @return Pointer to block of raw memory equal to sizeof(Chunk_T).
  */
 template <typename Chunk_T>
@@ -119,8 +121,13 @@ Chunk_T * MemMan::Pool<Chunk_T>::allocate(void)
    return data.ptr;
 }
 
-/**
+/** allocate_safe
  *
+ * @brief Returns a smart pointer to a block of raw memory equal to sizeof(Chunk_T).
+ * 
+ * @tparam Chunk_T -- Type the pool contains.
+ * 
+ * @return Smart pointer to block of raw memory equal to sizeof(Chunk_T).
  */
 template <typename Chunk_T>
 std::unique_ptr<Chunk_T> MemMan::Pool<Chunk_T>::allocate_safe(void)
@@ -128,23 +135,27 @@ std::unique_ptr<Chunk_T> MemMan::Pool<Chunk_T>::allocate_safe(void)
    return std::unique_ptr<Chunk_T, decltype(deallocate<Chunk_T>)>(allocate(), &deallocate<Chunk_T>);
 }
 
-/**
+/** deallocate
  *
+ * @brief Frees chunk of memory to the pool.
+ * 
+ * @tparam Chunk_T -- Type the pool contains.
+ * 
+ * @param datum_Ptr -- Chunk of memory to free.
  */
 template <typename Chunk_T>
 void MemMan::Pool<Chunk_T>::deallocate(Chunk_T * const datum_Ptr)
 {
-   // TODO use a union
-
-   auto * const chunk_Ptr = reinterpret_cast<Chunk *>(datum_Ptr);
-   chunk_Ptr->next_ptr = _nextFreeChunk_ptr;
-   _nextFreeChunk_ptr = chunk_Ptr;
+   *reinterpret_cast<Chunk_T * *>(datum_Ptr) = _nextFreeChunk_ptr;
+   _nextFreeChunk_ptr = datum_Ptr;
 }
 
 /** getNewPool
  *
  * @brief Creates and returns a new memory pool.
  *
+ * @tparam Chunk_T -- Type the pool contains.
+ * 
  * @param NChunksPerBlock -- Number of chunks (datum elements) per block of memory.
  *
  * @return Pool<Chunk_T> -- Pool object.

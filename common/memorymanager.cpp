@@ -8,11 +8,23 @@
 
 #include <new>
 
-/**
- * @param NChunksPerBlock
- * @param ChunkSize_bytes
+/** allocateBlock
+ * 
+ * @brief Allocates and initializes block of memory.
+ * 
+ * @note Each unused chunk points to the next available chunk. The sentinel chunk is used
+ *       to point to the next block.
+ *          ___   ___   ___
+ *         |   | |   | |   |
+ *         |   V |   V |   V
+ *       --|-----|-----|---------
+ *       | 1   | 2   | 3   | 4...
+ *       ------------------------
+ * 
+ * @param NChunksPerBlock -- # of chunks to allocate per block.
+ * @param ChunkSize_bytes -- Size of chunks in bytes.
  *
- * @return void *
+ * @return void * -- Pointer to beginning of block of memory.
  */
 void * ym::MemMan::allocateBlock(uint64 const NChunksPerBlock,
                                  uint64 const ChunkSize_bytes)
@@ -28,7 +40,7 @@ void * ym::MemMan::allocateBlock(uint64 const NChunksPerBlock,
    } curr{block_Ptr};
 
    for (uint64 i = 0_u64; i < NChunksPerBlock; ++i)
-   {
+   { // set "next" pointer for each chunk
       *curr.ptr  =  curr.uint + ChunkSize_bytes;
        curr.uint = *curr.ptr;
    }
