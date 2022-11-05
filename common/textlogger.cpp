@@ -6,7 +6,6 @@
 
 #include "textlogger.h"
 
-#include <cstdarg>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
@@ -94,7 +93,7 @@ void ym::TextLogger::close(void)
                                            std::memory_order_relaxed)) // failure
    { // file open
 
-      printf_Helper("File closing..."); // this call is necessary to wake the semaphore and check the closing flag
+      printf_Producer("File closing..."); // this call is necessary to wake the semaphore and check the closing flag
       _writerMode.store(WriterMode_T::Closing, std::memory_order_release);
       _writer.join(); // wait until all messages have been written before closing the file
 
@@ -130,93 +129,100 @@ void ym::TextLogger::disable(VGM_T const VG)
    _vGroups[VGM::getGroup(VG)] &= ~VGM::getMask_asByte(VG);
 }
 
-/** printf
+/** printf_Handler
  *
- * Using a universal reference here would not be better (ie Args_T && ...), since
- * the arguments are going to be primitives.
+ * @brief Conditionally prints the requested message.
+ * 
+ * @note printf_Producer is not marked noexcept because terminate should not be called.
+ * 
+ * @param VG     -- Verbosity group.
+ * @param Format -- Format string.
+ * @param ...    -- Arguments.
  */
-template <typename... Args_T>
-void TextLogger::printf_Handler(uint32 const    VerbosityGroup,
-                        str    const    Format,
-                        Args_T const... Args)
+void ym::TextLogger::printf_Handler(VGM_T const  VG,
+                                    str   const  Format,
+                                    /*variadic*/ ...)
 {
    if (isOpen())
    { // ok to print
-      bool isEnabled = false;
 
-      {
-         std::scoped_lock const Lock(_verbosityGroups);
-         isEnabled = (_verbosityGroups.at(VGroupEnable.Slot) & VGroupEnable.Mask) > 0u;
-      }
+      using VGM = VerbosityGroupMask;
+      auto const IsEnabled = (_vGroups[VGM::getGroup(VG)] & VGM::getMask_asByte(VG)) > 0_u8;
 
-      if (isEnabled)
+      if (IsEnabled)
       { // verbose enough to print this message
-         printf_Helper(Format, Args...);
+         std::va_list args;
+         va_start(args, Format);
+         printf_Producer(Format, args); // doesn't throw so va_end will be called
+         va_end(args);
       }
    }
 }
 
-/**
+/** printf_Producer
  *
+ * @brief Prints the requested message to the internal buffer.
+ * 
+ * @note The system call to get the timestamp is usually optimized at runtime.
+ * 
+ * @param Format -- Format string.
+ * @param args   -- Arguments.
  */
-template <typename... Args_T>
-void TextLogger::printf_Producer(str    const    Format,
-                               Args_T const... Args)
+void ym::TextLogger::printf_Producer(str const    Format,
+                                     std::va_list args)
 {
    _availableSem.acquire();
 
    // _writePos doesn't need to wrap, so just incrementing until it rolls over is ok
-   auto const WritePos         = _writePos.fetch_add(1u, std::memory_order_acquire) % getMaxNMessagesInBuffer();
-   str        writePtr         = _buffer_Ptr + (WritePos * getMaxMessageSize_bytes());
+   auto const WritePos         = _writePos.fetch_add(1_u32, std::memory_order_acquire) % getMaxNMessagesInBuffer();
+   auto *     write_ptr        = _buffer + (WritePos * getMaxMessageSize_bytes());
    auto       maxMsgSize_bytes = getMaxMessageSize_bytes();
 
    if (_TimeStampMode == RecordTimeStamp)
    {
-      writePtr += getTimeStampSize_bytes();
+      auto const TimeStampSize_bytes = populateFormattedTime(write_ptr);
 
-      // +1 to account for newline
-      static_assert(getMaxMessageSize_bytes() > getTimeStampSize_bytes() + 1u,
-         "No room for time stamp plus newline");
-      maxMsgSize_bytes -= getTimeStampSize_bytes() + 1u;
+      write_ptr        += TimeStampSize_bytes;
+      maxMsgSize_bytes -= TimeStampSize_bytes;
    }
 
-   // snprintf writes a null terminator for us
-   auto const NCharsWrittenInTheory = std::snprintf(writePtr,
-                                                    maxMsgSize_bytes,
-                                                    Format,
-                                                    Args...);
+   // vsnprintf writes a null terminator for us
+   auto const NCharsWrittenInTheory = std::vsnprintf(write_ptr, maxMsgSize_bytes, Format, args);
 
    if (NCharsWrittenInTheory < 0)
    { // snprintf hit an internal error
-      printfError("std::snprintf failed with error code %d! "
-                  "Message was '%s'\n",
-                  NCharsWrittenInTheory,
-                  writePtr);
+      printfInternalError("std::vsnprintf failed with error code %d! "
+                          "Message was '%s'\n",
+                          NCharsWrittenInTheory,
+                          write_ptr);
 
-      std::strncpy(writePtr, "error in printf (internal snprintf error)", getMaxMessageSize_bytes());
+      std::strncpy(write_ptr, "error in printf (internal vsnprintf error)", maxMsgSize_bytes);
 
       // don't fail here - just keep going
    }
    else if (static_cast<uint32>(NCharsWrittenInTheory) >= maxMsgSize_bytes)
    { // not everything was printed to the buffer
-      printfError("Failed to write everything to the buffer! NCharsWrittenInTheory = %ld. "
-                  "Msg size = %lu bytes. Message = '%s'\n",
-                  NCharsWrittenInTheory,
-                  maxMsgSize_bytes,
-                  writePtr);
+      printfInternalError("Failed to write everything to the buffer! NCharsWrittenInTheory = %ld. "
+                          "Msg size = %lu bytes. Message = '%s'\n",
+                          NCharsWrittenInTheory,
+                          maxMsgSize_bytes,
+                          write_ptr);
 
       if (_TimeStampMode == RecordTimeStamp)
-      {
-         writePtr[maxMsgSize_bytes - 2u] = '\n';
-         // last index already null
+      { // do some cleanup in record mode
+         if (maxMsgSize_bytes >= 2_u32)
+         { // place trailing newline since space allows
+            write_ptr[maxMsgSize_bytes - 2_u32] = '\n';
+            // last index already null
+         }
       }
 
       // don't fail here - just keep going
    }
    else if (_TimeStampMode == RecordTimeStamp)
-   {
-      writePtr[NCharsWrittenInTheory     ] = '\n';
-      writePtr[NCharsWrittenInTheory + 1u] = '\0';
+   { // do some cleanup in record mode
+      write_ptr[NCharsWrittenInTheory        ] = '\n';
+      write_ptr[NCharsWrittenInTheory + 1_u32] = '\0';
    }
 
    // _readPos doesn't need to wrap, so just incrementing until it rolls over is ok
@@ -275,7 +281,7 @@ void ym::TextLogger::writeMessagesToFile(void)
  * Returns the current time, in microseconds, since the creation of the log in the format
  *  (xxxxxxxxxxxx) xxx:xx:xx.xxx'xxx
  */
-char * ym::TextLogger::populateFormattedTime(char * const write_Ptr) const
+auto ym::TextLogger::populateFormattedTime(char * const write_Ptr) const -> uint64
 {
    auto const ElapsedTime_us  = _timer.getElapsedTime<std::micro>();
    auto const ElapsedTime_sec = (ElapsedTime_us /  1'000'000ll      ) % 60;
@@ -317,5 +323,10 @@ char * ym::TextLogger::populateFormattedTime(char * const write_Ptr) const
    write_Ptr[32] = ':';
    write_Ptr[33] = ' ';
 
-   return write_Ptr + 34_u64;
+   constexpr auto TimeStampSize_bytes = 34_u64;
+
+   static_assert(getMaxMessageSize_bytes() > TimeStampSize_bytes,
+                 "No room for time stamp plus newline");
+
+   return TimeStampSize_bytes;
 }

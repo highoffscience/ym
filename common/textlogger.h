@@ -15,6 +15,7 @@
 #include <array>
 #include <atomic>
 #include <bit>
+#include <cstdarg>
 #include <semaphore>
 #include <thread>
 
@@ -81,11 +82,11 @@ private:
                        /*variadic*/ ...);
 
    void printf_Producer(str const    Format,
-                        /*variadic*/ ...);
+                        std::va_list args);
 
    void writeMessagesToFile(void);
 
-   char * populateFormattedTime(char * const write_Ptr) const;
+   uint64 populateFormattedTime(char * const write_Ptr) const;
 
    static constexpr auto _s_MaxMessageSize_bytes = 256_u32;
    static constexpr auto _s_MaxNMessagesInBuffer = 64_u32;
@@ -114,7 +115,7 @@ private:
    using MsgSemaphore_T = std::counting_semaphore<_s_MaxNMessagesInBuffer>;
    using VGroups_T      = std::array<std::atomic<uint8>, VerbosityGroup::getNGroups()>;
 
-   char *                    _buffer[_s_BufferSize_bytes];
+   char                      _buffer[_s_BufferSize_bytes];
    VGroups_T                 _vGroups;
    std::thread               _writer;
    Timer                     _timer;
