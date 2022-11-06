@@ -48,7 +48,6 @@ public:
 
 protected:
    explicit Logger(void);
-   explicit Logger(TimeStampFilenameMode_T const TSFilenameMde)
 
    template <Loggable_T... Args_T>
    inline void printfInternalError(str    const    Format,
@@ -72,6 +71,8 @@ protected:
 private:
    // TS = Time Stamp
    static constexpr std::string_view s_DefaultTS{"_0000_000_00_00_00_00"};
+
+   bool openOutfile_appendTimeStamp(str const Filename);
 
    void populateTimeStamp(char * const timeStamp_Ptr) const;
 };

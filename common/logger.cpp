@@ -26,11 +26,6 @@ ym::Logger::Logger(void)
  *
  * @brief Attempts to open a write-file.
  *
- * @note We open the file here instead of the constructor to allow flexibility with
- *       derived classes handling the file operations.
- *
- * @note The conditional assures the logger is only associated with one file.
- *
  * @param Filename -- Name of file to open
  *
  * @return bool -- True if the file was opened, false otherwise
@@ -49,7 +44,8 @@ bool ym::Logger::openOutfile(str const Filename)
  *
  * @note The conditional assures the logger is only associated with one file.
  *
- * @param Filename -- Name of file to open
+ * @param Filename       -- Name of file to open.
+ * @param TSFilenameMode -- Mode whether to append time stamps to filename.
  *
  * @return bool -- True if the file was opened, false otherwise
  */
@@ -58,40 +54,17 @@ bool ym::Logger::openOutfile(str                     const Filename,
 {
    bool opened = false; // until told otherwise
 
-   if (TSFilenameMode == TimeStampFilenameMode_T::Append)
-   {
-      auto const FilenameSize_bytes = std::strlen(Filename);
-      auto const Extension          = std::strchr(Filename, '.');
-      auto const StemSize_bytes     = (Extension) ? (Extension - Filename) // Extension >= Filename
-                                                :  FilenameSize_bytes;
-
-      constexpr auto MaxFilenameSize_bytes = 256_u64;
-      ymAssert<LoggerError>(FilenameSize_bytes < MaxFilenameSize_bytes,
-         "Filename size is too big - not technically a hard error but unexpected. "
-         "Got %lu bytes, max %lu bytes", FilenameSize_bytes, MaxFilenameSize_bytes);
-
-      auto const TSFilenameSize_bytes =
-         FilenameSize_bytes + s_DefaultTS.length() + 1_u64; // include null terminator
-      auto * const tsFilename_Ptr = MemMan::stackAlloc<char>(TSFilenameSize_bytes);
-
-      // write stem
-      std::strncpy(tsFilename_Ptr, Filename, StemSize_bytes);
-
-      // write time stamp
-      populateTimeStamp(tsFilename_Ptr + StemSize_bytes);
-
-      // write extension
-      std::strncpy(tsFilename_Ptr + StemSize_bytes + s_DefaultTS.length(),
-                   Filename + StemSize_bytes,
-                   FilenameSize_bytes - StemSize_bytes + 1ul); // include null terminator
-
-      return openOutfile(tsFilename_Ptr);
-   }
-
    if (!isOutfileOpened())
-   {
-      _outfile_uptr.reset(std::fopen(Filename, "w"));
-      opened = true;
+   { // file not opened
+      if (TSFilenameMode == TimeStampFilenameMode_T::Append)
+      { // append file stamp
+         opened = openOutfile_appendTimeStamp(Filename);
+      }
+      else
+      { // do not append file stamp (default fallthrough)
+         _outfile_uptr.reset(std::fopen(Filename, "w"));
+         opened = static_cast<bool>(_outfile_uptr);
+      }
    }
 
    return opened;
@@ -101,9 +74,9 @@ bool ym::Logger::openOutfile(str                     const Filename,
  *
  * @brief Attempts to open the file with the current time appended to the file name.
  *
- * @param Filename -- Name of file
+ * @param Filename -- Name of file.
  *
- * @return bool -- True if file was opened, false otherwise
+ * @return bool -- True if file was opened, false otherwise.
  */
 bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
 {
@@ -119,7 +92,7 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
 
    auto const TSFilenameSize_bytes =
       FilenameSize_bytes + s_DefaultTS.length() + 1_u64; // include null terminator
-   auto * const tsFilename_Ptr = ymStackAlloc<char>(TSFilenameSize_bytes);
+   auto * const tsFilename_Ptr = MemMan::stackAlloc<char>(TSFilenameSize_bytes);
 
    // write stem
    std::strncpy(tsFilename_Ptr, Filename, StemSize_bytes);
@@ -132,7 +105,7 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
                 Filename + StemSize_bytes,
                 FilenameSize_bytes - StemSize_bytes + 1ul); // include null terminator
 
-   return openOutfile(tsFilename_Ptr);
+   return openOutfile(tsFilename_Ptr, TimeStampFilenameMode_T::DoNotAppend);
 }
 
 /** closeOutfile
