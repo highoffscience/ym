@@ -16,7 +16,7 @@
  * @brief Constructor.
  */
 ym::TextLogger::TextLogger(void)
-   : TextLogger(TextLogger::RecordTimeStamp)
+   : TextLogger(TextLogger::TimeStampMode_T::RecordTimeStamp)
 {
 }
 
@@ -196,7 +196,7 @@ void ym::TextLogger::printf_Producer(str const    Format,
    auto *     write_ptr        = _buffer + (WritePos * getMaxMessageSize_bytes());
    auto       maxMsgSize_bytes = getMaxMessageSize_bytes();
 
-   if (_TimeStampMode == RecordTimeStamp)
+   if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
    { // populate time stamp
       auto const TimeStampSize_bytes = populateFormattedTime(write_ptr);
 
@@ -226,7 +226,7 @@ void ym::TextLogger::printf_Producer(str const    Format,
                           maxMsgSize_bytes,
                           write_ptr);
 
-      if (_TimeStampMode == RecordTimeStamp)
+      if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
       { // do some cleanup in record mode
          if (maxMsgSize_bytes >= 2_u32)
          { // place trailing newline since space allows
@@ -237,7 +237,7 @@ void ym::TextLogger::printf_Producer(str const    Format,
 
       // don't fail here - just keep going
    }
-   else if (_TimeStampMode == RecordTimeStamp)
+   else if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
    { // do some cleanup in record mode
       write_ptr[NCharsWrittenInTheory    ] = '\n';
       write_ptr[NCharsWrittenInTheory + 1] = '\0';

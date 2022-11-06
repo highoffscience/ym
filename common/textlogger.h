@@ -11,6 +11,7 @@
 #include "logger.h"
 #include "timer.h"
 #include "verbositygroup.h"
+#include "ymception.h"
 
 #include <array>
 #include <atomic>
@@ -46,7 +47,7 @@ public:
     *
     * @brief Flag to indicate whether to time stamp the logged line or not.
     */
-   enum TimeStampMode_T : uint32
+   enum class TimeStampMode_T : uint32
    {
       RecordTimeStamp,
       NoRecordTimeStamp

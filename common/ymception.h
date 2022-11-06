@@ -8,7 +8,7 @@
 
 #include "ym.h"
 
-#include "logger.h" // for Loggable_T
+#include "loggable.h"
 
 #include <array>
 #include <cstdio>

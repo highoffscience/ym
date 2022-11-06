@@ -8,25 +8,15 @@
 
 #include "ym.h"
 
+#include "loggable.h"
+#include "ymception.h"
+
 #include <cstdio>
 #include <memory>
 #include <string_view>
-#include <type_traits>
 
 namespace ym
 {
-
-/** Loggable_T
- *
- * @brief Represents a supported loggable data type.
- *
- * @ref <https://en.cppreference.com/w/cpp/io/c/fprintf>
- *
- * @tparam T -- Type that is loggable
- */
-template <typename T>
-concept Loggable_T = std::is_fundamental_v<T> ||
-                     std::is_pointer_v    <T> ;
 
 /** Logger
  *
@@ -46,8 +36,19 @@ public:
 
    YM_DECL_YMEXC(LoggerError)
 
+   /** TimeStampFilenameMode_T
+    *
+    * @brief Mode to determine appending or not a timestamp to the filename.
+    */
+   enum class TimeStampFilenameMode_T : uint32
+   {
+      Append,
+      DoNotAppend
+   };
+
 protected:
    explicit Logger(void);
+   explicit Logger(TimeStampFilenameMode_T const TSFilenameMde)
 
    template <Loggable_T... Args_T>
    inline void printfInternalError(str    const    Format,
@@ -59,8 +60,9 @@ protected:
    // classes to implement these functions without the overhead of
    // virtual calls.
 
-   bool openOutfile                (str const Filename);
-   bool openOutfile_appendTimeStamp(str const Filename);
+   bool openOutfile(str                     const Filename);
+   bool openOutfile(str                     const Filename,
+                    TimeStampFilenameMode_T const TSFilenameMode);
 
    void closeOutfile(void);
 
