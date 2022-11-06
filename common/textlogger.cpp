@@ -179,7 +179,7 @@ void ym::TextLogger::printf_Producer(str const    Format,
    auto       maxMsgSize_bytes = getMaxMessageSize_bytes();
 
    if (_TimeStampMode == RecordTimeStamp)
-   {
+   { // populate time stamp
       auto const TimeStampSize_bytes = populateFormattedTime(write_ptr);
 
       write_ptr        += TimeStampSize_bytes;
@@ -221,8 +221,8 @@ void ym::TextLogger::printf_Producer(str const    Format,
    }
    else if (_TimeStampMode == RecordTimeStamp)
    { // do some cleanup in record mode
-      write_ptr[NCharsWrittenInTheory        ] = '\n';
-      write_ptr[NCharsWrittenInTheory + 1_u32] = '\0';
+      write_ptr[NCharsWrittenInTheory    ] = '\n';
+      write_ptr[NCharsWrittenInTheory + 1] = '\0';
    }
 
    // _readPos doesn't need to wrap, so just incrementing until it rolls over is ok
@@ -231,8 +231,11 @@ void ym::TextLogger::printf_Producer(str const    Format,
    _messagesSem.release();
 }
 
-/**
+/** writeMessagesToFile
  *
+ * @brief Writes all pending messages in the buffer to the outfile.
+ * 
+ * @note This is the consumer thread.
  */
 void ym::TextLogger::writeMessagesToFile(void)
 {
@@ -243,25 +246,23 @@ void ym::TextLogger::writeMessagesToFile(void)
 
       _messagesSem.acquire(); // _readPos has been updated
 
-      auto const ReadPos = _readPos.load(std::memory_order_acquire) % getMaxNMessagesInBuffer();
-      auto * const read_Ptr = _buffer_Ptr + (ReadPos * getMaxMessageSize_bytes());
+      auto const         ReadPos  = _readPos.load(std::memory_order_acquire) % getMaxNMessagesInBuffer();
+      auto const * const Read_Ptr = _buffer + (ReadPos * getMaxMessageSize_bytes());
 
-      if (_TimeStampMode == RecordTimeStamp)
-      {
-         populateFormattedTime(read_Ptr);
-      }
+      auto const NCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), Read_Ptr);
 
-      try
-      {
-         _outfile << read_Ptr;
-      }
-      catch (std::exception const & E)
-      {
-         printfError("Logger write failed. Exc = '%s'\n", E.what());
+      if (NCharsWrittenInTheory < 0)
+      { // fprintf hit an internal error
+         printfInternalError("std::fprintf failed with error code %d! "
+                             "Message was '%s'\n",
+                             NCharsWrittenInTheory,
+                             Read_Ptr);
+
+         // don't fail here - just keep going
       }
 
    #if defined(YM_PRINT_TO_SCREEN)
-      std::fprintf(stdout, read_Ptr);
+      std::fprintf(stdout, Read_Ptr);
    #endif // YM_PRINT_TO_SCREEN
 
       _availableSem.release();
@@ -277,9 +278,18 @@ void ym::TextLogger::writeMessagesToFile(void)
    }
 }
 
-/**
- * Returns the current time, in microseconds, since the creation of the log in the format
- *  (xxxxxxxxxxxx) xxx:xx:xx.xxx'xxx
+/** populateFormattedTime
+ * 
+ * @brief Writes the elapsed time in the specified buffer.
+ * 
+ * @note Not to be confused with @link Logger::populateTimeStamp @endlink.
+ * 
+ * @note Returns the current time, in microseconds, since the creation of the log in the format
+ *       (xxxxxxxxxxxx) xxx:xx:xx.xxx'xxx
+ * 
+ * @param write_Ptr -- Buffer to write time stamp into.
+ * 
+ * @return uint64 -- Size of written timestamp in bytes.
  */
 auto ym::TextLogger::populateFormattedTime(char * const write_Ptr) const -> uint64
 {
