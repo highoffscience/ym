@@ -12,7 +12,7 @@
 #include <memory>
 
 /** TextLogger
- * 
+ *
  * @brief Constructor.
  */
 ym::TextLogger::TextLogger(void)
@@ -21,7 +21,7 @@ ym::TextLogger::TextLogger(void)
 }
 
 /** TextLogger
- * 
+ *
  * @brief Constructor.
  */
 ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
@@ -50,7 +50,7 @@ ym::TextLogger::~TextLogger(void)
 /** isOpen
  *
  * @brief Returns if outfile is open and able to be written to.
- * 
+ *
  * @return True if outfile is open and able to be written to, false otherwise.
  */
 bool ym::TextLogger::isOpen(void) const
@@ -58,12 +58,30 @@ bool ym::TextLogger::isOpen(void) const
    return _writerMode.load(std::memory_order_relaxed) == WriterMode_T::Open;
 }
 
+/** getGlobalInstance
+ *
+ * @brief Gets the global text logger instance.
+ *
+ * @note Used as the global logger for the program. Not expected to close until the end.
+ */
+auto ym::TextLogger::getGlobalInstance(void) -> TextLogger *
+{
+   static TextLogger s_instance(TimeStampMode_T::RecordTimeStamp);
+
+   if (!s_instance.isOpen())
+   {
+      auto const Opened = open_appendTimeStamp("global.txt");
+   }
+
+   return &s_instance;
+}
+
 /** open
- * 
+ *
  * @brief Opens and prepares the logger to be written to.
- * 
+ *
  * @param Filename -- Name of outfile to open.
- * 
+ *
  * @return bool -- Whether the outfile was opened successfully, false otherwise.
  */
 bool ym::TextLogger::open(str const Filename)
@@ -104,9 +122,9 @@ void ym::TextLogger::close(void)
 }
 
 /** enable
- * 
+ *
  * @brief Enables specified verbosity group.
- * 
+ *
  * @param VG -- Verbosity group to enable.
  */
 void ym::TextLogger::enable(VGM_T const VG)
@@ -117,9 +135,9 @@ void ym::TextLogger::enable(VGM_T const VG)
 }
 
 /** disable
- * 
+ *
  * @brief Disables specified verbosity group.
- * 
+ *
  * @param VG -- Verbosity group to disable.
  */
 void ym::TextLogger::disable(VGM_T const VG)
@@ -132,9 +150,9 @@ void ym::TextLogger::disable(VGM_T const VG)
 /** printf_Handler
  *
  * @brief Conditionally prints the requested message.
- * 
+ *
  * @note printf_Producer is not marked noexcept because terminate should not be called.
- * 
+ *
  * @param VG     -- Verbosity group.
  * @param Format -- Format string.
  * @param ...    -- Arguments.
@@ -162,9 +180,9 @@ void ym::TextLogger::printf_Handler(VGM_T const  VG,
 /** printf_Producer
  *
  * @brief Prints the requested message to the internal buffer.
- * 
+ *
  * @note The system call to get the timestamp is usually optimized at runtime.
- * 
+ *
  * @param Format -- Format string.
  * @param args   -- Arguments.
  */
@@ -234,7 +252,7 @@ void ym::TextLogger::printf_Producer(str const    Format,
 /** writeMessagesToFile
  *
  * @brief Writes all pending messages in the buffer to the outfile.
- * 
+ *
  * @note This is the consumer thread.
  */
 void ym::TextLogger::writeMessagesToFile(void)
@@ -279,16 +297,16 @@ void ym::TextLogger::writeMessagesToFile(void)
 }
 
 /** populateFormattedTime
- * 
+ *
  * @brief Writes the elapsed time in the specified buffer.
- * 
+ *
  * @note Not to be confused with @link Logger::populateTimeStamp @endlink.
- * 
+ *
  * @note Returns the current time, in microseconds, since the creation of the log in the format
  *       (xxxxxxxxxxxx) xxx:xx:xx.xxx'xxx
- * 
+ *
  * @param write_Ptr -- Buffer to write time stamp into.
- * 
+ *
  * @return uint64 -- Size of written timestamp in bytes.
  */
 auto ym::TextLogger::populateFormattedTime(char * const write_Ptr) const -> uint64

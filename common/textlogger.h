@@ -27,9 +27,9 @@ namespace ym
  * -------------------------------------------------------------------------- */
 
 template <Loggable_T... Args_T>
-void ymLog(VGMask const    VG,
-           str    const    Format,
-           Args_T const... Args);
+inline void ymLog(VGMask const    VG,
+                  str    const    Format,
+                  Args_T const... Args);
 
 /* -------------------------------------------------------------------------- */
 
@@ -59,9 +59,14 @@ public:
    YM_NO_COPY  (TextLogger)
    YM_NO_ASSIGN(TextLogger)
 
+   YM_DECL_YMEXC(TextLoggerGlobalError)
+
+   static TextLogger * getGlobalInstance(void);
+
    bool isOpen(void) const;
 
-   bool open(str const Filename);
+   bool open                (str const Filename);
+   bool open_appendTimeStamp(str const Filename);
    void close(void);
 
    static constexpr auto getMaxMessageSize_bytes(void) { return _s_MaxMessageSize_bytes; }
@@ -128,11 +133,11 @@ private:
 };
 
 /** printf
- * 
+ *
  * @brief Print function that constrains argument types.
- * 
+ *
  * @tparam Args_T -- Constrained argument types.
- * 
+ *
  * @param VG     -- Verbosity level.
  * @param Format -- Format string.
  * @param Args   -- Arguments.
