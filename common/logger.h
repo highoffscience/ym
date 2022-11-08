@@ -46,6 +46,9 @@ public:
       DoNotAppend
    };
 
+   /// @brief Convience alias.
+   using TSFM_T = TimeStampFilenameMode_T;
+
 protected:
    explicit Logger(void);
 
@@ -59,9 +62,9 @@ protected:
    // classes to implement these functions without the overhead of
    // virtual calls.
 
-   bool openOutfile(str                     const Filename);
-   bool openOutfile(str                     const Filename,
-                    TimeStampFilenameMode_T const TSFilenameMode);
+   bool openOutfile(str    const Filename);
+   bool openOutfile(str    const Filename,
+                    TSFM_T const TSFilenameMode);
 
    void closeOutfile(void);
 

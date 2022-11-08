@@ -49,8 +49,8 @@ bool ym::Logger::openOutfile(str const Filename)
  *
  * @return bool -- True if the file was opened, false otherwise
  */
-bool ym::Logger::openOutfile(str                     const Filename,
-                             TimeStampFilenameMode_T const TSFilenameMode)
+bool ym::Logger::openOutfile(str    const Filename,
+                             TSFM_T const TSFilenameMode)
 {
    bool opened = false; // until told otherwise
 

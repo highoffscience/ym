@@ -60,14 +60,15 @@ public:
    YM_NO_COPY  (TextLogger)
    YM_NO_ASSIGN(TextLogger)
 
-   YM_DECL_YMEXC(TextLoggerGlobalError)
+   YM_DECL_YMEXC(TextLoggerError_GlobalFailureToOpen)
 
    static TextLogger * getGlobalInstance(void);
 
    bool isOpen(void) const;
 
-   bool open                (str const Filename);
-   bool open_appendTimeStamp(str const Filename);
+   bool open(str    const Filename);
+   bool open(str    const Filename,
+             TSFM_T const TSFilenameMode);
    void close(void);
 
    static constexpr auto getMaxMessageSize_bytes(void) { return _s_MaxMessageSize_bytes; }
@@ -89,6 +90,9 @@ private:
 
    void printf_Producer(str const    Format,
                         std::va_list args);
+
+   void close_Helper(str          msg,
+                     /*variadic*/ ...);
 
    void writeMessagesToFile(void);
 

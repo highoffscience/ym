@@ -25,16 +25,16 @@ ym::TextLogger::TextLogger(void)
  * @brief Constructor.
  */
 ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
-   : _vGroups       {/*default*/                                  },
-     _writer        {/*default*/                                  },
-     _buffer        {'\0'                                         },
-     _timer         {/*default*/                                  },
-     _availableSem  {static_cast<int64>(getMaxNMessagesInBuffer())},
-     _messagesSem   {0_i32                                        },
-     _readPos       {0_u32                                        },
-     _writePos      {0_u32                                        },
-     _writerMode    {WriterMode_T::Closed                         },
-     _TimeStampMode {TimeStampMode                                }
+   : _vGroups       {/*default*/              },
+     _writer        {/*default*/              },
+     _buffer        {'\0'                     },
+     _timer         {/*default*/              },
+     _availableSem  {getMaxNMessagesInBuffer()},
+     _messagesSem   {0_i32                    },
+     _readPos       {0_u32                    },
+     _writePos      {0_u32                    },
+     _writerMode    {WriterMode_T::Closed     },
+     _TimeStampMode {TimeStampMode            }
 {
 }
 
@@ -70,7 +70,10 @@ auto ym::TextLogger::getGlobalInstance(void) -> TextLogger *
 
    if (!s_instance.isOpen())
    {
-      auto const Opened = open_appendTimeStamp("global.txt");
+      auto const Opened = s_instance.open("global.txt", TimeStampFilenameMode_T::Append);
+
+      ymAssert<TextLoggerError_GlobalFailureToOpen>(Opened,
+         "Global text logger instance failed to open");
    }
 
    return &s_instance;
@@ -79,6 +82,8 @@ auto ym::TextLogger::getGlobalInstance(void) -> TextLogger *
 /** open
  *
  * @brief Opens and prepares the logger to be written to.
+ * 
+ * @note Defaults to appending time stamp.
  *
  * @param Filename -- Name of outfile to open.
  *
@@ -86,7 +91,22 @@ auto ym::TextLogger::getGlobalInstance(void) -> TextLogger *
  */
 bool ym::TextLogger::open(str const Filename)
 {
-   bool opened = openOutfile(Filename);
+   return open(Filename, TimeStampFilenameMode_T::Append);
+}
+
+/** open
+ *
+ * @brief Opens and prepares the logger to be written to.
+ *
+ * @param Filename       -- Name of outfile to open.
+ * @param TSFilenameMode -- Mode whether to append time stamps to filename.
+ *
+ * @return bool -- Whether the outfile was opened successfully, false otherwise.
+ */
+bool ym::TextLogger::open(str    const Filename,
+                          TSFM_T const TSFilenameMode)
+{
+   bool opened = openOutfile(Filename, TSFilenameMode);
 
    if (opened)
    { // file opened successfully
@@ -111,7 +131,7 @@ void ym::TextLogger::close(void)
                                            std::memory_order_relaxed)) // failure
    { // file open
 
-      printf_Producer("File closing..."); // this call is necessary to wake the semaphore and check the closing flag
+      close_Helper("File closing...");
       _writerMode.store(WriterMode_T::Closing, std::memory_order_release);
       _writer.join(); // wait until all messages have been written before closing the file
 
@@ -119,6 +139,22 @@ void ym::TextLogger::close(void)
 
       _writerMode.store(WriterMode_T::Closed, std::memory_order_relaxed);
    }
+}
+
+/** close_Helper
+ * 
+ * @brief Wrapper (helper) function to call printf_Producer().
+ * 
+ * @param msg -- Message to print.
+ * @param ... -- Arguments.
+ */
+void ym::TextLogger::close_Helper(str          msg,
+                                  /*variadic*/ ...)
+{
+   std::va_list args;
+   va_start(args, msg);
+   printf_Producer(msg, args); // this call is necessary to wake the semaphore and check the closing flag
+   va_end(args);
 }
 
 /** enable
