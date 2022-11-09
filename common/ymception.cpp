@@ -19,9 +19,9 @@
  */
 void ym::Ymception::assertHandler(void) const
 {
-   ymLog(VGM::Ymception_Assert, "Assert failed!");
-   ymLog(VGM::Ymception_Assert, what());
-   ymLog(VGM::Ymception_Assert, "Stack dump follows...");
+   ymLog(VGM_T::Ymception_Assert, "Assert failed!");
+   ymLog(VGM_T::Ymception_Assert, what());
+   ymLog(VGM_T::Ymception_Assert, "Stack dump follows...");
 
    { // split and print stack dump
       auto const StackDumpStr = boost::stacktrace::to_string(boost::stacktrace::stacktrace());
@@ -31,7 +31,7 @@ void ym::Ymception::assertHandler(void) const
            /*empty*/)
       { // print each line of the stack dump separately
          auto const EndPos = StackDumpStr.find_first_of('\n', startPos);
-         ymLog(VGM::Ymception_Assert, StackDumpStr.substr(startPos, EndPos - startPos).c_str());
+         ymLog(VGM_T::Ymception_Assert, StackDumpStr.substr(startPos, EndPos - startPos).c_str());
          startPos = StackDumpStr.find_first_not_of('\n', EndPos);
       }
    }

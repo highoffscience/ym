@@ -4,18 +4,17 @@
  * @author  Forrest Jablonski
  */
 
-#include "objectgroups.h"
-
 #include <cstdint>
 #include <iostream>
 
-int test_seq(int i, int j);
+#include "textlogger.h"
+#include "verbositygroup.h"
 
 int main(void)
 {
    using namespace ym;
 
-
+   ymLog(VGM_T::Logger, "Go! Torchic!");
 
    return 0;
 }

@@ -20,14 +20,14 @@ namespace ym
 /// @brief Convenience alias.
 using MemMan = class MemoryManager;
 
-/** Chunk_T
+/** Chunkable_T
  *
  * @brief Represents one datum element in a memory pool.
  *
  * @tparam T -- Type that is chunkable.
  */
 template <typename T>
-concept Chunk_T = (sizeof(T) >= sizeof(std::uintptr_t));
+concept Chunkable_T = (sizeof(T) >= sizeof(std::uintptr_t));
 
 /** MemoryManager
  *
@@ -44,7 +44,7 @@ public:
     *
     * @brief Class that manages a particular pool of memory.
     */
-   template <typename Chunk_T>
+   template <Chunkable_T Chunk_T>
    class Pool
    {
    public:
@@ -62,11 +62,11 @@ public:
       Chunk_T * const _originalBlock_Ptr; // must be last
    };
 
-   template <typename Chunk_T>
+   template <Chunkable_T Chunk_T>
    static Pool<Chunk_T> getNewPool(uint64 const NChunksPerBlock);
 
-   template <typename Chunk_T>
-   static inline Chunk_T * stackAlloc(uint32 const NElements);
+   template <typename T>
+   static inline T * stackAlloc(uint32 const NElements);
 
 private:
    static void * allocateBlock(uint64 const NChunksPerBlock,
@@ -81,12 +81,12 @@ private:
  *
  * @param NChunksPerBlock -- Chunks (datum elements) per block of memory.
  */
-template <typename Chunk_T>
+template <Chunkable_T Chunk_T>
 MemMan::Pool<Chunk_T>::Pool(uint64 const NChunksPerBlock)
    : _activeBlock_ptr   {nullptr                           },
      _sentinel_ptr      {_activeBlock_ptr + NChunksPerBlock},
      _nextFreeChunk_ptr {_sentinel_ptr                     }, // forces allocation
-     _originalBlock_Ptr {allocate<Chunk_T>()               },
+     _originalBlock_Ptr {allocate<Chunk_T>()               }
 {
 }
 
@@ -98,7 +98,7 @@ MemMan::Pool<Chunk_T>::Pool(uint64 const NChunksPerBlock)
  * 
  * @return Pointer to block of raw memory equal to sizeof(Chunk_T).
  */
-template <typename Chunk_T>
+template <Chunkable_T Chunk_T>
 Chunk_T * MemMan::Pool<Chunk_T>::allocate(void)
 {
    if (_nextFreeChunk_ptr == _sentinel_ptr)
@@ -121,19 +121,25 @@ Chunk_T * MemMan::Pool<Chunk_T>::allocate(void)
    return data.ptr;
 }
 
-/** allocate_safe
- *
- * @brief Returns a smart pointer to a block of raw memory equal to sizeof(Chunk_T).
- * 
- * @tparam Chunk_T -- Type the pool contains.
- * 
- * @return Smart pointer to block of raw memory equal to sizeof(Chunk_T).
- */
-template <typename Chunk_T>
-std::unique_ptr<Chunk_T> MemMan::Pool<Chunk_T>::allocate_safe(void)
-{
-   return std::unique_ptr<Chunk_T, decltype(deallocate<Chunk_T>)>(allocate(), &deallocate<Chunk_T>);
-}
+// TODO
+// /** allocate_safe
+//  *
+//  * @brief Returns a smart pointer to a block of raw memory equal to sizeof(Chunk_T).
+//  * 
+//  * @tparam Chunk_T -- Type the pool contains.
+//  * 
+//  * @return Smart pointer to block of raw memory equal to sizeof(Chunk_T).
+//  */
+// template <Chunkable_T Chunk_T>
+// std::unique_ptr<Chunk_T> MemMan::Pool<Chunk_T>::allocate_safe(void)
+// {
+//    template<typename Chunk_T>
+//    auto deleter = [this](Chunk_T * const datum_Ptr) {
+
+//    };
+
+//    return std::unique_ptr<Chunk_T, decltype(deleter)>(allocate(), &deallocate<Chunk_T>);
+// }
 
 /** deallocate
  *
@@ -143,7 +149,7 @@ std::unique_ptr<Chunk_T> MemMan::Pool<Chunk_T>::allocate_safe(void)
  * 
  * @param datum_Ptr -- Chunk of memory to free.
  */
-template <typename Chunk_T>
+template <Chunkable_T Chunk_T>
 void MemMan::Pool<Chunk_T>::deallocate(Chunk_T * const datum_Ptr)
 {
    *reinterpret_cast<Chunk_T * *>(datum_Ptr) = _nextFreeChunk_ptr;
@@ -160,9 +166,10 @@ void MemMan::Pool<Chunk_T>::deallocate(Chunk_T * const datum_Ptr)
  *
  * @return Pool<Chunk_T> -- Pool object.
  */
-template <typename Chunk_T>
-auto MemMan::getNewPool<Chunk_T>(uint64 const NChunksPerBlock) -> Pool<Chunk_T>
+template <Chunkable_T Chunk_T>
+auto MemMan::getNewPool(uint64 const NChunksPerBlock) -> Pool<Chunk_T>
 {
+   // TODO rename error
    ymAssert<MemoryManagerError>(NChunksPerBlock > 0_u64,
       "# of chunks must be greater than 0");
 
@@ -185,11 +192,11 @@ auto MemMan::getNewPool<Chunk_T>(uint64 const NChunksPerBlock) -> Pool<Chunk_T>
  * @ref <https://man7.org/linux/man-pages/man3/alloca.3.html>.
  * @ref <https://en.cppreference.com/w/c/language/array>. See section on VLA's.
  *
- * @tparam T -- Type to allocate
+ * @tparam T -- Type to allocate.
  *
- * @param NElements -- Number of T elements to allocate room for
+ * @param NElements -- Number of T elements to allocate room for.
  *
- * @return T * -- Pointer to newly allocated stack memory
+ * @return T * -- Pointer to newly allocated stack memory.
  */
 template <typename T>
 inline T * MemMan::stackAlloc(uint32 const NElements)

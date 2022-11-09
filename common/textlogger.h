@@ -28,7 +28,7 @@ namespace ym
  * -------------------------------------------------------------------------- */
 
 template <Loggable_T... Args_T>
-inline void ymLog(VGMask const    VG,
+inline void ymLog(VGM_T  const    VG,
                   str    const    Format,
                   Args_T const... Args);
 
@@ -153,6 +153,18 @@ inline void TextLogger::printf(VGM_T  const    VG,
                                Args_T const... Args)
 {
    printf_Handler(VG, Format, Args...);
+}
+
+/**
+ * @brief 
+ * 
+ */
+template <Loggable_T... Args_T>
+inline void ymLog(VGM_T  const    VG,
+                  str    const    Format,
+                  Args_T const... Args)
+{
+   TextLogger::getGlobalInstance()->printf(VG, Format, Args...);
 }
 
 } // ym
