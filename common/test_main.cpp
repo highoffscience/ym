@@ -7,14 +7,18 @@
 #include <cstdint>
 #include <iostream>
 
-#include "textlogger.h"
-#include "verbositygroup.h"
+#include "ym.h"
 
 int main(void)
 {
    using namespace ym;
 
-   ymLog(VGM_T::Logger, "Go! Torchic!");
+   static_assert(sizeof(std::conditional_t<std::is_void_v<double>, uint8[8], double>) == 8, "uh-oh?");
+
+   ym::float80 f = 19.5;
+   auto t = ymPtrToUint(&f);
+   
+   std::cout << std::hex << t << std::endl;
 
    return 0;
 }

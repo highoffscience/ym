@@ -17,6 +17,9 @@ build/
 *.plo
 *.lo
 
+# cppyy (third-party dependency)
+unittests/cppyy/
+
 # dieharder files
 unittests/common/random_test_tools/dieharder-3.31.1/Makefile
 unittests/common/random_test_tools/dieharder-3.31.1/config.h

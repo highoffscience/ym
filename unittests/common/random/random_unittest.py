@@ -80,7 +80,7 @@ class TestManager:
 #
 def main():
    mgr = TestManager()
-   baseDir = "./common/random_test_tools/dieharder-3.31.1/"
+   baseDir = "./common/test_tools/dieharder-3.31.1/"
    mgr.log(mgr.runCmd(["make", "-C", f"{baseDir}"]))
    #mgr.log(runCmd("./common/rand_test_tools/dieharder-3.31.1/"))
 

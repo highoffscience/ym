@@ -12,16 +12,14 @@
 #include <limits>
 #include <type_traits>
 
-#include <boost/predef.h>
+// ----------------------------------------------------------------------------
+
+static_assert(__cplusplus >= 201703L, "C++17 standard or greater required");
 
 // ----------------------------------------------------------------------------
 
 /**
  * @brief Helper macros for compiler detection.
- *
- * @note We define our own macros because BOOST_COMP_XXX is always defined, just
- *       set to zero. Error prone since the programmer might forget to use the
- *       BOOST_COMP_XXX_AVAILABLE macro instead.
  *
  * @note GNUC, CLANG, and MSVC are the only compilers tested.
  *
@@ -37,38 +35,39 @@
  *        will be avoided.
  */
 
-#if defined(BOOST_COMP_GNUC_AVAILABLE)
-#define YM_IS_GNUC
-#define YM_IS_GNUC_ID 1
-#else
-#define YM_IS_GNUC_ID 0
-#endif // BOOST_COMP_GNUC_AVAILABLE
-
-#if defined(BOOST_COMP_CLANG_AVAILABLE)
+#if defined(__clang__)
 #define YM_IS_CLANG
 #define YM_IS_CLANG_ID 1
 #else
 #define YM_IS_CLANG_ID 0
-#endif // BOOST_COMP_CLANG_AVAILABLE
+#endif // __clang__
 
-#if defined(BOOST_COMP_MSVC_AVAILABLE)
+#if  defined( __GNUG__  ) && \
+    !defined(YM_IS_CLANG) // clang defines __GNUG__ too
+#define YM_IS_GNUG
+#define YM_IS_GNUG_ID 1
+#else
+#define YM_IS_GNUG_ID 0
+#endif // __GNUG__ && !YM_IS_CLANG
+
+#if defined(_MSC_VER)
 #define YM_IS_MSVC
 #define YM_IS_MSVC_ID 1
 #else
 #define YM_IS_MSVC_ID 0
-#endif // BOOST_COMP_MSVC_AVAILABLE
+#endif // _MSC_VER
 
 // mutual exclusion test
-#if YM_IS_GNUC_ID  + \
-    YM_IS_CLANG_ID + \
+#if YM_IS_CLANG_ID + \
+    YM_IS_GNUG_ID  + \
     YM_IS_MSVC_ID  + \
     0 != 1
 static_assert(false, "Multiple (or no) compilers detected");
 #endif
 
 // don't pollute namespace
-#undef YM_IS_GNUC_ID
 #undef YM_IS_CLANG_ID
+#undef YM_IS_GNUC_ID
 #undef YM_IS_MSVC_ID
 
 // ----------------------------------------------------------------------------
@@ -171,6 +170,9 @@ namespace ym
 
 /**
  * @brief Primitive typedefs.
+ * 
+ * @note The static_asserts for the higher precision floating point defines
+ *       are structured unorthodoxically so all supported compilers can parse it.
  */
 
 using str     = char const *   ;
@@ -193,26 +195,33 @@ using float80 = std::conditional_t<std::numeric_limits<long double>::digits == 6
                    long double,
                    std::conditional_t<std::numeric_limits<long double>::digits == 113,
                       void,
-                   #if defined(YM_IS_GNUC)
+                   #if defined(YM_IS_GNUG)
                       __float80
                    #else
                       void
-                   #endif // YM_IS_GNUC
+                   #endif // YM_IS_GNUG
                    >
                 >;
-   static_assert(std::is_void_v<float80> || sizeof(float80) >= 10ul,
+   static_assert(sizeof(std::conditional_t<std::is_void_v<float80>,
+                           uint8[10], // float80 is not defined (ok)
+                           float80    // float80 is defined
+                        >) >= 10ul,
                  "float80 doesn't have expected size (range)");
 
 using float128 = std::conditional_t<std::numeric_limits<long double>::digits == 113,
                     long double,
-                 #if defined(YM_IS_GNUC)
+                 #if defined(YM_IS_GNUG) || defined(YM_IS_CLANG)
                     __float128
                  #else
                     void
-                 #endif // YM_IS_GNUC
+                 #endif // YM_IS_GNUG || YM_IS_CLANG
                  >;
-   static_assert(std::is_void_v<float128> || sizeof(float128) == 16ul,
-                 "float128 doesn't have expected size (range)");
+
+   static_assert(sizeof(std::conditional_t<std::is_void_v<float128>,
+                           uint8[16], // float128 is not defined (ok)
+                           float128   // float128 is defined
+                        >) >= 16ul,
+                 "float80 doesn't have expected size (range)");
 
 // don't pollute namespace
 #undef YM_FLT_INTEGRITY
@@ -246,9 +255,26 @@ using uintptr = uint64; static_assert(sizeof(uintptr) >= sizeof(void *),
  *
  * @return uintptr -- Ptr as an appropriately sized uint
  */
-template <typename T>
-requires( (std::is_pointer_v<T>        ) && // is non-member function pointer or data pointer
-          (sizeof(uintptr) == sizeof(T)) )  // is pointer size equal to uint size
+
+// TODO maybe make a macro for this? we mostly 
+
+template <typename T
+
+#if __cplusplus >= 202002L // is standard c++20 or greater
+   > requires(
+#else
+   , std::enable_if_t<
+#endif // __cplusplus
+
+   std::is_pointer_v<T>         && // is non-member function pointer or data pointer
+   sizeof(uintptr) == sizeof(T)    // is pointer size equal to uint size
+
+#if __cplusplus >= 202002L
+   )
+#else
+   , bool> = true>
+#endif // __cplusplus
+
 constexpr auto ymPtrToUint(T const Ptr)
 {
    return reinterpret_cast<uintptr>(Ptr);
