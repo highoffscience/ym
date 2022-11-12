@@ -12,6 +12,15 @@
 namespace ym::unittest
 {
 
+// --- TODO ---
+
+struct UT_Random : public Random
+{
+
+};
+
+// ------------
+
 /**
  * <https://www.systutorials.com/docs/linux/man/1-dieharder/>
  */
