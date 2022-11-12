@@ -1,5 +1,10 @@
 /**
- * @author Forrest Jablonski
+ * @file    rng_ym_rand.h
+ * @version 1.0.0
+ * @author  Forrest Jablonski
+ * 
+ * @note If modifying the implementation don't forget to update
+ *       < @link random.h @endlink >.
  */
 
 #ifndef __YM_DIEHARDER_RNG_YM_RAND__

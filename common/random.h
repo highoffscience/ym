@@ -1,5 +1,7 @@
 /**
- * @author Forrest Jablonski
+ * @file    random.h
+ * @version 1.0.0
+ * @author  Forrest Jablonski
  */
 
 #pragma once
@@ -11,11 +13,11 @@
 namespace ym
 {
 
+// TODO clang++ -std=c++17 -fPIC -shared -o librandom.so random.cpp
+
 /** Random
  * 
  * @brief PRNG 
- * 
- * @todo You are using the link annotation incorrectly Forrest
  * 
  * @note If modifying the implementation don't forget to update
  *       < @link rng_ym_rand.h @endlink > in the dieharder test suite.
@@ -31,10 +33,11 @@ public:
              uint64 const S3);
 
    template <typename T>
-   requires(std::is_same_v<T, uint32 > ||
-            std::is_same_v<T, uint64 > ||
-            std::is_same_v<T, float32> ||
-            std::is_same_v<T, float64>)
+   // TODO
+   // requires(std::is_same_v<T, uint32 > ||
+   //          std::is_same_v<T, uint64 > ||
+   //          std::is_same_v<T, float32> ||
+   //          std::is_same_v<T, float64>)
    T gen(void);
 
    void jump(uint32 const NJumps);

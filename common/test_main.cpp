@@ -8,17 +8,15 @@
 #include <iostream>
 
 #include "ym.h"
+#include "random.h"
 
 int main(void)
 {
    using namespace ym;
 
-   static_assert(sizeof(std::conditional_t<std::is_void_v<double>, uint8[8], double>) == 8, "uh-oh?");
-
-   ym::float80 f = 19.5;
-   auto t = ymPtrToUint(&f);
+   auto r = Random();
    
-   std::cout << std::hex << t << std::endl;
+   std::cout << r.gen<uint32>() << std::endl;
 
    return 0;
 }

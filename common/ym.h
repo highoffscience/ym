@@ -288,10 +288,10 @@ constexpr auto ymPtrToUint(T const Ptr)
  *
  * @ref <https://en.cppreference.com/w/cpp/language/user_literal>
  *
- * @param UDL_          -- Name of User Defined Literal
- * @param TypeToCastTo_ -- Type to cast to
+ * @param UDL_          -- Name of User Defined Literal.
+ * @param TypeToCastTo_ -- Type to cast to.
  *
- * @return auto -- Input casted to TypeToCastTo_
+ * @return auto -- Input casted to TypeToCastTo_.
  */
 #define YM_LITERAL_DECL(UDL_, TypeToCastTo_)                                                                \
    constexpr auto operator"" _##UDL_(unsigned long long int    i) { return static_cast<TypeToCastTo_>(i); } \
@@ -313,7 +313,7 @@ YM_LITERAL_DECL(u64, uint64 )
 
 YM_LITERAL_DECL(f32, float32)
 YM_LITERAL_DECL(f64, float64)
-YM_LITERAL_DECL(f80, float80)
+YM_LITERAL_DECL(f80, float80) // TODO maybe undefined - handle that
 
 // don't pollute namespace
 #undef YM_LITERAL_DECL

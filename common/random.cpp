@@ -1,5 +1,7 @@
 /**
- * @author Forrest Jablonski
+ * @file    random.cpp
+ * @version 1.0.0
+ * @author  Forrest Jablonski
  */
 
 #include "random.h"
@@ -10,10 +12,10 @@
  * $ hexdump random.bytes
  */
 ym::Random::Random(void)
-   : _s0 {0x1723'73c3'5cc2'77fbull},
-     _s1 {0x8f51'e36d'13fa'4f21ull},
-     _s2 {0x0c60'dc05'b8f9'266aull},
-     _s3 {0xea9b'fe26'838f'091dull}
+   : _s0 {0x1723'73c3'5cc2'77fb_u64},
+     _s1 {0x8f51'e36d'13fa'4f21_u64},
+     _s2 {0x0c60'dc05'b8f9'266a_u64},
+     _s3 {0xea9b'fe26'838f'091d_u64}
 {
 }
 
@@ -22,10 +24,10 @@ void ym::Random::seed(uint64 const S0,
                       uint64 const S2,
                       uint64 const S3)
 {
-   if (!(S0 == 0ull &&
-         S1 == 0ull &&
-         S2 == 0ull &&
-         S3 == 0ull))
+   if (!(S0 == 0_u64 &&
+         S1 == 0_u64 &&
+         S2 == 0_u64 &&
+         S3 == 0_u64))
    { // not zero everywhere - seed is accepted
       _s0 = S0;
       _s1 = S1;
