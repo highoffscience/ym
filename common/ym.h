@@ -256,8 +256,6 @@ using uintptr = uint64; static_assert(sizeof(uintptr) >= sizeof(void *),
  * @return uintptr -- Ptr as an appropriately sized uint
  */
 
-// TODO maybe make a macro for this? we mostly 
-
 template <typename T
 
 #if __cplusplus >= 202002L // is standard c++20 or greater
