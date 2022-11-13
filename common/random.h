@@ -13,6 +13,11 @@
 namespace ym
 {
 
+/**
+ * @brief Supported types the PRNG is able to generate.
+ * 
+ * @tparam T -- Data type.
+ */
 template <typename T>
 constexpr bool CRandomable = std::is_same_v<T, uint32 > ||
                              std::is_same_v<T, uint64 > ||
@@ -50,6 +55,13 @@ private:
    uint64 _s3;
 };
 
+/**
+ * @brief Overload resolution has failed - this function will generate a compile-time error.
+ * 
+ * @tparam Randomable_T -- Proposed randomable type.
+ * 
+ * @return Randomable_T -- Default. Unreachable.
+ */
 template <typename Randomable_T>
 Randomable_T Random::gen(void)
 {

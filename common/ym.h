@@ -5,6 +5,10 @@
  *
  * @note This file should be included in every file of the project. It provides
  *       standard declarations to be shared throughout.
+ * 
+ * @note @todo We emulate c++20 concepts as static assertable constants because
+ *       cppyy, our unittest framework, can only handle upto c++17.
+ *       @ref <https://cppyy.readthedocs.io/en/latest/>.
  */
 
 #pragma once
@@ -14,7 +18,7 @@
 
 // ----------------------------------------------------------------------------
 
-static_assert(__cplusplus >= 201703L, "C++17 standard or greater required");
+static_assert(__cplusplus == 201703L, "C++17 standard required");
 
 // ----------------------------------------------------------------------------
 
@@ -249,32 +253,19 @@ using uintptr = uint64; static_assert(sizeof(uintptr) >= sizeof(void *),
  *       casting method similar to this one can be made and placed in the experimental
  *       block but there is no need and usually cleaner solutions exist.
  *
- * @tparam T -- Pointer type
+ * @tparam T -- Pointer type.
  *
- * @param Ptr -- Pointer value
+ * @param Ptr -- Pointer value.
  *
- * @return uintptr -- Ptr as an appropriately sized uint
+ * @return uintptr -- Ptr as an appropriately sized uint.
  */
-
-template <typename T
-
-#if __cplusplus >= 202002L // is standard c++20 or greater
-   > requires(
-#else
-   , std::enable_if_t<
-#endif // __cplusplus
-
-   std::is_pointer_v<T>         && // is non-member function pointer or data pointer
-   sizeof(uintptr) == sizeof(T)    // is pointer size equal to uint size
-
-#if __cplusplus >= 202002L
-   )
-#else
-   , bool> = true>
-#endif // __cplusplus
-
+template <typename T>
 constexpr auto ymPtrToUint(T const Ptr)
 {
+   static_assert(std::is_pointer_v<T>         && // is non-member function pointer or data pointer
+                 sizeof(uintptr) == sizeof(T),   // is pointer size equal to uint size
+                 "Unable to cast type T to uint");
+
    return reinterpret_cast<uintptr>(Ptr);
 }
 
@@ -288,7 +279,7 @@ constexpr auto ymPtrToUint(T const Ptr)
  *
  * @param UDL_          -- Name of User Defined Literal.
  * @param TypeToCastTo_ -- Type to cast to.
- *
+ * 
  * @return auto -- Input casted to TypeToCastTo_.
  */
 #define YM_LITERAL_DECL(UDL_, TypeToCastTo_)                                                                \
@@ -311,7 +302,7 @@ YM_LITERAL_DECL(u64, uint64 )
 
 YM_LITERAL_DECL(f32, float32)
 YM_LITERAL_DECL(f64, float64)
-YM_LITERAL_DECL(f80, float80) // TODO maybe undefined - handle that
+YM_LITERAL_DECL(f80, float80) /// @todo maybe undefined - handle that
 
 // don't pollute namespace
 #undef YM_LITERAL_DECL
