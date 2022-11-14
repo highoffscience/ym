@@ -4,7 +4,7 @@
  * @author  Forrest Jablonski
  * 
  * @note If modifying the implementation don't forget to update
- *       < @link random.h @endlink >.
+ *       < @link common/random.h @endlink >.
  */
 
 #ifndef __YM_DIEHARDER_RNG_YM_RAND__
@@ -20,6 +20,10 @@ static float64 ym_rand_get_double(void * vstate);
 static void    ym_rand_set       (void * vstate,
                                   uint64 seed);
 
+/** ym_rand_state_t
+ * 
+ * @brief Stores state of PRNG.
+ */
 typedef struct
 {
    uint64 s0;
@@ -28,6 +32,18 @@ typedef struct
    uint64 s3;
 } ym_rand_state_t;
 
+/** ym_rand_get
+ * 
+ * @brief Generates uniform positive integer values in the range [0..2^64).
+ * 
+ * @note xoshiro256+ - @ref <https://prng.di.unimi.it/>.
+ *
+ * @link ym::Random::gen<ym::uint64> @endlink
+ * 
+ * @param vstate -- State of PRNG.
+ * 
+ * @return Random number in range.
+ */
 static uint64 ym_rand_get(void * vstate)
 {
    ym_rand_state_t * const state_Ptr = (ym_rand_state_t *)vstate;
@@ -48,6 +64,19 @@ static uint64 ym_rand_get(void * vstate)
    return Result;
 }
 
+/** ym_rand_get_double
+ * 
+ * @brief Generates uniform real values in the range [0..1).
+ *        Resolution is 2^52 (~4 quadrillion).
+ * 
+ * @note xoshiro256+ - @ref <https://prng.di.unimi.it/>.
+ *
+ * @link ym::Random::gen<ym::uint64> @endlink
+ * 
+ * @param vstate -- State of PRNG.
+ * 
+ * @return Random number in range.
+ */
 static float64 ym_rand_get_double(void * vstate)
 {
    ym_rand_state_t * const state_Ptr = (ym_rand_state_t *)vstate;
@@ -79,6 +108,15 @@ static float64 ym_rand_get_double(void * vstate)
    return uf.f64;
 }
 
+/** ym_rand_set
+ * 
+ * @brief Sets the seed for the PRNG.
+ * 
+ * @param vstate -- State of PRNG.
+ * @param seed   -- Seed.
+ * 
+ * @note Seed cannot be 0 everywhere.
+ */
 static void ym_rand_set(void * vstate,
                         uint64 seed)
 {
@@ -91,6 +129,10 @@ static void ym_rand_set(void * vstate,
    state_Ptr->s3 = seed + 3ul;
 }
 
+/** gsl_rng_type
+ * 
+ * @brief Custom PRNG.
+ */
 static const gsl_rng_type ym_rand_type =
 {
    "ym_rand",

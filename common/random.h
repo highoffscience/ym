@@ -30,6 +30,9 @@ constexpr bool CRandomable = std::is_same_v<T, uint32 > ||
  * 
  * @note If modifying the implementation don't forget to update
  *       < @link rng_ym_rand.h @endlink > in the dieharder test suite.
+ * 
+ * @ref <https://prng.di.unimi.it/>.
+ * @ref <https://en.wikipedia.org/wiki/Linear-feedback_shift_register>.
  */
 class Random
 {

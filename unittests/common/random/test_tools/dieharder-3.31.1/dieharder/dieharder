@@ -185,7 +185,7 @@ func_exec_program ()
 
   if test -f "$progdir/$program"; then
     # Add our own library path to LD_LIBRARY_PATH
-    LD_LIBRARY_PATH="/home/forrest/code/ym/unittests/common/random_test_tools/dieharder-3.31.1/libdieharder/.libs:$LD_LIBRARY_PATH"
+    LD_LIBRARY_PATH="/home/forrest/code/ym/unittests/common/random/test_tools/dieharder-3.31.1/libdieharder/.libs:$LD_LIBRARY_PATH"
 
     # Some systems cannot cope with colon-terminated LD_LIBRARY_PATH
     # The second colon is a workaround for a bug in BeOS R4 sed
