@@ -13,16 +13,17 @@
 namespace ym
 {
 
-/**
+/** Randomable
+ * 
  * @brief Supported types the PRNG is able to generate.
  * 
  * @tparam T -- Data type.
  */
 template <typename T>
-constexpr bool CRandomable = std::is_same_v<T, uint32 > ||
-                             std::is_same_v<T, uint64 > ||
-                             std::is_same_v<T, float32> ||
-                             std::is_same_v<T, float64>;
+concept Randomable = std::is_same_v<T, uint32 > ||
+                     std::is_same_v<T, uint64 > ||
+                     std::is_same_v<T, float32> ||
+                     std::is_same_v<T, float64>;
 
 /** Random
  * 
@@ -44,7 +45,7 @@ public:
              uint64 const S2,
              uint64 const S3);
 
-   template <typename Randomable_T>
+   template <Randomable Randomable_T>
    Randomable_T gen(void);
 
    void jump(uint32 const NJumps);
@@ -57,20 +58,6 @@ private:
    uint64 _s2;
    uint64 _s3;
 };
-
-/**
- * @brief Overload resolution has failed - this function will generate a compile-time error.
- * 
- * @tparam Randomable_T -- Proposed randomable type.
- * 
- * @return Randomable_T -- Default. Unreachable.
- */
-template <typename Randomable_T>
-Randomable_T Random::gen(void)
-{
-   static_assert(CRandomable<Randomable_T>, "Type is not randomable");
-   return Randomable_T(); // unreachable
-}
 
 template <> uint32  Random::gen<uint32 >(void);
 template <> uint64  Random::gen<uint64 >(void);

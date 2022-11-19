@@ -271,7 +271,7 @@ constexpr auto ymPtrToUint(T const Ptr)
  *
  * @brief Defines a set of user-defined literals for commonly used types.
  *
- * @ref <https://en.cppreference.com/w/cpp/language/user_literal>
+ * @ref <https://en.cppreference.com/w/cpp/language/user_literal>.
  *
  * @param UDL_          -- Name of User Defined Literal.
  * @param TypeToCastTo_ -- Type to cast to.
@@ -298,7 +298,7 @@ YM_LITERAL_DECL(u64, uint64 )
 
 YM_LITERAL_DECL(f32, float32)
 YM_LITERAL_DECL(f64, float64)
-YM_LITERAL_DECL(f80, float80) /// @todo maybe undefined - handle that
+YM_LITERAL_DECL(f80, float80)
 
 // don't pollute namespace
 #undef YM_LITERAL_DECL
