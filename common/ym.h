@@ -6,7 +6,7 @@
  * @note This file should be included in every file of the project. It provides
  *       standard declarations to be shared throughout.
  * 
- * @note @todo We emulate c++20 concepts as static assertable constants because
+ * @todo We emulate c++20 concepts as static assertable constants because
  *       cppyy, our unittest framework, can only handle upto c++17.
  *       @ref <https://cppyy.readthedocs.io/en/latest/>.
  */
@@ -18,7 +18,7 @@
 
 // ----------------------------------------------------------------------------
 
-static_assert(__cplusplus == 201703L, "C++17 standard required");
+static_assert(__cplusplus == 202002L, "C++20 standard required");
 
 // ----------------------------------------------------------------------------
 
@@ -62,12 +62,10 @@ static_assert(__cplusplus == 201703L, "C++17 standard required");
 #endif // _MSC_VER
 
 // mutual exclusion test
-#if YM_IS_CLANG_ID + \
-    YM_IS_GNUG_ID  + \
-    YM_IS_MSVC_ID  + \
-    0 != 1
-static_assert(false, "Multiple (or no) compilers detected");
-#endif
+static_assert(YM_IS_CLANG_ID +
+              YM_IS_GNUG_ID  +
+              YM_IS_MSVC_ID  == 1, 
+              "Multiple (or no) compilers detected");
 
 // don't pollute namespace
 #undef YM_IS_CLANG_ID
@@ -260,12 +258,10 @@ using uintptr = uint64; static_assert(sizeof(uintptr) >= sizeof(void *),
  * @return uintptr -- Ptr as an appropriately sized uint.
  */
 template <typename T>
+requires(std::is_pointer_v<T>         && // is non-member function pointer or data pointer?
+         sizeof(uintptr) >= sizeof(T))   // can pointer fit into uint?
 constexpr auto ymPtrToUint(T const Ptr)
 {
-   static_assert(std::is_pointer_v<T>         && // is non-member function pointer or data pointer
-                 sizeof(uintptr) == sizeof(T),   // is pointer size equal to uint size
-                 "Unable to cast type T to uint");
-
    return reinterpret_cast<uintptr>(Ptr);
 }
 
