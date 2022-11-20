@@ -1,5 +1,7 @@
 /**
- * @author Forrest Jablonski
+ * @file    nameable.h
+ * @version 1.0.0
+ * @author  Forrest Jablonski
  */
 
 #pragma once
@@ -12,40 +14,70 @@ namespace ym
 /*
  * Available variants
  */
-class Nameable_NV;
-class CNameable_NV;
+class Named_NV;
+class PermaNamed_NV;
 
-/**
+/** Named_NV
  * 
+ * @brief Provides a mutably named object.
  */
-class Nameable_NV
+class Named_NV
 {
 public:
-   explicit inline Nameable_NV(str const Name_Ptr)
+   /** Named_NV
+    * 
+    * @brief Constructor.
+    * 
+    * @param Name_Ptr -- Initial name.
+    */
+   explicit inline Named_NV(str const Name_Ptr)
       : _Name_ptr {Name_Ptr}
-   {
-   }
+   { }
 
+   /** getName
+    *
+    *  @brief Returns the current name.
+    * 
+    * @return auto -- Current name.
+    */
    inline auto getName(void) const { return _Name_ptr; }
 
+   /** setName
+    * 
+    * @brief Sets the current name.
+    * 
+    * @param Name_Ptr -- Desired name.
+    */
    inline void setName(str const Name_Ptr) { _Name_ptr = Name_Ptr; }
 
 private:
    str /* non-const */ _Name_ptr;
 };
 
-/**
- * C = Const
+/** PermaNamed_NV
+ * 
+ * @brief Provides a permanently named object.
  */
-class CNameable_NV
+class PermaNamed_NV
 {
 public:
-   explicit inline CNameable_NV(str const Name_Ptr)
+   /** PermaNamed_NV
+    * 
+    * @brief Constructor.
+    * 
+    * @param Name_Ptr -- Name.
+    */
+   explicit constexpr PermaNamed_NV(str const Name_Ptr)
       : _Name_Ptr {Name_Ptr}
-   {
-   }
+   { }
 
-   inline auto getName(void) const { return _Name_Ptr; }
+   /** getName
+    *
+    *  @brief Returns the name.
+    * 
+    * @return auto -- Name.
+    */
+   constexpr auto getName(void) const { return _Name_Ptr; }
 
 private:
    str const _Name_Ptr;

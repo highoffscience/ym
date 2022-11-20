@@ -27,7 +27,7 @@ namespace ym
  * Convenience functions.
  * -------------------------------------------------------------------------- */
 
-template <Loggable_T... Args_T>
+template <Loggable... Args_T>
 inline void ymLog(VGM_T  const    VG,
                   str    const    Format,
                   Args_T const... Args);
@@ -78,7 +78,7 @@ public:
    void enable (VGM_T const VG);
    void disable(VGM_T const VG);
 
-   template <Loggable_T... Args_T>
+   template <Loggable... Args_T>
    inline void printf(VGM_T  const    VG,
                       str    const    Format,
                       Args_T const... Args);
@@ -139,7 +139,7 @@ private:
 
 /** printf
  *
- * @brief Print function that constrains argument types.
+ * @brief Prints to the active logger.
  *
  * @tparam Args_T -- Constrained argument types.
  *
@@ -147,7 +147,7 @@ private:
  * @param Format -- Format string.
  * @param Args   -- Arguments.
  */
-template <Loggable_T... Args_T>
+template <Loggable... Args_T>
 inline void TextLogger::printf(VGM_T  const    VG,
                                str    const    Format,
                                Args_T const... Args)
@@ -155,11 +155,17 @@ inline void TextLogger::printf(VGM_T  const    VG,
    printf_Handler(VG, Format, Args...);
 }
 
-/**
- * @brief 
+/** ymLog
  * 
+ * @brief Prints to the active logger.
+ * 
+ * @tparam Args_T -- Constrained argument types.
+ *
+ * @param VG     -- Verbosity level.
+ * @param Format -- Format string.
+ * @param Args   -- Arguments.
  */
-template <Loggable_T... Args_T>
+template <Loggable... Args_T>
 inline void ymLog(VGM_T  const    VG,
                   str    const    Format,
                   Args_T const... Args)

@@ -25,7 +25,7 @@
    class DerivedYmception_ : public Ymception                   \
    {                                                            \
    public:                                                      \
-      template <Loggable_T... Args_T>                           \
+      template <Loggable... Args_T>                             \
       explicit inline DerivedYmception_(str    const    Format, \
                                         Args_T const... Args)   \
          : Ymception(Format, Args...)                           \
@@ -37,21 +37,21 @@
 namespace ym
 {
 
-/** Ymceptable_T
+/** Ymceptable
  *
  * @brief Represents a Ymception class.
  *
  * @tparam T -- Type that is or is derived from Ymception.
  */
 template <typename T>
-concept Ymceptable_T = std::is_base_of_v<class Ymception, T>;
+concept Ymceptable = std::is_base_of_v<class Ymception, T>;
 
 /*
  * Convenience functions.
  * -------------------------------------------------------------------------- */
 
-template <Ymceptable_T  Ymception_T = class Ymception,
-          Loggable_T... Args_T>
+template <Ymceptable  Ymception_T = class Ymception,
+          Loggable... Args_T>
 void ymAssert(bool   const    Condition,
               str    const    Format,
               Args_T const... Args);
@@ -65,7 +65,7 @@ void ymAssert(bool   const    Condition,
 class Ymception : public std::exception
 {
 public:
-   template <Loggable_T... Args_T>
+   template <Loggable... Args_T>
    explicit inline Ymception(str    const    Format,
                              Args_T const... Args);
 
@@ -73,8 +73,8 @@ public:
 
    virtual str what(void) const noexcept override;
 
-   template <Ymceptable_T  Ymception_T,
-             Loggable_T... Args_T>
+   template <Ymceptable  Ymception_T,
+             Loggable... Args_T>
    friend void ymAssert(bool   const    Condition,
                         str    const    Format,
                         Args_T const... Args);
@@ -94,7 +94,7 @@ private:
  * @param Format -- Format string.
  * @param Args   -- Arguments.
  */
-template <Loggable_T... Args_T>
+template <Loggable... Args_T>
 inline Ymception::Ymception(str    const    Format,
                             Args_T const... Args)
    : _msg{'\0'}
@@ -114,8 +114,8 @@ inline Ymception::Ymception(str    const    Format,
  * @param Format    -- Format string.
  * @param Args      -- Arguments.
  */
-template <Ymceptable_T  Ymception_T,
-          Loggable_T... Args_T>
+template <Ymceptable  Ymception_T,
+          Loggable... Args_T>
 void ymAssert(bool   const    Condition,
               str    const    Format,
               Args_T const... Args)
