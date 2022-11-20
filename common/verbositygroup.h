@@ -8,8 +8,6 @@
 
 #include "ym.h"
 
-#include <utility>
-
 namespace ym
 {
 
@@ -45,7 +43,7 @@ struct VerbosityGroup
     *
     * @return auto -- # of verbosity groups defined.
     */
-   static constexpr auto getNGroups(void) { return std::to_underlying(T::NGroups); }
+   static constexpr auto getNGroups(void) { return toUnderlying(T::NGroups); }
 };
 
 /// @link VGMask_T @endlink
@@ -80,7 +78,7 @@ struct VerbosityGroupMask
    enum class T : std::underlying_type_t<VerbosityGroup::T>
    {
    /// @brief Convenience macros.
-   #define YM_OG_FMT_MSK(Group_, Mask_) ((std::to_underlying(VerbosityGroup::T::Group_) << 8_u32) | Mask_##_u32)
+   #define YM_OG_FMT_MSK(Group_, Mask_) ((toUnderlying(VerbosityGroup::T::Group_) << 8_u32) | Mask_##_u32)
    #define YM_OG_FMT_GRP(Group_       ) YM_OG_FMT_MSK(Group_, 0xff)
 
       Logger           = YM_OG_FMT_GRP(Logger                ),
@@ -102,9 +100,9 @@ struct VerbosityGroupMask
     * 
     * @return auto -- Desired underlying type
     */
-   static constexpr auto getGroup      (T const VG) { return std::to_underlying (VG) >> 8_u32;    }
-   static constexpr auto getMask       (T const VG) { return std::to_underlying (VG) &  0xff_u32; }
-   static constexpr auto getMask_asByte(T const VG) { return static_cast<uint8>(VG);              }
+   static constexpr auto getGroup      (T const VG) { return toUnderlying      (VG) >> 8_u32;    }
+   static constexpr auto getMask       (T const VG) { return toUnderlying      (VG) &  0xff_u32; }
+   static constexpr auto getMask_asByte(T const VG) { return static_cast<uint8>(VG);             }
 };
 
 /// @brief Convenience alias.

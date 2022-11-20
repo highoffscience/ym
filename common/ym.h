@@ -15,6 +15,7 @@
 
 #include <limits>
 #include <type_traits>
+#include <utility>
 
 // ----------------------------------------------------------------------------
 
@@ -263,6 +264,26 @@ requires(std::is_pointer_v<T>         && // is non-member function pointer or da
 constexpr auto ymPtrToUint(T const Ptr)
 {
    return reinterpret_cast<uintptr>(Ptr);
+}
+
+// ----------------------------------------------------------------------------
+
+/** toUnderlying
+ * 
+ * @brief Convert an object of enumeration type to its underlying type.
+ * 
+ * @note Copy-pasted from <utility>. Only available in c++23 so we re-define it here.
+ * 
+ * @tparam T -- Enumeration type.
+ * 
+ * @param  Value -- Enumeration.
+ * 
+ * @return auto -- Enumeration as represented by it's underlying type.
+ */
+template<typename T>
+constexpr auto toUnderlying(T const Value) noexcept
+{
+   return static_cast<underlying_type_t<T>>(Value);
 }
 
 // ----------------------------------------------------------------------------
