@@ -9,7 +9,7 @@
 #include <thread>
 
 #include "ym.h"
-#include "textlogger.h"
+#include "lightlogger.h"
 
 int main(void)
 {

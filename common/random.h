@@ -29,9 +29,6 @@ concept Randomable = std::is_same_v<T, uint32 > ||
  * 
  * @brief A pseudo-random number generator.
  * 
- * @note If modifying the implementation don't forget to update
- *       < @link rng_ym_rand.h @endlink > in the dieharder test suite.
- * 
  * @ref <https://prng.di.unimi.it/>.
  * @ref <https://en.wikipedia.org/wiki/Linear-feedback_shift_register>.
  */
@@ -40,10 +37,10 @@ class Random
 public:
    explicit Random(void);
 
-   void seed(uint64 const S0,
-             uint64 const S1,
-             uint64 const S2,
-             uint64 const S3);
+   void seed(uint64 const Seed[4]);
+
+   void getSeed (uint64  seed_out[4]);
+   void getState(uint64 state_out[4]);
 
    template <Randomable Randomable_T>
    Randomable_T gen(void);
@@ -53,10 +50,8 @@ public:
 private:
    inline void gen_helper(void);
 
-   uint64 _s0;
-   uint64 _s1;
-   uint64 _s2;
-   uint64 _s3;
+   uint64 _seed [4];
+   uint64 _state[4];
 };
 
 template <> uint32  Random::gen<uint32 >(void);

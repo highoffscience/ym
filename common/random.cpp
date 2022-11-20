@@ -17,10 +17,15 @@
  *       $ hexdump random.bytes
  */
 ym::Random::Random(void)
-   : _s0 {0x1723'73c3'5cc2'77fb_u64},
-     _s1 {0x8f51'e36d'13fa'4f21_u64},
-     _s2 {0x0c60'dc05'b8f9'266a_u64},
-     _s3 {0xea9b'fe26'838f'091d_u64}
+   : _seed  {0x1723'73c3'5cc2'77fb_u64,
+             0x8f51'e36d'13fa'4f21_u64,
+             0x0c60'dc05'b8f9'266a_u64,
+             0xea9b'fe26'838f'091d_u64},
+
+     _state {_seed[0],
+             _seed[1],
+             _seed[2],
+             _seed[3]}
 {
 }
 
@@ -28,28 +33,50 @@ ym::Random::Random(void)
  * 
  * @brief Sets the seed for the PRNG.
  * 
- * @param S0 -- 1st part of seed.
- * @param S1 -- 2nd part of seed.
- * @param S2 -- 3rd part of seed.
- * @param S3 -- 4th part of seed.
+ * @param Seed -- Seed.
  * 
  * @note Seed cannot be 0 everywhere.
  */
-void ym::Random::seed(uint64 const S0,
-                      uint64 const S1,
-                      uint64 const S2,
-                      uint64 const S3)
+void ym::Random::seed(uint64 const Seed[4])
 {
-   if (!(S0 == 0_u64 &&
-         S1 == 0_u64 &&
-         S2 == 0_u64 &&
-         S3 == 0_u64))
+   if (!(Seed[0] == 0_u64 &&
+         Seed[1] == 0_u64 &&
+         Seed[2] == 0_u64 &&
+         Seed[3] == 0_u64))
    { // not zero everywhere - seed is accepted
-      _s0 = S0;
-      _s1 = S1;
-      _s2 = S2;
-      _s3 = S3;
+      _state[0] = _seed[0] = Seed[0];
+      _state[1] = _seed[1] = Seed[1];
+      _state[2] = _seed[2] = Seed[2];
+      _state[3] = _seed[3] = Seed[3];
    }
+}
+
+/** getSeed
+ * 
+ * @brief Returns the seed through the out pointer.
+ * 
+ * @param seed_out -- Storage to populate the seed in.
+ */
+void ym::Random::getSeed(uint64 seed_out[4])
+{
+   seed_out[0] = _seed[0];
+   seed_out[1] = _seed[1];
+   seed_out[2] = _seed[2];
+   seed_out[3] = _seed[3];
+}
+
+/** getState
+ * 
+ * @brief Returns the state through the out pointer.
+ * 
+ * @param seed_out -- Storage to populate the state in.
+ */
+void ym::Random::getState(uint64 state_out[4])
+{
+   state_out[0] = _state[0];
+   state_out[1] = _state[1];
+   state_out[2] = _state[2];
+   state_out[3] = _state[3];
 }
 
 /** gen_helper
@@ -58,16 +85,16 @@ void ym::Random::seed(uint64 const S0,
  */
 inline void ym::Random::gen_helper(void)
 {
-   auto const Tmp = _s1 << 17_u64;
+   auto const Tmp = _state[1] << 17_u64;
 
-   _s2 ^= _s0;
-   _s3 ^= _s1;
-   _s1 ^= _s2;
-   _s0 ^= _s3;
+   _state[2] ^= _state[0];
+   _state[3] ^= _state[1];
+   _state[1] ^= _state[2];
+   _state[0] ^= _state[3];
 
-   _s2 ^= Tmp;
+   _state[2] ^= Tmp;
 
-   _s3 ^= (_s3 << 45_u64) | (_s3 >> (64_u64 - 45_u64)); // rotate left
+   _state[3] ^= (_state[3] << 45_u64) | (_state[3] >> (64_u64 - 45_u64)); // rotate left
 }
 
 /** gen
@@ -83,7 +110,7 @@ inline void ym::Random::gen_helper(void)
 template <>
 auto ym::Random::gen<ym::uint32>(void) -> uint32
 {
-   uint32 const Result = static_cast<uint32>((_s0 + _s3) >> 32_u64);
+   uint32 const Result = static_cast<uint32>((_state[0] + _state[3]) >> 32_u64);
 
    gen_helper();
 
@@ -103,7 +130,7 @@ auto ym::Random::gen<ym::uint32>(void) -> uint32
 template <>
 auto ym::Random::gen<ym::uint64>(void) -> uint64
 {
-   uint64 const Result = _s0 + _s3;
+   uint64 const Result = _state[0] + _state[3];
 
    gen_helper();
 
@@ -129,7 +156,7 @@ auto ym::Random::gen<ym::float32>(void) -> float32
       uint64  u64;
       uint32  u32;
       float32 f32;
-   } uf{.u64 = _s0 + _s3};
+   } uf{.u64 = _state[0] + _state[3]};
 
    gen_helper();
 
@@ -158,7 +185,7 @@ auto ym::Random::gen<ym::float64>(void) -> float64
    {
       uint64  u64;
       float64 f64;
-   } uf{.u64 = _s0 + _s3};
+   } uf{.u64 = _state[0] + _state[3]};
 
    gen_helper();
 
@@ -188,10 +215,10 @@ void ym::Random::jump(uint32 const NJumps)
 
    for (auto i = 0_u32; i < NJumps; ++i)
    {
-      decltype(_s0) s0 = 0_u64;
-      decltype(_s1) s1 = 0_u64;
-      decltype(_s2) s2 = 0_u64;
-      decltype(_s3) s3 = 0_u64;
+      auto s0 = 0_u64;
+      auto s1 = 0_u64;
+      auto s2 = 0_u64;
+      auto s3 = 0_u64;
 
       for (auto j = 0_u64; j < JumpTable.size(); ++j)
       {
@@ -199,19 +226,19 @@ void ym::Random::jump(uint32 const NJumps)
          {
             if (JumpTable[j] & (1_u64 << k))
             {
-               s0 ^= _s0;
-               s1 ^= _s1;
-               s2 ^= _s2;
-               s3 ^= _s3;
+               s0 ^= _state[0];
+               s1 ^= _state[1];
+               s2 ^= _state[2];
+               s3 ^= _state[3];
             }
 
             gen_helper();
          }
       }
 
-      _s0 = s0;
-      _s1 = s1;
-      _s2 = s2;
-      _s3 = s3;
+      _state[0] = s0;
+      _state[1] = s1;
+      _state[2] = s2;
+      _state[3] = s3;
    }
 }

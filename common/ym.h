@@ -283,7 +283,7 @@ constexpr auto ymPtrToUint(T const Ptr)
 template<typename T>
 constexpr auto toUnderlying(T const Value) noexcept
 {
-   return static_cast<underlying_type_t<T>>(Value);
+   return static_cast<std::underlying_type_t<T>>(Value);
 }
 
 // ----------------------------------------------------------------------------
