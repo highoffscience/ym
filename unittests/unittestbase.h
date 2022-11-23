@@ -1,16 +1,19 @@
 /**
- * @author Forrest Jablonski
+ * @file    unittestbase.h
+ * @version 1.0.0
+ * @author  Forrest Jablonski
  */
 
 #pragma once
 
-#include "ym_unittest.h"
+#include "ym_ut.h"
 
-namespace ym::unittest
+namespace ym::ut
 {
 
-/**
+/** UnitTestBase
  *
+ * @brief Base class for unit test suites.
  */
 class UnitTestBase
 {
@@ -21,4 +24,4 @@ public:
    virtual void runTests(void) = 0;
 };
 
-} // ym::unittest
+} // ym::ut

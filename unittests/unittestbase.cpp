@@ -1,12 +1,14 @@
 /**
- * @author Forrest Jablonski
+ * @file    unittestbase.cpp
+ * @version 1.0.0
+ * @author  Forrest Jablonski
  */
 
 #include "unittestbase.h"
 
-/**
- * 
+/** UnitTestBase
+ *
+ * @brief Constructor.
  */
-ym::unittest::UnitTestBase::UnitTestBase(void)
-{
-}
+ym::ut::UnitTestBase::UnitTestBase(void)
+{ }
