@@ -2,26 +2,15 @@
  * @author Forrest Jablonski
  */
 
-#include "ym_unittest.h"
-
 #include "unittestbase.h"
 
-#include "random_unittest.h"
-
-#include <cstdio>
+#include <iostream>
 
 int main(void)
 {
-   ym::unittest::UnitTestBase * unitTestPtrs[] =
-   {
-      new ym::unittest::Random_UnitTest
-   };
+   ym::ut::UnitTestBase utb("Torchic");
 
-   for (auto * unitTest_ptr : unitTestPtrs)
-   {
-      unitTest_ptr->runTests();
-      delete unitTest_ptr;
-   }
+   std::cout << utb.getName() << std::endl;
 
    return 0;
 }

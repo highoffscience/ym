@@ -13,35 +13,21 @@
  * @brief Constructor.
  */
 ym::ut::Random_UT::Random_UT(void)
+   : UnitTestBase("Random", {"MemoryManager"})
 {
 }
 
-/** runTests
+/** runTest_BinFrequency
  *
- * @brief Runs all the unit tests.
+ * @brief Runs the bin frequency test.
+ * 
+ * @todo I want to use ym::MemMan, add dependency for that test to run first.
  *
- * TODO
+ * @return bool -- True if test passed, false otherwise.
  */
-void ym::ut::Random_UT::runTests(void)
+bool ym::ut::Random_UT::runTest_BinFrequency(void)
 {
-   // Binomial
-   int const B[16] = {
-//   0000 0001 0010 0011 0100 0101 0110 0111
-      -4,  -2,  -2,   0,  -2,   0,   0,  +2,
-
-//   1000 1001 1010 1011 1100 1101 1110 1111
-      -2,   0,   0,  +2,   0,  +2,  +2,  +4
-   };
-
    ym::Random rand;
 
-   constexpr unsigned long NIters = 1'000;
-   unsigned long histo[16] = {0};
-
-   for (auto i = 0ul; i < NIters; ++i)
-   {
-      auto const R = rand.gen<unsigned int>();
-
-      auto const Bin = R & 0x00'00'00'0fu;
-   }
+   return false;
 }

@@ -24,7 +24,7 @@ public:
    explicit Random_UT(void);
    virtual ~Random_UT(void) = default;
 
-   virtual void runTests(void) override;
+   bool runTest_BinFrequency(void);
 };
 
 } // ym::ut
