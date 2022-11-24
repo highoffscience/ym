@@ -8,7 +8,6 @@
 
 #include "ym_ut.h"
 
-#include "random.h"
 #include "unittestbase.h"
 
 namespace ym::ut

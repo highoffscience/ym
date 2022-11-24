@@ -29,5 +29,5 @@ bool ym::ut::Random_UT::runTest_BinFrequency(void)
 {
    ym::Random rand;
 
-   return false;
+   return rand.gen<ym::uint32>() % 2 == 0;
 }

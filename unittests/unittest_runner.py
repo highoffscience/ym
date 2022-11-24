@@ -6,6 +6,7 @@
 # @author  Forrest Jablonski
 #
 
+import cppyy
 import unittest
 
 """ main
@@ -13,7 +14,15 @@ import unittest
 @brief TODO
 """
 def main():
-   pass
+   cppyy.add_include_path("/home/forrest/code/ym/unittests/")
+   cppyy.add_include_path("/home/forrest/code/ym/unittests/common/random/")
+   cppyy.include("random_ut.h")
+
+   cppyy.add_library_path("/home/forrest/code/ym/unittests/build/")
+   cppyy.load_library("librandom.so")
+
+   r = cppyy.gbl.ym.ut.Random_UT()
+   print(r.runTest_BinFrequency())
 
 # kick-off
 if __name__ == "__main__":
