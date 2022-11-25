@@ -8,6 +8,7 @@
 
 #include "ym.h"
 
+#include <array>
 #include <type_traits>
 
 namespace ym
@@ -35,12 +36,17 @@ concept Randomable = std::is_same_v<T, uint32 > ||
 class Random
 {
 public:
+   using State_T = std::array<uint64, 4>;
+
    explicit Random(void);
+   explicit Random(State_T const Seed);
 
-   void seed(uint64 const Seed[4]);
+   static bool isZero(State_T const State);
 
-   void getSeed (uint64  seed_out[4]);
-   void getState(uint64 state_out[4]);
+   void setSeed(State_T const Seed);
+
+   inline auto getSeed (void) const { return _seed;  }
+   inline auto getState(void) const { return _state; }
 
    template <Randomable Randomable_T>
    Randomable_T gen(void);
@@ -50,8 +56,8 @@ public:
 private:
    inline void gen_helper(void);
 
-   uint64 _seed [4];
-   uint64 _state[4];
+   State_T _seed;
+   State_T _state;
 };
 
 template <> uint32  Random::gen<uint32 >(void);

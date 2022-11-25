@@ -6,7 +6,13 @@
 
 #include "random.h"
 
-#include <array>
+/**
+ * @brief Default (non-zero) state.
+ */
+#define YM_S0 0x1723'73c3'5cc2'77fb_u64
+#define YM_S1 0x8f51'e36d'13fa'4f21_u64
+#define YM_S2 0x0c60'dc05'b8f9'266a_u64
+#define YM_S3 0xea9b'fe26'838f'091d_u64
 
 /** Random
  * 
@@ -17,19 +23,50 @@
  *       $ hexdump random.bytes
  */
 ym::Random::Random(void)
-   : _seed  {0x1723'73c3'5cc2'77fb_u64,
-             0x8f51'e36d'13fa'4f21_u64,
-             0x0c60'dc05'b8f9'266a_u64,
-             0xea9b'fe26'838f'091d_u64},
-
-     _state {_seed[0],
-             _seed[1],
-             _seed[2],
-             _seed[3]}
+   : Random({YM_S0, YM_S1, YM_S2, YM_S3})
 {
 }
 
-/** seed
+/** Random
+ * 
+ * @brief Constructor.
+ * 
+ * @param Seed -- Seed.
+ */
+ym::Random::Random(State_T const Seed)
+   : _seed  {Seed[0],
+             Seed[1],
+             Seed[2],
+             Seed[3]},
+
+     _state {Seed[0],
+             Seed[1],
+             Seed[2],
+             Seed[3]}
+{
+   if (isZero(_state))
+   { // state is 0 - set to default
+      setSeed({YM_S0, YM_S1, YM_S2, YM_S3});
+   }
+}
+
+/** isZero
+ * 
+ * @brief Returns if the input state is zero everywhere.
+ * 
+ * @param State -- State.
+ * 
+ * @return bool -- True if input state is 0 everywhere, false otherwise.
+ */
+bool ym::Random::isZero(State_T const State)
+{
+   return State[0] == 0_u64 &&
+          State[1] == 0_u64 &&
+          State[2] == 0_u64 &&
+          State[3] == 0_u64;
+}
+
+/** setSeed
  * 
  * @brief Sets the seed for the PRNG.
  * 
@@ -37,46 +74,15 @@ ym::Random::Random(void)
  * 
  * @note Seed cannot be 0 everywhere.
  */
-void ym::Random::seed(uint64 const Seed[4])
+void ym::Random::setSeed(State_T const Seed)
 {
-   if (!(Seed[0] == 0_u64 &&
-         Seed[1] == 0_u64 &&
-         Seed[2] == 0_u64 &&
-         Seed[3] == 0_u64))
+   if (!isZero(Seed))
    { // not zero everywhere - seed is accepted
       _state[0] = _seed[0] = Seed[0];
       _state[1] = _seed[1] = Seed[1];
       _state[2] = _seed[2] = Seed[2];
       _state[3] = _seed[3] = Seed[3];
    }
-}
-
-/** getSeed
- * 
- * @brief Returns the seed through the out pointer.
- * 
- * @param seed_out -- Storage to populate the seed in.
- */
-void ym::Random::getSeed(uint64 seed_out[4])
-{
-   seed_out[0] = _seed[0];
-   seed_out[1] = _seed[1];
-   seed_out[2] = _seed[2];
-   seed_out[3] = _seed[3];
-}
-
-/** getState
- * 
- * @brief Returns the state through the out pointer.
- * 
- * @param seed_out -- Storage to populate the state in.
- */
-void ym::Random::getState(uint64 state_out[4])
-{
-   state_out[0] = _state[0];
-   state_out[1] = _state[1];
-   state_out[2] = _state[2];
-   state_out[3] = _state[3];
 }
 
 /** gen_helper
@@ -215,10 +221,7 @@ void ym::Random::jump(uint32 const NJumps)
 
    for (auto i = 0_u32; i < NJumps; ++i)
    {
-      auto s0 = 0_u64;
-      auto s1 = 0_u64;
-      auto s2 = 0_u64;
-      auto s3 = 0_u64;
+      State_T s{0_u64, 0_u64, 0_u64, 0_u64};
 
       for (auto j = 0_u64; j < JumpTable.size(); ++j)
       {
@@ -226,19 +229,19 @@ void ym::Random::jump(uint32 const NJumps)
          {
             if (JumpTable[j] & (1_u64 << k))
             {
-               s0 ^= _state[0];
-               s1 ^= _state[1];
-               s2 ^= _state[2];
-               s3 ^= _state[3];
+               s[0] ^= _state[0];
+               s[1] ^= _state[1];
+               s[2] ^= _state[2];
+               s[3] ^= _state[3];
             }
 
             gen_helper();
          }
       }
 
-      _state[0] = s0;
-      _state[1] = s1;
-      _state[2] = s2;
-      _state[3] = s3;
+      _state[0] = s[0];
+      _state[1] = s[1];
+      _state[2] = s[2];
+      _state[3] = s[3];
    }
 }
