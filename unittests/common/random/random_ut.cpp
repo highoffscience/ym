@@ -34,18 +34,34 @@ bool ym::ut::Random_UT::ZerosAndOnes_TC::run(void)
 {
    ym::Random rand;
 
-   constexpr auto NIters   = 1'000'000'000_u64;
-             auto nSetBits = 0_u64;
+   constexpr auto NTrials    = 1'000_u64;
+   constexpr auto NIters     = 1'000'000_u64;
+   constexpr auto NTotalBits = NIters * 64_u64;
+   auto nCumulativeSumBits   = 0_i64;
+   auto nTimesPos            = 0_i64;
 
-   for (auto i = 0_u64; i < NIters; ++i)
+   for (auto i = 0_u64; i < NTrials; ++i)
    {
-      nSetBits += std::bitset<64>(rand.gen<uint64>()).count();
+      auto nSetBits = 0_u64;
+      for (auto j = 0_u64; j < NIters; ++j)
+      {
+         nSetBits += std::bitset<64>(rand.gen<uint64>()).count();
+      }
+
+      auto const Diff = static_cast<int64>(nSetBits) -
+                        static_cast<int64>(NTotalBits / 2_u64);
+
+      if (Diff >= 0_i64)
+      {
+         nTimesPos += 1;
+      }
+
+      nCumulativeSumBits += Diff;
    }
 
-   std::printf("NIters   %lu\n", NIters);
-   std::printf("NSetBits %lu\n", nSetBits);
-   std::printf("Ratio    %lf\n", static_cast<float64>(nSetBits) /
-                                 static_cast<float64>(NIters));
+   std::printf("# bits in all trials  %lu\n", NTotalBits * NTrials);
+   std::printf("nCumulativeSumBits    %ld\n", nCumulativeSumBits);
+   std::printf("nTimesPos             %ld\n", nTimesPos);
 
    return false; // TODO
 }

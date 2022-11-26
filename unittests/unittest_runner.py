@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
 ##
 # @file    unittest_runner.py
@@ -22,7 +22,7 @@ def main():
    cppyy.load_library("librandom.so")
 
    r = cppyy.gbl.ym.ut.Random_UT()
-   print(r.runTest_BinFrequency())
+   print(r.todo_run_test())
 
 # kick-off
 if __name__ == "__main__":

@@ -11,6 +11,8 @@ project(UnitTest VERSION 1.0.0 DESCRIPTION "Builds unittest shared libraries")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+set(CMAKE_CXX_FLAGS "-Ofast")
+
 set(CommonDir         ${CMAKE_CURRENT_SOURCE_DIR}/../common/)
 set(CommonUnitTestDir ${CMAKE_CURRENT_SOURCE_DIR}/common/)
 
