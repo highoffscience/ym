@@ -23,7 +23,11 @@ public:
    explicit Random_UT(void);
    virtual ~Random_UT(void) = default;
 
-   bool runTest_BinFrequency(void);
+   YM_UT_TESTCASE(ZerosAndOnes);
+   YM_UT_TESTCASE(UniformBins);
+   YM_UT_TESTCASE(BinFrequency);
+
+   bool todo_run_test(void) const { return ZerosAndOnes_TC().run(); }
 };
 
 } // ym::ut

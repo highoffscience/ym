@@ -20,4 +20,14 @@ ym::ut::UnitTestBase::UnitTestBase(std::string              && _name_uref,
                                    std::vector<std::string> && _dependents_uref)
    : _Name       {std::move(_name_uref      )},
      _Dependents {std::move(_dependents_uref)}
-{ }
+{
+}
+
+/** TestCase
+ * 
+ * @brief Constructor.
+ */
+ym::ut::UnitTestBase::TestCase::TestCase(std::string && _name_uref)
+  : _Name {std::move(_name_uref)}
+{
+}

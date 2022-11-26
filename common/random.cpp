@@ -116,7 +116,7 @@ inline void ym::Random::gen_helper(void)
 template <>
 auto ym::Random::gen<ym::uint32>(void) -> uint32
 {
-   uint32 const Result = static_cast<uint32>((_state[0] + _state[3]) >> 32_u64);
+   auto const Result = static_cast<uint32>((_state[0] + _state[3]) >> 32_u64);
 
    gen_helper();
 
@@ -136,7 +136,7 @@ auto ym::Random::gen<ym::uint32>(void) -> uint32
 template <>
 auto ym::Random::gen<ym::uint64>(void) -> uint64
 {
-   uint64 const Result = _state[0] + _state[3];
+   auto const Result = _state[0] + _state[3];
 
    gen_helper();
 
