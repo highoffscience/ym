@@ -64,7 +64,7 @@ bool ym::ut::Random_UT::UniformBins_TC::run(void)
 
    std::vector histo(1_u64 << 16_u64, 0_u64);
 
-   constexpr auto NIters = 1'000'000'000_u64;
+   constexpr auto NIters = 1_u64 << 30_u64;
 
    for (auto i = 0_u64; i < NIters; ++i)
    {
@@ -77,6 +77,8 @@ bool ym::ut::Random_UT::UniformBins_TC::run(void)
    }
 
    auto const NExpectedHitsPerBin = NIters / histo.size();
+
+   return false; // TODO
 }
 
 /** run
