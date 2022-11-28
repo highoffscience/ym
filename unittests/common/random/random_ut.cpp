@@ -34,7 +34,7 @@ auto ym::ut::Random_UT::ZerosAndOnes_TC::run(void) -> DataShuttle_T
 {
    ym::Random rand;
 
-   constexpr auto NIters     = 1'000'000_u64;
+   constexpr auto NIters     = 1'000'000'000_u64;
    constexpr auto NTotalBits = NIters * 64_u64;
              auto nSetBits   = 0_u64;
 

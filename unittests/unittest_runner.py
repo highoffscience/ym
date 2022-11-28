@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 ##
 # @file    unittest_runner.py
 # @version 1.0.0
@@ -21,11 +19,15 @@ def main():
    cppyy.add_library_path("/home/forrest/code/ym/unittests/build/")
    cppyy.load_library("librandom.so")
 
-   r = cppyy.gbl.ym.ut.Random_UT()
+   from cppyy.gbl import std
+   from cppyy.gbl import ym
+
+   r = ym.ut.Random_UT()
    ds = r.todo_run_test()
    try:
-      print(cppyy.gbl.std.any_cast[cppyy.gbl.ym.ut.ut_uint64](ds["NTotalBits"]))
-   except cppyy.gbl.std.bad_any_cast as bad:
+      
+      print(std.any_cast[ym.ut.ut_uint64](ds["NTotalBits"]))
+   except std.bad_any_cast as bad:
       print(f"uh-oh! {bad}")
 
 # kick-off
