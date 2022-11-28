@@ -8,8 +8,9 @@
 
 #include "ym_ut.h"
 
+#include <any>
 #include <string>
-#include <vector>
+#include <unordered_map>
 
 namespace ym::ut
 {
@@ -26,7 +27,7 @@ namespace ym::ut
          : TestCase(#Name_)            \
       { }                              \
                                        \
-      virtual bool run(void) override; \
+      virtual DataShuttle_T run(void) override; \
    };
 
 /** UnitTestBase
@@ -38,12 +39,12 @@ class UnitTestBase
 public:
    virtual ~UnitTestBase(void) = default;
 
-   auto const & getName      (void) const { return _Name;       }
-   auto const & getDependents(void) const { return _Dependents; }
+   auto const & getName(void) const { return _Name; }
+
+   using DataShuttle_T = std::unordered_map<std::string, std::any>;
 
 protected:
-   explicit UnitTestBase(std::string              && _name_uref,
-                         std::vector<std::string> && _dependents_uref);
+   explicit UnitTestBase(std::string && _name_uref);
 
    /** Test
     * 
@@ -52,7 +53,9 @@ protected:
    class TestCase
    {
    public:
-      virtual bool run(void) = 0;
+      virtual DataShuttle_T run(void) = 0;
+
+      auto const & getName(void) const { return _Name; }
 
    protected:
       explicit TestCase(std::string && _name_uref);
@@ -62,8 +65,7 @@ protected:
    };
 
 private:
-   std::string              const _Name;
-   std::vector<std::string> const _Dependents;
+   std::string const _Name;
 };
 
 } // ym::ut

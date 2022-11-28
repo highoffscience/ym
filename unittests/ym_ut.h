@@ -28,9 +28,9 @@ namespace ym::ut
 // using uint8   = unsigned char  ; static_assert(sizeof(uint8  ) == 1, "uint8 not 1 byte" );
 // using uint16  = unsigned short ; static_assert(sizeof(uint16 ) == 2, "uint8 not 2 bytes");
 // using uint32  = unsigned int   ; static_assert(sizeof(uint32 ) == 4, "uint8 not 4 bytes");
-// using uint64  = unsigned long  ; static_assert(sizeof(uint64 ) == 8, "uint8 not 8 bytes");
+using ut_uint64  = unsigned long  ; static_assert(sizeof(ut_uint64 ) == 8, "ut_uint8 not 8 bytes");
 
-// using float32 = float          ; static_assert(sizeof(float32) == 4, "float32 not 4 bytes");
-// using float64 = double         ; static_assert(sizeof(float64) == 8, "float64 not 8 bytes");
+using ut_float32 = float          ; static_assert(sizeof(ut_float32) == 4, "ut_float32 not 4 bytes");
+using ut_float64 = double         ; static_assert(sizeof(ut_float64) == 8, "ut_float64 not 8 bytes");
 
 } // ym::ut

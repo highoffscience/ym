@@ -22,7 +22,11 @@ def main():
    cppyy.load_library("librandom.so")
 
    r = cppyy.gbl.ym.ut.Random_UT()
-   print(r.todo_run_test())
+   ds = r.todo_run_test()
+   try:
+      print(cppyy.gbl.std.any_cast[cppyy.gbl.ym.ut.ut_uint64](ds["NTotalBits"]))
+   except cppyy.gbl.std.bad_any_cast as bad:
+      print(f"uh-oh! {bad}")
 
 # kick-off
 if __name__ == "__main__":

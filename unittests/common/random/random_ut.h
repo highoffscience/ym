@@ -10,6 +10,8 @@
 
 #include "unittestbase.h"
 
+#include <any>
+
 namespace ym::ut
 {
 
@@ -24,10 +26,10 @@ public:
    virtual ~Random_UT(void) = default;
 
    YM_UT_TESTCASE(ZerosAndOnes);
-   YM_UT_TESTCASE(UniformBins);
-   YM_UT_TESTCASE(BinFrequency);
+   // YM_UT_TESTCASE(UniformBins);
+   // YM_UT_TESTCASE(BinFrequency);
 
-   bool todo_run_test(void) const { return ZerosAndOnes_TC().run(); }
+   DataShuttle_T todo_run_test(void) const { return ZerosAndOnes_TC().run(); }
 };
 
 } // ym::ut
