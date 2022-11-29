@@ -15,7 +15,7 @@ namespace ym::ut
 
 /** Random_UT
  *
- * @brief Test suite for ym::Random.
+ * @brief Test suite for structure Random.
  */
 class Random_UT : public UnitTestBase
 {

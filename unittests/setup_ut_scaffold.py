@@ -10,12 +10,13 @@ import sys
 
 """ gen_cmake_file
 
-@brief TODO
+@brief Generates cmake skeleton file.
 """
-def gen_cmake_file(directory):
-   if not os.path.exists(directory):
-      basename = os.path.basename(directory)
-      with open(f"{directory}/CMakeLists.txt", "w") as outfile:
+def gen_cmake_file(args):
+   basename = os.path.basename(args.path)
+   cmake_file = os.path.join(args.path, "CMakeLists.txt")
+   if not os.path.exists(cmake_file):
+      with open(cmake_file, "w") as outfile:
          outfile.write(f"##\n")
          outfile.write(f"# AUTO-GENERATED\n")
          outfile.write(f"#\n")
@@ -51,30 +52,93 @@ def gen_cmake_file(directory):
          outfile.write(f"target_include_directories({basename} PRIVATE ${{UnitTestDir}})\n")
          outfile.write(f"target_include_directories({basename} PRIVATE ${{CommonUnitTestDir}})\n")
 
-""" gen_header_file
+""" gen_hdr_file
 
-@brief TODO
+@brief Generates header skeleton file.
 """
-def gen_header_file(directory):
-   if not os.path.exists(directory):
-      basename = os.path.basename(directory)
-      with open(f"{directory}/{basename}_ut.h", "w") as outfile:
+def gen_hdr_file(args):
+   basename = os.path.basename(args.path)
+   hdr_file =os.path.join(args.path, f"{basename}_ut.h")
+   if not os.path.exists(hdr_file):
+      with open(hdr_file, "w") as outfile:
+         outfile.write(f"/**\n")
+         outfile.write(f" * @file    {basename}_ut.h\n")
+         outfile.write(f" * @version 1.0.0\n")
+         outfile.write(f" * @author  Forrest Jablonski\n")
+         outfile.write(f" */\n")
+         outfile.write(f"\n")
+         outfile.write(f"#pragma once\n")
+         outfile.write(f"\n")
+         outfile.write(f"#include \"ym_ut.h\"\n")
+         outfile.write(f"\n")
+         outfile.write(f"#include \"unittestbase.h\"\n")
+         outfile.write(f"\n")
+         outfile.write(f"namespace ym::ut\n")
+         outfile.write(f"{{\n")
+         outfile.write(f"\n")
+         outfile.write(f"/** {args.name}_UT\n")
+         outfile.write(f"*\n")
+         outfile.write(f"* @brief Test suite for structure {args.name}.\n")
+         outfile.write(f"*/\n")
+         outfile.write(f"class {args.name}_UT : public UnitTestBase\n")
+         outfile.write(f"{{\n")
+         outfile.write(f"public:\n")
+         outfile.write(f"   explicit {args.name}_UT(void);\n")
+         outfile.write(f"   virtual ~{args.name}_UT(void) = default;\n")
+         outfile.write(f"\n")
+         outfile.write(f"   // YM_UT_TESTCASE(name_of_test_case_here);\n")
+         outfile.write(f"}};\n")
+         outfile.write(f"\n")
+         outfile.write(f"}} // ym::ut\n") 
+
+""" gen_src_file
+
+@brief Generates source skeleton file.
+"""
+def gen_src_file(args):
+   basename = os.path.basename(args.path)
+   src_file = os.path.join(args.path, f"{basename}_ut.cpp")
+   if not os.path.exists(src_file):
+      with open(src_file, "w") as outfile:
+         outfile.write(f"/**\n")
+         outfile.write(f" * @file    {basename}_ut.cpp\n")
+         outfile.write(f" * @version 1.0.0\n")
+         outfile.write(f" * @author  Forrest Jablonski\n")
+         outfile.write(f" */\n")
+         outfile.write(f"\n")
+         outfile.write(f"#include \"ym.h\"\n")
+         outfile.write(f"#include \"{basename}_ut.h\"\n")
+         outfile.write(f"\n")
+         outfile.write(f"#include \"{basename}.h\"\n")
+         outfile.write(f"\n")
+         outfile.write(f"/** {args.name}_UT\n")
+         outfile.write(f"*\n")
+         outfile.write(f"* @brief Constructor.\n")
+         outfile.write(f"*/\n")
+         outfile.write(f"ym::ut::{args.name}_UT::{args.name}_UT(void)\n")
+         outfile.write(f"   : UnitTestBase(\"{args.name}\")\n")
+         outfile.write(f"{{\n")
+         outfile.write(f"}}\n")
 
 """ main
 
-@brief TODO
+@brief Sets up the unittest scaffolding.
 """
 def main():
    parser = argparse.ArgumentParser()
-   parser.add_argument("-d", "--directory", help="path to generate unittest scaffolding in", type=str)
-   parser.add_argument("-n", "--name", help="structure to generate unittest scaffolding for", type=str)
+   parser.add_argument("-p", "--path", required=True, help="path to generate unittest scaffolding in", type=str)
+   parser.add_argument("-n", "--name", required=True, help="structure to generate unittest scaffolding for", type=str)
    args = parser.parse_args()
 
-   print(args.file)
+   if not os.path.exists(args.path):
+      os.mkdir(args.path)
+      gen_cmake_file(args)
+      gen_hdr_file(args)
+      gen_src_file(args)
 
 # kick-off
 if __name__ == "__main__":
    main()
 else:
-   print("Meant to run stand-alone - not to be imported")
+   print("Meant to run stand-alone - not to be imported.")
    sys.exit(1)

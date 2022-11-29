@@ -1,0 +1,34 @@
+##
+# AUTO-GENERATED
+#
+# @file    CMakeLists.txt
+# @version 1.0.0
+# @author  Forrest Jablonski
+#
+
+cmake_minimum_required(VERSION 3.16)
+
+project(UnitTest VERSION 1.0.0 DESCRIPTION "Builds unittest shared libraries")
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+set(RootDir           ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
+set(CommonDir         ${RootDir}/common/)
+set(UnitTestDir       ${RootDir}/unittests/)
+set(CommonUnitTestDir ${UnitTestDir}/common/)
+
+add_library(timer SHARED)
+
+target_sources(timer PRIVATE
+   ${CommonDir}/timer.cpp
+   ${UnitTestDir}/unittestbase.cpp
+   ${CommonUnitTestDir}/timer/timer_ut.cpp)
+
+set_target_properties(timer PROPERTIES VERSION ${PROJECT_VERSION})
+
+target_compile_options(timer PRIVATE -Werror -Wall -Wextra -Ofast)
+
+target_include_directories(timer PRIVATE ${CommonDir})
+target_include_directories(timer PRIVATE ${UnitTestDir})
+target_include_directories(timer PRIVATE ${CommonUnitTestDir})

@@ -10,8 +10,6 @@
 #include "random.h"
 
 #include <bitset>
-#include <cstdio>
-#include <vector>
 
 /** Random_UT
  *
@@ -43,10 +41,7 @@ auto ym::ut::Random_UT::ZerosAndOnes_TC::run(void) -> DataShuttle_T
       nSetBits += std::bitset<64>(rand.gen<uint64>()).count();
    }
 
-   // std::printf("NTotalBits  %lu\n", NTotalBits);
-   // std::printf("nSetBits    %ld\n", nSetBits);
-
-   return {
+   return DataShuttle_T{
       {"NTotalBits", NTotalBits},
       {"nSetBits",   nSetBits}
    };
