@@ -10,8 +10,6 @@
 
 #include "unittestbase.h"
 
-#include <any>
-
 namespace ym::ut
 {
 
@@ -28,8 +26,6 @@ public:
    YM_UT_TESTCASE(ZerosAndOnes);
    // YM_UT_TESTCASE(UniformBins);
    // YM_UT_TESTCASE(BinFrequency);
-
-   DataShuttle_T todo_run_test(void) const { return ZerosAndOnes_TC().run(); }
 };
 
 } // ym::ut

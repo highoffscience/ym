@@ -19,16 +19,17 @@ namespace ym::ut
  * 
  * @brief Defines a test case.
  */
-#define YM_UT_TESTCASE(Name_)          \
-   class Name_##_TC : public TestCase  \
-   {                                   \
-   public:                             \
-      explicit Name_##_TC(void)        \
-         : TestCase(#Name_)            \
-      { }                              \
-                                       \
+#define YM_UT_TESTCASE(Name_)                   \
+   class Name_##_TC : public TestCase           \
+   {                                            \
+   public:                                      \
+      explicit Name_##_TC(void)                 \
+         : TestCase(#Name_)                     \
+      { }                                       \
+                                                \
       virtual DataShuttle_T run(void) override; \
-   };
+   };                                           \
+   DataShuttle_T run##Name_##_TC(void) const { return Name_##_TC().run(); }
 
 /** UnitTestBase
  *
