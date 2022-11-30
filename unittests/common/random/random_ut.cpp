@@ -41,9 +41,9 @@ auto ym::ut::Random_UT::ZerosAndOnes_TC::run(void) -> DataShuttle_T
       nSetBits += std::bitset<64>(rand.gen<uint64>()).count();
    }
 
-   return DataShuttle_T{
+   return {
       {"NTotalBits", NTotalBits},
-      {"nSetBits",   nSetBits}
+      {"NSetBits",   nSetBits}
    };
 }
 
