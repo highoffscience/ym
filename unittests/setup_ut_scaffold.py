@@ -45,6 +45,7 @@ def gen_cmake_file(args):
          outfile.write(f"   ${{CommonUnitTestDir}}/{basename}/{basename}_ut.cpp)\n")
          outfile.write(f"\n")
          outfile.write(f"set_target_properties({basename} PROPERTIES VERSION ${{PROJECT_VERSION}})\n")
+         outfile.write(f"set_target_properties({basename} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${{CMAKE_BINARY_DIR}}/{args.path})\n")
          outfile.write(f"\n")
          outfile.write(f"target_compile_options({basename} PRIVATE -Werror -Wall -Wextra -Ofast)\n")
          outfile.write(f"\n")

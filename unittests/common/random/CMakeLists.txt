@@ -26,6 +26,7 @@ target_sources(random PRIVATE
    ${CommonUnitTestDir}/random/random_ut.cpp)
 
 set_target_properties(random PROPERTIES VERSION ${PROJECT_VERSION})
+set_target_properties(random PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/ym/common/)
 
 target_compile_options(random PRIVATE -Werror -Wall -Wextra -Ofast)
 
