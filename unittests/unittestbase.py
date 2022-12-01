@@ -26,9 +26,9 @@ class UnitTestBase:
       self.ut_SUT_path   = os.path.join(self.ut_root_path, self.SUT_tail_path)
 
       self.dependent_SUT_tail_paths = dependent_SUT_tail_paths
-      self.dependent_SUT_paths      = list(map(lambda s: os.path.join(TODO)))
+      self.dependent_SUT_paths      = list(map(lambda tail_path: os.path.join(self.ut_root_path, tail_path)))
 
-      self.basename         = os.path.basename(self.ut_SUT_path)
+      self.basename = os.path.basename(self.ut_SUT_path)
 
       self.configCppyy()
 
@@ -39,8 +39,11 @@ class UnitTestBase:
 
       cppyy.include(os.path.join(self.ut_SUT_path, f"{self.basename}_ut.h"))
 
-      cppyy.add_library_path(os.path.join(self.ut_root_path, "build/", self.ut_SUT_tail_path))
-      cppyy.load_library(fullPath("build/common"librandom.so")
+      cppyy.add_library_path(os.path.join(self.ut_root_path, "build/", self.SUT_tail_path))
+      for tail_path in self.self.dependent_SUT_tail_paths:
+         cppyy.add_library_path(os.path.join(self.ut_root_path, "build/", tail_path))
+
+      cppyy.load_library(TODO)
 
 # kick-off
 if __name__ == "__main__":
