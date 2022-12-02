@@ -13,7 +13,7 @@ project(UnitTest VERSION 1.0.0 DESCRIPTION "Builds unittest shared libraries")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-set(RootDir           ${CMAKE_CURRENT_SOURCE_DIR}/../../../)
+set(RootDir           ${CMAKE_CURRENT_SOURCE_DIR}/../)
 set(CommonDir         ${RootDir}/common/)
 set(UnitTestDir       ${RootDir}/unittests/)
 set(CommonUnitTestDir ${UnitTestDir}/common/)

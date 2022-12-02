@@ -8,28 +8,16 @@
 
 #include "ym_ut.h"
 
+#include "testcase.h"
+
 #include <any>
+#include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace ym::ut
 {
-
-/** YM_UT_TESTCASE
- * 
- * @brief Defines a test case.
- */
-#define YM_UT_TESTCASE(Name_)                   \
-   class Name_##_TC : public TestCase           \
-   {                                            \
-   public:                                      \
-      explicit Name_##_TC(void)                 \
-         : TestCase(#Name_)                     \
-      { }                                       \
-                                                \
-      virtual DataShuttle_T run(void) override; \
-   };                                           \
-   DataShuttle_T run##Name_##_TC(void) const { return Name_##_TC().run(); }
 
 /** UnitTestBase
  *
@@ -40,33 +28,23 @@ class UnitTestBase
 public:
    virtual ~UnitTestBase(void) = default;
 
-   auto const & getName(void) const { return _Name; }
+   using TCContainer_T   = std::vector<std::unique_ptr<TestCase>>;
+   using TCDataShuttle_T = TestCase::DataShuttle_T;
 
-   using DataShuttle_T = std::unordered_map<std::string, std::any>;
+   auto const & getName     (void) const { return _Name;      }
+   auto const & getTestCases(void) const { return _testCases; }
+
+   TCDataShuttle_T runAllTestCases(void);
+
+   TCDataShuttle_T runTestCase(std::string const & Name);
 
 protected:
-   explicit UnitTestBase(std::string && _name_uref);
-
-   /** Test
-    * 
-    * @brief Represents a test case.
-    */
-   class TestCase
-   {
-   public:
-      virtual DataShuttle_T run(void) = 0;
-
-      auto const & getName(void) const { return _Name; }
-
-   protected:
-      explicit TestCase(std::string && _name_uref);
-
-   private:
-      std::string const _Name;
-   };
+   explicit UnitTestBase(std::string   && _name_uref,
+                         TCContainer_T && _tcs_uref);
 
 private:
-   std::string const _Name;
+   std::string   const _Name;
+   TCContainer_T       _testCases;
 };
 
 } // ym::ut

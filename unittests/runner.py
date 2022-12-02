@@ -7,6 +7,8 @@
 import argparse
 import sys
 
+import common.random.random_ut
+
 """ main
 
 @brief TODO
@@ -14,11 +16,14 @@ import sys
 def main():
    parser = argparse.ArgumentParser()
    parser.add_argument("--random", help="runs the random unit test suite", action="store_true")
-   self.args = parser.parse_args()
+   args = parser.parse_args()
+
+   if (args.random):
+      common.random.random_ut.Random_UT().run()
 
 # kick-off
 if __name__ == "__main__":
    main()
 else:
-   # TODO report error
-   pass
+   print("Meant to run stand-alone - not to be imported")
+   sys.exit(1)
