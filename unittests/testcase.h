@@ -31,7 +31,7 @@ namespace ym::ut
       virtual DataShuttle_T run(DataShuttle_T const & InData = {}) override; \
    };
 
-/** Test
+/** TestCase
  * 
  * @brief Represents a test case.
  */

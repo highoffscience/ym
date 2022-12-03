@@ -6,6 +6,7 @@
 
 #include "unittestbase.h"
 
+#include <algorithm>
 #include <utility>
 
 /** UnitTestBase
@@ -41,5 +42,25 @@ auto ym::ut::UnitTestBase::runAllTestCases(void) -> SuiteDataShuttle_T
  */
 auto ym::ut::UnitTestBase::runTestCase(std::string const & Name) -> TCDataShuttle_T
 {
-   _testCases.find(Name)
+   return runTestCase(Name, {});
+}
+
+/** runTestCase
+ *
+ * @brief TODO.
+ */
+auto ym::ut::UnitTestBase::runTestCase(std::string     const & Name,
+                                       TCDataShuttle_T const & InData) -> TCDataShuttle_T
+{
+   TCDataShuttle_T ds;
+
+   auto const It = std::find_if(_testCases.begin(), _testCases.end(),
+      [Name](TCContainer_T::value_type const & TUptr) { return TUptr->getName() == Name; });
+
+   if (It != _testCases.end())
+   { // found test case
+      ds = (*It)->run(InData);
+   }
+
+   return ds;
 }
