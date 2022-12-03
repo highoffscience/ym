@@ -19,16 +19,16 @@ namespace ym::ut
  * 
  * @brief Defines a test case.
  */
-#define YM_UT_TESTCASE(Name_)                   \
-   class Name_##_TC : public TestCase           \
-   {                                            \
-   public:                                      \
-      explicit Name_##_TC(void)                 \
-         : TestCase(#Name_)                     \
-      { }                                       \
-      virtual ~Name_##_TC(void) = default;      \
-                                                \
-      virtual DataShuttle_T run(void) override; \
+#define YM_UT_TESTCASE(Name_)                                                \
+   class Name_##_TC : public TestCase                                        \
+   {                                                                         \
+   public:                                                                   \
+      explicit Name_##_TC(void)                                              \
+         : TestCase(#Name_)                                                  \
+      { }                                                                    \
+      virtual ~Name_##_TC(void) = default;                                   \
+                                                                             \
+      virtual DataShuttle_T run(DataShuttle_T const & InData = {}) override; \
    };
 
 /** Test
@@ -40,12 +40,12 @@ class TestCase
 public:
    using DataShuttle_T = std::unordered_map<std::string, std::any>;
    
-   virtual DataShuttle_T run(void) = 0;
+   explicit TestCase(std::string && _name_uref);
+   virtual ~TestCase(void) = default;
+
+   virtual DataShuttle_T run(DataShuttle_T const & InData = {}) = 0;
 
    auto const & getName(void) const { return _Name; }
-
-protected:
-   explicit TestCase(std::string && _name_uref);
 
 private:
    std::string const _Name;

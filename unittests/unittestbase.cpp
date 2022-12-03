@@ -19,14 +19,27 @@ ym::ut::UnitTestBase::UnitTestBase(std::string   && _name_uref,
 {
 }
 
+/** runAllTestCases
+ *
+ * @brief TODO.
+ */
+auto ym::ut::UnitTestBase::runAllTestCases(void) -> SuiteDataShuttle_T
+{
+   SuiteDataShuttle_T outData;
+
+   for (auto & tc_ref : _testCases)
+   {
+      outData[tc_ref->getName()] =  tc_ref->run();
+   }
+
+   return outData;
+}
+
 /** runTestCase
  *
  * @brief TODO.
  */
 auto ym::ut::UnitTestBase::runTestCase(std::string const & Name) -> TCDataShuttle_T
 {
-   for (auto tc : _testCases)
-   {
-      
-   }
+   _testCases.find(Name)
 }

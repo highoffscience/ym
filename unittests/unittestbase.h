@@ -12,9 +12,9 @@
 
 #include <any>
 #include <memory>
+#include <set>
 #include <string>
 #include <unordered_map>
-#include <vector>
 
 namespace ym::ut
 {
@@ -28,13 +28,14 @@ class UnitTestBase
 public:
    virtual ~UnitTestBase(void) = default;
 
-   using TCContainer_T   = std::vector<std::unique_ptr<TestCase>>;
-   using TCDataShuttle_T = TestCase::DataShuttle_T;
+   using TCContainer_T      = std::set<std::unique_ptr<TestCase>, /*TODO add comparison op - i think*/>;
+   using TCDataShuttle_T    = TestCase::DataShuttle_T;
+   using SuiteDataShuttle_T = std::unordered_map<std::string, TCDataShuttle_T>;
 
    auto const & getName     (void) const { return _Name;      }
    auto const & getTestCases(void) const { return _testCases; }
 
-   TCDataShuttle_T runAllTestCases(void);
+   SuiteDataShuttle_T runAllTestCases(void);
 
    TCDataShuttle_T runTestCase(std::string const & Name);
 
