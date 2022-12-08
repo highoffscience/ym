@@ -12,7 +12,7 @@
  * 
  * @brief Constructor.
  */
-ym::ut::TestCase::TestCase(std::string && _name_uref)
-  : _Name {std::move(_name_uref)}
+ym::ut::TestCase::TestCase(std::string && name_uref)
+  : _Name {std::move(name_uref)}
 {
 }

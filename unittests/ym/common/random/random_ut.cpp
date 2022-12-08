@@ -29,7 +29,7 @@ ym::ut::Random_UT::Random_UT(void)
  *
  * @return bool -- True if test passed, false otherwise.
  */
-auto ym::ut::Random_UT::ZerosAndOnes_TC::run(DataShuttle_T const & InData) -> DataShuttle_T
+auto ym::ut::Random_UT::ZerosAndOnes_TC::run(DataShuttle const & InData) -> DataShuttle
 {
    ym::Random rand;
 

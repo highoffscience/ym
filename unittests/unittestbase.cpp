@@ -13,10 +13,10 @@
  *
  * @brief Constructor.
  */
-ym::ut::UnitTestBase::UnitTestBase(std::string   && _name_uref,
-                                   TCContainer_T && _tcs_uref)
-   : _Name      {std::move(_name_uref)},
-     _testCases {std::move(_tcs_uref )}
+ym::ut::UnitTestBase::UnitTestBase(std::string   && name_uref,
+                                   TCContainer_T && tcs_uref)
+   : _Name      {std::move(name_uref)},
+     _testCases {std::move(tcs_uref )}
 {
 }
 
@@ -30,7 +30,7 @@ auto ym::ut::UnitTestBase::runAllTestCases(void) -> SuiteDataShuttle_T
 
    for (auto & tc_ref : _testCases)
    {
-      outData[tc_ref->getName()] =  tc_ref->run();
+      outData[tc_ref->getName()] = tc_ref->run();
    }
 
    return outData;
@@ -40,7 +40,7 @@ auto ym::ut::UnitTestBase::runAllTestCases(void) -> SuiteDataShuttle_T
  *
  * @brief TODO.
  */
-auto ym::ut::UnitTestBase::runTestCase(std::string const & Name) -> TCDataShuttle_T
+auto ym::ut::UnitTestBase::runTestCase(std::string const & Name) -> DataShuttle
 {
    return runTestCase(Name, {});
 }
@@ -49,13 +49,13 @@ auto ym::ut::UnitTestBase::runTestCase(std::string const & Name) -> TCDataShuttl
  *
  * @brief TODO.
  */
-auto ym::ut::UnitTestBase::runTestCase(std::string     const & Name,
-                                       TCDataShuttle_T const & InData) -> TCDataShuttle_T
+auto ym::ut::UnitTestBase::runTestCase(std::string const & Name,
+                                       DataShuttle const & InData) -> DataShuttle
 {
-   TCDataShuttle_T ds;
+   DataShuttle ds{};
 
    auto const It = std::find_if(_testCases.begin(), _testCases.end(),
-      [Name](TCContainer_T::value_type const & TUptr) { return TUptr->getName() == Name; });
+      [Name](TCContainer_T::value_type const & Uptr) { return Uptr->getName() == Name; });
 
    if (It != _testCases.end())
    { // found test case

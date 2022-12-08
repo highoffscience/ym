@@ -9,6 +9,7 @@
 #include "ym_ut.h"
 
 #include <any>
+#include <initializer_list>
 #include <string>
 #include <unordered_map>
 
@@ -24,7 +25,7 @@ class DataShuttle
 public:
    using Data_T = std::unordered_map<std::string, std::any>;
 
-   /*implicit*/ DataShuttle(Data_T && data_uref);
+   /*implicit*/ DataShuttle(std::initializer_list<Data_T::value_type> && data_uref);
 
    auto * operator -> (void) { return &_data; }
 
@@ -35,5 +36,26 @@ public:
 private:
    Data_T _data;
 };
+
+/** get
+ * 
+ * @brief TODO.
+ */
+template <typename T>
+T DataShuttle::get(std::string const & Name)
+{
+   return std::any_cast<T>(_data.at(Name));
+}
+
+/** get
+ * 
+ * @brief TODO.
+ */
+template <typename T>
+T DataShuttle::get(std::string const & Name,
+                   T           const   DefaultValue)
+{
+   return (_data.count() > 0) ? get(Name) : DefaultValue;
+}
 
 } // ym::ut

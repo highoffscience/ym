@@ -8,9 +8,9 @@
 
 #include "ym_ut.h"
 
+
 #include "testcase.h"
 
-#include <any>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -27,11 +27,10 @@ class UnitTestBase
 {
 public:
    using TCContainer_T      = std::vector<std::unique_ptr<TestCase>>;
-   using TCDataShuttle_T    = TestCase::DataShuttle_T;
-   using SuiteDataShuttle_T = std::unordered_map<std::string, TCDataShuttle_T>;
+   using SuiteDataShuttle_T = std::unordered_map<std::string, DataShuttle>;
 
-   explicit UnitTestBase(std::string   && _name_uref,
-                         TCContainer_T && _tcs_uref);
+   explicit UnitTestBase(std::string   && name_uref,
+                         TCContainer_T && tcs_uref);
    virtual ~UnitTestBase(void) = default;
 
    auto const & getName     (void) const { return _Name;      }
@@ -39,9 +38,9 @@ public:
 
    SuiteDataShuttle_T runAllTestCases(void);
 
-   TCDataShuttle_T runTestCase(std::string     const & Name);
-   TCDataShuttle_T runTestCase(std::string     const & Name,
-                               TCDataShuttle_T const & InData);
+   DataShuttle runTestCase(std::string const & Name);
+   DataShuttle runTestCase(std::string const & Name,
+                           DataShuttle const & InData);
 
 private:
    std::string   const _Name;
