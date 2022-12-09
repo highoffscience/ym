@@ -38,9 +38,8 @@ public:
 
    SuiteDataShuttle_T runAllTestCases(void);
 
-   DataShuttle runTestCase(std::string const & Name);
    DataShuttle runTestCase(std::string const & Name,
-                           DataShuttle const & InData);
+                           DataShuttle const & InData = {});
 
 private:
    std::string   const _Name;

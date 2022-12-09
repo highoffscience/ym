@@ -40,15 +40,6 @@ auto ym::ut::UnitTestBase::runAllTestCases(void) -> SuiteDataShuttle_T
  *
  * @brief TODO.
  */
-auto ym::ut::UnitTestBase::runTestCase(std::string const & Name) -> DataShuttle
-{
-   return runTestCase(Name, {});
-}
-
-/** runTestCase
- *
- * @brief TODO.
- */
 auto ym::ut::UnitTestBase::runTestCase(std::string const & Name,
                                        DataShuttle const & InData) -> DataShuttle
 {
