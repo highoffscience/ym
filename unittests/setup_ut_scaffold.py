@@ -13,8 +13,7 @@ import sys
 @brief Generates cmake skeleton file.
 """
 def gen_cmake_file(args):
-   basename = os.path.basename(args.path)
-   cmake_file = os.path.join(args.path, "CMakeLists.txt")
+   cmake_file = os.path.join(args.filepath, args.filename, "CMakeLists.txt")
    if not os.path.exists(cmake_file):
       with open(cmake_file, "w") as outfile:
          outfile.write(f"##\n")
@@ -25,49 +24,42 @@ def gen_cmake_file(args):
          outfile.write(f"\n")
          outfile.write(f"cmake_minimum_required(VERSION 3.16)\n")
          outfile.write(f"\n")
-         outfile.write(f"project({args.name} VERSION 1.0.0 DESCRIPTION \"Builds {args.name} shared libraries\")\n")
+         outfile.write(f"project({args.filename} VERSION 1.0.0 DESCRIPTION \"Builds {args.filename} shared libraries\")\n")
          outfile.write(f"\n")
          outfile.write(f"set(CMAKE_CXX_STANDARD 20)\n")
          outfile.write(f"set(CMAKE_CXX_STANDARD_REQUIRED True)\n")
          outfile.write(f"\n")
-         outfile.write(f"set(RootDir           ${{CMAKE_CURRENT_SOURCE_DIR}}/../)\n")
-         outfile.write(f"set(CommonDir         ${{RootDir}}/ym/common/)\n")
-         outfile.write(f"set(UnitTestDir       ${{RootDir}}/unittests/)\n")
-         outfile.write(f"set(CommonUnitTestDir ${{UnitTestDir}}/common/)\n")
+         outfile.write(f"set(RootDir     ${{CMAKE_CURRENT_SOURCE_DIR}}/../)\n")
+         outfile.write(f"set(CommonDir   ${{RootDir}}/ym/common/)\n")
+         outfile.write(f"set(UnitTestDir ${{RootDir}}/unittests/)\n")
          outfile.write(f"\n")
-         outfile.write(f"add_library({basename} SHARED)\n")
+         outfile.write(f"add_library({args.filename} SHARED)\n")
          outfile.write(f"\n")
-         outfile.write(f"target_sources({basename} PRIVATE\n")
-         outfile.write(f"   ${{RootDir}}/{args.path}.cpp\n")
+         outfile.write(f"target_sources({args.filename} PRIVATE\n")
+         outfile.write(f"   ${{RootDir}}/{args.filepath}/{args.filename}.cpp\n")
          outfile.write(f"   ${{UnitTestDir}}/unittestbase.cpp\n")
-         outfile.write(f"   ${{UnitTestDir}}/{args.path}/{basename}_ut.cpp)\n")
+         outfile.write(f"   ${{UnitTestDir}}/{args.filepath}/{args.filename}_ut.cpp)\n")
          outfile.write(f"\n")
-         outfile.write(f"set_target_properties({basename} PROPERTIES VERSION ${{PROJECT_VERSION}})\n")
-         outfile.write(f"set_target_properties({basename} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${{CMAKE_BINARY_DIR}}/{args.path})\n")
+         outfile.write(f"set_target_properties({args.filename} PROPERTIES VERSION ${{PROJECT_VERSION}})\n")
+         outfile.write(f"set_target_properties({args.filename} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${{CMAKE_BINARY_DIR}}/{args.filepath})\n")
          outfile.write(f"\n")
-         outfile.write(f"target_compile_options({basename} PRIVATE -Werror -Wall -Wextra -Ofast)\n")
+         outfile.write(f"target_compile_options({args.filename} PRIVATE -Werror -Wall -Wextra -O2)\n")
          outfile.write(f"\n")
-         outfile.write(f"target_include_directories({basename} PRIVATE ${{CommonDir}})\n")
-         outfile.write(f"target_include_directories({basename} PRIVATE ${{UnitTestDir}})\n")
-         outfile.write(f"target_include_directories({basename} PRIVATE ${{CommonUnitTestDir}})\n")
-
-         TODO # the following is wrong
-              # add option for root path (with file name), unittest path (without filename), unittest filename
-         outfile.write(f"target_include_directories({basename} PRIVATE ${{RootDir}}/{args.path})\n")
-
-         outfile.write(f"target_include_directories({basename} PRIVATE ${{UnitTestDir}}/{args.path})\n")
+         outfile.write(f"target_include_directories({args.filename} PRIVATE ${{CommonDir}})\n")
+         outfile.write(f"target_include_directories({args.filename} PRIVATE ${{UnitTestDir}})\n")
+         outfile.write(f"target_include_directories({args.filename} PRIVATE ${{RootDir}}/{args.filepath})\n")
+         outfile.write(f"target_include_directories({args.filename} PRIVATE ${{UnitTestDir}}/{args.filepath}/{args.filepath})\n")
 
 """ gen_hdr_file
 
 @brief Generates header skeleton file.
 """
 def gen_hdr_file(args):
-   basename = os.path.basename(args.path)
-   hdr_file =os.path.join(args.path, f"{basename}_ut.h")
+   hdr_file = os.path.join(args.filepath, args.filename, f"{args.filename}_ut.h")
    if not os.path.exists(hdr_file):
       with open(hdr_file, "w") as outfile:
          outfile.write(f"/**\n")
-         outfile.write(f" * @file    {basename}_ut.h\n")
+         outfile.write(f" * @file    {args.filename}_ut.h\n")
          outfile.write(f" * @version 1.0.0\n")
          outfile.write(f" * @author  Forrest Jablonski\n")
          outfile.write(f" */\n")
@@ -81,15 +73,15 @@ def gen_hdr_file(args):
          outfile.write(f"namespace ym::ut\n")
          outfile.write(f"{{\n")
          outfile.write(f"\n")
-         outfile.write(f"/** {args.name}_UT\n")
+         outfile.write(f"/** {args.SUT_name}_UT\n")
          outfile.write(f"*\n")
-         outfile.write(f"* @brief Test suite for structure {args.name}.\n")
+         outfile.write(f"* @brief Test suite for structure {args.SUT_name}.\n")
          outfile.write(f"*/\n")
-         outfile.write(f"class {args.name}_UT : public UnitTestBase\n")
+         outfile.write(f"class {args.SUT_name}_UT : public UnitTestBase\n")
          outfile.write(f"{{\n")
          outfile.write(f"public:\n")
-         outfile.write(f"   explicit {args.name}_UT(void);\n")
-         outfile.write(f"   virtual ~{args.name}_UT(void) = default;\n")
+         outfile.write(f"   explicit {args.SUT_name}_UT(void);\n")
+         outfile.write(f"   virtual ~{args.SUT_name}_UT(void) = default;\n")
          outfile.write(f"\n")
          outfile.write(f"   // YM_UT_TESTCASE(name_of_test_case_here);\n")
          outfile.write(f"}};\n")
@@ -101,27 +93,26 @@ def gen_hdr_file(args):
 @brief Generates source skeleton file.
 """
 def gen_src_file(args):
-   basename = os.path.basename(args.path)
-   src_file = os.path.join(args.path, f"{basename}_ut.cpp")
+   src_file = os.path.join(args.filepath, args.filename, f"{args.filename}_ut.cpp")
    if not os.path.exists(src_file):
       with open(src_file, "w") as outfile:
          outfile.write(f"/**\n")
-         outfile.write(f" * @file    {basename}_ut.cpp\n")
+         outfile.write(f" * @file    {args.filename}_ut.cpp\n")
          outfile.write(f" * @version 1.0.0\n")
          outfile.write(f" * @author  Forrest Jablonski\n")
          outfile.write(f" */\n")
          outfile.write(f"\n")
          outfile.write(f"#include \"ym.h\"\n")
-         outfile.write(f"#include \"{basename}_ut.h\"\n")
+         outfile.write(f"#include \"{args.filename}_ut.h\"\n")
          outfile.write(f"\n")
-         outfile.write(f"#include \"{basename}.h\"\n")
+         outfile.write(f"#include \"{args.filename}.h\"\n")
          outfile.write(f"\n")
-         outfile.write(f"/** {args.name}_UT\n")
+         outfile.write(f"/** {args.SUT_name}_UT\n")
          outfile.write(f"*\n")
          outfile.write(f"* @brief Constructor.\n")
          outfile.write(f"*/\n")
-         outfile.write(f"ym::ut::{args.name}_UT::{args.name}_UT(void)\n")
-         outfile.write(f"   : UnitTestBase(\"{args.name}\",\n")
+         outfile.write(f"ym::ut::{args.SUT_name}_UT::{args.SUT_name}_UT(void)\n")
+         outfile.write(f"   : UnitTestBase(\"{args.SUT_name}\",\n")
          outfile.write(f"{{std::make_unique<TestCase>(new name_of_test_case_here())}})\n")
          outfile.write(f"{{\n")
          outfile.write(f"}}\n")
@@ -135,7 +126,7 @@ def gen_src_file(args):
          outfile.write(f" *\n")
          outfile.write(f" * @return DataShuttle -- Important values acquired during run of test case.\n")
          outfile.write(f" */\n")
-         outfile.write(f"auto ym::ut::{args.name}_UT::name_of_test_case_here::run(DataShuttle const & InData) -> DataShuttle\n")
+         outfile.write(f"auto ym::ut::{args.SUT_name}_UT::name_of_test_case_here::run(DataShuttle const & InData) -> DataShuttle\n")
          outfile.write(f"{{\n")
          outfile.write(f"   return {{}};\n")
          outfile.write(f"}}\n")
@@ -143,18 +134,28 @@ def gen_src_file(args):
 """ main
 
 @brief Sets up the unittest scaffolding.
+
+@note For example...
+      --filepath ym/common/
+      --filename filename
+      --SUT_name SUTName
 """
 def main():
+   if os.path.basename(os.getcwd()) != "unittests":
+      print("Needs to be run in the unittests/ directory")
+      sys.exit(1)
+
    parser = argparse.ArgumentParser()
-   parser.add_argument("-p", "--path", required=True, help="path to generate unittest scaffolding in", type=str)
-   parser.add_argument("-n", "--name", required=True, help="structure to generate unittest scaffolding for", type=str)
+   parser.add_argument("--filepath", required=True, help="path file exists in",          type=str)
+   parser.add_argument("--filename", required=True, help="name of file",                 type=str)
+   parser.add_argument("--SUT_name", required=True, help="name of structure under test", type=str)
    args = parser.parse_args()
 
-   if not os.path.exists(args.path):
-      os.mkdir(args.path)
-      gen_cmake_file(args)
-      gen_hdr_file(args)
-      gen_src_file(args)
+   os.makedirs(args.filepath, exist_ok=True)
+
+   gen_cmake_file(args)
+   gen_hdr_file(args)
+   gen_src_file(args)
 
 # kick-off
 if __name__ == "__main__":
