@@ -20,13 +20,13 @@ namespace ym::ut
  * @brief Defines a test case.
  */
 #define YM_UT_TESTCASE(Name_)                                            \
-   class Name_##_TC : public TestCase                                    \
+   class Name_ : public TestCase                                         \
    {                                                                     \
    public:                                                               \
-      explicit Name_##_TC(void)                                          \
+      explicit Name_(void)                                               \
          : TestCase(#Name_)                                              \
       { }                                                                \
-      virtual ~Name_##_TC(void) = default;                               \
+      virtual ~Name_(void) = default;                                    \
                                                                          \
       virtual DataShuttle run(DataShuttle const & InData = {}) override; \
    };

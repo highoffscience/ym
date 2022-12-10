@@ -4,10 +4,15 @@
 # @author  Forrest Jablonski
 #
 
-import cppyy
 import os
 import sys
 import unittestbase
+
+try:
+   import cppyy
+except:
+   print("Did you forget to start the venv?")
+   sys.exit(1)
 
 """ Random_UT
 
@@ -26,12 +31,9 @@ class Random_UT(unittestbase.UnitTestBase):
       from cppyy.gbl import ym
 
       r = ym.ut.Random_UT()
-      ds = r.runZerosAndOnes()
-      try:
-         
-         print(std.any_cast[ym.ut.ut_uint64](ds["NTotalBits"]))
-      except std.bad_any_cast as bad:
-         print(f"uh-oh! {bad}")
+      ds = r.runTestCase("ZeroesAndOnes")
+      nTotalBits = ds.get[ym.ut.ut_uint64]("NTotalBits", 0)
+      print(f"nTotalBits = {nTotalBits}")
 
 # kick-off
 if __name__ == "__main__":

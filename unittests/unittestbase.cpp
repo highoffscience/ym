@@ -13,10 +13,9 @@
  *
  * @brief Constructor.
  */
-ym::ut::UnitTestBase::UnitTestBase(std::string   && name_uref,
-                                   TCContainer_T && tcs_uref)
+ym::ut::UnitTestBase::UnitTestBase(std::string   && name_uref)
    : _Name      {std::move(name_uref)},
-     _testCases {std::move(tcs_uref )}
+     _testCases {/*default*/         }
 {
 }
 

@@ -16,9 +16,9 @@
  * @brief Constructor.
  */
 ym::ut::Random_UT::Random_UT(void)
-   : UnitTestBase("Random",
-                  {std::make_unique<TestCase>(new ZerosAndOnes_TC())})
+   : UnitTestBase("Random")
 {
+   addTestCase<ZerosAndOnes>();
 }
 
 /** run
@@ -29,7 +29,7 @@ ym::ut::Random_UT::Random_UT(void)
  *
  * @return bool -- True if test passed, false otherwise.
  */
-auto ym::ut::Random_UT::ZerosAndOnes_TC::run(DataShuttle const & InData) -> DataShuttle
+auto ym::ut::Random_UT::ZerosAndOnes::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    ym::Random rand;
 

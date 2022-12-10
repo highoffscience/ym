@@ -10,6 +10,7 @@
 
 #include <any>
 #include <initializer_list>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 
@@ -25,6 +26,7 @@ class DataShuttle
 public:
    using Data_T = std::unordered_map<std::string, std::any>;
 
+   /*implicit*/ DataShuttle(void) = default;
    /*implicit*/ DataShuttle(std::initializer_list<Data_T::value_type> && data_uref);
 
    auto * operator -> (void) { return &_data; }
@@ -55,7 +57,18 @@ template <typename T>
 T DataShuttle::get(std::string const & Name,
                    T           const   DefaultValue)
 {
-   return (_data.count() > 0) ? get(Name) : DefaultValue;
+   auto val = DefaultValue;
+
+   try
+   {
+      val = get<T>(Name);
+   }
+   catch(std::out_of_range const & E)
+   {
+      // do nothing - val already set to default
+   }
+
+   return val;
 }
 
 } // ym::ut
