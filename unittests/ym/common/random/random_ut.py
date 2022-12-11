@@ -7,9 +7,12 @@
 import os
 import sys
 
-sys.path.append(os.path.join(os.getcwd(), "../../../"))
-
-import unittestbase
+try:
+   sys.path.append(os.path.join(os.getcwd().split("unittests")[0], "unittests/"))
+   import unittestbase
+except:
+   print("Cannot import unittesbase - did you set the correct parth?")
+   sys.exit(1)
 
 try:
    import cppyy
@@ -36,7 +39,10 @@ class Random_UT(unittestbase.UnitTestBase):
       r = ym.ut.Random_UT()
       ds = r.runTestCase("ZerosAndOnes")
       nTotalBits = ds.get[ym.ut.utUint64]("NTotalBits", 0)
+      nSetBits   = ds.get[ym.ut.utUint64]("NSetBits", 0)
       print(f"nTotalBits = {nTotalBits}")
+      print(f"nSetBits = {nSetBits}")
+      print(f"Ratio = {nSetBits/nTotalBits}")
 
 # kick-off
 if __name__ == "__main__":
