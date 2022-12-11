@@ -39,6 +39,8 @@ def gen_cmake_file(args):
          outfile.write(f"\n")
          outfile.write(f"target_sources({args.filename} PRIVATE\n")
          outfile.write(f"   ${{SUTDir}}/{args.filename}.cpp\n")
+         outfile.write(f"   ${{UnitTestDir}}/testcase.cpp\n")
+         outfile.write(f"   ${{UnitTestDir}}/datashuttle.cpp\n")
          outfile.write(f"   ${{UnitTestDir}}/unittestbase.cpp\n")
          outfile.write(f"   ${{SUTUnitTestDir}}/{args.filename}_ut.cpp)\n")
          outfile.write(f"\n")

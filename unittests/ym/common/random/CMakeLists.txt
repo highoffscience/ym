@@ -21,6 +21,8 @@ add_library(random SHARED)
 
 target_sources(random PRIVATE
    ${SUTDir}/random.cpp
+   ${UnitTestDir}/testcase.cpp
+   ${UnitTestDir}/datashuttle.cpp
    ${UnitTestDir}/unittestbase.cpp
    ${SUTUnitTestDir}/random_ut.cpp)
 

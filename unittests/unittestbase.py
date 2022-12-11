@@ -17,36 +17,43 @@ class UnitTestBase:
    
    @brief TODO
    """
-   def __init__(self, official_name: str, SUT_tail_path: str, dependent_SUT_tail_paths: list):
+   def __init__(self, filepath: str,
+                      filename: str,
+                      SUT_name: str,
+                      dependent_filepaths: list):
 
-      self.official_name = official_name
+      self.filepath = filepath
+      self.filename = filename
+      self.SUT_name = SUT_name
+      self.dependent_filepaths = dependent_filepaths
 
-      self.ym_root_path = "/home/forrest/code/ym/"
-      self.ut_root_path = os.path.join(self.ym_root_path, "unittests/")
+      self.ut_rootpath = os.path.dirname(os.path.abspath(__file__))
+      self.rootpath    = os.path.join(self.ut_rootpath, "../../")
 
-      self.SUT_tail_path = SUT_tail_path
-      self.ut_SUT_path   = os.path.join(self.ut_root_path, self.SUT_tail_path)
+      self.SUTpath    = os.path.join(self.rootpath,    self.filepath)
+      self.ut_SUTpath = os.path.join(self.ut_rootpath, self.filepath, self.filename)
 
-      self.dependent_SUT_tail_paths = dependent_SUT_tail_paths
-      self.dependent_SUT_paths      = list(map(lambda tail_path: os.path.join(self.ut_root_path, tail_path), self.dependent_SUT_tail_paths))
+      # self.dependent_SUT_tail_paths = dependent_SUT_tail_paths
+      # self.dependent_SUT_paths      = list(map(lambda tail_path: os.path.join(self.ut_root_path, tail_path), self.dependent_SUT_tail_paths))
 
-      self.basename = os.path.basename(self.ut_SUT_path)
+      # self.basename = os.path.basename(self.ut_SUT_path)
 
       self.configCppyy()
 
    def configCppyy(self):
-      cppyy.add_include_path(self.ym_root_path)
-      cppyy.add_include_path(self.ut_root_path)
-      cppyy.add_include_path(self.ut_SUT_path)
+      cppyy.add_include_path(os.path.join(self.rootpath, "ym/common/"))
+      cppyy.add_include_path(self.ut_rootpath)
+      cppyy.add_include_path(self.SUTpath    )
+      cppyy.add_include_path(self.ut_SUTpath )
 
-      cppyy.include(os.path.join(self.ut_SUT_path, f"{self.basename}_ut.h"))
+      cppyy.include(os.path.join(self.ut_SUTpath, f"{self.filename}_ut.h"))
 
-      cppyy.add_library_path(os.path.join(self.ut_root_path, "build/", self.SUT_tail_path))
-      cppyy.load_library(    os.path.join(self.ut_root_path, "build/", self.SUT_tail_path, f"lib{self.basename}"))
+      cppyy.add_library_path(os.path.join(self.ut_rootpath, "build/", self.filepath))
+      cppyy.load_library(    os.path.join(self.ut_rootpath, "build/", self.filepath, f"lib{self.filename}"))
 
-      for tail_path in self.self.dependent_SUT_tail_paths:
-         cppyy.add_library_path(os.path.join(self.ut_root_path, "build/", tail_path))
-         cppyy.add_library_path(os.path.join(self.ut_root_path, "build/", tail_path, f"lib{os.path.basename(tail_path)}"))
+      # for tail_path in self.self.dependent_SUT_tail_paths:
+      #    cppyy.add_library_path(os.path.join(self.ut_root_path, "build/", tail_path))
+      #    cppyy.add_library_path(os.path.join(self.ut_root_path, "build/", tail_path, f"lib{os.path.basename(tail_path)}"))
 
    def run(self):
       raise NotImplementedError()
