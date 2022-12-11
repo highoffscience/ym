@@ -19,9 +19,11 @@ build/
 
 *pyc
 
-# TODO
+# TODO look up git submodules
+#      also the cppyy directory isn't used - it is installed - but still good to have as a submodule
 # cppyy (third-party dependency)
 unittests/cppyy/
+fmt/
 
 # libraries
 *.so

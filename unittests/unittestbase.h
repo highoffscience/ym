@@ -10,7 +10,9 @@
 
 #include "datashuttle.h"
 #include "testcase.h"
+#include "utception.h"
 
+#include <exception>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -45,6 +47,8 @@ public:
 
    DataShuttle runTestCase(std::string const & Name,
                            DataShuttle const & InData = {});
+
+   UT_DEFN_UTCEPTION(TestCaseNotFoundException)
 
 private:
    std::string   const _Name;

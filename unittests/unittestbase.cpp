@@ -6,6 +6,8 @@
 
 #include "unittestbase.h"
 
+#include "fmt/core.h"
+
 #include <algorithm>
 #include <utility>
 
@@ -46,7 +48,6 @@ auto ut::UnitTestBase::runAllTestCases(void) -> SuiteDataShuttle_T
  * 
  * @return DataShuttle -- Results of test case.
  */
-TODO // throw exception if test case not found
 auto ut::UnitTestBase::runTestCase(std::string const & Name,
                                    DataShuttle const & InData) -> DataShuttle
 {
@@ -56,8 +57,12 @@ auto ut::UnitTestBase::runTestCase(std::string const & Name,
       [Name](TCContainer_T::value_type const & Uptr) { return Uptr->getName() == Name; });
 
    if (It != _testCases.end())
-   { // found test case
+   { // test case found
       ds = (*It)->run(InData);
+   }
+   else
+   { // test case not found
+      throw TestCaseNotFoundException(fmt::format("Test case {} not found", Name));
    }
 
    return ds;
