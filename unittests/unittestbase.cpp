@@ -13,7 +13,7 @@
  *
  * @brief Constructor.
  */
-ym::ut::UnitTestBase::UnitTestBase(std::string   && name_uref)
+ut::UnitTestBase::UnitTestBase(std::string && name_uref)
    : _Name      {std::move(name_uref)},
      _testCases {/*default*/         }
 {
@@ -21,9 +21,11 @@ ym::ut::UnitTestBase::UnitTestBase(std::string   && name_uref)
 
 /** runAllTestCases
  *
- * @brief TODO.
+ * @brief Runs all registered test cases.
+ * 
+ * @return SuiteDataShuttle_T -- Results of all run test cases.
  */
-auto ym::ut::UnitTestBase::runAllTestCases(void) -> SuiteDataShuttle_T
+auto ut::UnitTestBase::runAllTestCases(void) -> SuiteDataShuttle_T
 {
    SuiteDataShuttle_T outData;
 
@@ -37,10 +39,16 @@ auto ym::ut::UnitTestBase::runAllTestCases(void) -> SuiteDataShuttle_T
 
 /** runTestCase
  *
- * @brief TODO.
+ * @brief Runs specified test case.
+ * 
+ * @param Name   -- Name of test case to run.
+ * @param InData -- Additional input data for test case.
+ * 
+ * @return DataShuttle -- Results of test case.
  */
-auto ym::ut::UnitTestBase::runTestCase(std::string const & Name,
-                                       DataShuttle const & InData) -> DataShuttle
+TODO // throw exception if test case not found
+auto ut::UnitTestBase::runTestCase(std::string const & Name,
+                                   DataShuttle const & InData) -> DataShuttle
 {
    DataShuttle ds{};
 

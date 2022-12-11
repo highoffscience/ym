@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "ym_ut.h"
+#include "ut.h"
 
 #include <any>
 #include <initializer_list>
@@ -14,12 +14,13 @@
 #include <string>
 #include <unordered_map>
 
-namespace ym::ut
+namespace ut
 {
 
 /** DataShuttle
  * 
- * @brief TODO.
+ * @brief A dictionary to aid in communicating data between the server (source code) and
+ *        the client (python script).
  */
 class DataShuttle
 {
@@ -41,7 +42,13 @@ private:
 
 /** get
  * 
- * @brief TODO.
+ * @brief Returns value of named variable.
+ * 
+ * @tparam T -- Type to cast named variable to.
+ * 
+ * @param Name -- Name of variable.
+ * 
+ * @return Value of named variable as type T.
  */
 template <typename T>
 T DataShuttle::get(std::string const & Name)
@@ -51,7 +58,15 @@ T DataShuttle::get(std::string const & Name)
 
 /** get
  * 
- * @brief TODO.
+ * @brief Returns value of named variable. If the variable doesn't exists return the
+ *        specified default value.
+ * 
+ * @tparam T -- Type to cast named variable to.
+ * 
+ * @param Name         -- Name of variable.
+ * @param DefaultValue -- Value to return if named variable cannot be found.
+ * 
+ * @return Value of named variable as type T.
  */
 template <typename T>
 T DataShuttle::get(std::string const & Name,
@@ -71,4 +86,4 @@ T DataShuttle::get(std::string const & Name,
    return val;
 }
 
-} // ym::ut
+} // ut

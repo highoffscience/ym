@@ -6,8 +6,9 @@
 
 #pragma once
 
-#include "ym_ut.h"
+#include "ut.h"
 
+#include "datashuttle.h"
 #include "testcase.h"
 
 #include <memory>
@@ -17,7 +18,7 @@
 #include <utility>
 #include <vector>
 
-namespace ym::ut
+namespace ut
 {
 
 /** UnitTestBase
@@ -30,7 +31,7 @@ public:
    using TCContainer_T      = std::vector<std::unique_ptr<TestCase>>;
    using SuiteDataShuttle_T = std::unordered_map<std::string, DataShuttle>;
 
-   explicit UnitTestBase(std::string   && name_uref);
+   explicit UnitTestBase(std::string && name_uref);
    virtual ~UnitTestBase(void) = default;
 
    auto const & getName     (void) const { return _Name;      }
@@ -52,7 +53,12 @@ private:
 
 /** addTestCase
  *
- *  @brief TODO.
+ * @brief Adds test case to list of known test cases.
+ * 
+ * @tparam DerivedTestCase_T -- Test case to add.
+ * @tparam Args_T            -- Type of additional arguments to test case.
+ * 
+ * @param args_uref -- Additional arguments to test case.
  */
 template <typename    DerivedTestCase_T,
           typename... Args_T>
@@ -63,4 +69,4 @@ void UnitTestBase::addTestCase(Args_T &&... args_uref)
    _testCases.emplace_back(new DerivedTestCase_T(std::forward<Args_T>(args_uref)...));
 }
 
-} // ym::ut
+} // ut

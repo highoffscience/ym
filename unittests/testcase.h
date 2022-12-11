@@ -6,13 +6,13 @@
 
 #pragma once
 
-#include "ym_ut.h"
+#include "ut.h"
 
 #include "datashuttle.h"
 
 #include <string>
 
-namespace ym::ut
+namespace ut
 {
 
 /** YM_UT_TESTCASE
@@ -49,4 +49,4 @@ private:
    std::string const _Name;
 };
 
-} // ym::ut
+} // ut
