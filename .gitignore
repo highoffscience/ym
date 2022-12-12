@@ -1,5 +1,7 @@
 ##
-# @author Forrest Jablonski
+# @file    .gitignore
+# @version 1.0.0
+# @author  Forrest Jablonski
 #
 
 # vs specific
@@ -21,8 +23,8 @@ build/
 
 # TODO look up git submodules
 #      also the cppyy directory isn't used - it is installed - but still good to have as a submodule
-# cppyy (third-party dependency)
-unittests/cppyy/
+# third-party dependencies
+cppyy/
 fmt/
 
 # libraries

@@ -15,6 +15,7 @@
  *
  * @brief Constructor.
  */
+TODO // pass by value
 ut::UnitTestBase::UnitTestBase(std::string && name_uref)
    : _Name      {std::move(name_uref)},
      _testCases {/*default*/         }
