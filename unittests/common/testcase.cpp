@@ -13,6 +13,6 @@
  * @brief Constructor.
  */
 ym::ut::TestCase::TestCase(std::string name)
-  : _Name {std::move(name)}
+  : Nameable(std::move(name))
 {
 }

@@ -1,5 +1,5 @@
 ##
-# @file    random_ut.py
+# @file    testsuite.py
 # @version 1.0.0
 # @author  Forrest Jablonski
 #
@@ -8,10 +8,11 @@ import os
 import sys
 
 try:
+   # @note Grabs the first directory in the chain named unittests/.
    sys.path.append(os.path.join(os.getcwd().split("unittests")[0], "unittests/"))
-   import unittestbase
+   import testsuitebase
 except:
-   print("Cannot import unittesbase - did you set the correct parth?")
+   print("Cannot import unittesbase - did you set the correct path?")
    sys.exit(1)
 
 try:
@@ -20,14 +21,14 @@ except:
    print("Cannot import cppyy - did you forget to start the venv?")
    sys.exit(1)
 
-""" Random_UT
+""" TestSuite
 
-@brief TODO
+@brief Collection of all tests for Random.
 """
-class Random_UT(unittestbase.UnitTestBase):
+class TestSuite(testsuitebase.TestSuiteBase):
    """ __init___
    
-   @brief TODO
+   @brief Constructor.
    """
    def __init__(self):
       super().__init__("ym/common/", "random", "Random", [])
@@ -36,10 +37,10 @@ class Random_UT(unittestbase.UnitTestBase):
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
-      r = ym.ut.Random_UT()
+      r = ym.ut.TestSuite()
       ds = r.runTestCase("ZerosAndOnes")
-      nTotalBits = ds.get[ym.ut.utUint64]("NTotalBits", 0)
-      nSetBits   = ds.get[ym.ut.utUint64]("NSetBits", 0)
+      nTotalBits = ds.get[ym.ut.utuint64]("NTotalBits", 0)
+      nSetBits   = ds.get[ym.ut.utuint64]("NSetBits", 0)
       print(f"nTotalBits = {nTotalBits}")
       print(f"nSetBits = {nSetBits}")
       print(f"Ratio = {nSetBits/nTotalBits}")
@@ -50,5 +51,5 @@ if __name__ == "__main__":
       print("Needs to be run in the random/ directory")
       sys.exit(1)
 
-   r = Random_UT()
-   r.run()
+   ts = TestSuite()
+   ts.run()

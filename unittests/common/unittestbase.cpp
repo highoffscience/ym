@@ -16,8 +16,8 @@
  * @brief Constructor.
  */
 ym::ut::UnitTestBase::UnitTestBase(std::string name)
-   : _Name      {std::move(name)},
-     _testCases {/*default*/    }
+   : Nameable(std::move(name)),
+     _testCases {/*default*/}
 {
 }
 

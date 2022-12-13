@@ -1,21 +1,22 @@
 ##
-# @file    unittestbase.py
+# @file    testsuitebase.py
 # @version 1.0.0
 # @author  Forrest Jablonski
 #
 
-import cppyy
 import os
 import sys
 
-""" UnitTestBase
+import cppyy
 
-@brief TODO
+""" TestSuiteBase
+
+@brief Base class representing a test suite.
 """
-class UnitTestBase:
+class TestSuiteBase:
    """ __init__
    
-   @brief TODO
+   @brief Constructor.
    """
    def __init__(self, filepath: str,
                       filename: str,
@@ -46,7 +47,7 @@ class UnitTestBase:
       cppyy.add_include_path(self.SUTpath    )
       cppyy.add_include_path(self.ut_SUTpath )
 
-      cppyy.include(os.path.join(self.ut_SUTpath, f"{self.filename}_ut.h"))
+      cppyy.include(os.path.join(self.ut_SUTpath, "testsuite.h"))
 
       cppyy.add_library_path(os.path.join(self.ut_rootpath, "build/", self.filepath))
       cppyy.load_library(    os.path.join(self.ut_rootpath, "build/", self.filepath, f"lib{self.filename}"))

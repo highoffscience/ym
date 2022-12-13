@@ -9,6 +9,7 @@
 #include "ut.h"
 
 #include "datashuttle.h"
+#include "nameable.h"
 
 #include <string>
 
@@ -35,18 +36,13 @@ namespace ym::ut
  * 
  * @brief Represents a test case.
  */
-class TestCase
+class TestCase : public Nameable
 {
 public:
    explicit TestCase(std::string name);
    virtual ~TestCase(void) = default;
 
    virtual DataShuttle run(DataShuttle const & InData = {}) = 0;
-
-   auto const & getName(void) const { return _Name; }
-
-private:
-   std::string const _Name;
 };
 
 } // ym::ut

@@ -9,6 +9,7 @@
 #include "ut.h"
 
 #include "datashuttle.h"
+#include "nameable.h"
 #include "testcase.h"
 #include "utception.h"
 
@@ -27,7 +28,7 @@ namespace ym::ut
  *
  * @brief Base class for unit test suites.
  */
-class UnitTestBase
+class UnitTestBase : public Nameable
 {
 public:
    using TCContainer_T      = std::vector<std::unique_ptr<TestCase>>;
@@ -36,7 +37,6 @@ public:
    explicit UnitTestBase(std::string name);
    virtual ~UnitTestBase(void) = default;
 
-   auto const & getName     (void) const { return _Name;      }
    auto const & getTestCases(void) const { return _testCases; }
 
    template <typename    DerivedTestCase_T,
@@ -51,8 +51,7 @@ public:
    UT_DEFN_UTCEPTION(TestCaseNotFoundException)
 
 private:
-   std::string   const _Name;
-   TCContainer_T       _testCases;
+   TCContainer_T _testCases;
 };
 
 /** addTestCase
