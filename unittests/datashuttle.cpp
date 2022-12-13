@@ -12,7 +12,7 @@
  * 
  * @brief Constructor.
  */
-ut::DataShuttle::DataShuttle(std::initializer_list<Data_T::value_type> && data_uref)
+ym::ut::DataShuttle::DataShuttle(std::initializer_list<Data_T::value_type> && data_uref)
   : _data {std::move(data_uref)}
 {
 }

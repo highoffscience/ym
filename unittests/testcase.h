@@ -12,7 +12,7 @@
 
 #include <string>
 
-namespace ut
+namespace ym::ut
 {
 
 /** YM_UT_TESTCASE
@@ -38,7 +38,7 @@ namespace ut
 class TestCase
 {
 public:
-   explicit TestCase(std::string && name_uref);
+   explicit TestCase(std::string name);
    virtual ~TestCase(void) = default;
 
    virtual DataShuttle run(DataShuttle const & InData = {}) = 0;
@@ -49,4 +49,4 @@ private:
    std::string const _Name;
 };
 
-} // ut
+} // ym::ut

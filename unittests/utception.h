@@ -12,7 +12,7 @@
 #include <string>
 #include <utility>
 
-namespace ut
+namespace ym::ut
 {
 
 /** UT_DEFN_UTCEPTION
@@ -48,4 +48,4 @@ private:
    std::string const _Msg;
 };
 
-} // ut
+} // ym::ut

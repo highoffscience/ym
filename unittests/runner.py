@@ -7,6 +7,9 @@
 import argparse
 import sys
 
+TODO # make a common/ directory in unittests/ to help organize code files.
+     # also, add a nameable class
+
 import ym.common.random.random_ut
 
 """ main

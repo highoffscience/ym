@@ -14,7 +14,7 @@ static_assert(__cplusplus == 201703L, "C++17 standard required (for cppyy)");
 
 // ----------------------------------------------------------------------------
 
-namespace ut
+namespace ym::ut
 {
 
 /**
@@ -39,4 +39,4 @@ using utfloat32 = float          ; static_assert(sizeof(utfloat32) ==  4, "utflo
 using utfloat64 = double         ; static_assert(sizeof(utfloat64) ==  8, "utfloat64 not 8 bytes");
 using utfloat80 = long double    ; static_assert(sizeof(utfloat80) >= 10, "utfloat80 not at least 10 bytes");
 
-} // ut
+} // ym::ut

@@ -20,7 +20,7 @@
 #include <utility>
 #include <vector>
 
-namespace ut
+namespace ym::ut
 {
 
 /** UnitTestBase
@@ -33,7 +33,7 @@ public:
    using TCContainer_T      = std::vector<std::unique_ptr<TestCase>>;
    using SuiteDataShuttle_T = std::unordered_map<std::string, DataShuttle>;
 
-   explicit UnitTestBase(std::string && name_uref);
+   explicit UnitTestBase(std::string name);
    virtual ~UnitTestBase(void) = default;
 
    auto const & getName     (void) const { return _Name;      }
@@ -73,4 +73,4 @@ void UnitTestBase::addTestCase(Args_T &&... args_uref)
    _testCases.emplace_back(new DerivedTestCase_T(std::forward<Args_T>(args_uref)...));
 }
 
-} // ut
+} // ym::ut

@@ -15,10 +15,9 @@
  *
  * @brief Constructor.
  */
-TODO // pass by value
-ut::UnitTestBase::UnitTestBase(std::string && name_uref)
-   : _Name      {std::move(name_uref)},
-     _testCases {/*default*/         }
+ym::ut::UnitTestBase::UnitTestBase(std::string name)
+   : _Name      {std::move(name)},
+     _testCases {/*default*/    }
 {
 }
 
@@ -28,7 +27,7 @@ ut::UnitTestBase::UnitTestBase(std::string && name_uref)
  * 
  * @return SuiteDataShuttle_T -- Results of all run test cases.
  */
-auto ut::UnitTestBase::runAllTestCases(void) -> SuiteDataShuttle_T
+auto ym::ut::UnitTestBase::runAllTestCases(void) -> SuiteDataShuttle_T
 {
    SuiteDataShuttle_T outData;
 
@@ -49,8 +48,8 @@ auto ut::UnitTestBase::runAllTestCases(void) -> SuiteDataShuttle_T
  * 
  * @return DataShuttle -- Results of test case.
  */
-auto ut::UnitTestBase::runTestCase(std::string const & Name,
-                                   DataShuttle const & InData) -> DataShuttle
+auto ym::ut::UnitTestBase::runTestCase(std::string const & Name,
+                                       DataShuttle const & InData) -> DataShuttle
 {
    DataShuttle ds{};
 
