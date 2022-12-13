@@ -7,7 +7,7 @@
 import argparse
 import sys
 
-import ym.common.random.random_ut
+import ym.common.random.testsuite
 
 """ main
 
@@ -19,7 +19,7 @@ def main():
    args = parser.parse_args()
 
    if (args.random):
-      ym.common.random.random_ut.Random_UT().run()
+      ym.common.random.testsuite.TestSuite().run()
 
 # kick-off
 if __name__ == "__main__":

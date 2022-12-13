@@ -33,6 +33,10 @@ class TestSuite(testsuitebase.TestSuiteBase):
    def __init__(self):
       super().__init__("ym/common/", "random", "Random", [])
 
+   """ run
+   
+   @brief Runs the test suite.
+   """
    def run(self):
       from cppyy.gbl import std
       from cppyy.gbl import ym
@@ -44,6 +48,13 @@ class TestSuite(testsuitebase.TestSuiteBase):
       print(f"nTotalBits = {nTotalBits}")
       print(f"nSetBits = {nSetBits}")
       print(f"Ratio = {nSetBits/nTotalBits}")
+
+   """ name_of_test_case_here
+   
+   @brief TODO.
+   """
+   def name_of_test_case_here(self):
+      pass
 
 # kick-off
 if __name__ == "__main__":
