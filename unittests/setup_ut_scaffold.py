@@ -28,7 +28,7 @@ def gen_cmake_file(args):
          writeln(f"cmake_minimum_required(VERSION 3.16)                                           ")
          writeln(f"                                                                               ")
          writeln(f"project({args.filename} VERSION 1.0.0 DESCRIPTION " \
-                  "\"Builds {args.SUT_name} shared libraries\")                                   ")
+                 f"\"Builds {args.SUT_name} shared libraries\")                                   ")
          writeln(f"                                                                               ")
          writeln(f"set(CMAKE_CXX_STANDARD 20)                                                     ")
          writeln(f"set(CMAKE_CXX_STANDARD_REQUIRED True)                                          ")
@@ -51,7 +51,7 @@ def gen_cmake_file(args):
          writeln(f"                                                                               ")
          writeln(f"set_target_properties({args.filename} PROPERTIES VERSION ${{PROJECT_VERSION}}) ")
          writeln(f"set_target_properties({args.filename} PROPERTIES LIBRARY_OUTPUT_DIRECTORY " \
-                  "${{CMAKE_BINARY_DIR}}/{args.filepath})                                         ")
+                 f"${{CMAKE_BINARY_DIR}}/{args.filepath})                                         ")
          writeln(f"                                                                               ")
          writeln(f"target_compile_options({args.filename} PRIVATE -Werror -Wall -Wextra -O2)      ")
          writeln(f"                                                                               ")
@@ -167,7 +167,7 @@ def gen_runner_file(args):
          writeln(f"try:                                                                  ")
          writeln(f"   # @note Grabs the first directory in the chain named unittests/.   ")
          writeln(f"   sys.path.append(os.path.join(" \
-                  "os.getcwd().split(\"unittests\")[0], \"unittests/\"))                 ")
+                 f"os.getcwd().split(\"unittests\")[0], \"unittests/\"))                 ")
          writeln(f"   import testsuitebase                                               ")
          writeln(f"except:                                                               ")
          writeln(f"   print(\"Cannot import testsuitebase - path set correctly?\")       ")
@@ -190,8 +190,8 @@ def gen_runner_file(args):
          writeln(f"   \"\"\"                                                             ")
          writeln(f"   def __init__(self):                                                ")
          writeln(f"      super().__init__({args.filepath}, " \
-                                         "{args.filename}, " \
-                                         "{args.SUT_name}, [])                           ")
+                                        f"{args.filename}, " \
+                                        f"{args.SUT_name}, [])                           ")
          writeln(f"                                                                      ")
          writeln(f"   \"\"\" run                                                         ")
          writeln(f"                                                                      ")

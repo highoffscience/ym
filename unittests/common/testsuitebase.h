@@ -1,5 +1,5 @@
 /**
- * @file    unittestbase.h
+ * @file    testsuitebase.h
  * @version 1.0.0
  * @author  Forrest Jablonski
  */
@@ -24,18 +24,18 @@
 namespace ym::ut
 {
 
-/** UnitTestBase
+/** TestSuiteBase
  *
  * @brief Base class for unit test suites.
  */
-class UnitTestBase : public Nameable
+class TestSuiteBase : public Nameable
 {
 public:
    using TCContainer_T      = std::vector<std::unique_ptr<TestCase>>;
    using SuiteDataShuttle_T = std::unordered_map<std::string, DataShuttle>;
 
-   explicit UnitTestBase(std::string name);
-   virtual ~UnitTestBase(void) = default;
+   explicit TestSuiteBase(std::string name);
+   virtual ~TestSuiteBase(void) = default;
 
    auto const & getTestCases(void) const { return _testCases; }
 
@@ -65,7 +65,7 @@ private:
  */
 template <typename    DerivedTestCase_T,
           typename... Args_T>
-void UnitTestBase::addTestCase(Args_T &&... args_uref)
+void TestSuiteBase::addTestCase(Args_T &&... args_uref)
 {
    static_assert(std::is_base_of_v<TestCase, DerivedTestCase_T>, "Can only add TestCase types");
 

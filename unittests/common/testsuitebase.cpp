@@ -1,21 +1,21 @@
 /**
- * @file    unittestbase.cpp
+ * @file    testsuitebase.cpp
  * @version 1.0.0
  * @author  Forrest Jablonski
  */
 
-#include "unittestbase.h"
+#include "testsuitebase.h"
 
 #include "fmt/core.h"
 
 #include <algorithm>
 #include <utility>
 
-/** UnitTestBase
+/** TestSuiteBase
  *
  * @brief Constructor.
  */
-ym::ut::UnitTestBase::UnitTestBase(std::string name)
+ym::ut::TestSuiteBase::TestSuiteBase(std::string name)
    : Nameable(std::move(name)),
      _testCases {/*default*/}
 {
@@ -27,7 +27,7 @@ ym::ut::UnitTestBase::UnitTestBase(std::string name)
  * 
  * @return SuiteDataShuttle_T -- Results of all run test cases.
  */
-auto ym::ut::UnitTestBase::runAllTestCases(void) -> SuiteDataShuttle_T
+auto ym::ut::TestSuiteBase::runAllTestCases(void) -> SuiteDataShuttle_T
 {
    SuiteDataShuttle_T outData;
 
@@ -48,8 +48,8 @@ auto ym::ut::UnitTestBase::runAllTestCases(void) -> SuiteDataShuttle_T
  * 
  * @return DataShuttle -- Results of test case.
  */
-auto ym::ut::UnitTestBase::runTestCase(std::string const & Name,
-                                       DataShuttle const & InData) -> DataShuttle
+auto ym::ut::TestSuiteBase::runTestCase(std::string const & Name,
+                                        DataShuttle const & InData) -> DataShuttle
 {
    DataShuttle ds{};
 
