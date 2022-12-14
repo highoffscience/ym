@@ -15,11 +15,11 @@ import ym.common.random.testsuite
 """
 def main():
    parser = argparse.ArgumentParser()
+   parser.add_argument("--all",    help="runs all unit test suites",       action="store_true")
    parser.add_argument("--random", help="runs the random unit test suite", action="store_true")
    args = parser.parse_args()
 
-   if (args.random):
-      ym.common.random.testsuite.TestSuite().run()
+   if (args.all or args.random): ym.common.random.testsuite.TestSuite().run()
 
 # kick-off
 if __name__ == "__main__":

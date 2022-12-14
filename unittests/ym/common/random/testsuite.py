@@ -41,10 +41,10 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
-      r = ym.ut.TestSuite()
-      ds = r.runTestCase("ZerosAndOnes")
-      nTotalBits = ds.get[ym.ut.utuint64]("NTotalBits", 0)
-      nSetBits   = ds.get[ym.ut.utuint64]("NSetBits", 0)
+      ts = ym.ut.TestSuite()
+      results = ts.runTestCase("ZerosAndOnes")
+      nTotalBits = results.get[ym.ut.utuint64]("NTotalBits", 0)
+      nSetBits   = results.get[ym.ut.utuint64]("NSetBits", 0)
       print(f"nTotalBits = {nTotalBits}")
       print(f"nSetBits = {nSetBits}")
       print(f"Ratio = {nSetBits/nTotalBits}")

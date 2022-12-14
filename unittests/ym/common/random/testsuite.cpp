@@ -5,18 +5,18 @@
  */
 
 #include "ym.h"
-#include "random_ut.h"
+#include "testsuite.h"
 
 #include "random.h"
 
 #include <bitset>
 
-/** Random_UT
+/** TestSuite
  *
  * @brief Constructor.
  */
-ym::ut::Random_UT::Random_UT(void)
-   : UnitTestBase("Random")
+ym::ut::TestSuite::TestSuite(void)
+   : TestSuiteBase("Random")
 {
    addTestCase<ZerosAndOnes>();
 }
@@ -29,7 +29,7 @@ ym::ut::Random_UT::Random_UT(void)
  *
  * @return bool -- True if test passed, false otherwise.
  */
-auto ym::ut::Random_UT::ZerosAndOnes::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::ut::TestSuite::ZerosAndOnes::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    ym::Random rand;
 

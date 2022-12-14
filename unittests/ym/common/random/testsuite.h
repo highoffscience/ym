@@ -6,22 +6,22 @@
 
 #pragma once
 
-#include "ym_ut.h"
+#include "ut.h"
 
-#include "unittestbase.h"
+#include "testsuitebase.h"
 
 namespace ym::ut
 {
 
-/** Random_UT
+/** TestSuite
  *
  * @brief Test suite for structure Random.
  */
-class Random_UT : public UnitTestBase
+class TestSuite : public TestSuiteBase
 {
 public:
-   explicit Random_UT(void);
-   virtual ~Random_UT(void) = default;
+   explicit TestSuite(void);
+   virtual ~TestSuite(void) = default;
 
    YM_UT_TESTCASE(ZerosAndOnes);
    // YM_UT_TESTCASE(UniformBins);
