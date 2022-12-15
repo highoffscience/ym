@@ -8,11 +8,13 @@ cmake_minimum_required(VERSION 3.16)
 
 project(UnitTest VERSION 1.0.0 DESCRIPTION "Builds unittest shared libraries")
 
-include(FetchContent)
+include(common.cmake)
 
-FetchContent_Declare(fmtlib
-GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-GIT_TAG 5.3.0)
-FetchContent_MakeAvailable(fmtlib)
+set(FullFilePaths
+   ym/common/random
+)
 
-include(ym/common/random/CMakeLists.txt)
+foreach(FullFilePath IN LISTS FullFilePaths)
+   #TODO Do I include build.cmake or CMakeLists.txt here?
+   message(STATUS "--> ${FullFilePath}")
+endforeach()

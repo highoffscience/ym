@@ -1,0 +1,6 @@
+[submodule "fmt"]
+	path = fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "cppyy"]
+	path = cppyy
+	url = https://github.com/wlav/cppyy.git

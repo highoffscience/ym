@@ -1,27 +1,13 @@
 ##
-# @file    CMakeLists.txt
+# @file    build.cmake
 # @version 1.0.0
 # @author  Forrest Jablonski
 #
 
-cmake_minimum_required(VERSION 3.16)
+set(SUTDir         ${RootDir}/ym/common/)
+set(SUTUnitTestDir ${UnitTestDir}/ym/common/random/)
 
-project(random VERSION 1.0.0 DESCRIPTION "Builds Random shared libraries")
-
-include(../../../../common.cmake)
-
-message("--> ${RootDir}")
-
-# set(CMAKE_CXX_STANDARD 20)
-# set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-# set(RootDir        ${CMAKE_CURRENT_SOURCE_DIR}/../../)
-# set(CommonDir      ${RootDir}/ym/common/)
-# set(UnitTestDir    ${RootDir}/ym/unittests/)
-# set(SUTDir         ${RootDir}/ym/common/)
-# set(SUTUnitTestDir ${UnitTestDir}/ym/common/random/)
-
-# set(FMTDir ${RootDir}/ym/fmt/)
+set(TargetName random)
 
 # add_library(random SHARED)
 
