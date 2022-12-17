@@ -10,16 +10,20 @@ project(UnitTest VERSION 1.0.0 DESCRIPTION "Builds unittest shared libraries")
 
 include(common.cmake)
 
-set(FullFilePaths
+set(UTFilePaths
    ym/common/random
 )
 
-foreach(FullFilePath IN LISTS FullFilePaths)
-   #TODO Do I include build.cmake or CMakeLists.txt here?
-   if(EXISTS "${FullFilePath}/CMakeLists.txt")
-      # run that file
+foreach(UTFilePath IN LISTS UTFilePaths)
+   set(FullUTFilePath "${RootDir}/${UTFilePath}")
+   if(EXISTS  "${FullUTFilePath}/CMakeLists.txt")
+      include("${FullUTFilePath}/CMakeLists.txt")
    else()
-      # default build steps
+      get_filename_component(Target ${UTFilePath} NAME)
+      add_library(${Target} SHARED)
+      target_sources(${Target} PRIVATE
+         ${UTCommonSrcs}
+         ${SUTDir}/random.cpp # TODO fix this
+         ${SUTUnitTestDir}/testsuite.cpp)
    endif()
-   message(STATUS "--> ${FullFilePath}")
 endforeach()
