@@ -16,5 +16,10 @@ set(FullFilePaths
 
 foreach(FullFilePath IN LISTS FullFilePaths)
    #TODO Do I include build.cmake or CMakeLists.txt here?
+   if(EXISTS "${FullFilePath}/CMakeLists.txt")
+      # run that file
+   else()
+      # default build steps
+   endif()
    message(STATUS "--> ${FullFilePath}")
 endforeach()
