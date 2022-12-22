@@ -8,22 +8,36 @@ cmake_minimum_required(VERSION 3.16)
 
 project(UnitTest VERSION 1.0.0 DESCRIPTION "Builds unittest shared libraries")
 
-include(common.cmake)
+include(utcommon.cmake)
 
-set(UTFilePaths
+set(RelativeFilePaths
    ym/common/random
 )
 
-foreach(UTFilePath IN LISTS UTFilePaths)
-   set(FullUTFilePath "${RootDir}/${UTFilePath}")
-   if(EXISTS  "${FullUTFilePath}/CMakeLists.txt")
-      include("${FullUTFilePath}/CMakeLists.txt")
+foreach(RelativeFilePath IN LISTS RelativeFilePaths)
+   set(AbsoluteUTFilePath ${UnitTestDir}/${RelativeFilePath})
+   if(EXISTS  ${AbsoluteUTFilePath}/CMakeLists.txt)
+      include(${AbsoluteUTFilePath}/CMakeLists.txt)
    else()
-      get_filename_component(Target ${UTFilePath} NAME)
+      get_filename_component(Target ${RelativeFilePath} NAME)
+
       add_library(${Target} SHARED)
+
       target_sources(${Target} PRIVATE
          ${UTCommonSrcs}
-         ${SUTDir}/random.cpp # TODO fix this
-         ${SUTUnitTestDir}/testsuite.cpp)
+         ${RootDir}/../${RelativeFilePath}.cpp
+         ${AbsoluteUTFilePath}/testsuite.cpp)
+
+      set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
+      set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${RelativeFilePath}/../)
+
+      TODO # still cannot find fmt/core.h
+      target_compile_options(${Target} PRIVATE ${CompileFlags})
+
+      target_include_directories(${Target} PRIVATE ${FMTDir}/include/)
+      target_include_directories(${Target} PRIVATE ${CommonDir})
+      target_include_directories(${Target} PRIVATE ${UnitTestDir}/common/)
+      target_include_directories(${Target} PRIVATE ${RootDir}/../${RelativeFilePath})
+      target_include_directories(${Target} PRIVATE ${AbsoluteUTFilePath})
    endif()
 endforeach()
