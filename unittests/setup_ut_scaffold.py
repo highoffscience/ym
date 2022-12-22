@@ -238,9 +238,9 @@ def main():
       sys.exit(1)
 
    parser = argparse.ArgumentParser()
-   parser.add_argument("--filepath", required=True, help="path file exists in",          type=str)
+   parser.add_argument("--filepath", required=True, help="relative path file exists in", type=str)
    parser.add_argument("--filename", required=True, help="name of file",                 type=str)
-   parser.add_argument("--SUT_name", required=True, help="name of structure under test", type=str)
+   parser.add_argument("--SUT_name", required=True, help="name of Structure Under Test", type=str)
    args = parser.parse_args()
 
    os.makedirs(args.filepath, exist_ok=True)

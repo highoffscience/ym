@@ -31,10 +31,9 @@ foreach(RelativeFilePath IN LISTS RelativeFilePaths)
       set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
       set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${RelativeFilePath}/../)
 
-      TODO # still cannot find fmt/core.h
       target_compile_options(${Target} PRIVATE ${CompileFlags})
 
-      target_include_directories(${Target} PRIVATE ${FMTDir}/include/)
+      target_include_directories(${Target} PRIVATE ${FmtDir}/include/)
       target_include_directories(${Target} PRIVATE ${CommonDir})
       target_include_directories(${Target} PRIVATE ${UnitTestDir}/common/)
       target_include_directories(${Target} PRIVATE ${RootDir}/../${RelativeFilePath})

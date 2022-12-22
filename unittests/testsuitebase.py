@@ -7,7 +7,11 @@
 import os
 import sys
 
-import cppyy
+try:
+   import cppyy
+except:
+   print("Cannot import cppyy - did you forget to start the venv?")
+   sys.exit(1)
 
 """ TestSuiteBase
 
@@ -43,7 +47,7 @@ class TestSuiteBase:
 
    def configCppyy(self):
       cppyy.add_include_path(os.path.join(self.rootpath, "ym/common/"))
-      cppyy.add_include_path(self.ut_rootpath)
+      cppyy.add_include_path(os.path.join(self.ut_rootpath, "common/"))
       cppyy.add_include_path(self.SUTpath    )
       cppyy.add_include_path(self.ut_SUTpath )
 

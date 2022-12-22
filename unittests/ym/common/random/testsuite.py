@@ -12,7 +12,7 @@ try:
    sys.path.append(os.path.join(os.getcwd().split("unittests")[0], "unittests/"))
    import testsuitebase
 except:
-   print("Cannot import unittesbase - did you set the correct path?")
+   print("Cannot import testsuitebase - did you set the correct path?")
    sys.exit(1)
 
 try:
