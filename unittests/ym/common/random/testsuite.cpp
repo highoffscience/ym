@@ -1,5 +1,5 @@
 /**
- * @file    random_ut.cpp
+ * @file    testsuite.cpp
  * @version 1.0.0
  * @author  Forrest Jablonski
  */
@@ -27,7 +27,7 @@ ym::ut::TestSuite::TestSuite(void)
  * 
  * @note Amount of zeros and ones should be about equal.
  *
- * @return bool -- True if test passed, false otherwise.
+ * @return DataShuttle -- Important values acquired during run of test case.
  */
 auto ym::ut::TestSuite::ZerosAndOnes::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {

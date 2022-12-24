@@ -19,7 +19,9 @@ build/
 *.plo
 *.lo
 
+# tmp python files
 *pyc
+__pycache__/
 
 # libraries
 *.so

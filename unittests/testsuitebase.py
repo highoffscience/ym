@@ -10,22 +10,23 @@ import sys
 try:
    import cppyy
 except:
-   print("Cannot import cppyy - did you forget to start the venv?")
+   print("Cannot import cppyy - started the venv?")
    sys.exit(1)
 
-""" TestSuiteBase
-
-@brief Base class representing a test suite.
-"""
 class TestSuiteBase:
-   """ __init__
-   
-   @brief Constructor.
    """
+   @brief Base class representing a test suite.
+   """
+
    def __init__(self, filepath: str,
                       filename: str,
                       SUT_name: str,
                       dependent_filepaths: list):
+      """
+      @brief Constructor.
+
+      TODO params
+      """
 
       self.filepath = filepath
       self.filename = filename
@@ -46,6 +47,10 @@ class TestSuiteBase:
       self.configCppyy()
 
    def configCppyy(self):
+      """
+      @brief Configures the test suite environment.
+      """
+
       cppyy.add_include_path(os.path.join(self.rootpath, "ym/common/"))
       cppyy.add_include_path(os.path.join(self.ut_rootpath, "common/"))
       cppyy.add_include_path(self.SUTpath    )
@@ -60,7 +65,11 @@ class TestSuiteBase:
       #    cppyy.add_library_path(os.path.join(self.ut_root_path, "build/", tail_path))
       #    cppyy.add_library_path(os.path.join(self.ut_root_path, "build/", tail_path, f"lib{os.path.basename(tail_path)}"))
 
-   def run(self):
+   def run(self, test_case_names:list=None):
+      """
+      @brief Method to be overriden that runs the test suite.
+      """
+
       raise NotImplementedError()
 
 # kick-off

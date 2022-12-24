@@ -1,5 +1,5 @@
 /**
- * @file    random_ut.h
+ * @file    testsuite.h
  * @version 1.0.0
  * @author  Forrest Jablonski
  */
@@ -15,7 +15,7 @@ namespace ym::ut
 
 /** TestSuite
  *
- * @brief Test suite for structure Random.
+ * @brief Test suite for SUT Random.
  */
 class TestSuite : public TestSuiteBase
 {
