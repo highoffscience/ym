@@ -52,7 +52,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
                results = ts.runTestCase(name)
                self.test_cases[name](results)
             except:
-               print(f"Something went wrong running test case {name}")
+               print(f"Something failed with test case {name}")
       else:
          all_results = ts.runAllTestCases()
          for test_case_data in all_results:
@@ -62,7 +62,9 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
    def analyze_results_ZerosAndOnes(self, results):
       """
-      @brief Analyzes results from the zeros and ones test.
+      @brief Analyzes results from test case.
+
+      @param results -- Results from test case.
       """
 
       from cppyy.gbl import std
