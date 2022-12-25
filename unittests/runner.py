@@ -19,7 +19,7 @@ def main():
    parser.add_argument("--random", help="runs the random unit test suite", action="store_true")
 
    parser.add_argument("--test_cases", help="runs the specified tests in the given test suite",
-                       nargs="+", type=list, default=None)
+                       nargs="+", type=str, default=None)
    args = parser.parse_args()
 
    if (args.all or args.random): ym.common.random.testsuite.TestSuite().run(args.test_cases)

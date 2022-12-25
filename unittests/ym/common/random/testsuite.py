@@ -17,9 +17,6 @@ except:
 
 try:
    import cppyy
-
-   from cppyy.gbl import std
-   from cppyy.gbl import ym
 except:
    print("Cannot import cppyy - started the venv?")
    sys.exit(1)
@@ -44,6 +41,9 @@ class TestSuite(testsuitebase.TestSuiteBase):
       @brief Runs the test suite or set of test cases.
       """
 
+      from cppyy.gbl import std
+      from cppyy.gbl import ym
+
       ts = ym.ut.TestSuite()
 
       if test_case_names is not None:
@@ -55,13 +55,18 @@ class TestSuite(testsuitebase.TestSuiteBase):
                print(f"Something went wrong running test case {name}")
       else:
          all_results = ts.runAllTestCases()
-         for name in all_results:
-            self.test_cases[name](all_results[name])
+         for test_case_data in all_results:
+            name = test_case_data.first
+            test_case_results = test_case_data.second
+            self.test_cases[name](test_case_results)
 
    def analyze_results_ZerosAndOnes(self, results):
       """
       @brief Analyzes results from the zeros and ones test.
       """
+
+      from cppyy.gbl import std
+      from cppyy.gbl import ym
 
       nTotalBits = results.get[ym.ut.utuint64]("NTotalBits", 0)
       nSetBits   = results.get[ym.ut.utuint64]("NSetBits", 0)
