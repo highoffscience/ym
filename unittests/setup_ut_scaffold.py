@@ -50,7 +50,7 @@ def gen_hdr_file(args):
       writeln(f"   explicit TestSuite(void);                  ")
       writeln(f"   virtual ~TestSuite(void) = default;        ")
       writeln(f"                                              ")
-      writeln(f"   // YM_UT_TESTCASE(name_of_test_case_here); ")
+      writeln(f"   // YM_UT_TESTCASE(name_of_test_case_here)  ")
       writeln(f"}};                                           ")
       writeln(f"                                              ")
       writeln(f"}} // ym::ut                                  ") 
@@ -155,9 +155,9 @@ def gen_runner_file(args):
       writeln(f"      \"\"\"                                                        ")
       writeln(f"      @brief Constructor.                                           ")
       writeln(f"      \"\"\"                                                        ")
-      writeln(f"      super().__init__({args.filepath}, " \
-                                     f"{args.filename}, " \
-                                     f"{args.SUT_name}, [])                         ")
+      writeln(f"      super().__init__(\"{args.filepath}\", " \
+                                     f"\"{args.filename}\", " \
+                                     f"\"{args.SUT_name}\", [])                     ")
       writeln(f"                                                                    ")
       writeln(f"      self.test_cases = {{                                          ")
       writeln(f"         \"name_of_test_case_here\": "
@@ -229,7 +229,7 @@ def main():
    parser.add_argument("--SUT_name", required=True, help="name of Structure Under Test", type=str)
    args = parser.parse_args()
 
-   os.makedirs(args.filepath, exist_ok=True)
+   os.makedirs(os.path.join(args.filepath, args.filename), exist_ok=True)
 
    gen_hdr_file   (args)
    gen_src_file   (args)

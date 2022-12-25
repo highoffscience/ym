@@ -12,6 +12,7 @@ include(utcommon.cmake)
 
 set(RelativeFilePaths
    ym/common/random
+   ym/common/timer
 )
 
 foreach(RelativeFilePath IN LISTS RelativeFilePaths)
