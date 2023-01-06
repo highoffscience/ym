@@ -16,7 +16,7 @@
 ym::ut::TestSuite::TestSuite(void)
    : TestSuiteBase("TextLogger")
 {
-   addTestCase<name_of_test_case_here>();
+   addTestCase<OpenAndClose>();
 }
 
 /** run
@@ -25,7 +25,11 @@ ym::ut::TestSuite::TestSuite(void)
  *
  * @return DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::name_of_test_case_here::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::ut::TestSuite::OpenAndClose::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   return {};
+   TextLogger t;
+
+   return {
+      {"IsOpen", t.isOpen()}
+   };
 }

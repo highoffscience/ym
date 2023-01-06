@@ -25,9 +25,9 @@ ym::TextLogger::TextLogger(void)
  * @brief Constructor.
  */
 ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
-   : _vGroups       {/*default*/              },
+   : _buffer        {'\0'                     },
+     _vGroups       {/*default*/              },
      _writer        {/*default*/              },
-     _buffer        {'\0'                     },
      _timer         {/*default*/              },
      _availableSem  {getMaxNMessagesInBuffer()},
      _messagesSem   {0_i32                    },
@@ -303,10 +303,14 @@ void ym::TextLogger::writeMessagesToFile(void)
       auto const         ReadPos  = _readPos.load(std::memory_order_acquire) % getMaxNMessagesInBuffer();
       auto const * const Read_Ptr = _buffer + (ReadPos * getMaxMessageSize_bytes());
 
-      auto const NCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), Read_Ptr);
+      auto const MsgSize_bytes         = std::strlen(Read_Ptr);
+      auto const NCharsWrittenInTheory = std::fwrite(Read_Ptr,
+                                                     sizeof(*Read_Ptr),
+                                                     MsgSize_bytes,
+                                                     _outfile_uptr.get());
 
-      if (NCharsWrittenInTheory < 0)
-      { // fprintf hit an internal error
+      if (NCharsWrittenInTheory < MsgSize_bytes)
+      { // fwrite hit an internal error
          printfInternalError("std::fprintf failed with error code %d! "
                              "Message was '%s'\n",
                              NCharsWrittenInTheory,
@@ -316,7 +320,7 @@ void ym::TextLogger::writeMessagesToFile(void)
       }
 
    #if defined(YM_PRINT_TO_SCREEN)
-      std::fprintf(stdout, Read_Ptr);
+      std::fprintf(stdout, "%s", Read_Ptr);
    #endif // YM_PRINT_TO_SCREEN
 
       _availableSem.release();

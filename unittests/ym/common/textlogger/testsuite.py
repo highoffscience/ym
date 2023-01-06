@@ -33,7 +33,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       super().__init__("ym/common/", "textlogger", "TextLogger", [])
 
       self.test_cases = {
-         "name_of_test_case_here": self.analyze_results_name_of_test_case_here
+         "OpenAndClose": self.analyze_results_OpenAndClose
       }
 
    def run(self, test_case_names:list=None):
@@ -60,7 +60,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
             test_case_results = test_case_data.second
             self.test_cases[name](test_case_results)
 
-   def analyze_results_name_of_test_case_here(self, results):
+   def analyze_results_OpenAndClose(self, results):
       """
       @brief Analyzes results from test case.
 
@@ -70,7 +70,8 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
-      pass
+      isOpen = results.get[bool]("IsOpen")
+      print(f"isOpen = {isOpen}")
 
 # kick-off
 if __name__ == "__main__":
