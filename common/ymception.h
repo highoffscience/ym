@@ -99,7 +99,10 @@ inline Ymception::Ymception(str    const    Format,
                             Args_T const... Args)
    : _msg{'\0'}
 {
-   std::snprintf(_msg.data(), _msg.size(), Format, Args...);
+   // TODO I get a format security warning here - Format isn't a string literal.
+   //      Investigate when converting to the fmt library
+   // std::snprintf(_msg.data(), _msg.size(), Format, Args...);
+   (void)Format;
 }
 
 /** ymAssert
