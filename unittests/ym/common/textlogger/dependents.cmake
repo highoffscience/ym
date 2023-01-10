@@ -4,4 +4,9 @@
 # @author  Forrest Jablonski
 #
 
-set(DependentsList ${DependentsList})
+# TODO can also specify directories
+
+set(DependentsList ${DependentsList}
+    ym/common/ymception
+    ym/common/timer
+    ym/common/logger)

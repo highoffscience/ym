@@ -197,10 +197,16 @@ auto MemMan::getNewPool(uint64 const NChunksPerBlock) -> Pool<Chunk_T>
  * @param NElements -- Number of T elements to allocate room for.
  *
  * @return T * -- Pointer to newly allocated stack memory.
+ * 
+ * TODO #pragmas are compiler specific
  */
 template <typename T>
 inline T * MemMan::stackAlloc(uint32 const NElements)
 {
+#if defined(YM_IS_GNUG)
+#pragma GCC diagnostic ignored "-Wreturn-local-addr"
+#endif // YM_IS_GNUG
+
    return static_cast<T *>(alloca(NElements * sizeof(T)));
 }
 

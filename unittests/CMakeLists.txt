@@ -28,7 +28,11 @@ foreach(RelativeFilePath IN LISTS RelativeFilePaths)
       target_sources(${Target} PRIVATE
          ${UTCommonSrcs}
          ${RootDir}/../${RelativeFilePath}.cpp
-         ${AbsoluteUTFilePath}/testsuite.cpp)
+         ${AbsoluteUTFilePath}/testsuite.cpp
+         ${CommonDir}/logger.cpp
+         ${CommonDir}/ymception.cpp
+         ${CommonDir}/memorymanager.cpp
+         ${CommonDir}/timer.cpp)
 
       set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
       set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${RelativeFilePath}/../)
