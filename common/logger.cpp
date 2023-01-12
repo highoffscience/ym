@@ -92,10 +92,14 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
 
    auto const TSFilenameSize_bytes =
       FilenameSize_bytes + s_DefaultTS.length() + 1_u64; // include null terminator
-   auto * const tsFilename_Ptr = MemMan::stackAlloc<char>(TSFilenameSize_bytes);
+   auto * const tsFilename_Ptr = YM_MemManStackAlloc(char, TSFilenameSize_bytes);
+   //auto * const tsFilename_Ptr = static_cast<char *>(alloca(TSFilenameSize_bytes * sizeof(char)));
 
    // write stem
    std::strncpy(tsFilename_Ptr, Filename, StemSize_bytes);
+
+   std::fprintf(stdout, "--> %s -- %s -- %lu -- %lu\n", tsFilename_Ptr, Filename, StemSize_bytes, TSFilenameSize_bytes);
+   return false;
 
    // write time stamp
    populateTimeStamp(tsFilename_Ptr + StemSize_bytes);
@@ -105,7 +109,14 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
                 Filename + StemSize_bytes,
                 FilenameSize_bytes - StemSize_bytes + 1ul); // include null terminator
 
-   return openOutfile(tsFilename_Ptr, TimeStampFilenameMode_T::DoNotAppend);
+   std::fprintf(stdout, "--> %lu\n", TSFilenameSize_bytes);
+   for (auto i = 0_u64; i < TSFilenameSize_bytes; ++i)
+   {
+      std::fprintf(stdout, "---> %c\n", tsFilename_Ptr[i]);
+   }
+
+   return false;
+   //return openOutfile(tsFilename_Ptr, TimeStampFilenameMode_T::DoNotAppend);
 }
 
 /** closeOutfile

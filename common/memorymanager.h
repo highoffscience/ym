@@ -199,15 +199,12 @@ auto MemMan::getNewPool(uint64 const NChunksPerBlock) -> Pool<Chunk_T>
  * @return T * -- Pointer to newly allocated stack memory.
  * 
  * TODO #pragmas are compiler specific
+ * 
+ * TODO move to top of file
+ * 
+ * TODO cannot be a function because of how the implementation of alloca works.
  */
-template <typename T>
-inline T * MemMan::stackAlloc(uint32 const NElements)
-{
-#if defined(YM_IS_GNUG)
-#pragma GCC diagnostic ignored "-Wreturn-local-addr"
-#endif // YM_IS_GNUG
-
-   return static_cast<T *>(alloca(NElements * sizeof(T)));
-}
+#define YM_MemManStackAlloc(Type_, NElements_) \
+   static_cast<Type_ *>(alloca(NElements_ * sizeof(Type_)));
 
 } // ym

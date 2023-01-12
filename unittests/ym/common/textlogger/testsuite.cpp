@@ -28,6 +28,7 @@ ym::ut::TestSuite::TestSuite(void)
 auto ym::ut::TestSuite::OpenAndClose::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    TextLogger t;
+   t.open("hello.txt");
 
    return {
       {"IsOpen", t.isOpen()}
