@@ -17,8 +17,32 @@
 namespace ym
 {
 
+/** YM_MemMgrStackAlloc
+ *
+ * @brief Allocates requested amount of bytes on the stack at runtime.
+ *
+ * @note Functionally moves the stack pointer to where you want. We mimic the
+ *       behaviour of variable length arrays.
+ *
+ * @note Memory allocated by this function automatically gets freed when the
+ *       embedding function goes out of scope.
+ * 
+ * @note Only allocates memory in current stack frame, so this must a macro,
+ *       not an inline function.
+ *
+ * @ref <https://man7.org/linux/man-pages/man3/alloca.3.html>.
+ * @ref <https://en.cppreference.com/w/c/language/array>. See section on VLA's.
+ *
+ * @param Type_      -- Type to allocate.
+ * @param NElements_ -- Number of T elements to allocate room for.
+ *
+ * @return Type_ * -- Pointer to newly allocated stack memory.
+ */
+#define YM_MemMgrStackAlloc(Type_, NElements_) \
+   static_cast<Type_ *>(alloca(NElements_ * sizeof(Type_)));
+
 /// @brief Convenience alias.
-using MemMan = class MemoryManager;
+using MemMgr = class MemoryManager;
 
 /** Chunkable_T
  *
@@ -178,33 +202,5 @@ auto MemMan::getNewPool(uint64 const NChunksPerBlock) -> Pool<Chunk_T>
 
    return Pool<Chunk_T>(originalBlock_Ptr, NChunksPerBlock);
 }
-
-/** stackAlloc
- *
- * @brief Allocates requested amount of bytes on the stack at runtime.
- *
- * @note Functionally moves the stack pointer to where you want. We mimic the
- *       behaviour of variable length arrays.
- *
- * @note Memory allocated by this function automatically gets freed when the
- *       embedding function goes out of scope.
- *
- * @ref <https://man7.org/linux/man-pages/man3/alloca.3.html>.
- * @ref <https://en.cppreference.com/w/c/language/array>. See section on VLA's.
- *
- * @tparam T -- Type to allocate.
- *
- * @param NElements -- Number of T elements to allocate room for.
- *
- * @return T * -- Pointer to newly allocated stack memory.
- * 
- * TODO #pragmas are compiler specific
- * 
- * TODO move to top of file
- * 
- * TODO cannot be a function because of how the implementation of alloca works.
- */
-#define YM_MemManStackAlloc(Type_, NElements_) \
-   static_cast<Type_ *>(alloca(NElements_ * sizeof(Type_)));
 
 } // ym

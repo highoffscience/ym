@@ -6,9 +6,7 @@
  * @note This file should be included in every file of the project. It provides
  *       standard declarations to be shared throughout.
  * 
- * @todo We emulate c++20 concepts as static assertable constants because
- *       cppyy, our unittest framework, can only handle upto c++17.
- *       @ref <https://cppyy.readthedocs.io/en/latest/>.
+ * @note Macros start with "YM_".
  */
 
 #pragma once
@@ -19,7 +17,7 @@
 
 // ----------------------------------------------------------------------------
 
-static_assert(__cplusplus == 202002L, "C++20 standard required");
+static_assert(__cplusplus >= 202002L, "At least C++20 standard required");
 
 // ----------------------------------------------------------------------------
 
@@ -28,12 +26,12 @@ static_assert(__cplusplus == 202002L, "C++20 standard required");
  *
  * @note GNUC, CLANG, and MSVC are the only compilers tested.
  *
- * @note We define YM_IS_XXX_ID to verify compiler mutual exclusion. We don't
+ * @note We define YM_IsXXX_ID to verify compiler mutual exclusion. We don't
  *       want to define YM_IS_GNUC to have a value since it is now technically
  *       defined no matter the value so errors like
  *
- *          #define YM_IS_XXX 0
- *          #if defined(YM_IS_XXX)
+ *          #define YM_IsXXX 0
+ *          #if defined(YM_IsXXX)
  *             // this code executes!
  *          #endif
  *
@@ -41,41 +39,41 @@ static_assert(__cplusplus == 202002L, "C++20 standard required");
  */
 
 #if defined(__clang__)
-#define YM_IS_CLANG
-#define YM_IS_CLANG_ID 1
+#define YM_IsClang
+#define YM_IsClang_ID 1
 #else
-#define YM_IS_CLANG_ID 0
+#define YM_IsClang_ID 0
 #endif // __clang__
 
 #if  defined( __GNUG__  ) && \
-    !defined(YM_IS_CLANG) // clang defines __GNUG__ too
-#define YM_IS_GNUG
-#define YM_IS_GNUG_ID 1
+    !defined(YM_IsClang) // clang defines __GNUG__ too
+#define YM_IsGNU
+#define YM_IsGNU_ID 1
 #else
-#define YM_IS_GNUG_ID 0
-#endif // __GNUG__ && !YM_IS_CLANG
+#define YM_IsGNU_ID 0
+#endif // __GNUG__ && !YM_IsClang
 
 #if defined(_MSC_VER)
-#define YM_IS_MSVC
-#define YM_IS_MSVC_ID 1
+#define YM_IsMSVC
+#define YM_IsMSVC_ID 1
 #else
-#define YM_IS_MSVC_ID 0
+#define YM_IsMSVC_ID 0
 #endif // _MSC_VER
 
 // mutual exclusion test
-static_assert(YM_IS_CLANG_ID +
-              YM_IS_GNUG_ID  +
-              YM_IS_MSVC_ID  == 1, 
+static_assert(YM_IsClang_ID +
+              YM_IsGNU_ID   +
+              YM_IsMSVC_ID  == 1, 
               "Multiple (or no) compilers detected");
 
 // don't pollute namespace
-#undef YM_IS_CLANG_ID
-#undef YM_IS_GNUC_ID
-#undef YM_IS_MSVC_ID
+#undef YM_IsClang_ID
+#undef YM_IsGNU_ID
+#undef YM_IsMSVC_ID
 
 // ----------------------------------------------------------------------------
 
-#if defined(YM_IS_MSVC)
+#if defined(YM_IsMSVC_ID)
 
 /**
  * @brief MSVC shenanigans.
@@ -87,7 +85,7 @@ static_assert(YM_IS_CLANG_ID +
 #pragma warning(error:    4062) // switch on all enum values
 #pragma warning(error:    4227) // reference of const should be pointer to const
 
-#endif // YM_IS_MSVC
+#endif // YM_IsMSVC_ID
 
 // ----------------------------------------------------------------------------
 
@@ -99,35 +97,35 @@ static_assert(YM_IS_CLANG_ID +
 #define YM_DBG
 #endif // YM_DBG
 
-#if  defined(YM_IS_MSVC)
+#if  defined(YM_IsMSVC)
 #if  defined(_DEBUG)
 #if !defined(YM_DBG)
 static_assert(false, "Clashing intentions of debug levels detected")
 #endif // !YM_DBG
 #endif // _DEBUG
-#endif // YM_IS_MSVC
+#endif // YM_IsMSVC
 
 #if defined(YM_DBG)
-#define YM_PRINT_TO_SCREEN
+#define YM_PrintToScreen
 #endif // YM_DBG
 
-#if !defined(YM_EXPERIMENTAL)
-// #define YM_EXPERIMENTAL
-#endif // !YM_EXPERIMENTAL
+#if !defined(YM_Experimental)
+// #define YM_Experimental
+#endif // !YM_Experimental
 
 /**
  * @brief Helper macros for the "the big five".
  *
  * @ref <https://en.cppreference.com/w/cpp/language/rule_of_three>.
  *
- * @param ClassName_ -- Name of class
+ * @param ClassName_ -- Name of class.
  */
 
-#define YM_NO_DEFAULT(        ClassName_ ) ClassName_              (void              ) = delete;
-#define YM_NO_COPY(           ClassName_ ) ClassName_              (ClassName_ const &) = delete;
-#define YM_NO_ASSIGN(         ClassName_ ) ClassName_ & operator = (ClassName_ const &) = delete;
-#define YM_NO_MOVE_CONSTRUCT( ClassName_ ) ClassName_              (ClassName_ &&     ) = delete;
-#define YM_NO_MOVE_ASSIGN(    ClassName_ ) ClassName_ & operator = (ClassName_ &&     ) = delete;
+#define YM_NoDefault(       ClassName_ ) ClassName_              (void              ) = delete;
+#define YM_NoCopy(          ClassName_ ) ClassName_              (ClassName_ const &) = delete;
+#define YM_NoAssign(        ClassName_ ) ClassName_ & operator = (ClassName_ const &) = delete;
+#define YM_NoMoveConstruct( ClassName_ ) ClassName_              (ClassName_ &&     ) = delete;
+#define YM_NoMoveAssign(    ClassName_ ) ClassName_ & operator = (ClassName_ &&     ) = delete;
 
 // ----------------------------------------------------------------------------
 
@@ -143,12 +141,12 @@ namespace ym
  *       10 byte type. To avoid confusion on how big a type actually is and to
  *       uniquely express the types expected range, use std::numeric_limits<>::digits.
  *
- * @param Prim_T_        -- Data type to perform integrity checks on
- * @param NMantissaBits_ -- Expected # of bits in mantissa
+ * @param Prim_T_        -- Data type to perform integrity checks on.
+ * @param NMantissaBits_ -- Expected # of bits in mantissa.
  */
 
 // int = signed integer
-#define YM_INT_INTEGRITY(Prim_T_, NMantissaBits_)                        \
+#define YM_IntIntegrity(Prim_T_, NMantissaBits_)                         \
    static_assert(std::numeric_limits<Prim_T_>::is_signed,                \
                  #Prim_T_" not signed");                                 \
                                                                          \
@@ -156,7 +154,7 @@ namespace ym
                  #Prim_T_" doesn't have expected range");
 
 // unt = unsigned integer
-#define YM_UNT_INTEGRITY(Prim_T_, NMantissaBits_)                        \
+#define YM_UntIntegrity(Prim_T_, NMantissaBits_)                         \
    static_assert(!std::numeric_limits<Prim_T_>::is_signed,               \
                  #Prim_T_" is signed");                                  \
                                                                          \
@@ -164,7 +162,7 @@ namespace ym
                  #Prim_T_" doesn't have expected range");
 
 // flt = float
-#define YM_FLT_INTEGRITY(Prim_T_, NMantissaBits_)                        \
+#define YM_FltIntegrity(Prim_T_, NMantissaBits_)                         \
    static_assert(std::is_floating_point_v<Prim_T_>,                      \
                  #Prim_T_" not floating point");                         \
                                                                          \
@@ -181,28 +179,28 @@ namespace ym
 using str     = char const *   ;
 using uchar   = unsigned char  ;
 
-using int8    = signed char    ; YM_INT_INTEGRITY(int8   ,  7)
-using int16   = signed short   ; YM_INT_INTEGRITY(int16  , 15)
-using int32   = signed int     ; YM_INT_INTEGRITY(int32  , 31)
-using int64   = signed long    ; YM_INT_INTEGRITY(int64  , 63)
+using int8    = signed char    ; YM_IntIntegrity(int8   ,  7)
+using int16   = signed short   ; YM_IntIntegrity(int16  , 15)
+using int32   = signed int     ; YM_IntIntegrity(int32  , 31)
+using int64   = signed long    ; YM_IntIntegrity(int64  , 63)
 
-using uint8   = unsigned char  ; YM_UNT_INTEGRITY(uint8  ,  8)
-using uint16  = unsigned short ; YM_UNT_INTEGRITY(uint16 , 16)
-using uint32  = unsigned int   ; YM_UNT_INTEGRITY(uint32 , 32)
-using uint64  = unsigned long  ; YM_UNT_INTEGRITY(uint64 , 64)
+using uint8   = unsigned char  ; YM_UntIntegrity(uint8  ,  8)
+using uint16  = unsigned short ; YM_UntIntegrity(uint16 , 16)
+using uint32  = unsigned int   ; YM_UntIntegrity(uint32 , 32)
+using uint64  = unsigned long  ; YM_UntIntegrity(uint64 , 64)
 
-using float32 = float          ; YM_FLT_INTEGRITY(float32, 24)
-using float64 = double         ; YM_FLT_INTEGRITY(float64, 53)
+using float32 = float          ; YM_FltIntegrity(float32, 24)
+using float64 = double         ; YM_FltIntegrity(float64, 53)
 
 using float80 = std::conditional_t<std::numeric_limits<long double>::digits == 64,
                    long double,
                    std::conditional_t<std::numeric_limits<long double>::digits == 113,
                       void,
-                   #if defined(YM_IS_GNUG)
+                   #if defined(YM_IsGNU)
                       __float80
                    #else
                       void
-                   #endif // YM_IS_GNUG
+                   #endif // YM_IsGNU
                    >
                 >;
    static_assert(sizeof(std::conditional_t<std::is_void_v<float80>,
@@ -213,11 +211,11 @@ using float80 = std::conditional_t<std::numeric_limits<long double>::digits == 6
 
 using float128 = std::conditional_t<std::numeric_limits<long double>::digits == 113,
                     long double,
-                 #if defined(YM_IS_GNUG) || defined(YM_IS_CLANG)
+                 #if defined(YM_IsGNU) || defined(YM_IsClang)
                     __float128
                  #else
                     void
-                 #endif // YM_IS_GNUG || YM_IS_CLANG
+                 #endif // YM_IsGNU || YM_IsClang
                  >;
 
    static_assert(sizeof(std::conditional_t<std::is_void_v<float128>,
@@ -227,9 +225,9 @@ using float128 = std::conditional_t<std::numeric_limits<long double>::digits == 
                  "float80 doesn't have expected size (range)");
 
 // don't pollute namespace
-#undef YM_FLT_INTEGRITY
-#undef YM_UNT_INTEGRITY
-#undef YM_INT_INTEGRITY
+#undef YM_FltIntegrity
+#undef YM_UntIntegrity
+#undef YM_IntIntegrity
 
 using uintptr = uint64; static_assert(sizeof(uintptr) >= sizeof(void *),
                                       "uintptr cannot hold ptr value");
@@ -268,7 +266,7 @@ constexpr auto ymPtrToUint(T const Ptr)
 
 // ----------------------------------------------------------------------------
 
-/** toUnderlying
+/** ymToUnderlying
  * 
  * @brief Convert an object of enumeration type to its underlying type.
  * 
@@ -281,14 +279,14 @@ constexpr auto ymPtrToUint(T const Ptr)
  * @return auto -- Enumeration as represented by it's underlying type.
  */
 template<typename T>
-constexpr auto toUnderlying(T const Value) noexcept
+constexpr auto ymToUnderlying(T const Value) noexcept
 {
    return static_cast<std::underlying_type_t<T>>(Value);
 }
 
 // ----------------------------------------------------------------------------
 
-/** YM_LITERAL_DECL
+/** YM_LiteralDecl
  *
  * @brief Defines a set of user-defined literals for commonly used types.
  *
@@ -299,7 +297,7 @@ constexpr auto toUnderlying(T const Value) noexcept
  * 
  * @return auto -- Input casted to TypeToCastTo_.
  */
-#define YM_LITERAL_DECL(UDL_, TypeToCastTo_)                                                                \
+#define YM_LiteralDecl(UDL_, TypeToCastTo_)                                                                 \
    constexpr auto operator"" _##UDL_(unsigned long long int    i) { return static_cast<TypeToCastTo_>(i); } \
    constexpr auto operator"" _##UDL_(              long double d) { return static_cast<TypeToCastTo_>(d); } \
                                                                                                             \
@@ -307,21 +305,21 @@ constexpr auto toUnderlying(T const Value) noexcept
                  std::is_same_v<decltype(0.0_##UDL_), TypeToCastTo_>,                                       \
                  "User defined literal "#UDL_" failed to cast");
 
-YM_LITERAL_DECL(i8,  int8   )
-YM_LITERAL_DECL(i16, int16  )
-YM_LITERAL_DECL(i32, int32  )
-YM_LITERAL_DECL(i64, int64  )
+YM_LiteralDecl(i8,  int8   )
+YM_LiteralDecl(i16, int16  )
+YM_LiteralDecl(i32, int32  )
+YM_LiteralDecl(i64, int64  )
 
-YM_LITERAL_DECL(u8,  uint8  )
-YM_LITERAL_DECL(u16, uint16 )
-YM_LITERAL_DECL(u32, uint32 )
-YM_LITERAL_DECL(u64, uint64 )
+YM_LiteralDecl(u8,  uint8  )
+YM_LiteralDecl(u16, uint16 )
+YM_LiteralDecl(u32, uint32 )
+YM_LiteralDecl(u64, uint64 )
 
-YM_LITERAL_DECL(f32, float32)
-YM_LITERAL_DECL(f64, float64)
-YM_LITERAL_DECL(f80, float80)
+YM_LiteralDecl(f32, float32)
+YM_LiteralDecl(f64, float64)
+YM_LiteralDecl(f80, float80)
 
 // don't pollute namespace
-#undef YM_LITERAL_DECL
+#undef YM_LiteralDecl
 
 } // ym
