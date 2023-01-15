@@ -17,7 +17,7 @@
 namespace ym
 {
 
-/** YM_MemMgrStackAlloc
+/** YM_StackAlloc
  *
  * @brief Allocates requested amount of bytes on the stack at runtime.
  *
@@ -38,7 +38,7 @@ namespace ym
  *
  * @return Type_ * -- Pointer to newly allocated stack memory.
  */
-#define YM_MemMgrStackAlloc(Type_, NElements_) \
+#define YM_StackAlloc(Type_, NElements_) \
    static_cast<Type_ *>(alloca(NElements_ * sizeof(Type_)));
 
 /// @brief Convenience alias.
@@ -60,9 +60,9 @@ concept Chunkable_T = (sizeof(T) >= sizeof(std::uintptr_t));
 class MemoryManager
 {
 public:
-   YM_NO_DEFAULT(MemoryManager)
+   YM_NoDefault(MemoryManager)
 
-   YM_DECL_YMEXC(MemoryManagerError);
+   YM_DeclYmcept(MemoryManagerError)
 
    /** Pool
     *
@@ -89,9 +89,6 @@ public:
    template <Chunkable_T Chunk_T>
    static Pool<Chunk_T> getNewPool(uint64 const NChunksPerBlock);
 
-   template <typename T>
-   static inline T * stackAlloc(uint32 const NElements);
-
 private:
    static void * allocateBlock(uint64 const NChunksPerBlock,
                                uint64 const ChunkSize_bytes);
@@ -106,7 +103,7 @@ private:
  * @param NChunksPerBlock -- Chunks (datum elements) per block of memory.
  */
 template <Chunkable_T Chunk_T>
-MemMan::Pool<Chunk_T>::Pool(uint64 const NChunksPerBlock)
+MemMgr::Pool<Chunk_T>::Pool(uint64 const NChunksPerBlock)
    : _activeBlock_ptr   {nullptr                           },
      _sentinel_ptr      {_activeBlock_ptr + NChunksPerBlock},
      _nextFreeChunk_ptr {_sentinel_ptr                     }, // forces allocation
@@ -123,7 +120,7 @@ MemMan::Pool<Chunk_T>::Pool(uint64 const NChunksPerBlock)
  * @return Pointer to block of raw memory equal to sizeof(Chunk_T).
  */
 template <Chunkable_T Chunk_T>
-Chunk_T * MemMan::Pool<Chunk_T>::allocate(void)
+Chunk_T * MemMgr::Pool<Chunk_T>::allocate(void)
 {
    if (_nextFreeChunk_ptr == _sentinel_ptr)
    { // current pool is exhausted - create another one
@@ -174,7 +171,7 @@ Chunk_T * MemMan::Pool<Chunk_T>::allocate(void)
  * @param datum_Ptr -- Chunk of memory to free.
  */
 template <Chunkable_T Chunk_T>
-void MemMan::Pool<Chunk_T>::deallocate(Chunk_T * const datum_Ptr)
+void MemMgr::Pool<Chunk_T>::deallocate(Chunk_T * const datum_Ptr)
 {
    *reinterpret_cast<Chunk_T * *>(datum_Ptr) = _nextFreeChunk_ptr;
    _nextFreeChunk_ptr = datum_Ptr;
@@ -191,7 +188,7 @@ void MemMan::Pool<Chunk_T>::deallocate(Chunk_T * const datum_Ptr)
  * @return Pool<Chunk_T> -- Pool object.
  */
 template <Chunkable_T Chunk_T>
-auto MemMan::getNewPool(uint64 const NChunksPerBlock) -> Pool<Chunk_T>
+auto MemMgr::getNewPool(uint64 const NChunksPerBlock) -> Pool<Chunk_T>
 {
    // TODO rename error
    ymAssert<MemoryManagerError>(NChunksPerBlock > 0_u64,

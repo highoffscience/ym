@@ -43,7 +43,7 @@ struct VerbosityGroup
     *
     * @return auto -- # of verbosity groups defined.
     */
-   static constexpr auto getNGroups(void) { return toUnderlying(T::NGroups); }
+   static constexpr auto getNGroups(void) { return ymToUnderlying(T::NGroups); }
 };
 
 /// @link VGMask_T @endlink
@@ -78,19 +78,19 @@ struct VerbosityGroupMask
    enum class T : std::underlying_type_t<VerbosityGroup::T>
    {
    /// @brief Convenience macros.
-   #define YM_OG_FMT_MSK(Group_, Mask_) ((toUnderlying(VerbosityGroup::T::Group_) << 8_u32) | Mask_##_u32)
-   #define YM_OG_FMT_GRP(Group_       ) YM_OG_FMT_MSK(Group_, 0xff)
+   #define YM_FmtMsk(Group_, Mask_) ((ymToUnderlying(VerbosityGroup::T::Group_) << 8_u32) | Mask_##_u32)
+   #define YM_FmtGrp(Group_       ) YM_FmtMsk(Group_, 0xff)
 
-      Logger           = YM_OG_FMT_GRP(Logger                ),
-      Logger_Basic     = YM_OG_FMT_MSK(Logger,    0b0000'0001),
-      Logger_Detail    = YM_OG_FMT_MSK(Logger,    0b0000'0010),
+      Logger           = YM_FmtGrp(Logger                ),
+      Logger_Basic     = YM_FmtMsk(Logger,    0b0000'0001),
+      Logger_Detail    = YM_FmtMsk(Logger,    0b0000'0010),
 
-      Ymception        = YM_OG_FMT_GRP(Ymception             ),
-      Ymception_Assert = YM_OG_FMT_MSK(Ymception, 0b0000'0001),
+      Ymception        = YM_FmtGrp(Ymception             ),
+      Ymception_Assert = YM_FmtMsk(Ymception, 0b0000'0001),
 
    // don't pollute namespace
-   #undef YM_OG_FMT_GRP
-   #undef YM_OG_FMT_MSK
+   #undef YM_FmtGrp
+   #undef YM_FmtMsk
    };
 
    /**
@@ -100,9 +100,9 @@ struct VerbosityGroupMask
     * 
     * @return auto -- Desired underlying type
     */
-   static constexpr auto getGroup      (T const VG) { return toUnderlying      (VG) >> 8_u32;    }
-   static constexpr auto getMask       (T const VG) { return toUnderlying      (VG) &  0xff_u32; }
-   static constexpr auto getMask_asByte(T const VG) { return static_cast<uint8>(VG);             }
+   static constexpr auto getGroup      (T const VG) { return ymToUnderlying      (VG) >> 8_u32;    }
+   static constexpr auto getMask       (T const VG) { return ymToUnderlying      (VG) &  0xff_u32; }
+   static constexpr auto getMask_asByte(T const VG) { return static_cast<uint8>(VG);               }
 };
 
 /// @brief Convenience alias.

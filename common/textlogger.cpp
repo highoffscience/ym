@@ -205,6 +205,7 @@ void ym::TextLogger::printf_Handler(VGM_T const  VG,
 
       if (IsEnabled)
       { // verbose enough to print this message
+
          std::va_list args;
          va_start(args, Format);
          printf_Producer(Format, args); // doesn't throw so va_end will be called
@@ -282,6 +283,8 @@ void ym::TextLogger::printf_Producer(str const    Format,
    // _readPos doesn't need to wrap, so just incrementing until it rolls over is ok
    _readPos.fetch_add(1u, std::memory_order_release);
 
+   std::fprintf(stdout, "--> TODO A <%s>\n", write_ptr);
+
    _messagesSem.release();
 }
 
@@ -298,10 +301,14 @@ void ym::TextLogger::writeMessagesToFile(void)
    while (writerEnabled)
    { // wait for messages to print while logger is still active
 
+      std::fprintf(stdout, "--> TODO B\n");
+
       _messagesSem.acquire(); // _readPos has been updated
 
       auto const         ReadPos  = _readPos.load(std::memory_order_acquire) % getMaxNMessagesInBuffer();
       auto const * const Read_Ptr = _buffer + (ReadPos * getMaxMessageSize_bytes());
+
+      std::fprintf(stdout, "--> TODO C <%s>\n", Read_Ptr);
 
       auto const MsgSize_bytes         = std::strlen(Read_Ptr);
       auto const NCharsWrittenInTheory = std::fwrite(Read_Ptr,

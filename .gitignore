@@ -19,6 +19,8 @@ build/
 *.plo
 *.lo
 
+tmp/
+
 # tmp python files
 *pyc
 __pycache__/

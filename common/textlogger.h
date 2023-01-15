@@ -57,10 +57,10 @@ public:
    explicit TextLogger(TimeStampMode_T const TimeStampMode);
    ~TextLogger(void);
 
-   YM_NO_COPY  (TextLogger)
-   YM_NO_ASSIGN(TextLogger)
+   YM_NoCopy  (TextLogger)
+   YM_NoAssign(TextLogger)
 
-   YM_DECL_YMEXC(TextLoggerError_GlobalFailureToOpen)
+   YM_DeclYmcept(TextLoggerError_GlobalFailureToOpen)
 
    static TextLogger * getGlobalInstance(void);
 
@@ -99,7 +99,7 @@ private:
    uint64 populateFormattedTime(char * const write_Ptr) const;
 
    static constexpr auto _s_MaxMessageSize_bytes = 256_u32;
-   static constexpr auto _s_MaxNMessagesInBuffer = 64_u32;
+   static constexpr auto _s_MaxNMessagesInBuffer =  64_u32;
    static constexpr auto _s_BufferSize_bytes     = _s_MaxMessageSize_bytes * _s_MaxNMessagesInBuffer;
 
    static_assert(std::has_single_bit(_s_MaxNMessagesInBuffer),

@@ -31,10 +31,10 @@ namespace ym
 class Logger
 {
 public:
-   YM_NO_COPY  (Logger);
-   YM_NO_ASSIGN(Logger);
+   YM_NoCopy  (Logger)
+   YM_NoAssign(Logger)
 
-   YM_DECL_YMEXC(LoggerError)
+   YM_DeclYmcept(LoggerError)
 
    /** TimeStampFilenameMode_T
     *

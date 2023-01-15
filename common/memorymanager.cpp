@@ -26,7 +26,7 @@
  *
  * @return void * -- Pointer to beginning of block of memory.
  */
-void * ym::MemMan::allocateBlock(uint64 const NChunksPerBlock,
+void * ym::MemMgr::allocateBlock(uint64 const NChunksPerBlock,
                                  uint64 const ChunkSize_bytes)
 {
    auto * const block_Ptr =

@@ -15,13 +15,13 @@
 #include <exception>
 #include <type_traits>
 
-/** YM_DECL_YMEXC
+/** YM_DeclYmcept
  *
  * @brief Convenience macro to declare empty custom Ymception classes.
  *
  * @param DerivedYmception_ -- Name of custom Ymception class.
  */
-#define YM_DECL_YMEXC(DerivedYmception_)                        \
+#define YM_DeclYmcept(DerivedYmception_)                        \
    class DerivedYmception_ : public Ymception                   \
    {                                                            \
    public:                                                      \
@@ -82,7 +82,7 @@ public:
 private:
    void assertHandler(void) const;
 
-   std::array<char, 1024_u32 /* max msg size (bytes) */> _msg;
+   std::array<char, 1024_u64 /* max msg size (bytes) */> _msg;
 };
 
 /** Ymception
