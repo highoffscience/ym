@@ -281,9 +281,9 @@ void ym::TextLogger::printf_Producer(str const    Format,
    }
 
    // _readPos doesn't need to wrap, so just incrementing until it rolls over is ok
-   _readPos.fetch_add(1u, std::memory_order_release);
+   //_readPos.fetch_add(1u, std::memory_order_release);
 
-   std::fprintf(stdout, "--> TODO A <%s>\n", write_ptr);
+   std::fprintf(stdout, "--> TODO A <%s> <%u> <%u>\n", write_ptr, WritePos, _readPos.load());
 
    _messagesSem.release();
 }
@@ -305,10 +305,10 @@ void ym::TextLogger::writeMessagesToFile(void)
 
       _messagesSem.acquire(); // _readPos has been updated
 
-      auto const         ReadPos  = _readPos.load(std::memory_order_acquire) % getMaxNMessagesInBuffer();
+      auto const         ReadPos  = _readPos.fetch_add(1u, std::memory_order_acquire) % getMaxNMessagesInBuffer();
       auto const * const Read_Ptr = _buffer + (ReadPos * getMaxMessageSize_bytes());
 
-      std::fprintf(stdout, "--> TODO C <%s>\n", Read_Ptr);
+      std::fprintf(stdout, "--> TODO C <%s> <%u>\n", Read_Ptr, ReadPos);
 
       auto const MsgSize_bytes         = std::strlen(Read_Ptr);
       auto const NCharsWrittenInTheory = std::fwrite(Read_Ptr,
