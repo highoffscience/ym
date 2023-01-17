@@ -280,8 +280,12 @@ void ym::TextLogger::printf_Producer(str const    Format,
       write_ptr[NCharsWrittenInTheory + 1] = '\0';
    }
 
-   // _readPos doesn't need to wrap, so just incrementing until it rolls over is ok
-   //_readPos.fetch_add(1u, std::memory_order_release);
+   TODO // I think I need to reintroduce the bitfield of completed messages
+        // -----------------
+        // | 0 | 1 | 0 | 0 |
+        // -----------------
+        // In the above bitfield message #2 (index 1) is ready, we need to convey this to the consumer thread
+   _readPos.store(WritePos, std::memory_order_release);
 
    std::fprintf(stdout, "--> TODO A <%s> <%u> <%u>\n", write_ptr, WritePos, _readPos.load());
 
@@ -305,7 +309,7 @@ void ym::TextLogger::writeMessagesToFile(void)
 
       _messagesSem.acquire(); // _readPos has been updated
 
-      auto const         ReadPos  = _readPos.fetch_add(1u, std::memory_order_acquire) % getMaxNMessagesInBuffer();
+      auto const         ReadPos  = _readPos.load(std::memory_order_acquire) % getMaxNMessagesInBuffer();
       auto const * const Read_Ptr = _buffer + (ReadPos * getMaxMessageSize_bytes());
 
       std::fprintf(stdout, "--> TODO C <%s> <%u>\n", Read_Ptr, ReadPos);
