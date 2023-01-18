@@ -105,6 +105,9 @@ private:
    static_assert(std::has_single_bit(_s_MaxNMessagesInBuffer),
                  "_s_MaxNMessagesInBuffer needs to be power of 2");
 
+   static_assert(_s_MaxNMessagesInBuffer <= (sizeof(uint64) * 8_u64),
+                 "Max atomic bitfield size is 64 bits");
+
    /** WriterMode_T
     *
     * @brief State of the logger.
@@ -131,8 +134,8 @@ private:
    Timer                     _timer;
    MsgSemaphore_T            _availableSem;
    MsgSemaphore_T            _messagesSem;
-   std::atomic<uint32>       _readPos;  // these positions are slot numbers [0.._s_MaxNMessagesInBuffer)
-   std::atomic<uint32>       _writePos; //  :
+   std::atomic<uint64>       _readReadySlots;
+   std::atomic<uint32>       _writeSlot;
    std::atomic<WriterMode_T> _writerMode;
    TimeStampMode_T const     _TimeStampMode;
 };

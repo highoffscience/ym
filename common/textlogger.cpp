@@ -25,16 +25,16 @@ ym::TextLogger::TextLogger(void)
  * @brief Constructor.
  */
 ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
-   : _buffer        {'\0'                     },
-     _vGroups       {/*default*/              },
-     _writer        {/*default*/              },
-     _timer         {/*default*/              },
-     _availableSem  {getMaxNMessagesInBuffer()},
-     _messagesSem   {0_i32                    },
-     _readPos       {0_u32                    },
-     _writePos      {0_u32                    },
-     _writerMode    {WriterMode_T::Closed     },
-     _TimeStampMode {TimeStampMode            }
+   : _buffer         {'\0'                     },
+     _vGroups        {/*default*/              },
+     _writer         {/*default*/              },
+     _timer          {/*default*/              },
+     _availableSem   {getMaxNMessagesInBuffer()},
+     _messagesSem    {0_i32                    },
+     _readReadySlots {0_u64                    },
+     _writeSlot      {0_u32                    },
+     _writerMode     {WriterMode_T::Closed     },
+     _TimeStampMode  {TimeStampMode            }
 {
 }
 
@@ -228,8 +228,8 @@ void ym::TextLogger::printf_Producer(str const    Format,
 {
    _availableSem.acquire();
 
-   // _writePos doesn't need to wrap, so just incrementing until it rolls over is ok
-   auto const WritePos         = _writePos.fetch_add(1_u32, std::memory_order_acquire) % getMaxNMessagesInBuffer();
+   // _writeSlot doesn't need to wrap, so just incrementing until it rolls over is ok
+   auto const WritePos         = _writeSlot.fetch_add(1_u32, std::memory_order_acquire) % getMaxNMessagesInBuffer();
    auto *     write_ptr        = _buffer + (WritePos * getMaxMessageSize_bytes());
    auto       maxMsgSize_bytes = getMaxMessageSize_bytes();
 
@@ -280,14 +280,9 @@ void ym::TextLogger::printf_Producer(str const    Format,
       write_ptr[NCharsWrittenInTheory + 1] = '\0';
    }
 
-   TODO // I think I need to reintroduce the bitfield of completed messages
-        // -----------------
-        // | 0 | 1 | 0 | 0 |
-        // -----------------
-        // In the above bitfield message #2 (index 1) is ready, we need to convey this to the consumer thread
-   _readPos.store(WritePos, std::memory_order_release);
+   _readReadySlots.fetch_or(1_u64 << WritePos, std::memory_order_release);
 
-   std::fprintf(stdout, "--> TODO A <%s> <%u> <%u>\n", write_ptr, WritePos, _readPos.load());
+   std::fprintf(stdout, "--> TODO A <%s> <%u>\n", write_ptr, WritePos, _readReadySlots.load());
 
    _messagesSem.release();
 }
@@ -307,8 +302,14 @@ void ym::TextLogger::writeMessagesToFile(void)
 
       std::fprintf(stdout, "--> TODO B\n");
 
-      _messagesSem.acquire(); // _readPos has been updated
+      _messagesSem.acquire(); // _readReadySlots has been updated
 
+      TODO // have a private _nextReadPos
+           // if readReadySlots doesn't have the _nextReadPos bit set, wait some more
+           // else write to the buffer the amount of messages we received
+           // _availableSem.release(# of messages received);
+
+      auto const         ReadReadySlots = _readReadySlots.load(std::memory_order_acquire);
       auto const         ReadPos  = _readPos.load(std::memory_order_acquire) % getMaxNMessagesInBuffer();
       auto const * const Read_Ptr = _buffer + (ReadPos * getMaxMessageSize_bytes());
 
