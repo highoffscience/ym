@@ -228,6 +228,8 @@ void ym::TextLogger::printf_Producer(str const    Format,
 {
    _availableSem.acquire();
 
+   _producerGuard.lock();
+
    // _writeSlot doesn't need to wrap, so just incrementing until it rolls over is ok
    auto const WritePos         = _writeSlot.fetch_add(1_u32, std::memory_order_acquire) % getMaxNMessagesInBuffer();
    auto *     write_ptr        = _buffer + (WritePos * getMaxMessageSize_bytes());
@@ -280,9 +282,7 @@ void ym::TextLogger::printf_Producer(str const    Format,
       write_ptr[NCharsWrittenInTheory + 1] = '\0';
    }
 
-   _readReadySlots.fetch_or(1_u64 << WritePos, std::memory_order_release);
-
-   std::fprintf(stdout, "--> TODO A <%s> <%u>\n", write_ptr, WritePos, _readReadySlots.load());
+   _producerGuard.unlock();
 
    _messagesSem.release();
 }
@@ -303,6 +303,12 @@ void ym::TextLogger::writeMessagesToFile(void)
       std::fprintf(stdout, "--> TODO B\n");
 
       _messagesSem.acquire(); // _readReadySlots has been updated
+
+      auto nUpdates = 1_u64;
+      while ((1_u64 << _nextReadPos) & _readReadySlots.load(std::memory_order_acquire))
+      { // wait until the next message is ready
+
+      }
 
       TODO // have a private _nextReadPos
            // if readReadySlots doesn't have the _nextReadPos bit set, wait some more
@@ -339,8 +345,9 @@ void ym::TextLogger::writeMessagesToFile(void)
 
       if (_writerMode.load(std::memory_order_relaxed) == WriterMode_T::Closing)
       { // close requested
-         if (_readPos .load(std::memory_order_acquire) ==
-             _writePos.load(std::memory_order_relaxed))
+
+         // TODO cannot use _messagesSem.try_acquire() because it is allowed to fail spuriously.
+         if (_readPos == _writePos.load(std::memory_order_relaxed))
          { // no more messages in buffer
             writerEnabled = false;
          }

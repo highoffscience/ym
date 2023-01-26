@@ -17,6 +17,7 @@
 #include <atomic>
 #include <bit>
 #include <cstdarg>
+#include <mutex>
 #include <semaphore>
 #include <thread>
 
@@ -130,12 +131,13 @@ private:
 
    char                      _buffer[_s_BufferSize_bytes];
    VGroups_T                 _vGroups;
+   std::mutex                _producerGuard;
    std::thread               _writer;
    Timer                     _timer;
    MsgSemaphore_T            _availableSem;
    MsgSemaphore_T            _messagesSem;
-   std::atomic<uint64>       _readReadySlots;
-   std::atomic<uint32>       _writeSlot;
+   std::atomic<uint32>                    _writePos;
+   uint32                    _readPos;
    std::atomic<WriterMode_T> _writerMode;
    TimeStampMode_T const     _TimeStampMode;
 };
