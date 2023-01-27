@@ -27,12 +27,13 @@ ym::TextLogger::TextLogger(void)
 ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
    : _buffer         {'\0'                     },
      _vGroups        {/*default*/              },
+     _producerGuard  {/*default*/              },
      _writer         {/*default*/              },
      _timer          {/*default*/              },
      _availableSem   {getMaxNMessagesInBuffer()},
      _messagesSem    {0_i32                    },
-     _readReadySlots {0_u64                    },
-     _writeSlot      {0_u32                    },
+     _writePos       {0_u32                    },
+     _readPos        {0_u32                    },
      _writerMode     {WriterMode_T::Closed     },
      _TimeStampMode  {TimeStampMode            }
 {
@@ -228,19 +229,18 @@ void ym::TextLogger::printf_Producer(str const    Format,
 {
    _availableSem.acquire();
 
-   _producerGuard.lock();
+   // TODO
+   // _producerGuard.lock();
 
    // _writeSlot doesn't need to wrap, so just incrementing until it rolls over is ok
-   auto const WritePos         = _writeSlot.fetch_add(1_u32, std::memory_order_acquire) % getMaxNMessagesInBuffer();
+   auto const WritePos         = _writePos.fetch_add(1_u32, std::memory_order_relaxed) % getMaxNMessagesInBuffer();
    auto *     write_ptr        = _buffer + (WritePos * getMaxMessageSize_bytes());
    auto       maxMsgSize_bytes = getMaxMessageSize_bytes();
 
    if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
-   { // populate time stamp
-      auto const TimeStampSize_bytes = populateFormattedTime(write_ptr);
-
-      write_ptr        += TimeStampSize_bytes;
-      maxMsgSize_bytes -= TimeStampSize_bytes;
+   { // make room for time stamp
+      write_ptr        += getTimeStampSize_bytes();
+      maxMsgSize_bytes -= getTimeStampSize_bytes();
    }
 
    // vsnprintf writes a null terminator for us
@@ -267,22 +267,29 @@ void ym::TextLogger::printf_Producer(str const    Format,
 
       if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
       { // do some cleanup in record mode
-         if (maxMsgSize_bytes >= 2_u32)
-         { // place trailing newline since space allows
-            write_ptr[maxMsgSize_bytes - 2_u32] = '\n';
-            // last index already null
-         }
+         write_ptr[maxMsgSize_bytes - 2_u32] = '\n';
+         write_ptr[maxMsgSize_bytes - 1_u32] = '\0';
       }
 
       // don't fail here - just keep going
    }
    else if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
    { // do some cleanup in record mode
-      write_ptr[NCharsWrittenInTheory    ] = '\n';
-      write_ptr[NCharsWrittenInTheory + 1] = '\0';
+
+   // TODO this case is almost handled above
+      if (static_cast<uint32>(NCharsWrittenInTheory + 2) <= maxMsgSize_bytes)
+      {
+         write_ptr[NCharsWrittenInTheory    ] = '\n';
+         write_ptr[NCharsWrittenInTheory + 1] = '\0';
+      }
+      else
+      {
+         write_ptr[maxMsgSize_bytes - 2_u32] = '\n';
+         write_ptr[maxMsgSize_bytes - 1_u32] = '\0';
+      }
    }
 
-   _producerGuard.unlock();
+   // _producerGuard.unlock();
 
    _messagesSem.release();
 }
@@ -320,6 +327,15 @@ void ym::TextLogger::writeMessagesToFile(void)
       auto const * const Read_Ptr = _buffer + (ReadPos * getMaxMessageSize_bytes());
 
       std::fprintf(stdout, "--> TODO C <%s> <%u>\n", Read_Ptr, ReadPos);
+
+      
+      if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
+      { // populate time stamp
+         populateFormattedTime(Read_Ptr); // TODO
+
+         write_ptr        += TimeStampSize_bytes;
+         maxMsgSize_bytes -= TimeStampSize_bytes;
+      }
 
       auto const MsgSize_bytes         = std::strlen(Read_Ptr);
       auto const NCharsWrittenInTheory = std::fwrite(Read_Ptr,
@@ -365,10 +381,8 @@ void ym::TextLogger::writeMessagesToFile(void)
  *       (xxxxxxxxxxxx) xxx:xx:xx.xxx'xxx
  *
  * @param write_Ptr -- Buffer to write time stamp into.
- *
- * @return uint64 -- Size of written timestamp in bytes.
  */
-auto ym::TextLogger::populateFormattedTime(char * const write_Ptr) const -> uint64
+void ym::TextLogger::populateFormattedTime(char * const write_Ptr) const
 {
    auto const ElapsedTime_us  = _timer.getElapsedTime<std::micro>();
    auto const ElapsedTime_sec = (ElapsedTime_us /  1'000'000ll      ) % 60;
@@ -409,11 +423,4 @@ auto ym::TextLogger::populateFormattedTime(char * const write_Ptr) const -> uint
    write_Ptr[31] = write_Ptr[12];
    write_Ptr[32] = ':';
    write_Ptr[33] = ' ';
-
-   constexpr auto TimeStampSize_bytes = 34_u64;
-
-   static_assert(getMaxMessageSize_bytes() > TimeStampSize_bytes,
-                 "No room for time stamp plus newline");
-
-   return TimeStampSize_bytes;
 }

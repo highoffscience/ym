@@ -75,6 +75,7 @@ public:
    static constexpr auto getMaxMessageSize_bytes(void) { return _s_MaxMessageSize_bytes; }
    static constexpr auto getMaxNMessagesInBuffer(void) { return _s_MaxNMessagesInBuffer; }
    static constexpr auto getBufferSize_bytes    (void) { return _s_BufferSize_bytes;     }
+   static constexpr auto getTimeStampSize_bytes (void) { return _s_TimeStampSize_bytes;  }
 
    void enable (VGM_T const VG);
    void disable(VGM_T const VG);
@@ -97,17 +98,21 @@ private:
 
    void writeMessagesToFile(void);
 
-   uint64 populateFormattedTime(char * const write_Ptr) const;
+   void populateFormattedTime(char * const write_Ptr) const;
 
    static constexpr auto _s_MaxMessageSize_bytes = 256_u32;
    static constexpr auto _s_MaxNMessagesInBuffer =  64_u32;
    static constexpr auto _s_BufferSize_bytes     = _s_MaxMessageSize_bytes * _s_MaxNMessagesInBuffer;
+   static constexpr auto _s_TimeStampSize_bytes  = 34_u64;
 
    static_assert(std::has_single_bit(_s_MaxNMessagesInBuffer),
                  "_s_MaxNMessagesInBuffer needs to be power of 2");
 
    static_assert(_s_MaxNMessagesInBuffer <= (sizeof(uint64) * 8_u64),
                  "Max atomic bitfield size is 64 bits");
+
+   static_assert(_s_MaxMessageSize_bytes > _s_TimeStampSize_bytes,
+                 "No room for time stamp plus newline");
 
    /** WriterMode_T
     *
@@ -136,7 +141,7 @@ private:
    Timer                     _timer;
    MsgSemaphore_T            _availableSem;
    MsgSemaphore_T            _messagesSem;
-   std::atomic<uint32>                    _writePos;
+   std::atomic<uint32>       _writePos;
    uint32                    _readPos;
    std::atomic<WriterMode_T> _writerMode;
    TimeStampMode_T const     _TimeStampMode;
