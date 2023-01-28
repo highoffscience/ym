@@ -239,6 +239,8 @@ void ym::TextLogger::printf_Producer(str const    Format,
 
    if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
    { // make room for time stamp
+      auto const TimeStampSize_bytes = populateFormattedTime(write_ptr);
+
       write_ptr        += getTimeStampSize_bytes();
       maxMsgSize_bytes -= getTimeStampSize_bytes();
    }
@@ -289,6 +291,8 @@ void ym::TextLogger::printf_Producer(str const    Format,
       }
    }
 
+   _readReadySlots.fetch_or(1_u64 << WritePos, std::memory_order_release);
+
    // _producerGuard.unlock();
 
    _messagesSem.release();
@@ -309,25 +313,23 @@ void ym::TextLogger::writeMessagesToFile(void)
 
       std::fprintf(stdout, "--> TODO B\n");
 
-      _messagesSem.acquire(); // _readReadySlots has been updated
-
-      auto nUpdates = 1_u64;
-      while ((1_u64 << _nextReadPos) & _readReadySlots.load(std::memory_order_acquire))
+      auto nMsgs = 0_u32;
+      do
       { // wait until the next message is ready
+         _messagesSem.acquire(); // _readReadySlots has been updated
+         nMsgs++;
+      }
+      while ( !( (1_u64 << _nextReadPos) & _readReadySlots.load(std::memory_order_acquire)) );
+
+      while (nMsgs > 0_u32)
+      { // write pending messages
+
+         auto const * const Read_Ptr = _buffer + (_nextReadPos * getMaxMessageSize_bytes());
+         _nextReadPos++;
+
+         std::fprintf(stdout, "--> TODO C <%s> <%u>\n", Read_Ptr, ReadPos);
 
       }
-
-      TODO // have a private _nextReadPos
-           // if readReadySlots doesn't have the _nextReadPos bit set, wait some more
-           // else write to the buffer the amount of messages we received
-           // _availableSem.release(# of messages received);
-
-      auto const         ReadReadySlots = _readReadySlots.load(std::memory_order_acquire);
-      auto const         ReadPos  = _readPos.load(std::memory_order_acquire) % getMaxNMessagesInBuffer();
-      auto const * const Read_Ptr = _buffer + (ReadPos * getMaxMessageSize_bytes());
-
-      std::fprintf(stdout, "--> TODO C <%s> <%u>\n", Read_Ptr, ReadPos);
-
       
       if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
       { // populate time stamp
@@ -357,7 +359,7 @@ void ym::TextLogger::writeMessagesToFile(void)
       std::fprintf(stdout, "%s", Read_Ptr);
    #endif // YM_PRINT_TO_SCREEN
 
-      _availableSem.release();
+      _availableSem.release(nMsgs);
 
       if (_writerMode.load(std::memory_order_relaxed) == WriterMode_T::Closing)
       { // close requested
