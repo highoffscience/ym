@@ -136,9 +136,9 @@ private:
 
    char                      _buffer[_s_BufferSize_bytes];
    VGroups_T                 _vGroups;
-   std::mutex                _producerGuard;
    std::thread               _writer;
    Timer                     _timer;
+   std::atomic<uint64>       _readReadySlots;
    MsgSemaphore_T            _availableSem;
    MsgSemaphore_T            _messagesSem;
    std::atomic<uint32>       _writePos;

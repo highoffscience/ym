@@ -27,9 +27,9 @@ ym::TextLogger::TextLogger(void)
 ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
    : _buffer         {'\0'                     },
      _vGroups        {/*default*/              },
-     _producerGuard  {/*default*/              },
      _writer         {/*default*/              },
      _timer          {/*default*/              },
+     _readReadySlots {0_u64                    },
      _availableSem   {getMaxNMessagesInBuffer()},
      _messagesSem    {0_i32                    },
      _writePos       {0_u32                    },
@@ -229,9 +229,6 @@ void ym::TextLogger::printf_Producer(str const    Format,
 {
    _availableSem.acquire();
 
-   // TODO
-   // _producerGuard.lock();
-
    // _writeSlot doesn't need to wrap, so just incrementing until it rolls over is ok
    auto const WritePos         = _writePos.fetch_add(1_u32, std::memory_order_relaxed) % getMaxNMessagesInBuffer();
    auto *     write_ptr        = _buffer + (WritePos * getMaxMessageSize_bytes());
@@ -239,10 +236,12 @@ void ym::TextLogger::printf_Producer(str const    Format,
 
    if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
    { // make room for time stamp
-      auto const TimeStampSize_bytes = populateFormattedTime(write_ptr);
+
+      populateFormattedTime(write_ptr);
 
       write_ptr        += getTimeStampSize_bytes();
       maxMsgSize_bytes -= getTimeStampSize_bytes();
+      maxMsgSize_bytes -= 1_u32; // make room for newline
    }
 
    // vsnprintf writes a null terminator for us
@@ -269,31 +268,19 @@ void ym::TextLogger::printf_Producer(str const    Format,
 
       if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
       { // do some cleanup in record mode
-         write_ptr[maxMsgSize_bytes - 2_u32] = '\n';
-         write_ptr[maxMsgSize_bytes - 1_u32] = '\0';
+         write_ptr[maxMsgSize_bytes - 1_u32] = '\n';
+         write_ptr[maxMsgSize_bytes        ] = '\0'; // this is the true last valid slot of the buffer
       }
 
       // don't fail here - just keep going
    }
    else if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
    { // do some cleanup in record mode
-
-   // TODO this case is almost handled above
-      if (static_cast<uint32>(NCharsWrittenInTheory + 2) <= maxMsgSize_bytes)
-      {
-         write_ptr[NCharsWrittenInTheory    ] = '\n';
-         write_ptr[NCharsWrittenInTheory + 1] = '\0';
-      }
-      else
-      {
-         write_ptr[maxMsgSize_bytes - 2_u32] = '\n';
-         write_ptr[maxMsgSize_bytes - 1_u32] = '\0';
-      }
+      write_ptr[NCharsWrittenInTheory    ] = '\n';
+      write_ptr[NCharsWrittenInTheory + 1] = '\0';
    }
 
    _readReadySlots.fetch_or(1_u64 << WritePos, std::memory_order_release);
-
-   // _producerGuard.unlock();
 
    _messagesSem.release();
 }
@@ -311,60 +298,50 @@ void ym::TextLogger::writeMessagesToFile(void)
    while (writerEnabled)
    { // wait for messages to print while logger is still active
 
-      std::fprintf(stdout, "--> TODO B\n");
-
       auto nMsgs = 0_u32;
       do
       { // wait until the next message is ready
          _messagesSem.acquire(); // _readReadySlots has been updated
          nMsgs++;
       }
-      while ( !( (1_u64 << _nextReadPos) & _readReadySlots.load(std::memory_order_acquire)) );
+      while ( !( (1_u64 << _readPos) & _readReadySlots.load(std::memory_order_acquire)) );
 
       while (nMsgs > 0_u32)
       { // write pending messages
 
-         auto const * const Read_Ptr = _buffer + (_nextReadPos * getMaxMessageSize_bytes());
-         _nextReadPos++;
+         auto const * const Read_Ptr = _buffer + ((_readPos % getMaxNMessagesInBuffer()) * getMaxMessageSize_bytes());
+         _readPos++; // don't wrap - needs to keep pace with _writePos which doesn't wrap
 
-         std::fprintf(stdout, "--> TODO C <%s> <%u>\n", Read_Ptr, ReadPos);
+         TODO // write timestamp here (and this way the timestamp doesn't need to be written to the buffer -
+              //  it can be written directly via fwrite)
 
+         auto const MsgSize_bytes         = std::strlen(Read_Ptr);
+         auto const NCharsWrittenInTheory = std::fwrite(Read_Ptr,
+                                                      sizeof(*Read_Ptr),
+                                                      MsgSize_bytes,
+                                                      _outfile_uptr.get());
+
+         if (NCharsWrittenInTheory < MsgSize_bytes)
+         { // fwrite hit an internal error
+            printfInternalError("std::fprintf failed with error code %d! "
+                              "Message was '%s'\n",
+                              NCharsWrittenInTheory,
+                              Read_Ptr);
+
+            // don't fail here - just keep going
+         }
+
+      #if defined(YM_PRINT_TO_SCREEN)
+         std::fprintf(stdout, "%s", Read_Ptr);
+      #endif // YM_PRINT_TO_SCREEN
+
+         nMsgs--;
+
+         _availableSem.release();
       }
-      
-      if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
-      { // populate time stamp
-         populateFormattedTime(Read_Ptr); // TODO
-
-         write_ptr        += TimeStampSize_bytes;
-         maxMsgSize_bytes -= TimeStampSize_bytes;
-      }
-
-      auto const MsgSize_bytes         = std::strlen(Read_Ptr);
-      auto const NCharsWrittenInTheory = std::fwrite(Read_Ptr,
-                                                     sizeof(*Read_Ptr),
-                                                     MsgSize_bytes,
-                                                     _outfile_uptr.get());
-
-      if (NCharsWrittenInTheory < MsgSize_bytes)
-      { // fwrite hit an internal error
-         printfInternalError("std::fprintf failed with error code %d! "
-                             "Message was '%s'\n",
-                             NCharsWrittenInTheory,
-                             Read_Ptr);
-
-         // don't fail here - just keep going
-      }
-
-   #if defined(YM_PRINT_TO_SCREEN)
-      std::fprintf(stdout, "%s", Read_Ptr);
-   #endif // YM_PRINT_TO_SCREEN
-
-      _availableSem.release(nMsgs);
 
       if (_writerMode.load(std::memory_order_relaxed) == WriterMode_T::Closing)
       { // close requested
-
-         // TODO cannot use _messagesSem.try_acquire() because it is allowed to fail spuriously.
          if (_readPos == _writePos.load(std::memory_order_relaxed))
          { // no more messages in buffer
             writerEnabled = false;
@@ -425,4 +402,6 @@ void ym::TextLogger::populateFormattedTime(char * const write_Ptr) const
    write_Ptr[31] = write_Ptr[12];
    write_Ptr[32] = ':';
    write_Ptr[33] = ' ';
+
+   static_assert(getTimeStampSize_bytes() == 34_u64, "Time stamp is incorrect size");
 }
