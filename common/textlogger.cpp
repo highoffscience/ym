@@ -236,11 +236,6 @@ void ym::TextLogger::printf_Producer(str const    Format,
 
    if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
    { // make room for time stamp
-
-      populateFormattedTime(write_ptr);
-
-      write_ptr        += getTimeStampSize_bytes();
-      maxMsgSize_bytes -= getTimeStampSize_bytes();
       maxMsgSize_bytes -= 1_u32; // make room for newline
    }
 
@@ -293,6 +288,8 @@ void ym::TextLogger::printf_Producer(str const    Format,
  */
 void ym::TextLogger::writeMessagesToFile(void)
 {
+   char timeStampBuffer[getTimeStampSize_bytes()] = {'\0'};
+
    bool writerEnabled = true;
 
    while (writerEnabled)
@@ -312,8 +309,14 @@ void ym::TextLogger::writeMessagesToFile(void)
          auto const * const Read_Ptr = _buffer + ((_readPos % getMaxNMessagesInBuffer()) * getMaxMessageSize_bytes());
          _readPos++; // don't wrap - needs to keep pace with _writePos which doesn't wrap
 
-         TODO // write timestamp here (and this way the timestamp doesn't need to be written to the buffer -
-              //  it can be written directly via fwrite)
+         // if in record mode only
+         populateFormattedTime(timeStampBuffer);
+
+         // TODO return value
+         std::fwrite(timeStampBuffer,
+                     sizeof(*timeStampBuffer),
+                     getTimeStampSize_bytes(),
+                     _outfile_uptr.get());
 
          auto const MsgSize_bytes         = std::strlen(Read_Ptr);
          auto const NCharsWrittenInTheory = std::fwrite(Read_Ptr,
@@ -332,7 +335,7 @@ void ym::TextLogger::writeMessagesToFile(void)
          }
 
       #if defined(YM_PRINT_TO_SCREEN)
-         std::fprintf(stdout, "%s", Read_Ptr);
+         std::fprintf(stdout, "%s%s", timeStampBuffer, Read_Ptr);
       #endif // YM_PRINT_TO_SCREEN
 
          nMsgs--;
