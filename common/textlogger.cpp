@@ -229,50 +229,33 @@ void ym::TextLogger::printf_Producer(str const    Format,
 {
    _availableSem.acquire();
 
-   // _writeSlot doesn't need to wrap, so just incrementing until it rolls over is ok
-   auto const WritePos         = _writePos.fetch_add(1_u32, std::memory_order_relaxed) % getMaxNMessagesInBuffer();
-   auto *     write_ptr        = _buffer + (WritePos * getMaxMessageSize_bytes());
-   auto       maxMsgSize_bytes = getMaxMessageSize_bytes();
-
-   if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
-   { // make room for time stamp
-      maxMsgSize_bytes -= 1_u32; // make room for newline
-   }
+   // _writePos doesn't need to wrap (power of 2), so just incrementing until it rolls over is ok
+   auto   const WritePos  = _writePos.fetch_add(1_u32, std::memory_order_relaxed) % getMaxNMessagesInBuffer();
+   auto * const write_Ptr = _buffer + (WritePos * getMaxMessageSize_bytes());
 
    // vsnprintf writes a null terminator for us
-   auto const NCharsWrittenInTheory = std::vsnprintf(write_ptr, maxMsgSize_bytes, Format, args);
+   auto const NCharsWrittenInTheory = std::vsnprintf(write_Ptr, getMaxMessageSize_bytes(), Format, args);
 
    if (NCharsWrittenInTheory < 0)
    { // snprintf hit an internal error
       printfInternalError("std::vsnprintf failed with error code %d! "
                           "Message was '%s'\n",
                           NCharsWrittenInTheory,
-                          write_ptr);
+                          write_Ptr);
 
-      std::strncpy(write_ptr, "error in printf (internal vsnprintf error)", maxMsgSize_bytes);
+      std::strncpy(write_Ptr, "error in printf (internal vsnprintf error)", getMaxMessageSize_bytes());
 
       // don't fail here - just keep going
    }
-   else if (static_cast<uint32>(NCharsWrittenInTheory) >= maxMsgSize_bytes)
+   else if (static_cast<uint32>(NCharsWrittenInTheory) >= getMaxMessageSize_bytes())
    { // not everything was printed to the buffer
       printfInternalError("Failed to write everything to the buffer! NCharsWrittenInTheory = %ld. "
                           "Msg size = %lu bytes. Message = '%s'\n",
                           NCharsWrittenInTheory,
-                          maxMsgSize_bytes,
-                          write_ptr);
-
-      if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
-      { // do some cleanup in record mode
-         write_ptr[maxMsgSize_bytes - 1_u32] = '\n';
-         write_ptr[maxMsgSize_bytes        ] = '\0'; // this is the true last valid slot of the buffer
-      }
+                          getMaxMessageSize_bytes(),
+                          write_Ptr);
 
       // don't fail here - just keep going
-   }
-   else if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
-   { // do some cleanup in record mode
-      write_ptr[NCharsWrittenInTheory    ] = '\n';
-      write_ptr[NCharsWrittenInTheory + 1] = '\0';
    }
 
    _readReadySlots.fetch_or(1_u64 << WritePos, std::memory_order_release);
@@ -285,12 +268,17 @@ void ym::TextLogger::printf_Producer(str const    Format,
  * @brief Writes all pending messages in the buffer to the outfile.
  *
  * @note This is the consumer thread.
+ * 
+ * @note There's also full-blown defense sections where your ally has to stop and inject a
+ *       a virus into three separate pillars while endless waves of enemies try to kill them
+ *       because obviously they don't want those pillars to have viruses injected into them.
  */
+TODO // make it so _outfile can point to stdout somehow
 void ym::TextLogger::writeMessagesToFile(void)
 {
    char timeStampBuffer[getTimeStampSize_bytes()] = {'\0'};
 
-   bool writerEnabled = true;
+   auto writerEnabled = true;
 
    while (writerEnabled)
    { // wait for messages to print while logger is still active
@@ -306,37 +294,32 @@ void ym::TextLogger::writeMessagesToFile(void)
       while (nMsgs > 0_u32)
       { // write pending messages
 
-         auto const * const Read_Ptr = _buffer + ((_readPos % getMaxNMessagesInBuffer()) * getMaxMessageSize_bytes());
-         _readPos++; // don't wrap - needs to keep pace with _writePos which doesn't wrap
+         auto         const ReadPos  = _readPos % getMaxNMessagesInBuffer();
+         auto const * const Read_Ptr = _buffer + (ReadPos * getMaxMessageSize_bytes());
+         _readPos++; // doesn't wrap - needs to keep pace with _writePos which doesn't wrap
 
-         // if in record mode only
-         populateFormattedTime(timeStampBuffer);
+         auto nCharsWrittenInTheory = -1; // default to error value
 
-         // TODO return value
-         std::fwrite(timeStampBuffer,
-                     sizeof(*timeStampBuffer),
-                     getTimeStampSize_bytes(),
-                     _outfile_uptr.get());
+         if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
+         { // print message with time stamp
+            populateFormattedTime(timeStampBuffer);
 
-         auto const MsgSize_bytes         = std::strlen(Read_Ptr);
-         auto const NCharsWrittenInTheory = std::fwrite(Read_Ptr,
-                                                      sizeof(*Read_Ptr),
-                                                      MsgSize_bytes,
-                                                      _outfile_uptr.get());
+            nCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), "%s%s\n", timeStampBuffer, Read_Ptr);
+         }
+         else
+         { // print message plain
+            nCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), "%s", Read_Ptr);
+         }
 
-         if (NCharsWrittenInTheory < MsgSize_bytes)
+         if (nCharsWrittenInTheory < 0)
          { // fwrite hit an internal error
             printfInternalError("std::fprintf failed with error code %d! "
-                              "Message was '%s'\n",
-                              NCharsWrittenInTheory,
-                              Read_Ptr);
+                                "Message was '%s'\n",
+                                nCharsWrittenInTheory,
+                                Read_Ptr);
 
             // don't fail here - just keep going
          }
-
-      #if defined(YM_PRINT_TO_SCREEN)
-         std::fprintf(stdout, "%s%s", timeStampBuffer, Read_Ptr);
-      #endif // YM_PRINT_TO_SCREEN
 
          nMsgs--;
 
