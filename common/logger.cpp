@@ -43,6 +43,8 @@ bool ym::Logger::openOutfile(str const Filename)
  *       derived classes handling the file operations.
  *
  * @note The conditional assures the logger is only associated with one file.
+ * 
+ * @note If Filename is null we open to stdout instead of asserting.
  *
  * @param Filename       -- Name of file to open.
  * @param TSFilenameMode -- Mode whether to append time stamps to filename.
@@ -56,7 +58,12 @@ bool ym::Logger::openOutfile(str    const Filename,
 
    if (!isOutfileOpened())
    { // file not opened
-      if (TSFilenameMode == TimeStampFilenameMode_T::Append)
+      if (!Filename)
+      { // no filename specified - default to stdout
+         _outfile_uptr.reset(stdout);
+         opened = static_cast<bool>(_outfile_uptr);
+      }
+      else if (TSFilenameMode == TimeStampFilenameMode_T::Append)
       { // append file stamp
          opened = openOutfile_appendTimeStamp(Filename);
       }
@@ -68,7 +75,7 @@ bool ym::Logger::openOutfile(str    const Filename,
    }
 
    return opened;
-}
+}  
 
 /** openOutfile_appendTimeStamp
  *

@@ -28,7 +28,7 @@ ym::ut::TestSuite::TestSuite(void)
 auto ym::ut::TestSuite::OpenAndClose::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    TextLogger t;
-   t.open("tmp/hello.txt");
+   t.open(nullptr);
    t.enable(VGM_T::Logger);
    t.printf(VGM_T::Logger, "Go! Torchic!");
 
