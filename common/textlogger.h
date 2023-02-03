@@ -67,7 +67,7 @@ public:
 
    bool isOpen(void) const;
 
-   bool open(void); TODO // opens to stdout...do I want this?
+   bool openToStdout(void);
    bool open(str    const Filename);
    bool open(str    const Filename,
              TSFM_T const TSFilenameMode);

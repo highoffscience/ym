@@ -80,6 +80,21 @@ auto ym::TextLogger::getGlobalInstance(void) -> TextLogger *
    return &s_instance;
 }
 
+/** openToStdout
+ *
+ * @brief Opens and prepares to write to stdout.
+ * 
+ * @note nullptr or empty string will default the logger to writing to stdout.
+ *
+ * @return bool -- Whether the outfile was opened successfully, false otherwise.
+ */
+bool ym::TextLogger::openToStdout(void)
+{
+   TODO
+   auto const Opened = openStdout(Filename, TSFilenameMode);
+   return open("");
+}
+
 /** open
  *
  * @brief Opens and prepares the logger to be written to.

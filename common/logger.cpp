@@ -18,8 +18,18 @@
  * @note _outfile_uptr is set to null to serve as a flag that the logger is uninitialized.
  */
 ym::Logger::Logger(void)
-   : _outfile_uptr {nullptr, [](std::FILE * const file_Ptr) { std::fclose(file_Ptr); }}
+   : _outfile_uptr {nullptr, [](std::FILE * const file_Ptr) { if (file_Ptr != stdout) { std::fclose(file_Ptr); } }}
 {
+}
+
+/** openStdout
+ *
+ * @brief TODO
+ */
+bool ym::Logger::openStdout(void)
+{
+   _outfile_uptr.reset(stdout);
+   return static_cast<bool>(_outfile_uptr);
 }
 
 /** openOutfile
@@ -43,8 +53,6 @@ bool ym::Logger::openOutfile(str const Filename)
  *       derived classes handling the file operations.
  *
  * @note The conditional assures the logger is only associated with one file.
- * 
- * @note If Filename is null we open to stdout instead of asserting.
  *
  * @param Filename       -- Name of file to open.
  * @param TSFilenameMode -- Mode whether to append time stamps to filename.
@@ -54,23 +62,21 @@ bool ym::Logger::openOutfile(str const Filename)
 bool ym::Logger::openOutfile(str    const Filename,
                              TSFM_T const TSFilenameMode)
 {
-   bool opened = false; // until told otherwise
+   auto opened = false; // until told otherwise
 
    if (!isOutfileOpened())
    { // file not opened
-      if (!Filename)
-      { // no filename specified - default to stdout
-         _outfile_uptr.reset(stdout);
-         opened = static_cast<bool>(_outfile_uptr);
-      }
-      else if (TSFilenameMode == TimeStampFilenameMode_T::Append)
-      { // append file stamp
-         opened = openOutfile_appendTimeStamp(Filename);
-      }
-      else
-      { // do not append file stamp (default fallthrough)
-         _outfile_uptr.reset(std::fopen(Filename, "w"));
-         opened = static_cast<bool>(_outfile_uptr);
+      if (Filename && *Filename != '\0')
+      { // valid filename specified
+         if (TSFilenameMode == TimeStampFilenameMode_T::Append)
+         { // append file stamp
+            opened = openOutfile_appendTimeStamp(Filename);
+         }
+         else
+         { // do not append file stamp (default fallthrough)
+            _outfile_uptr.reset(std::fopen(Filename, "w"));
+            opened = static_cast<bool>(_outfile_uptr);
+         }
       }
    }
 
