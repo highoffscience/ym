@@ -71,7 +71,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym
 
       isOpen = results.get[bool]("IsOpen")
-      print(f"isOpen = {isOpen}")
+      print(f"testsuite.py: isOpen = {isOpen}")
 
 # kick-off
 if __name__ == "__main__":

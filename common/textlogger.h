@@ -94,6 +94,8 @@ private:
    void printf_Producer(str const    Format,
                         std::va_list args);
 
+   bool open_Helper(bool const Opened);
+
    void close_Helper(str          msg,
                      /*variadic*/ ...);
 

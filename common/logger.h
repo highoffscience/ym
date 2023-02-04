@@ -62,7 +62,7 @@ protected:
    // classes to implement these functions without the overhead of
    // virtual calls.
 
-   bool openStdout(void);
+   bool openOutfileToStdout(void);
    bool openOutfile(str    const Filename);
    bool openOutfile(str    const Filename,
                     TSFM_T const TSFilenameMode);

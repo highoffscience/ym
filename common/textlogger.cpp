@@ -83,16 +83,12 @@ auto ym::TextLogger::getGlobalInstance(void) -> TextLogger *
 /** openToStdout
  *
  * @brief Opens and prepares to write to stdout.
- * 
- * @note nullptr or empty string will default the logger to writing to stdout.
  *
  * @return bool -- Whether the outfile was opened successfully, false otherwise.
  */
 bool ym::TextLogger::openToStdout(void)
 {
-   TODO
-   auto const Opened = openStdout(Filename, TSFilenameMode);
-   return open("");
+   return open_Helper(openOutfileToStdout());
 }
 
 /** open
@@ -122,15 +118,7 @@ bool ym::TextLogger::open(str const Filename)
 bool ym::TextLogger::open(str    const Filename,
                           TSFM_T const TSFilenameMode)
 {
-   bool opened = openOutfile(Filename, TSFilenameMode);
-
-   if (opened)
-   { // file opened successfully
-      _writer     = std::thread(&TextLogger::writeMessagesToFile, this); // starts the thread
-      _writerMode = WriterMode_T::Open;
-   }
-
-   return opened;
+   return open_Helper(openOutfile(Filename, TSFilenameMode));
 }
 
 /** close
@@ -155,6 +143,25 @@ void ym::TextLogger::close(void)
 
       _writerMode.store(WriterMode_T::Closed, std::memory_order_relaxed);
    }
+}
+
+/** open_Helper
+ * 
+ * @brief Starts the consumer thread of the outfile was successfully opened.
+ * 
+ * @param Opened -- Whether or not the outfile was successfully opened.
+ * 
+ * @return bool -- Whether or not the outfile was successfully opened.
+ */
+bool ym::TextLogger::open_Helper(bool const Opened)
+{
+   if (Opened)
+   { // file opened successfully
+      _writer     = std::thread(&TextLogger::writeMessagesToFile, this); // starts the thread
+      _writerMode = WriterMode_T::Open;
+   }
+
+   return Opened;
 }
 
 /** close_Helper
@@ -288,7 +295,6 @@ void ym::TextLogger::printf_Producer(str const    Format,
  *       a virus into three separate pillars while endless waves of enemies try to kill them
  *       because obviously they don't want those pillars to have viruses injected into them.
  */
-TODO // make it so _outfile can point to stdout somehow
 void ym::TextLogger::writeMessagesToFile(void)
 {
    char timeStampBuffer[getTimeStampSize_bytes()] = {'\0'};
@@ -404,5 +410,5 @@ void ym::TextLogger::populateFormattedTime(char * const write_Ptr) const
    write_Ptr[32] = ':';
    write_Ptr[33] = ' ';
 
-   static_assert(getTimeStampSize_bytes() == 34_u64, "Time stamp is incorrect size");
+   static_assert(getTimeStampSize_bytes() == 34_u64, "Time stamp buffer is incorrect size");
 }

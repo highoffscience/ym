@@ -22,11 +22,11 @@ ym::Logger::Logger(void)
 {
 }
 
-/** openStdout
+/** openOutfileToStdout
  *
  * @brief TODO
  */
-bool ym::Logger::openStdout(void)
+bool ym::Logger::openOutfileToStdout(void)
 {
    _outfile_uptr.reset(stdout);
    return static_cast<bool>(_outfile_uptr);
