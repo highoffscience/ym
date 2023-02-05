@@ -6,6 +6,7 @@
 
 import os
 import sys
+import unittest
 
 try:
    # @note Grabs the first directory in the chain named unittests/.
@@ -26,41 +27,53 @@ class TestSuite(testsuitebase.TestSuiteBase):
    @brief Collection of all tests for SUT TextLogger.
    """
 
-   def __init__(self):
+   # def __init__(self):
+   #    """
+   #    @brief Constructor.
+   #    """
+   #    super().__init__("ym/common/", "textlogger", "TextLogger", [])
+
+   #    # self.test_cases = {
+   #    #    "OpenAndClose": self.analyze_results_OpenAndClose
+   #    # }
+
+   @classmethod
+   def setUpClass(cls):
       """
       @brief Constructor.
       """
-      super().__init__("ym/common/", "textlogger", "TextLogger", [])
 
-      self.test_cases = {
-         "OpenAndClose": self.analyze_results_OpenAndClose
-      }
+      super().setUpBaseClass("ym/common/", "textlogger", "TextLogger", [])
 
-   def run(self, test_case_names:list=None):
-      """
-      @brief Runs the test suite.
-      """
+      # self.test_cases = {
+      #    "OpenAndClose": self.analyze_results_OpenAndClose
+      # }
 
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
+   # def run(self, test_case_names:list=None):
+   #    """
+   #    @brief Runs the test suite.
+   #    """
 
-      ts = ym.ut.TestSuite()
+   #    from cppyy.gbl import std
+   #    from cppyy.gbl import ym
 
-      if test_case_names is not None:
-         for name in test_case_names:
-            try:
-               results = ts.runTestCase(name)
-               self.test_cases[name](results)
-            except:
-               print(f"Something failed with test case {name}")
-      else:
-         all_results = ts.runAllTestCases()
-         for test_case_data in all_results:
-            name = test_case_data.first
-            test_case_results = test_case_data.second
-            self.test_cases[name](test_case_results)
+   #    ts = ym.ut.TestSuite()
 
-   def analyze_results_OpenAndClose(self, results):
+   #    if test_case_names is not None:
+   #       for name in test_case_names:
+   #          try:
+   #             results = ts.runTestCase(name)
+   #             self.test_cases[name](results)
+   #          except:
+   #             print(f"Something failed with test case {name}")
+   #    else:
+   #       all_results = ts.runAllTestCases()
+   #       for test_case_data in all_results:
+   #          name = test_case_data.first
+   #          test_case_results = test_case_data.second
+   #          self.test_cases[name](test_case_results)
+
+   def test_OpenAndClose(self):
       """
       @brief Analyzes results from test case.
 
@@ -70,8 +83,12 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
+      results = self.run_test_case("OpenAndClose")
+
+      self.assertTrue(results, "results is None")
+
       isOpen = results.get[bool]("IsOpen")
-      print(f"testsuite.py: isOpen = {isOpen}")
+      self.assertTrue(isOpen, "text logger failed to open")
 
 # kick-off
 if __name__ == "__main__":
@@ -79,5 +96,6 @@ if __name__ == "__main__":
       print("Needs to be run in the textlogger/ directory")
       sys.exit(1)
 
-   ts = TestSuite()
-   ts.run()
+   #ts = TestSuite()
+   #ts.run()
+   unittest.main()
