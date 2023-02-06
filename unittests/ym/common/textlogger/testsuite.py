@@ -27,51 +27,35 @@ class TestSuite(testsuitebase.TestSuiteBase):
    @brief Collection of all tests for SUT TextLogger.
    """
 
-   # def __init__(self):
-   #    """
-   #    @brief Constructor.
-   #    """
-   #    super().__init__("ym/common/", "textlogger", "TextLogger", [])
-
-   #    # self.test_cases = {
-   #    #    "OpenAndClose": self.analyze_results_OpenAndClose
-   #    # }
-
    @classmethod
    def setUpClass(cls):
       """
-      @brief Constructor.
+      @brief Acting constructor.
       """
 
-      super().setUpBaseClass("ym/common/", "textlogger", "TextLogger", [])
+      super().setUpBaseClass(filepath="ym/common/",
+                             filename="textlogger",
+                             SUT_name="TextLogger",
+                             dependent_filepaths=[])
 
-      # self.test_cases = {
-      #    "OpenAndClose": self.analyze_results_OpenAndClose
-      # }
+   @classmethod
+   def tearDownClass(cls):
+      """
+      @brief Acting destructor.
+      """
+      pass
 
-   # def run(self, test_case_names:list=None):
-   #    """
-   #    @brief Runs the test suite.
-   #    """
+   def setUp(self):
+      """
+      @brief Set up logic that is run before each test.
+      """
+      pass
 
-   #    from cppyy.gbl import std
-   #    from cppyy.gbl import ym
-
-   #    ts = ym.ut.TestSuite()
-
-   #    if test_case_names is not None:
-   #       for name in test_case_names:
-   #          try:
-   #             results = ts.runTestCase(name)
-   #             self.test_cases[name](results)
-   #          except:
-   #             print(f"Something failed with test case {name}")
-   #    else:
-   #       all_results = ts.runAllTestCases()
-   #       for test_case_data in all_results:
-   #          name = test_case_data.first
-   #          test_case_results = test_case_data.second
-   #          self.test_cases[name](test_case_results)
+   def tearDown(self):
+      """
+      @brief Tear down logic that is run after each test.
+      """
+      pass
 
    def test_OpenAndClose(self):
       """
@@ -90,12 +74,13 @@ class TestSuite(testsuitebase.TestSuiteBase):
       isOpen = results.get[bool]("IsOpen")
       self.assertTrue(isOpen, "text logger failed to open")
 
+      isClosed = results.get[bool]("IsClosed")
+      self.assertTrue(isClosed, "text logger failed to close")
+
 # kick-off
 if __name__ == "__main__":
    if os.path.basename(os.getcwd()) != "textlogger":
       print("Needs to be run in the textlogger/ directory")
       sys.exit(1)
 
-   #ts = TestSuite()
-   #ts.run()
    unittest.main()

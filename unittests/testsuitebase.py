@@ -25,9 +25,12 @@ class TestSuiteBase(unittest.TestCase):
                            SUT_name: str,
                            dependent_filepaths: list):
       """
-      @brief Constructor.
+      @brief Acting constructor.
 
-      TODO params
+      @param filepath            -- Path of SUT relative to unittests/ directory.
+      @param filename            -- Name of SUT file.
+      @param SUT_name            -- Name of SUT.
+      @param dependent_filepaths -- Relative paths of dependent SUT's.
       """
 
       cls.filepath = filepath
@@ -70,7 +73,11 @@ class TestSuiteBase(unittest.TestCase):
 
    def run_test_case(self, test_case_name):
       """
-      @brief TODO
+      @brief Runs the specified test case.
+
+      @param test_case_name -- Name of test case to run.
+
+      @return DataShuttle -- Dictionary containing results of test case.
       """
 
       from cppyy.gbl import std
@@ -85,13 +92,6 @@ class TestSuiteBase(unittest.TestCase):
          results = None
 
       return results
-
-   # def run(self, test_case_names:list=None):
-   #    """
-   #    @brief Method to be overriden that runs the test suite.
-   #    """
-
-   #    raise NotImplementedError()
 
 # kick-off
 if __name__ == "__main__":

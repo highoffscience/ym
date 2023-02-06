@@ -96,7 +96,7 @@ private:
  */
 template <Loggable... Args_T>
 inline Ymception::Ymception([[maybe_unused]] str    const    Format,
-                            [[maybe_unused]]Args_T const... Args)
+                            [[maybe_unused]] Args_T const... Args)
    : _msg{'\0'}
 {
    // TODO I get a format security warning here - Format isn't a string literal.

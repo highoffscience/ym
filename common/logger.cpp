@@ -24,7 +24,9 @@ ym::Logger::Logger(void)
 
 /** openOutfileToStdout
  *
- * @brief TODO
+ * @brief Opens outfile to standard out.
+ * 
+ * @return bool -- Tru if the outfile was successfully opened, false otherwise.
  */
 bool ym::Logger::openOutfileToStdout(void)
 {

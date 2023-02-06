@@ -21,7 +21,7 @@ ym::ut::TestSuite::TestSuite(void)
 
 /** run
  *
- * @brief TODO.
+ * @brief Opens and closes the text logger.
  *
  * @return DataShuttle -- Important values acquired during run of test.
  */
@@ -32,7 +32,13 @@ auto ym::ut::TestSuite::OpenAndClose::run([[maybe_unused]] DataShuttle const & I
    t.enable(VGM_T::Logger);
    t.printf(VGM_T::Logger, "Go! Torchic!");
 
+   auto const IsOpen = t.isOpen();
+
+   t.close(); // writer thread is joined with the thread that calls this
+   auto const IsClosed = !t.isOpen();
+
    return {
-      {"IsOpen", t.isOpen()}
+      {"IsOpen",   IsOpen},
+      {"IsClosed", IsClosed}
    };
 }

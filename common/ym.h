@@ -38,6 +38,7 @@ static_assert(__cplusplus >= 202002L, "At least C++20 standard required");
  *        will be avoided.
  */
 
+TODO // macros should be all caps to keep with standard coding convention
 #if defined(__clang__)
 #define YM_IsClang
 #define YM_IsClang_ID 1

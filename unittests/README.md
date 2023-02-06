@@ -16,3 +16,12 @@ Edit runner.py
 Edit CMakeLists.txt
 
 If the SUT requires extra care to test make sure CMakeLists.txt exists in the directory
+
+To run a unittest, eg...
+python -m unittest ym.common.textlogger.testsuite
+
+To run a specific test, eg...
+python -m unittest ym.common.textlogger.testsuite.TestSuite.test_OpenAndClose
+
+Test suites can also be run in the directory, eg...
+python testsuite.py
