@@ -118,7 +118,15 @@ bool ym::TextLogger::open(str const Filename)
 bool ym::TextLogger::open(str    const Filename,
                           TSFM_T const TSFilenameMode)
 {
-   return open_Helper(openOutfile(Filename, TSFilenameMode));
+   auto opened = false;
+
+#if defined(YM_PRINT_TO_SCREEN)
+   opened = openToStdout();
+#else
+   opened = open_Helper(openOutfile(Filename, TSFilenameMode));
+#endif // YM_PRINT_TO_SCREEN
+
+   return opened;
 }
 
 /** close

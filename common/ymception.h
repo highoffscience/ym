@@ -15,13 +15,15 @@
 #include <exception>
 #include <type_traits>
 
-/** YM_DeclYmcept
+/** YM_DECL_YMCEPT
  *
  * @brief Convenience macro to declare empty custom Ymception classes.
  *
  * @param DerivedYmception_ -- Name of custom Ymception class.
+ * 
+ * TODO store name of ymception
  */
-#define YM_DeclYmcept(DerivedYmception_)                        \
+#define YM_DECL_YMCEPT(DerivedYmception_)                        \
    class DerivedYmception_ : public Ymception                   \
    {                                                            \
    public:                                                      \

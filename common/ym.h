@@ -26,67 +26,67 @@ static_assert(__cplusplus >= 202002L, "At least C++20 standard required");
  *
  * @note GNUC, CLANG, and MSVC are the only compilers tested.
  *
- * @note We define YM_IsXXX_ID to verify compiler mutual exclusion. We don't
+ * @note We define YM_IS_XXX_ID to verify compiler mutual exclusion. We don't
  *       want to define YM_IS_GNUC to have a value since it is now technically
  *       defined no matter the value so errors like
  *
- *          #define YM_IsXXX 0
- *          #if defined(YM_IsXXX)
+ *          #define YM_IS_XXX 0
+ *          #if defined(YM_IS_XXX)
  *             // this code executes!
  *          #endif
  *
  *        will be avoided.
  */
 
-TODO // macros should be all caps to keep with standard coding convention
 #if defined(__clang__)
-#define YM_IsClang
-#define YM_IsClang_ID 1
+   #define YM_IS_CLANG
+   #define YM_IS_CLANG_ID 1
 #else
-#define YM_IsClang_ID 0
+   #define YM_IS_CLANG_ID 0
 #endif // __clang__
 
-#if  defined( __GNUG__  ) && \
-    !defined(YM_IsClang) // clang defines __GNUG__ too
-#define YM_IsGNU
-#define YM_IsGNU_ID 1
-#else
-#define YM_IsGNU_ID 0
-#endif // __GNUG__ && !YM_IsClang
+#if defined(__GNUG__)
+   #if !defined(YM_IS_CLANG) // clang defines __GNUG__ too
+      #define YM_IS_GNU
+      #define YM_IS_GNU_ID 1
+   #else
+      #define YM_IS_GNU_ID 0
+   #endif // !YM_IS_CLANG
+#endif // __GNUG__
 
 #if defined(_MSC_VER)
-#define YM_IsMSVC
-#define YM_IsMSVC_ID 1
+   #define YM_IS_MSVC
+   #define YM_IS_MSVC_ID 1
 #else
-#define YM_IsMSVC_ID 0
+   #define YM_IS_MSVC_ID 0
 #endif // _MSC_VER
 
 // mutual exclusion test
-static_assert(YM_IsClang_ID +
-              YM_IsGNU_ID   +
-              YM_IsMSVC_ID  == 1, 
+static_assert(YM_IS_CLANG_ID +
+              YM_IS_GNU_ID   +
+              YM_IS_MSVC_ID  == 1, 
               "Multiple (or no) compilers detected");
 
 // don't pollute namespace
-#undef YM_IsClang_ID
-#undef YM_IsGNU_ID
-#undef YM_IsMSVC_ID
+#undef YM_IS_CLANG_ID
+#undef YM_IS_GNU_ID
+#undef YM_IS_MSVC_ID
 
 // ----------------------------------------------------------------------------
 
-#if defined(YM_IsMSVC_ID)
+#if defined(YM_IS_MSVC)
 
-/**
- * @brief MSVC shenanigans.
- *
- * @ref <https://docs.microsoft.com/en-us/cpp/preprocessor/warning>.
- */
+   /**
+    * @brief MSVC shenanigans.
+    *
+    * @ref <https://docs.microsoft.com/en-us/cpp/preprocessor/warning>.
+    */
 
-#pragma warning(disable: 26812) // stop bugging me about unscoped enums
-#pragma warning(error:    4062) // switch on all enum values
-#pragma warning(error:    4227) // reference of const should be pointer to const
+   #pragma warning(disable: 26812) // stop bugging me about unscoped enums
+   #pragma warning(error:    4062) // switch on all enum values
+   #pragma warning(error:    4227) // reference of const should be pointer to const
 
-#endif // YM_IsMSVC_ID
+#endif // YM_IS_MSVC
 
 // ----------------------------------------------------------------------------
 
@@ -95,24 +95,24 @@ static_assert(YM_IsClang_ID +
  */
 
 #if !defined(YM_DBG)
-#define YM_DBG
+   #define YM_DBG
 #endif // YM_DBG
 
-#if  defined(YM_IsMSVC)
-#if  defined(_DEBUG)
-#if !defined(YM_DBG)
-static_assert(false, "Clashing intentions of debug levels detected")
-#endif // !YM_DBG
-#endif // _DEBUG
-#endif // YM_IsMSVC
+#if defined(YM_IS_MSVC)
+   #if defined(_DEBUG)
+      #if !defined(YM_DBG)
+         static_assert(false, "Clashing intentions of debug levels detected")
+      #endif // !YM_DBG
+   #endif // _DEBUG
+#endif // YM_IS_MSVC
 
 #if defined(YM_DBG)
-#define YM_PrintToScreen
+   #define YM_PRINT_TO_SCREEN // redirects output to stdout
 #endif // YM_DBG
 
-#if !defined(YM_Experimental)
-// #define YM_Experimental
-#endif // !YM_Experimental
+#if !defined(YM_EXPERIMENTAL)
+   // #define YM_EXPERIMENTAL
+#endif // !YM_EXPERIMENTAL
 
 /**
  * @brief Helper macros for the "the big five".
@@ -122,11 +122,11 @@ static_assert(false, "Clashing intentions of debug levels detected")
  * @param ClassName_ -- Name of class.
  */
 
-#define YM_NoDefault(       ClassName_ ) ClassName_              (void              ) = delete;
-#define YM_NoCopy(          ClassName_ ) ClassName_              (ClassName_ const &) = delete;
-#define YM_NoAssign(        ClassName_ ) ClassName_ & operator = (ClassName_ const &) = delete;
-#define YM_NoMoveConstruct( ClassName_ ) ClassName_              (ClassName_ &&     ) = delete;
-#define YM_NoMoveAssign(    ClassName_ ) ClassName_ & operator = (ClassName_ &&     ) = delete;
+#define YM_NO_DEFAULT(        ClassName_ ) ClassName_              (void              ) = delete;
+#define YM_NO_COPY(           ClassName_ ) ClassName_              (ClassName_ const &) = delete;
+#define YM_NO_ASSIGN(         ClassName_ ) ClassName_ & operator = (ClassName_ const &) = delete;
+#define YM_NO_MOVE_CONSTRUCT( ClassName_ ) ClassName_              (ClassName_ &&     ) = delete;
+#define YM_NO_Move_ASSIGN(    ClassName_ ) ClassName_ & operator = (ClassName_ &&     ) = delete;
 
 // ----------------------------------------------------------------------------
 
@@ -287,7 +287,7 @@ constexpr auto ymToUnderlying(T const Value) noexcept
 
 // ----------------------------------------------------------------------------
 
-/** YM_LiteralDecl
+/** YM_LITERAL_DECL
  *
  * @brief Defines a set of user-defined literals for commonly used types.
  *
@@ -298,7 +298,7 @@ constexpr auto ymToUnderlying(T const Value) noexcept
  * 
  * @return auto -- Input casted to TypeToCastTo_.
  */
-#define YM_LiteralDecl(UDL_, TypeToCastTo_)                                                                 \
+#define YM_LITERAL_DECL(UDL_, TypeToCastTo_)                                                                 \
    constexpr auto operator"" _##UDL_(unsigned long long int    i) { return static_cast<TypeToCastTo_>(i); } \
    constexpr auto operator"" _##UDL_(              long double d) { return static_cast<TypeToCastTo_>(d); } \
                                                                                                             \
@@ -306,21 +306,21 @@ constexpr auto ymToUnderlying(T const Value) noexcept
                  std::is_same_v<decltype(0.0_##UDL_), TypeToCastTo_>,                                       \
                  "User defined literal "#UDL_" failed to cast");
 
-YM_LiteralDecl(i8,  int8   )
-YM_LiteralDecl(i16, int16  )
-YM_LiteralDecl(i32, int32  )
-YM_LiteralDecl(i64, int64  )
+YM_LITERAL_DECL(i8,  int8   )
+YM_LITERAL_DECL(i16, int16  )
+YM_LITERAL_DECL(i32, int32  )
+YM_LITERAL_DECL(i64, int64  )
 
-YM_LiteralDecl(u8,  uint8  )
-YM_LiteralDecl(u16, uint16 )
-YM_LiteralDecl(u32, uint32 )
-YM_LiteralDecl(u64, uint64 )
+YM_LITERAL_DECL(u8,  uint8  )
+YM_LITERAL_DECL(u16, uint16 )
+YM_LITERAL_DECL(u32, uint32 )
+YM_LITERAL_DECL(u64, uint64 )
 
-YM_LiteralDecl(f32, float32)
-YM_LiteralDecl(f64, float64)
-YM_LiteralDecl(f80, float80)
+YM_LITERAL_DECL(f32, float32)
+YM_LITERAL_DECL(f64, float64)
+YM_LITERAL_DECL(f80, float80)
 
 // don't pollute namespace
-#undef YM_LiteralDecl
+#undef YM_LITERAL_DECL
 
 } // ym

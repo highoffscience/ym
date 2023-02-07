@@ -58,10 +58,10 @@ public:
    explicit TextLogger(TimeStampMode_T const TimeStampMode);
    ~TextLogger(void);
 
-   YM_NoCopy  (TextLogger)
-   YM_NoAssign(TextLogger)
+   YM_NO_COPY  (TextLogger)
+   YM_NO_ASSIGN(TextLogger)
 
-   YM_DeclYmcept(TextLoggerError_GlobalFailureToOpen)
+   YM_DECL_YMCEPT(TextLoggerError_GlobalFailureToOpen)
 
    static TextLogger * getGlobalInstance(void);
 

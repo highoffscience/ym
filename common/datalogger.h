@@ -4,12 +4,9 @@
 
 #pragma once
 
-#include "Standard.h"
+#include "ym.h"
 
-#include "Logger.h"
-#include "MemoryDefs.h"
-#include "TimerDefs.h"
-#include "Ymception.h"
+#include "logger.h"
 
 #include <mutex>
 #include <vector>
@@ -26,12 +23,12 @@ public:
    explicit DataLogger(void);
    virtual ~DataLogger(void) = default;
 
-   bool dump(SStr_T const Filename) const;
+   bool dump(str const Filename) const;
 
-   typedef uint32 Key_T;
+   using Key_T = uint32;
 
    template <typename Data_T>
-   Key_T add(SStr_T const VectorName,
+   Key_T add(str    const VectorName,
              uint32 const VectorCapacity);
 
    template <typename Datum_T>
@@ -68,7 +65,7 @@ private:
             Float64
          };
 
-         static SStr_T asString(T const Typing);
+         static str asString(T const Typing);
 
          template <typename Datum_T>
          static constexpr auto getTyping(void) { static_assert(false, "Type not supported!"); }

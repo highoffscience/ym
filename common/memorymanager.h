@@ -17,7 +17,7 @@
 namespace ym
 {
 
-/** YM_StackAlloc
+/** YM_STACK_ALLOC
  *
  * @brief Allocates requested amount of bytes on the stack at runtime.
  *
@@ -38,7 +38,7 @@ namespace ym
  *
  * @return Type_ * -- Pointer to newly allocated stack memory.
  */
-#define YM_StackAlloc(Type_, NElements_) \
+#define YM_STACK_ALLOC(Type_, NElements_) \
    static_cast<Type_ *>(alloca(NElements_ * sizeof(Type_)));
 
 /// @brief Convenience alias.
@@ -60,9 +60,9 @@ concept Chunkable_T = (sizeof(T) >= sizeof(std::uintptr_t));
 class MemoryManager
 {
 public:
-   YM_NoDefault(MemoryManager)
+   YM_NO_DEFAULT(MemoryManager)
 
-   YM_DeclYmcept(MemoryManagerError)
+   YM_DECL_YMCEPT(MemoryManagerError_InvalidNChunks)
 
    /** Pool
     *
@@ -190,8 +190,7 @@ void MemMgr::Pool<Chunk_T>::deallocate(Chunk_T * const datum_Ptr)
 template <Chunkable_T Chunk_T>
 auto MemMgr::getNewPool(uint64 const NChunksPerBlock) -> Pool<Chunk_T>
 {
-   // TODO rename error
-   ymAssert<MemoryManagerError>(NChunksPerBlock > 0_u64,
+   ymAssert<MemoryManagerError_InvalidNChunks>(NChunksPerBlock > 0_u64,
       "# of chunks must be greater than 0");
 
    auto * const originalBlock_Ptr =
