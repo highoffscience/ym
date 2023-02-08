@@ -63,6 +63,8 @@ void ymAssert(bool   const    Condition,
 /** Ymception
  *
  * @brief Base class for all custom exceptions in the ym namespace.
+ * 
+ * TODO inherit from nameable
  */
 class Ymception : public std::exception
 {
