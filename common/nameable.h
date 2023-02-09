@@ -14,23 +14,23 @@ namespace ym
 /*
  * Available variants
  */
-class Named_NV;
-class PermaNamed_NV;
+class Nameable_NV;
+class PermaNameable_NV;
 
-/** Named_NV
+/** Nameable_NV
  * 
  * @brief Provides a mutably named object.
  */
-class Named_NV
+class Nameable_NV
 {
 public:
-   /** Named_NV
+   /** Nameable_NV
     * 
     * @brief Constructor.
     * 
     * @param Name_Ptr -- Initial name.
     */
-   explicit inline Named_NV(str const Name_Ptr)
+   explicit inline Nameable_NV(str const Name_Ptr)
       : _Name_ptr {Name_Ptr}
    { }
 
@@ -54,20 +54,20 @@ private:
    str /* non-const */ _Name_ptr;
 };
 
-/** PermaNamed_NV
+/** PermaNameable_NV
  * 
  * @brief Provides a permanently named object.
  */
-class PermaNamed_NV
+class PermaNameable_NV
 {
 public:
-   /** PermaNamed_NV
+   /** PermaNameable_NV
     * 
     * @brief Constructor.
     * 
     * @param Name_Ptr -- Name.
     */
-   explicit constexpr PermaNamed_NV(str const Name_Ptr)
+   explicit constexpr PermaNameable_NV(str const Name_Ptr)
       : _Name_Ptr {Name_Ptr}
    { }
 
