@@ -25,6 +25,11 @@ auto ArgParser::getInstancePtr(void) -> ArgParser *
  */
 auto ArgParser::add(Str_T const Name) -> Arg *
 {
+   // bsearch for the iterator in _args
+   //    if Name == iterator -> error - already added element
+   //    else emplace(iterator)
+   // Note! returned iterator should always point to element that is *after* Name
+
    //
    // if (Name > _args.back())
    //
