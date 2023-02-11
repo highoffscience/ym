@@ -1,96 +1,58 @@
 /**
- * @author Forrest Jablonski
+ * @file    argparser.h
+ * @version 1.0.0
+ * @author  Forrest Jablonski
  */
 
-#include "hoso.h"
+#pragma once
 
-#include <cstdio>
-#include <exception>
+#include "ym.h"
+
+#include "ymception.h"
+
 #include <vector>
 
-namespace hoso
+namespace ym
 {
 
 /**
- * Arg names must be string literals
+ * TODO
  */
 class ArgParser
 {
 public:
    /**
-    *
+    * TODO
     */
    class Arg
    {
    public:
       explicit Arg(str const Name);
 
-      inline auto getName (void) const { return _Name;                                  }
-      inline auto getDesc (void) const { return _desc;                                  }
-      inline auto getVal  (void) const { return isBinary() ? _binVal : _args[_val_idx]; }
-      inline auto getAbbr (void) const { return _abbr;                                  }
-      inline auto isBinary(void) const { return _val_idx == 0;                          }
+      inline auto getName(void) const { return _Name; }
+      inline auto getDesc(void) const { return _desc; }
+      inline auto getVal (void) const { return _val;  }
 
-      Arg * desc      (str  const Desc      );
-      Arg * defaultVal(str  const DefaultVal);
-      Arg * defaultVal(bool const DefaultVal); // sets the arg to be binary
-      Arg * abbr      (char const Abbr      );
-      Arg * binary    (void                 );
+      Arg & desc      (str  const Desc      );
+      Arg & defaultVal(str  const DefaultVal);
 
    private:
-      str const _Name;    // arg name (used as the key)
-      str const _desc;    // description
-
-      // TODO because these structures are in vectors which do reallocate this
-      //      *cannot* be a pointer
-      uint32      _val_idx; // index of value (0 indicates binary value)
-      char        _abbr;    // abbreviation of name
-      bool        _binVal;  // value, if applicable
+      str const _Name; // arg name (used as the key)
+      str       _desc; // description
+      str       _val;  // value
    };
 
-   /**
-    *
-    */
-   class ParseError : public std::exception
-   {
-   public:
-      template<typename... Args_T>
-      explicit ParseError(Str_T  const    Format,
-                          Args_T const... Args);
-      virtual ~ParseError(void) = default;
+   explicit ArgParser(std::vector<Arg> && args_uref);
 
-      virtual Str_T what(void) const noexcept override;
+   YM_DECL_YMCEPT(ArgParser_NameEmptyError)
 
-   private:
-      static constexpr uint32 MsgSize_bytes = 128;
-      char _msg[MsgSize_bytes];
-   };
+   void parse(int const         Argc,
+              str const * const Argv_Ptr);
 
-   static ArgParser * getInstancePtr(void);
-
-   Arg * add(Str_T const Name);
-
-   void parse(int   const         Argc,
-              Str_T const * const Argv_Ptr);
-
-   Arg * get(Str_T const Key);
+   Arg * getArgPtr(str const Key);
 
 private:
-   explicit ArgParser(void) = default;
-
-   static std::vector<Arg> _args;
-   static uint16           _abbrs[52];
+   std::vector<Arg> _args;
 };
 
-/**
- *
- */
-template<typename... Args_T>
-ArgParser::ParseError::ParseError(Str_T  const    Format,
-                                  Args_T const... Args)
-   : _msg {'\0'}
-{
-   (void)std::snprintf(_msg, MsgSize_bytes, Format, Args...);
-}
-
-} // hoso
+} // ym

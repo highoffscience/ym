@@ -1,27 +1,31 @@
 /**
- * @author Forrest Jablonski
+ * @file    argparser.cpp
+ * @version 1.0.0
+ * @author  Forrest Jablonski
  */
 
 #include "argparser.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
-
-std::vector<ArgParser::Arg> ArgParser::_args;
-ArgParser::Arg *            ArgParser::_abbrs[52] = {nullptr};
+#include <utility>
 
 /**
- *
+ * TODO
  */
-auto ArgParser::getInstancePtr(void) -> ArgParser *
+ym::ArgParser::ArgParser(std::vector<Arg> && args_uref)
+   : _args {std::move(args_uref)}
 {
-   static ArgParser s_instance;
-
-   return &s_instance;
+   std::sort(_args.begin(), _args.end(),
+      [](Arg const & Lhs, Arg const & Rhs) -> bool {
+         return std::strcmp(Lhs.getName(), Rhs.getName()) < 0_i32;
+      }
+   );
 }
 
 /**
- *
+ * TODO
  */
 auto ArgParser::add(Str_T const Name) -> Arg *
 {
@@ -120,122 +124,74 @@ auto ArgParser::get(Str_T const Key) -> Arg *
 }
 
 /**
- *
+ * TODO
  */
-ArgParser::Arg::Arg(Str_T const Name)
+ym::ArgParser::Arg::Arg(str const Name)
    : _Name   {Name   },
      _desc   {nullptr},
-     _val    {nullptr},
-     _abbr   {'\0'   },
-     _binary {false  }
+     _val    {nullptr}
 {
-   if (!_Name || !_Name[0])
-   {
-      throw ParseError("%s", "Name must be non-empty!");
-   }
-
-   if (_args.data() && this != _args.data())
-   {
-      auto const PrevName = (this - 1)->getName();
-      if (std::strcmp(PrevName, _Name) > 0)
-      { // _Name is lexicographically smaller than previous name - uh oh
-         throw ParseError("Arg '%s' is not supposed to preceed arg '%s'!", _Name, PrevName);
-      }
-   }
+   // TODO it would be nice to have a family of argparse errors so we could broadly catch them all.
+   // ymception class is already setup to handle polymorphism
+   ymAssert<ArgParser_NameEmptyError>(!ymIsStrNonEmpty(getName()),
+      "Name is empty");
 }
 
 /**
- *
+ * TODO
  */
-auto ArgParser::Arg::desc(Str_T const Desc) -> Arg *
+auto ArgParser::Arg::desc(str const Desc) -> Arg &
 {
-   if (_desc)
-   {
-      throw ParseError("Arg '%s' already has a description!", getName());
-   }
+   // assert getDesc() already populated
 
    _desc = Desc;
 
-   if (!_desc || !_desc[0])
-   {
-      throw ParseError("%s", "Desc must be non-empty!");
-   }
+   // assert !ymIsStrNonEmpty(getDesc())
 
-   return this;
+   return *this;
 }
 
-/**
- * TODO count values
- */
-auto ArgParser::Arg::defaultVal(Str_T const DefaultVal) -> Arg *
-{
-   _val = DefaultVal;
-   return this;
-}
+// /**
+//  * TODO count values
+//  */
+// auto ArgParser::Arg::defaultVal(Str_T const DefaultVal) -> Arg *
+// {
+//    _val = DefaultVal;
+//    return this;
+// }
 
-/**
- *
- */
-auto ArgParser::Arg::abbr(char const Abbr) -> Arg *
-{
-   uint32 const Idx = (Abbr >= 'A' && Abbr <= 'Z') ? (Abbr - 'A'     ) :
-                      (Abbr >= 'a' && Abbr <= 'z') ? (Abbr - 'a' + 26) : _args.size();
+// /**
+//  *
+//  */
+// auto ArgParser::Arg::abbr(char const Abbr) -> Arg *
+// {
+//    uint32 const Idx = (Abbr >= 'A' && Abbr <= 'Z') ? (Abbr - 'A'     ) :
+//                       (Abbr >= 'a' && Abbr <= 'z') ? (Abbr - 'a' + 26) : _args.size();
 
-   if (Idx >= 52)
-   {
-      throw ParseError("Illegal abbr '%c' found for arg '%s'!", Abbr, getName());
-   }
+//    if (Idx >= 52)
+//    {
+//       throw ParseError("Illegal abbr '%c' found for arg '%s'!", Abbr, getName());
+//    }
 
-   if (_abbrs[Idx])
-   {
-      throw ParseError("Arg '%s' wants abbr '%c' but it's already used by arg '%s'!",
-                       getName(), Abbr, _abbrs[Idx]->getName());
-   }
+//    if (_abbrs[Idx])
+//    {
+//       throw ParseError("Arg '%s' wants abbr '%c' but it's already used by arg '%s'!",
+//                        getName(), Abbr, _abbrs[Idx]->getName());
+//    }
 
-   // TODO need to preserve MSB
-   _abbr = Abbr & 0x7F;
-   _abbrs[Idx] = this;
+//    // TODO need to preserve MSB
+//    _abbr = Abbr & 0x7F;
+//    _abbrs[Idx] = this;
 
-   return this;
-}
+//    return this;
+// }
 
-/**
- *
- */
-auto ArgParser::Arg::binary(void) -> Arg *
-{
-   _abbr; // TODO
+// /**
+//  *
+//  */
+// auto ArgParser::Arg::binary(void) -> Arg *
+// {
+//    _abbr; // TODO
 
-   return this;
-}
-
-/**
- *
- */
-Str_T ArgParser::ParseError::what(void) const noexcept
-{
-   return _msg;
-}
-
-/*
- *
- */
-#ifdef drive_argparser
-int main(int   const         Argc,
-         Str_T const * const Argv_Ptr)
-{
-   auto * const argparser_Ptr = ArgParser::getInstancePtr();
-   try
-   {
-      argparser_Ptr->add("input")->abbr('i')->desc("Input file");
-      argparser_Ptr->add("output")->abbr('o')->desc("Output file");
-      argparser_Ptr->parse(Argc, Argv_Ptr);
-   }
-   catch (ArgParser::ParseError const & E)
-   {
-      std::printf("ArgParser failure! %s\n", E.what());
-      return 1;
-   }
-   return 0;
-}
-#endif // drive_argparser
+//    return this;
+// }

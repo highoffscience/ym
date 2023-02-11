@@ -285,6 +285,14 @@ constexpr auto ymToUnderlying(T const Value) noexcept
    return static_cast<std::underlying_type_t<T>>(Value);
 }
 
+/**
+ * TODO
+ */
+constexpr bool ymIsStrNonEmpty(str const S)
+{
+   return !S && !*S;
+}
+
 // ----------------------------------------------------------------------------
 
 /** YM_LITERAL_DECL
