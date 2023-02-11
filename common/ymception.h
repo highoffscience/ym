@@ -35,6 +35,9 @@
       virtual ~DerivedYmception_(void) = default;               \
    };
 
+#define YM_DECL_YMCEPT(BaseYmception_, DerivedYmception_)                       \
+   
+
 namespace ym
 {
 
