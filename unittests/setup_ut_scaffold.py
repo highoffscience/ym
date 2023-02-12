@@ -122,98 +122,98 @@ def gen_runner_file(args):
       def writeln(line):
          outfile.write(f"{line.rstrip()}\n")
    
-      writeln(f"##
-      writeln(f"# @file    testsuite.py
-      writeln(f"# @version 1.0.0
-      writeln(f"# @author  Forrest Jablonski
-      writeln(f"#
-      writeln(f"
-      writeln(f"import os
-      writeln(f"import sys
-      writeln(f"import unittest
-      writeln(f"
-      writeln(f"try:
-      writeln(f"   # @note Grabs the first directory in the chain named unittests/.
-      writeln(f"   sys.path.append(os.path.join(os.getcwd().split("unittests")[0], "unittests/"))
-      writeln(f"   import testsuitebase
-      writeln(f"except:
-      writeln(f"   print("Cannot import testsuitebase - path set correctly?")
-      writeln(f"   sys.exit(1)
-      writeln(f"
-      try:
-         import cppyy
-      except:
-         print("Cannot import cppyy - started the venv?")
-         sys.exit(1)
+      writeln(f"##                                                                  ")
+      writeln(f"# @file    testsuite.py                                             ")
+      writeln(f"# @version 1.0.0                                                    ")
+      writeln(f"# @author  Forrest Jablonski                                        ")
+      writeln(f"#                                                                   ")
+      writeln(f"                                                                    ")
+      writeln(f"import os                                                           ")
+      writeln(f"import sys                                                          ")
+      writeln(f"import unittest                                                     ")
+      writeln(f"                                                                    ")
+      writeln(f"try:                                                                ")
+      writeln(f"   # @note Grabs the first directory in the chain named unittests/. ")
+      writeln(f"   sys.path.append(os.path.join(os.getcwd().split("
+              f"\"unittests\")[0], \"unittests/\"))                                 ")
+      writeln(f"   import testsuitebase                                             ")
+      writeln(f"except:                                                             ")
+      writeln(f"   print(\"Cannot import testsuitebase - path set correctly?\")     ")
+      writeln(f"   sys.exit(1)                                                      ")
+      writeln(f"                                                                    ")
+      writeln(f"try:                                                                ")
+      writeln(f"   import cppyy                                                     ")
+      writeln(f"except:                                                             ")
+      writeln(f"   print(\"Cannot import cppyy - started the venv?\")               ")
+      writeln(f"   sys.exit(1)                                                      ")
+      writeln(f"                                                                    ")
+      writeln(f"class TestSuite(testsuitebase.TestSuiteBase):                       ")
+      writeln(f"   \"\"\"                                                           ")
+      writeln(f"   @brief Collection of all tests for SUT {args.SUT_name}.          ")
+      writeln(f"   \"\"\"                                                           ")
+      writeln(f"                                                                    ")
+      writeln(f"   @classmethod                                                     ")
+      writeln(f"   def setUpClass(cls):                                             ")
+      writeln(f"      \"\"\"                                                        ")
+      writeln(f"      @brief Acting constructor.                                    ")
+      writeln(f"      \"\"\"                                                        ")
+      writeln(f"                                                                    ")
+      writeln(f"      super().setUpBaseClass(filepath=\"{args.filepath}\",          ")
+      writeln(f"                             filename=\"{args.filename}\",          ")
+      writeln(f"                             SUT_name=\"{args.SUT_name}\",          ")
+      writeln(f"                             dependent_filepaths=[])                ")
+      writeln(f"                                                                    ")
+      writeln(f"   @classmethod                                                     ")
+      writeln(f"   def tearDownClass(cls):                                          ")
+      writeln(f"      \"\"\"                                                        ")
+      writeln(f"      @brief Acting destructor.                                     ")
+      writeln(f"      \"\"\"                                                        ")
+      writeln(f"      pass                                                          ")
+      writeln(f"                                                                    ")
+      writeln(f"   def setUp(self):                                                 ")
+      writeln(f"      \"\"\"                                                        ")
+      writeln(f"      @brief Set up logic that is run before each test.             ")
+      writeln(f"      \"\"\"                                                        ")
+      writeln(f"      pass                                                          ")
+      writeln(f"                                                                    ")
+      writeln(f"   def tearDown(self):                                              ")
+      writeln(f"      \"\"\"                                                        ")
+      writeln(f"      @brief Tear down logic that is run after each test.           ")
+      writeln(f"      \"\"\"                                                        ")
+      writeln(f"      pass                                                          ")
+      writeln(f"                                                                    ")
+      writeln(f"   def test_name_of_test_case_here(self):                           ")
+      writeln(f"      \"\"\"                                                        ")
+      writeln(f"      @brief Analyzes results from test case.                       ")
+      writeln(f"                                                                    ")
+      writeln(f"      @param results -- Results from test case.                     ")
+      writeln(f"      \"\"\"                                                        ")
+      writeln(f"                                                                    ")
+      writeln(f"      from cppyy.gbl import std                                     ")
+      writeln(f"      from cppyy.gbl import ym                                      ")
+      writeln(f"                                                                    ")
+      writeln(f"      results = self.run_test_case(\"name_of_test_case_here\")      ")
+      writeln(f"                                                                    ")
+      writeln(f"      self.assertTrue(results, \"results is None\")                 ")
+      writeln(f"                                                                    ")
+      writeln(f"# kick-off                                                          ")
+      writeln(f"if __name__ == \"__main__\":                                        ")
+      writeln(f"   if os.path.basename(os.getcwd()) != \"{args.filename}\":         ")
+      writeln(f"      print(\"Needs to be run in the {args.filename}/ directory\")  ")
+      writeln(f"      sys.exit(1)                                                   ")
+      writeln(f"                                                                    ")
+      writeln(f"   unittest.main()                                                  ")
 
-      class TestSuite(testsuitebase.TestSuiteBase):
-         """
-         @brief Collection of all tests for SUT TextLogger.
-         """
-
-         @classmethod
-         def setUpClass(cls):
-            """
-            @brief Acting constructor.
-            """
-
-            super().setUpBaseClass(filepath="{args.filepath}",
-                                   filename="{args.filename}",
-                                   SUT_name="{args.SUT_name}",
-                                   dependent_filepaths=[])
-
-         @classmethod
-         def tearDownClass(cls):
-            """
-            @brief Acting destructor.
-            """
-            pass
-
-         def setUp(self):
-            """
-            @brief Set up logic that is run before each test.
-            """
-            pass
-
-         def tearDown(self):
-            """
-            @brief Tear down logic that is run after each test.
-            """
-            pass
-
-         def test_name_of_test_case_here(self):
-            """
-            @brief Analyzes results from test case.
-
-            @param results -- Results from test case.
-            """
-
-            from cppyy.gbl import std
-            from cppyy.gbl import ym
-
-            results = self.run_test_case("name_of_test_case_here")
-
-            self.assertTrue(results, "results is None")
-
-      # kick-off
-      if __name__ == "__main__":
-         if os.path.basename(os.getcwd()) != "{args.filename}":
-            print("Needs to be run in the {args.filename}/ directory")
-            sys.exit(1)
-
-         unittest.main()
-
-
-""" main
-
-@brief Sets up the unittest scaffolding.
-
-@note For example...
-      --filepath ym/common/
-      --filename filename
-      --SUT_name SUTName
-"""
 def main():
+   """ main
+
+   @brief Sets up the unittest scaffolding.
+
+   @note For example...
+         --filepath ym/common/
+         --filename filename
+         --SUT_name SUTName
+   """
    if os.path.basename(os.getcwd()) != "unittests":
       print("Needs to be run in the unittests/ directory")
       sys.exit(1)

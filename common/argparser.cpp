@@ -17,18 +17,18 @@
 ym::ArgParser::ArgParser(std::vector<Arg> && args_uref)
    : _args {std::move(args_uref)}
 {
-   std::sort(_args.begin(), _args.end(),
-      [](Arg const & Lhs, Arg const & Rhs) -> bool {
-         return std::strcmp(Lhs.getName(), Rhs.getName()) < 0_i32;
-      }
-   );
+   // std::sort(_args.begin(), _args.end(),
+   //    [](Arg const & Lhs, Arg const & Rhs) -> bool {
+   //       return std::strcmp(Lhs.getName(), Rhs.getName()) < 0_i32;
+   //    }
+   // );
 }
 
 /**
  * TODO this should return an exception with all the errors
  */
-void ym::ArgParser::parse(int const         Argc,
-                          str const * const Argv_Ptr)
+void ym::ArgParser::parse([[maybe_unused]] int const         Argc,
+                          [[maybe_unused]] str const * const Argv_Ptr)
 {
    // auto isAlpha = [](char const C) -> bool {
    //    return (C >= 'A' && C <= 'Z') ||

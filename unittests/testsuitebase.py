@@ -88,6 +88,7 @@ class TestSuiteBase(unittest.TestCase):
       try:
          results = ts.runTestCase(test_case_name)
       except:
+         # TODO if an unhandled exception happens in cpp it gets here
          print(f"Something failed with test case {test_case_name} - is the name correct and the test exists?")
          results = None
 

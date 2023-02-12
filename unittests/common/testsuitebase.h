@@ -35,7 +35,7 @@ public:
    using SuiteDataShuttle_T = std::unordered_map<std::string, DataShuttle>;
 
    explicit TestSuiteBase(std::string name);
-   virtual ~TestSuiteBase(void) = default;
+   virtual ~TestSuiteBase(void) = default; // TODO need to delete test cases
 
    auto const & getTestCases(void) const { return _testCases; }
 

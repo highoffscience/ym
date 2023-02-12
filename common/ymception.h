@@ -18,9 +18,9 @@
 /**
  * TODO
  */
-#define YM_DECL_YMCEPT(BaseYmception_, DerivedYmception_)  \
+#define YM_DECL_YMCEPT(BaseYmception_, DerivedYmception_)       \
    static_assert(std::is_base_of_v<Ymception, BaseYmception_>,  \
-      #BaseYmception_##" must be of Ymception type");                        \
+      #BaseYmception_" must be of Ymception type");             \
    class DerivedYmception_ : public BaseYmception_              \
    {                                                            \
    public:                                                      \

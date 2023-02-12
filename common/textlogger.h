@@ -61,7 +61,8 @@ public:
    YM_NO_COPY  (TextLogger)
    YM_NO_ASSIGN(TextLogger)
 
-   YM_DECL_YMCEPT(TextLoggerError_GlobalFailureToOpen)
+   YM_DECL_YMCEPT_BASE(TextLoggerError)
+   YM_DECL_YMCEPT(     TextLoggerError, TextLoggerError_GlobalFailureToOpen)
 
    static TextLogger * getGlobalInstance(void);
 

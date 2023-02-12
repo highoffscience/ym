@@ -115,8 +115,17 @@ bool ym::TextLogger::open(str const Filename)
  *
  * @return bool -- Whether the outfile was opened successfully, false otherwise.
  */
-bool ym::TextLogger::open(str    const Filename,
-                          TSFM_T const TSFilenameMode)
+bool ym::TextLogger::open(
+
+   #if defined(YM_PRINT_TO_SCREEN)
+      [[maybe_unused]] str    const Filename,
+      [[maybe_unused]] TSFM_T const TSFilenameMode
+   #else
+      str    const Filename,
+      TSFM_T const TSFilenameMode
+   #endif // YM_PRINT_TO_SCREEN
+)
+
 {
    auto opened = false;
 

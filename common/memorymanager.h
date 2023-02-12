@@ -62,7 +62,8 @@ class MemoryManager
 public:
    YM_NO_DEFAULT(MemoryManager)
 
-   YM_DECL_YMCEPT(MemoryManagerError_InvalidNChunks)
+   YM_DECL_YMCEPT_BASE(MemoryManagerError)
+   YM_DECL_YMCEPT(     MemoryManagerError, MemoryManagerError_InvalidNChunks)
 
    /** Pool
     *

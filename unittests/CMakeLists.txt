@@ -11,9 +11,10 @@ project(UnitTest VERSION 1.0.0 DESCRIPTION "Builds unittest shared libraries")
 include(utcommon.cmake)
 
 set(RelativeFilePaths
+   ym/common/argparser
    ym/common/random
-   ym/common/timer
    ym/common/textlogger
+   ym/common/timer
 )
 
 foreach(RelativeFilePath IN LISTS RelativeFilePaths)
@@ -29,10 +30,12 @@ foreach(RelativeFilePath IN LISTS RelativeFilePaths)
          ${UTCommonSrcs}
          ${RootDir}/../${RelativeFilePath}.cpp
          ${AbsoluteUTFilePath}/testsuite.cpp
+         ${CommonDir}/argparser.cpp
          ${CommonDir}/logger.cpp
-         ${CommonDir}/ymception.cpp
          ${CommonDir}/memorymanager.cpp
-         ${CommonDir}/timer.cpp)
+         ${CommonDir}/timer.cpp
+         ${CommonDir}/textlogger.cpp
+         ${CommonDir}/ymception.cpp)
 
       set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
       set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${RelativeFilePath}/../)

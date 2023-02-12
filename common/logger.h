@@ -34,7 +34,8 @@ public:
    YM_NO_COPY  (Logger)
    YM_NO_ASSIGN(Logger)
 
-   YM_DECL_YMCEPT(LoggerError_UnexpectedFilenameSize)
+   YM_DECL_YMCEPT_BASE(LoggerError)
+   YM_DECL_YMCEPT(     LoggerError, LoggerError_UnexpectedFilenameSize)
 
    /** TimeStampFilenameMode_T
     *
