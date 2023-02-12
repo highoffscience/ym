@@ -25,102 +25,84 @@ ym::ArgParser::ArgParser(std::vector<Arg> && args_uref)
 }
 
 /**
- * TODO
- */
-auto ArgParser::add(Str_T const Name) -> Arg *
-{
-   // bsearch for the iterator in _args
-   //    if Name == iterator -> error - already added element
-   //    else emplace(iterator)
-   // Note! returned iterator should always point to element that is *after* Name
-
-   //
-   // if (Name > _args.back())
-   //
-
-   // because of the magic std::vector uses to manages it's elements we need to
-   //  guarantee there will be space for elements - no on-the-fly allocation
-   if (_args.size() == _args.capacity())
-   {
-      _args.reserve((_args.capacity() == 0) ? 4 : _args.capacity() * 2);
-   }
-
-   _args.emplace_back(Name);
-
-   return &_args.back();
-}
-
-/**
  * TODO this should return an exception with all the errors
  */
-void ArgParser::parse(int   const         Argc,
-                      Str_T const * const Argv_Ptr)
+void ym::ArgParser::parse(int const         Argc,
+                          str const * const Argv_Ptr)
 {
-   auto isAlpha = [](char const C) -> bool {
-      return (C >= 'A' && C <= 'Z') ||
-             (C >= 'a' && C <= 'z');
-   }
+   // auto isAlpha = [](char const C) -> bool {
+   //    return (C >= 'A' && C <= 'Z') ||
+   //           (C >= 'a' && C <= 'z');
+   // }
 
-   for (int i = 1; i < Argc; ++i)
-   {
-      auto name = Argv_Ptr[i];
+   // for (int i = 1; i < Argc; ++i)
+   // {
+   //    auto name = Argv_Ptr[i];
 
-      if (name[0] == '-') // accessing 0th element is safe because it's null terminated
-      { // potential arg
-         if (name[1] == '-')
-         { // potential longhand arg
-            if (isAlpha(name[2]))
-            { // found longhand arg
-               name += 2;
-               if (auto * const arg_Ptr = get(name); arg_Ptr)
-               { // found match
-                  // TODO
-                  if (arg_Ptr->isBool())
-                  {
-                     arg_Ptr->setVal(...)
-                  }
-                  if (++i < Argc)
-                  { // found value
-                     arg_Ptr->_val = Argv_Ptr[i];
-                  }
-                  else
-                  { // no value - EOF
-                     std::printf("No value for arg %s!\n", arg);
-                     everythingGood = false;
-                  }
-               }
-               else
-               { // found unregistered arg
-                  std::printf("Found unregistered arg %s!\n", arg);
-                  everythingGood = false;
-               }
-               continue;
-            }
-         }
-         else if (isAlpha(arg[1]))
-         { // found shorthand arg(s)
-            arg += 1;
-            // TODO
-            continue;
-         }
-      }
+   //    if (name[0] == '-') // accessing 0th element is safe because it's null terminated
+   //    { // potential arg
+   //       if (name[1] == '-')
+   //       { // potential longhand arg
+   //          if (isAlpha(name[2]))
+   //          { // found longhand arg
+   //             name += 2;
+   //             if (auto * const arg_Ptr = get(name); arg_Ptr)
+   //             { // found match
+   //                // TODO
+   //                if (arg_Ptr->isBool())
+   //                {
+   //                   arg_Ptr->setVal(...)
+   //                }
+   //                if (++i < Argc)
+   //                { // found value
+   //                   arg_Ptr->_val = Argv_Ptr[i];
+   //                }
+   //                else
+   //                { // no value - EOF
+   //                   std::printf("No value for arg %s!\n", arg);
+   //                   everythingGood = false;
+   //                }
+   //             }
+   //             else
+   //             { // found unregistered arg
+   //                std::printf("Found unregistered arg %s!\n", arg);
+   //                everythingGood = false;
+   //             }
+   //             continue;
+   //          }
+   //       }
+   //       else if (isAlpha(arg[1]))
+   //       { // found shorthand arg(s)
+   //          arg += 1;
+   //          // TODO
+   //          continue;
+   //       }
+   //    }
 
-      std::printf("Found rogue value %s!\n", arg);
-      everythingGood = false;
-   }
+   //    std::printf("Found rogue value %s!\n", arg);
+   //    everythingGood = false;
+   // }
 
-   return everythingGood;
+   // return everythingGood;
 }
 
 /**
- *
+ * TODO
+ * 
+ * @note std::binary_search doesn't return a pointer to the found object, which is
+ *       why we use std::bsearch.
  */
-auto ArgParser::get(Str_T const Key) -> Arg *
+auto ym::ArgParser::getArgPtr(str const Key) -> Arg *
 {
-   return static_cast<Arg *>(std::bsearch(Key, _args.data(), _args.size(), sizeof(Arg),
-                                          [](void const * Lhs_ptr, void const * Rhs_ptr) -> int {
-      return std::strcmp(static_cast<Str_T>(Lhs_ptr), static_cast<Str_T>(Rhs_ptr));
-   }));
+   return
+      static_cast<Arg *>(
+         std::bsearch(Key, _args.data(), _args.size(), sizeof(Arg),
+            [](void const * Lhs_ptr, void const * Rhs_ptr) -> int {
+               return std::strcmp(static_cast<str>(Lhs_ptr),
+                                  static_cast<str>(Rhs_ptr));
+            }
+         )
+      );
 }
 
 /**
@@ -131,34 +113,36 @@ ym::ArgParser::Arg::Arg(str const Name)
      _desc   {nullptr},
      _val    {nullptr}
 {
-   // TODO it would be nice to have a family of argparse errors so we could broadly catch them all.
-   // ymception class is already setup to handle polymorphism
-   ymAssert<ArgParser_NameEmptyError>(!ymIsStrNonEmpty(getName()),
-      "Name is empty");
+   ymAssert<ArgParserError_NameEmpty>(ymIsStrNonEmpty(getName()), "Name must be non-empty");
 }
 
 /**
  * TODO
  */
-auto ArgParser::Arg::desc(str const Desc) -> Arg &
+auto ym::ArgParser::Arg::desc(str const Desc) -> Arg &
 {
-   // assert getDesc() already populated
+   ymAssert<ArgParserError_DescInUse>(!getDesc(), "Description must not have already been set");
 
    _desc = Desc;
 
-   // assert !ymIsStrNonEmpty(getDesc())
+   ymAssert<ArgParserError_DescEmpty>(ymIsStrNonEmpty(getDesc()), "Description must be non-empty");
 
    return *this;
 }
 
-// /**
-//  * TODO count values
-//  */
-// auto ArgParser::Arg::defaultVal(Str_T const DefaultVal) -> Arg *
-// {
-//    _val = DefaultVal;
-//    return this;
-// }
+/**
+ * TODO count values
+ */
+auto ym::ArgParser::Arg::defaultVal(str const DefaultVal) -> Arg &
+{
+   ymAssert<ArgParserError_ValEmpty>(!getVal(), "Value must not have already been set");
+
+   _val = DefaultVal;
+
+   ymAssert<ArgParserError_ValInUse>(ymIsStrNonEmpty(getVal()), "Val must be non-empty");
+
+   return *this;
+}
 
 // /**
 //  *

@@ -8,7 +8,6 @@
 
 #include "ym.h"
 
-#include "nameable.h"
 #include "loggable.h"
 
 #include <array>
@@ -16,27 +15,36 @@
 #include <exception>
 #include <type_traits>
 
+/**
+ * TODO
+ */
+#define YM_DECL_YMCEPT(BaseYmception_, DerivedYmception_)  \
+   static_assert(std::is_base_of_v<Ymception, BaseYmception_>,  \
+      #BaseYmception_##" must be of Ymception type");                        \
+   class DerivedYmception_ : public BaseYmception_              \
+   {                                                            \
+   public:                                                      \
+      template <Loggable... Args_T>                             \
+      explicit inline DerivedYmception_(str    const    Format, \
+                                        Args_T const... Args)   \
+         : BaseYmception_(Format, Args...)                      \
+      { }                                                       \
+                                                                \
+      virtual ~DerivedYmception_(void) = default;               \
+                                                                \
+      static constexpr auto getClassName(void) {                \
+         return #DerivedYmception_;                             \
+      }                                                         \
+   };
+
 /** YM_DECL_YMCEPT
  *
  * @brief Convenience macro to declare empty custom Ymception classes.
  *
  * @param DerivedYmception_ -- Name of custom Ymception class.
  */
-#define YM_DECL_YMCEPT(DerivedYmception_)                       \
-   class DerivedYmception_ : public Ymception                   \
-   {                                                            \
-   public:                                                      \
-      template <Loggable... Args_T>                             \
-      explicit inline DerivedYmception_(str    const    Format, \
-                                        Args_T const... Args)   \
-         : Ymception(#DerivedYmception_, Format, Args...)       \
-      { }                                                       \
-                                                                \
-      virtual ~DerivedYmception_(void) = default;               \
-   };
-
-#define YM_DECL_YMCEPT(BaseYmception_, DerivedYmception_)                       \
-   
+#define YM_DECL_YMCEPT_BASE(DerivedYmception_) \
+   YM_DECL_YMCEPT(Ymception, DerivedYmception_)
 
 namespace ym
 {
@@ -67,13 +75,11 @@ void ymAssert(bool   const    Condition,
  *
  * @brief Base class for all custom exceptions in the ym namespace.
  */
-class Ymception : public std::exception,
-                  public PermaNameable_NV
+class Ymception : public std::exception
 {
 public:
    template <Loggable... Args_T>
-   explicit inline Ymception(str    const    Name,
-                             str    const    Format,
+   explicit inline Ymception(str    const    Format,
                              Args_T const... Args);
 
    virtual ~Ymception(void) = default;
@@ -98,16 +104,13 @@ private:
  *
  * @tparam Args_T -- Argument types.
  *
- * @param Name   -- Name of Ymception.
  * @param Format -- Format string.
  * @param Args   -- Arguments.
  */
 template <Loggable... Args_T>
-inline Ymception::Ymception([[maybe_unused]] str    const    Name,
-                            [[maybe_unused]] str    const    Format,
+inline Ymception::Ymception([[maybe_unused]] str    const    Format,
                             [[maybe_unused]] Args_T const... Args)
-   : PermaNameable(Name),
-     _msg {'\0'}
+   : _msg {'\0'}
 {
    // TODO I get a format security warning here - Format isn't a string literal.
    //      Investigate when converting to the fmt library
