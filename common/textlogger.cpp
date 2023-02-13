@@ -73,8 +73,11 @@ auto ym::TextLogger::getGlobalInstance(void) -> TextLogger *
    {
       auto const Opened = s_instance.open("global.txt", TimeStampFilenameMode_T::Append);
 
-      ymAssert<TextLoggerError_GlobalFailureToOpen>(Opened,
-         "Global text logger instance failed to open");
+      (void)Opened;
+      // TODO
+      // creates infinite recursion
+      // ymAssert<TextLoggerError_GlobalFailureToOpen>(Opened,
+      //    "Global text logger instance failed to open");
    }
 
    return &s_instance;

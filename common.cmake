@@ -15,4 +15,5 @@ set(CompileFlags
    -Werror
    -Wall
    -Wextra
+   -Wno-format-security
    -O2)

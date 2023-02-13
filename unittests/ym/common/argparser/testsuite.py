@@ -57,7 +57,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       pass
 
-   def test_name_of_test_case_here(self):
+   def test_BasicParse(self):
       """
       @brief Analyzes results from test case.
 
