@@ -85,14 +85,17 @@ class TestSuiteBase(unittest.TestCase):
 
       ts = ym.ut.TestSuite()
       results = None
+      TODO # this logic does not handle things correctly
       try:
          results = ts.runTestCase(test_case_name)
       except Exception as exc:
-         print(f"Exception in test case {test_case_name} - {exc}")
+         self.assertTrue(False, f"Unhandled exception in test case {test_case_name} - {exc}")
          results = None
       except:
-         print(f"Something failed with test case {test_case_name} - is the name correct and the test exists?")
+         self.assertTrue(False, f"Something failed with test case {test_case_name} - is the name correct and the test exists?")
          results = None
+
+      self.assertTrue(results, "Results is None")
 
       return results
 

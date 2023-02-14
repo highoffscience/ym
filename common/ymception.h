@@ -31,10 +31,6 @@
       { }                                                       \
                                                                 \
       virtual ~DerivedYmception_(void) = default;               \
-                                                                \
-      virtual str getName(void) const override {                \
-         return #DerivedYmception_;                             \
-      }                                                         \
    };
 
 /** YM_DECL_YMCEPT
@@ -84,8 +80,6 @@ public:
 
    virtual ~Ymception(void) = default;
 
-   virtual str getName(void) const = 0;
-
    virtual str what(void) const noexcept override;
 
    template <Ymceptable  Ymception_T,
@@ -116,7 +110,7 @@ inline Ymception::Ymception([[maybe_unused]] str    const    Format,
 {
    // TODO I get a format security warning here - Format isn't a string literal.
    //      Investigate when converting to the fmt library
-   std::snprintf(_msg.data(), _msg.size(), getName());
+   std::snprintf(_msg.data(), _msg.size(), "name-to-go-here");
    //std::snprintf(_msg.data(), _msg.size(), Format, Args...);
    // std::snprintf(_msg.data(), _msg.size(), "Why, hello there!");
 }

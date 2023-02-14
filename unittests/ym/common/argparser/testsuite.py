@@ -69,8 +69,6 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
       results = self.run_test_case("BasicParse")
 
-      self.assertTrue(results, "results is None")
-
       exc = results.get[bool]("Exc")
       self.assertTrue(exc, "Exception happened")
 
