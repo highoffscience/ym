@@ -128,6 +128,11 @@ static_assert(YM_IS_CLANG_ID +
 #define YM_NO_MOVE_CONSTRUCT( ClassName_ ) ClassName_              (ClassName_ &&     ) = delete;
 #define YM_NO_Move_ASSIGN(    ClassName_ ) ClassName_ & operator = (ClassName_ &&     ) = delete;
 
+/*
+ * TODO
+ */
+#define YM_MACRO_OVERLOAD(_1, _2, _3, Name_, ...) Name_
+
 // ----------------------------------------------------------------------------
 
 namespace ym

@@ -18,29 +18,41 @@
 /**
  * TODO
  */
-#define YM_DECL_YMCEPT(BaseYmception_, DerivedYmception_)       \
+#define YM_DECL_YMCEPT(...) YM_MACRO_OVERLOAD(__VA_ARGS__, YM_DECL_YMCEPT3, \
+                                                           YM_DECL_YMCEPT2, \
+                                                           YM_DECL_YMCEPT1  )(__VA_ARGS__)
+
+/**
+ * TODO
+ */
+#define YM_DECL_YMCEPT2(BaseYmception_, DerivedYmception_)      \
    static_assert(std::is_base_of_v<Ymception, BaseYmception_>,  \
       #BaseYmception_" must be of Ymception type");             \
    class DerivedYmception_ : public BaseYmception_              \
    {                                                            \
    public:                                                      \
-      template <Loggable... Args_T>                             \
+      template <Ymceptable  DerivedYmception_T,                 \
+                Loggable... Args_T>                             \
       explicit inline DerivedYmception_(str    const    Format, \
                                         Args_T const... Args)   \
-         : BaseYmception_(Format, Args...)                      \
+         : BaseYmception_<DerivedYmception_T>(Format, Args...)  \
       { }                                                       \
                                                                 \
       virtual ~DerivedYmception_(void) = default;               \
+                                                                \
+      static constexpr auto getClassName(void) {                \
+         return #DerivedYmception_;                             \
+      }                                                         \
    };
 
-/** YM_DECL_YMCEPT
+/** YM_DECL_YMCEPT1
  *
  * @brief Convenience macro to declare empty custom Ymception classes.
  *
  * @param DerivedYmception_ -- Name of custom Ymception class.
  */
-#define YM_DECL_YMCEPT_BASE(DerivedYmception_) \
-   YM_DECL_YMCEPT(Ymception, DerivedYmception_)
+#define YM_DECL_YMCEPT1(DerivedYmception_) \
+   YM_DECL_YMCEPT2(Ymception, DerivedYmception_)
 
 namespace ym
 {
@@ -49,11 +61,10 @@ namespace ym
  *
  * @brief Represents a Ymception class.
  *
- * @tparam T -- Type that is derived from Ymception.
+ * @tparam T -- Type that is or is derived from Ymception.
  */
 template <typename T>
-concept Ymceptable =  std::is_base_of_v<class Ymception, T> &&
-                     !std::is_same_v<   class Ymception, T>;
+concept Ymceptable = std::is_base_of_v<class Ymception, T>;
 
 /*
  * Convenience functions.
@@ -74,7 +85,8 @@ void ymAssert(bool   const    Condition,
 class Ymception : public std::exception
 {
 public:
-   template <Loggable... Args_T>
+   template <Ymceptable  DerivedYmception_T,
+             Loggable... Args_T>
    explicit inline Ymception(str    const    Format,
                              Args_T const... Args);
 
@@ -103,16 +115,21 @@ private:
  * @param Format -- Format string.
  * @param Args   -- Arguments.
  */
-template <Loggable... Args_T>
-inline Ymception::Ymception([[maybe_unused]] str    const    Format,
-                            [[maybe_unused]] Args_T const... Args)
+template <Ymceptable  DerivedYmception_T,
+          Loggable... Args_T>
+inline Ymception::Ymception(str    const    Format,
+                            Args_T const... Args)
    : _msg {'\0'}
 {
-   // TODO I get a format security warning here - Format isn't a string literal.
-   //      Investigate when converting to the fmt library
-   std::snprintf(_msg.data(), _msg.size(), "name-to-go-here");
-   //std::snprintf(_msg.data(), _msg.size(), Format, Args...);
-   // std::snprintf(_msg.data(), _msg.size(), "Why, hello there!");
+   auto const NCharsWritten = std::snprintf(_msg.data(), _msg.size(), "%s: ",
+                                            DerivedYmception_T::getClassName());
+   if (NCharsWritten > 0_i32)
+   {
+      (void)std::snprintf(_msg.data() + NCharsWritten,
+                          _msg.size() - NCharsWritten,
+                          Format,
+                          Args...);
+   }
 }
 
 /** ymAssert
@@ -135,7 +152,7 @@ void ymAssert(bool   const    Condition,
 {
    if (!Condition)
    { // assert failed
-      DerivedYmception_T e(Format, Args...);
+      DerivedYmception_T e<DerivedYmception_T>(Format, Args...);
       e.assertHandler(); // throws
    }
 }

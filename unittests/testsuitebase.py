@@ -85,16 +85,15 @@ class TestSuiteBase(unittest.TestCase):
 
       ts = ym.ut.TestSuite()
       results = None
-      TODO # this logic does not handle things correctly
+      exc_occured = False
+      saved_exc = None
       try:
          results = ts.runTestCase(test_case_name)
       except Exception as exc:
-         self.assertTrue(False, f"Unhandled exception in test case {test_case_name} - {exc}")
-         results = None
-      except:
-         self.assertTrue(False, f"Something failed with test case {test_case_name} - is the name correct and the test exists?")
-         results = None
+         exc_occured = True
+         saved_exc = exc
 
+      self.assertFalse(exc_occured, f"Unhandled exception in test case {test_case_name} - {saved_exc}")
       self.assertTrue(results, "Results is None")
 
       return results

@@ -34,20 +34,16 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
 
    auto excHappened = false;
 
-   ArgParser argparser({
-      Arg("")
-   });
-
-   // try
-   // {
-   //    ArgParser argparser({
-   //       Arg("")
-   //    });
-   // }
-   // catch(Ymception const & E)
-   // {
-   //    excHappened = true;
-   // }
+   try
+   {
+      ArgParser argparser({
+         Arg("")
+      });
+   }
+   catch(Ymception const & E)
+   {
+      excHappened = true;
+   }
 
    return {
       {"Input",  true},
