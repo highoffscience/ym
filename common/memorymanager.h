@@ -108,7 +108,7 @@ MemMgr::Pool<Chunk_T>::Pool(uint64 const NChunksPerBlock)
    : _activeBlock_ptr   {nullptr                           },
      _sentinel_ptr      {_activeBlock_ptr + NChunksPerBlock},
      _nextFreeChunk_ptr {_sentinel_ptr                     }, // forces allocation
-     _originalBlock_Ptr {allocate<Chunk_T>()               }
+     _originalBlock_Ptr {nullptr /*allocate<Chunk_T>()*/   } // TODO
 {
 }
 

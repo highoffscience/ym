@@ -64,6 +64,7 @@ concept Ymceptable = std::is_base_of_v<class Ymception, T>;
  * Convenience functions.
  * -------------------------------------------------------------------------- */
 
+// TODO investigate std::source_location
 template <Ymceptable  DerivedYmception_T,
           Loggable... Args_T>
 void ymAssert(bool   const    Condition,

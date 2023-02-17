@@ -109,9 +109,9 @@ auto ym::ArgParser::getArgPtr(str const Key) -> Arg *
  * TODO
  */
 ym::ArgParser::Arg::Arg(str const Name)
-   : _Name   {Name   },
-     _desc   {nullptr},
-     _val    {nullptr}
+   : _Name {Name   },
+     _desc {nullptr},
+     _val  {nullptr}
 {
    ymAssert<ArgParserError_NameEmpty>(ymIsStrNonEmpty(getName()), "Name must be non-empty");
 }
