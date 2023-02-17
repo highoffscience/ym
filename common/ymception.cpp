@@ -7,6 +7,7 @@
 #include "textlogger.h"
 #include "verbositygroup.h"
 
+#include <stacktrace>
 #include <string>
 
 /** assertHandler

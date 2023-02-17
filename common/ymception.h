@@ -18,8 +18,7 @@
 /**
  * TODO
  */
-#define YM_DECL_YMCEPT(...) YM_MACRO_OVERLOAD(__VA_ARGS__, YM_DECL_YMCEPT3, \
-                                                           YM_DECL_YMCEPT2, \
+#define YM_DECL_YMCEPT(...) YM_MACRO_OVERLOAD(__VA_ARGS__, YM_DECL_YMCEPT2, \
                                                            YM_DECL_YMCEPT1  )(__VA_ARGS__)
 
 /**
@@ -31,18 +30,13 @@
    class DerivedYmception_ : public BaseYmception_              \
    {                                                            \
    public:                                                      \
-      template <Ymceptable  DerivedYmception_T,                 \
-                Loggable... Args_T>                             \
+      template <Loggable... Args_T>                             \
       explicit inline DerivedYmception_(str    const    Format, \
                                         Args_T const... Args)   \
-         : BaseYmception_<DerivedYmception_T>(Format, Args...)  \
+         : BaseYmception_(Format, Args...)                      \
       { }                                                       \
                                                                 \
       virtual ~DerivedYmception_(void) = default;               \
-                                                                \
-      static constexpr auto getClassName(void) {                \
-         return #DerivedYmception_;                             \
-      }                                                         \
    };
 
 /** YM_DECL_YMCEPT1
@@ -85,8 +79,7 @@ void ymAssert(bool   const    Condition,
 class Ymception : public std::exception
 {
 public:
-   template <Ymceptable  DerivedYmception_T,
-             Loggable... Args_T>
+   template <Loggable... Args_T>
    explicit inline Ymception(str    const    Format,
                              Args_T const... Args);
 
@@ -115,21 +108,12 @@ private:
  * @param Format -- Format string.
  * @param Args   -- Arguments.
  */
-template <Ymceptable  DerivedYmception_T,
-          Loggable... Args_T>
+template <Loggable... Args_T>
 inline Ymception::Ymception(str    const    Format,
                             Args_T const... Args)
    : _msg {'\0'}
 {
-   auto const NCharsWritten = std::snprintf(_msg.data(), _msg.size(), "%s: ",
-                                            DerivedYmception_T::getClassName());
-   if (NCharsWritten > 0_i32)
-   {
-      (void)std::snprintf(_msg.data() + NCharsWritten,
-                          _msg.size() - NCharsWritten,
-                          Format,
-                          Args...);
-   }
+   (void)std::snprintf(_msg.data(), _msg.size(), Format, Args...);
 }
 
 /** ymAssert
@@ -152,7 +136,7 @@ void ymAssert(bool   const    Condition,
 {
    if (!Condition)
    { // assert failed
-      DerivedYmception_T e<DerivedYmception_T>(Format, Args...);
+      DerivedYmception_T e(Format, Args...);
       e.assertHandler(); // throws
    }
 }

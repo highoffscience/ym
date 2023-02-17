@@ -131,7 +131,7 @@ static_assert(YM_IS_CLANG_ID +
 /*
  * TODO
  */
-#define YM_MACRO_OVERLOAD(_1, _2, _3, Name_, ...) Name_
+#define YM_MACRO_OVERLOAD(_1, _2, Name_, ...) Name_
 
 // ----------------------------------------------------------------------------
 
