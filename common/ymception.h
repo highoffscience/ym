@@ -10,9 +10,12 @@
 
 #include "loggable.h"
 
-#include <array>
+#include "format.h"
+
 #include <cstdio>
 #include <exception>
+#include <source_location>
+#include <string>
 #include <type_traits>
 
 /**
@@ -30,13 +33,16 @@
    class DerivedYmception_ : public BaseYmception_              \
    {                                                            \
    public:                                                      \
-      template <Loggable... Args_T>                             \
-      explicit inline DerivedYmception_(str    const    Format, \
-                                        Args_T const... Args)   \
-         : BaseYmception_(Format, Args...)                      \
+      explicit inline DerivedYmception_(std::string const Name, \
+                                        std::string const Msg)  \
+         : BaseYmception_(Name, Msg)                            \
       { }                                                       \
                                                                 \
       virtual ~DerivedYmception_(void) = default;               \
+                                                                \
+      static constexpr auto getClassName(void) {                \
+         return #DerivedYmception_;                             \
+      }                                                         \
    };
 
 /** YM_DECL_YMCEPT1
@@ -55,21 +61,19 @@ namespace ym
  *
  * @brief Represents a Ymception class.
  *
- * @tparam T -- Type that is or is derived from Ymception.
+ * @tparam T -- Type that is derived from Ymception.
  */
 template <typename T>
-concept Ymceptable = std::is_base_of_v<class Ymception, T>;
+concept Ymceptable =  std::is_base_of_v<class Ymception, T> &&
+                     !std::is_same_v<   class Ymception, T>;
 
 /*
  * Convenience functions.
  * -------------------------------------------------------------------------- */
 
-// TODO investigate std::source_location
-template <Ymceptable  DerivedYmception_T,
-          Loggable... Args_T>
-void ymAssert(bool   const    Condition,
-              str    const    Format,
-              Args_T const... Args);
+template <Ymceptable DerivedYmception_T>
+void ymAssert(bool        const Condition,
+              std::string const Msg);
 
 /* -------------------------------------------------------------------------- */
 
@@ -80,24 +84,21 @@ void ymAssert(bool   const    Condition,
 class Ymception : public std::exception
 {
 public:
-   template <Loggable... Args_T>
-   explicit inline Ymception(str    const    Format,
-                             Args_T const... Args);
+   explicit inline Ymception(std::string const Name,
+                             std::string const Msg);
 
    virtual ~Ymception(void) = default;
 
    virtual str what(void) const noexcept override;
 
-   template <Ymceptable  Ymception_T,
-             Loggable... Args_T>
-   friend void ymAssert(bool   const    Condition,
-                        str    const    Format,
-                        Args_T const... Args);
+   template <Ymceptable DerivedYmception_T>
+   friend void ymAssert(bool        const Condition,
+                        std::string const Msg);
 
 private:
    void assertHandler(void) const;
 
-   std::array<char, 1024_u64 /* max msg size (bytes) */> _msg;
+   std::string const _Msg;
 };
 
 /** Ymception
@@ -109,12 +110,10 @@ private:
  * @param Format -- Format string.
  * @param Args   -- Arguments.
  */
-template <Loggable... Args_T>
-inline Ymception::Ymception(str    const    Format,
-                            Args_T const... Args)
-   : _msg {'\0'}
+inline Ymception::Ymception(std::string const Name,
+                            std::string const Msg)
+   : _Msg {Name + ": " + Msg}
 {
-   (void)std::snprintf(_msg.data(), _msg.size(), Format, Args...);
 }
 
 /** ymAssert
@@ -129,15 +128,13 @@ inline Ymception::Ymception(str    const    Format,
  * @param Format    -- Format string.
  * @param Args      -- Arguments.
  */
-template <Ymceptable  DerivedYmception_T,
-          Loggable... Args_T>
-void ymAssert(bool   const    Condition,
-              str    const    Format,
-              Args_T const... Args)
+template <Ymceptable DerivedYmception_T>
+void ymAssert(bool        const Condition,
+              std::string const Msg)
 {
    if (!Condition)
    { // assert failed
-      DerivedYmception_T e(Format, Args...);
+      DerivedYmception_T e(DerivedYmception_T::getClassName(), Msg);
       e.assertHandler(); // throws
    }
 }
