@@ -10,8 +10,6 @@
 
 #include "loggable.h"
 
-#include "format.h"
-
 #include <cstdio>
 #include <exception>
 #include <source_location>
@@ -71,9 +69,17 @@ concept Ymceptable =  std::is_base_of_v<class Ymception, T> &&
  * Convenience functions.
  * -------------------------------------------------------------------------- */
 
+// TODO <https://stackoverflow.com/questions/14805192/c-variadic-template-function-parameter-with-default-value>
+template <Loggable... Args_T>
+struct YmceptionAssertHelper
+{
+
+};
+
 template <Ymceptable DerivedYmception_T>
-void ymAssert(bool        const Condition,
-              std::string const Msg);
+void ymAssert(bool                 const Condition,
+              std::string          const Msg,
+              std::source_location const SrcLoc = std::source_location::current());
 
 /* -------------------------------------------------------------------------- */
 
@@ -92,8 +98,9 @@ public:
    virtual str what(void) const noexcept override;
 
    template <Ymceptable DerivedYmception_T>
-   friend void ymAssert(bool        const Condition,
-                        std::string const Msg);
+   friend void ymAssert(bool                 const Condition,
+                        std::string          const Msg,
+                        std::source_location const SrcLoc);
 
 private:
    void assertHandler(void) const;
@@ -112,7 +119,7 @@ private:
  */
 inline Ymception::Ymception(std::string const Name,
                             std::string const Msg)
-   : _Msg {Name + ": " + Msg}
+   : _Msg {Name + ": " + Msg + "!"}
 {
 }
 
@@ -129,8 +136,9 @@ inline Ymception::Ymception(std::string const Name,
  * @param Args      -- Arguments.
  */
 template <Ymceptable DerivedYmception_T>
-void ymAssert(bool        const Condition,
-              std::string const Msg)
+void ymAssert(bool                 const Condition,
+              std::string          const Msg,
+              std::source_location const SrcLoc)
 {
    if (!Condition)
    { // assert failed

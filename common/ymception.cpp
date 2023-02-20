@@ -49,5 +49,5 @@ void ym::Ymception::assertHandler(void) const
  */
 auto ym::Ymception::what(void) const noexcept -> str
 {
-   return _msg.data();
+   return _Msg.c_str();
 }
