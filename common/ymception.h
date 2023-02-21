@@ -71,15 +71,27 @@ concept Ymceptable =  std::is_base_of_v<class Ymception, T> &&
 
 // TODO <https://stackoverflow.com/questions/14805192/c-variadic-template-function-parameter-with-default-value>
 template <Loggable... Args_T>
-struct YmceptionAssertHelper
+struct ymAssert
 {
+   explicit ymAssert(bool                 const    Condition,
+                     Args_T               const... Args,
+                     std::source_location const    SrcLoc = std::source_location::current())
+   {
+      if (Condition)
+      {
 
+      }
+   }
 };
 
-template <Ymceptable DerivedYmception_T>
-void ymAssert(bool                 const Condition,
-              std::string          const Msg,
-              std::source_location const SrcLoc = std::source_location::current());
+template <Loggable... Args_T>
+ymAssert(bool   const Condition,
+         Args_T const... Args) -> ymAssert<Args_T...>;
+
+// template <Ymceptable DerivedYmception_T>
+// void ymAssert(bool                 const Condition,
+//               std::string          const Msg,
+//               std::source_location const SrcLoc = std::source_location::current());
 
 /* -------------------------------------------------------------------------- */
 
