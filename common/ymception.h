@@ -10,6 +10,8 @@
 
 #include "loggable.h"
 
+#include "fmt/core.h"
+
 #include <cstdio>
 #include <exception>
 #include <source_location>
@@ -70,28 +72,41 @@ concept Ymceptable =  std::is_base_of_v<class Ymception, T> &&
  * -------------------------------------------------------------------------- */
 
 // TODO <https://stackoverflow.com/questions/14805192/c-variadic-template-function-parameter-with-default-value>
-template <Loggable... Args_T>
-struct ymAssert
+template <Ymceptable  DerivedYmception_T,
+          Loggable... Args_T>
+struct ymAssert_Helper
 {
-   explicit ymAssert(bool                 const    Condition,
-                     Args_T               const... Args,
-                     std::source_location const    SrcLoc = std::source_location::current())
+   explicit ymAssert_Helper(bool                 const    Condition,
+                            str                  const    Format,
+                            Args_T               const... Args,
+                            std::source_location const    SrcLoc = std::source_location::current())
    {
       if (Condition)
       {
+         std::string s;
 
+         s += DerivedYmception_T::getClassName();
+         s += " <";
+         s += SrcLoc.file_name();
+         s += ":";
+         s += std::to_string(SrcLoc.line());
+         s += "> ";
+         s += fmt::format(Format, Args...);
+
+         throw DerivedYmception_T(s);
       }
    }
 };
 
-template <Loggable... Args_T>
-ymAssert(bool   const Condition,
-         Args_T const... Args) -> ymAssert<Args_T...>;
+template <Ymceptable  DerivedYmception_T,
+          Loggable... Args_T>
+ymAssert_Helper(bool   const    Condition,
+                str    const    Format,
+                Args_T const... Args) -> ymAssert_Helper<DerivedYmception_T, Args_T...>;
 
-// template <Ymceptable DerivedYmception_T>
-// void ymAssert(bool                 const Condition,
-//               std::string          const Msg,
-//               std::source_location const SrcLoc = std::source_location::current());
+template <Ymceptable DerivedYmception_T>
+void ymAssert(bool                 const Condition,
+              std::string          const Msg);
 
 /* -------------------------------------------------------------------------- */
 
@@ -111,8 +126,7 @@ public:
 
    template <Ymceptable DerivedYmception_T>
    friend void ymAssert(bool                 const Condition,
-                        std::string          const Msg,
-                        std::source_location const SrcLoc);
+                        std::string          const Msg);
 
 private:
    void assertHandler(void) const;
@@ -149,8 +163,7 @@ inline Ymception::Ymception(std::string const Name,
  */
 template <Ymceptable DerivedYmception_T>
 void ymAssert(bool                 const Condition,
-              std::string          const Msg,
-              std::source_location const SrcLoc)
+              std::string          const Msg)
 {
    if (!Condition)
    { // assert failed
