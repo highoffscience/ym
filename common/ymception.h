@@ -16,6 +16,7 @@
 #include <exception>
 #include <source_location>
 #include <string>
+#include <string_view>
 #include <type_traits>
 
 /**
@@ -27,22 +28,21 @@
 /**
  * TODO
  */
-#define YM_DECL_YMCEPT2(BaseYmception_, DerivedYmception_)      \
-   static_assert(std::is_base_of_v<Ymception, BaseYmception_>,  \
-      #BaseYmception_" must be of Ymception type");             \
-   class DerivedYmception_ : public BaseYmception_              \
-   {                                                            \
-   public:                                                      \
-      explicit inline DerivedYmception_(std::string const Name, \
-                                        std::string const Msg)  \
-         : BaseYmception_(Name, Msg)                            \
-      { }                                                       \
-                                                                \
-      virtual ~DerivedYmception_(void) = default;               \
-                                                                \
-      static constexpr auto getClassName(void) {                \
-         return #DerivedYmception_;                             \
-      }                                                         \
+#define YM_DECL_YMCEPT2(BaseYmception_, DerivedYmception_)       \
+   static_assert(std::is_base_of_v<Ymception, BaseYmception_>,   \
+      #BaseYmception_" must be of Ymception type");              \
+   class DerivedYmception_ : public BaseYmception_               \
+   {                                                             \
+   public:                                                       \
+      explicit inline DerivedYmception_(std::string const & Msg) \
+         : BaseYmception_(Msg)                                   \
+      { }                                                        \
+                                                                 \
+      virtual ~DerivedYmception_(void) = default;                \
+                                                                 \
+      static constexpr auto getClassName(void) {                 \
+         return #DerivedYmception_;                              \
+      }                                                          \
    };
 
 /** YM_DECL_YMCEPT1
@@ -77,7 +77,7 @@ template <Ymceptable  DerivedYmception_T,
 struct ymAssert_Helper
 {
    explicit ymAssert_Helper(bool                 const    Condition,
-                            str                  const    Format,
+                            std::string_view     const    Format,
                             Args_T               const... Args,
                             std::source_location const    SrcLoc = std::source_location::current())
    {
@@ -91,7 +91,7 @@ struct ymAssert_Helper
          s += ":";
          s += std::to_string(SrcLoc.line());
          s += "> ";
-         s += fmt::format(Format, Args...);
+         s += fmt::format(fmt::runtime(Format), Args...);
 
          throw DerivedYmception_T(s);
       }
@@ -101,7 +101,7 @@ struct ymAssert_Helper
 template <Ymceptable  DerivedYmception_T,
           Loggable... Args_T>
 ymAssert_Helper(bool   const    Condition,
-                str    const    Format,
+                std::string_view    const    Format,
                 Args_T const... Args) -> ymAssert_Helper<DerivedYmception_T, Args_T...>;
 
 template <Ymceptable DerivedYmception_T>
@@ -117,12 +117,15 @@ void ymAssert(bool                 const Condition,
 class Ymception : public std::exception
 {
 public:
-   explicit inline Ymception(std::string const Name,
-                             std::string const Msg);
+   explicit inline Ymception(std::string const & Msg);
 
    virtual ~Ymception(void) = default;
 
    virtual str what(void) const noexcept override;
+
+   static constexpr auto getClassName(void) {
+      return "Ymception";
+   }
 
    template <Ymceptable DerivedYmception_T>
    friend void ymAssert(bool                 const Condition,
@@ -143,9 +146,8 @@ private:
  * @param Format -- Format string.
  * @param Args   -- Arguments.
  */
-inline Ymception::Ymception(std::string const Name,
-                            std::string const Msg)
-   : _Msg {Name + ": " + Msg + "!"}
+inline Ymception::Ymception(std::string const & Msg)
+   : _Msg {Msg}
 {
 }
 
@@ -162,14 +164,14 @@ inline Ymception::Ymception(std::string const Name,
  * @param Args      -- Arguments.
  */
 template <Ymceptable DerivedYmception_T>
-void ymAssert(bool                 const Condition,
-              std::string          const Msg)
+void ymAssert([[maybe_unused]] bool                 const Condition,
+              [[maybe_unused]] std::string          const Msg)
 {
-   if (!Condition)
-   { // assert failed
-      DerivedYmception_T e(DerivedYmception_T::getClassName(), Msg);
-      e.assertHandler(); // throws
-   }
+   // if (!Condition)
+   // { // assert failed
+   //    DerivedYmception_T e(DerivedYmception_T::getClassName(), Msg);
+   //    e.assertHandler(); // throws
+   // }
 }
 
 } // ym

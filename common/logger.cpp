@@ -103,9 +103,13 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
                                                :  FilenameSize_bytes;
 
    constexpr auto MaxFilenameSize_bytes = 256_u64;
-   ymAssert<LoggerError_UnexpectedFilenameSize>(FilenameSize_bytes < MaxFilenameSize_bytes, fmt::format(
+   // ymAssert_Helper<LoggerError_UnexpectedFilenameSize>(FilenameSize_bytes < MaxFilenameSize_bytes,
+   //    "Filename size is too big - not technically a hard error but unexpected. "
+   //    "Got {} bytes, max {} bytes", FilenameSize_bytes, MaxFilenameSize_bytes);
+
+   ymAssert_Helper<LoggerError_UnexpectedFilenameSize>(FilenameSize_bytes < MaxFilenameSize_bytes,
       "Filename size is too big - not technically a hard error but unexpected. "
-      "Got {} bytes, max {} bytes", FilenameSize_bytes, MaxFilenameSize_bytes));
+      "Got {} bytes, max {} bytes", FilenameSize_bytes, MaxFilenameSize_bytes);
 
    auto const TSFilenameSize_bytes =
       FilenameSize_bytes + s_DefaultTS.length() + 1_u64; // include null terminator
