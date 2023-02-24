@@ -113,7 +113,8 @@ ym::ArgParser::Arg::Arg(str const Name)
      _desc {nullptr},
      _val  {nullptr}
 {
-   ymAssert<ArgParserError_NameEmpty>(ymIsStrNonEmpty(getName()), "Name must be non-empty");
+   // ymAssert<ArgParserError_NameEmpty>(ymIsStrNonEmpty(getName()), "Name must be non-empty");
+   Ymception::assert(ymIsStrNonEmpty(getName()), "Name must be non-empty", 7);
 }
 
 /**
@@ -121,11 +122,13 @@ ym::ArgParser::Arg::Arg(str const Name)
  */
 auto ym::ArgParser::Arg::desc(str const Desc) -> Arg &
 {
-   ymAssert<ArgParserError_DescInUse>(!getDesc(), "Description must not have already been set");
+   // ymAssert<ArgParserError_DescInUse>(!getDesc(), "Description must not have already been set");
+
+   Ymception::assert(!getDesc(), "Description must not have already been set");
 
    _desc = Desc;
 
-   ymAssert<ArgParserError_DescEmpty>(ymIsStrNonEmpty(getDesc()), "Description must be non-empty");
+   // ymAssert<ArgParserError_DescEmpty>(ymIsStrNonEmpty(getDesc()), "Description must be non-empty");
 
    return *this;
 }
@@ -135,11 +138,11 @@ auto ym::ArgParser::Arg::desc(str const Desc) -> Arg &
  */
 auto ym::ArgParser::Arg::defaultVal(str const DefaultVal) -> Arg &
 {
-   ymAssert<ArgParserError_ValEmpty>(!getVal(), "Value must not have already been set");
+   // ymAssert<ArgParserError_ValEmpty>(!getVal(), "Value must not have already been set");
 
    _val = DefaultVal;
 
-   ymAssert<ArgParserError_ValInUse>(ymIsStrNonEmpty(getVal()), "Val must be non-empty");
+   // ymAssert<ArgParserError_ValInUse>(ymIsStrNonEmpty(getVal()), "Val must be non-empty");
 
    return *this;
 }

@@ -62,8 +62,8 @@ class MemoryManager
 public:
    YM_NO_DEFAULT(MemoryManager)
 
-   YM_DECL_YMCEPT(MemoryManagerError)
-   YM_DECL_YMCEPT(MemoryManagerError, MemoryManagerError_InvalidNChunks)
+   // YM_DECL_YMCEPT(MemoryManagerError)
+   // YM_DECL_YMCEPT(MemoryManagerError, MemoryManagerError_InvalidNChunks)
 
    /** Pool
     *
@@ -191,8 +191,8 @@ void MemMgr::Pool<Chunk_T>::deallocate(Chunk_T * const datum_Ptr)
 template <Chunkable_T Chunk_T>
 auto MemMgr::getNewPool(uint64 const NChunksPerBlock) -> Pool<Chunk_T>
 {
-   ymAssert<MemoryManagerError_InvalidNChunks>(NChunksPerBlock > 0_u64,
-      "# of chunks must be greater than 0");
+   // ymAssert<MemoryManagerError_InvalidNChunks>(NChunksPerBlock > 0_u64,
+   //    "# of chunks must be greater than 0");
 
    auto * const originalBlock_Ptr =
       static_cast<Chunk_T *>(allocateBlock(NChunksPerBlock, sizeof(Chunk_T)));
