@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
+#include <tuple>
 #include <utility>
 
 /**
@@ -116,9 +117,9 @@ namespace ym
    };
 
    template <typename... Args_T>
-   struct Helper : public Base
+   struct Assert_ArgParserError_NameEmpty : public Base
    {
-      Helper(bool const Condition,
+      Assert_ArgParserError_NameEmpty(bool const Condition,
             str const Format,
             [[maybe_unused]] Args_T const... Args,
             std::source_location const SrcLoc = std::source_location::current())
@@ -132,17 +133,9 @@ namespace ym
    };
 
    template <typename... Args_T>
-   Helper(bool const Condition,
+   Assert_ArgParserError_NameEmpty(bool const Condition,
          str const Format,
-         Args_T const... Args) -> Helper<Args_T...>;
-
-   template <typename Dymcept, typename... Args_T>
-   inline void ymTestAssert(bool const Condition,
-                           str const Format,
-                           Args_T const... Args)
-   {
-      Dymcept(Condition, Format, Args...);
-   }
+         Args_T const... Args) -> Assert_ArgParserError_NameEmpty<Args_T...>;
 }
 
 /**
@@ -155,7 +148,7 @@ ym::ArgParser::Arg::Arg(str const Name)
 {
    // ymAssert<ArgParserError_NameEmpty>(ymIsStrNonEmpty(getName()), "Name must be non-empty");
 
-   ymTestAssert<Helper>(ymIsStrNonEmpty(getName()), "Name must be non-empty", 7);
+   Assert_ArgParserError_NameEmpty(ymIsStrNonEmpty(getName()), "Name must be non-empty", 7);
 }
 
 /**
