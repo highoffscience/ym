@@ -105,6 +105,46 @@ auto ym::ArgParser::getArgPtr(str const Key) -> Arg *
       );
 }
 
+namespace ym
+{
+   struct Base
+   {
+      void store(str const Format)
+      {
+         (void)Format;
+      }
+   };
+
+   template <typename... Args_T>
+   struct Helper : public Base
+   {
+      Helper(bool const Condition,
+            str const Format,
+            [[maybe_unused]] Args_T const... Args,
+            std::source_location const SrcLoc = std::source_location::current())
+      {
+         if (Condition)
+         {
+            store(Format);
+            (void)SrcLoc;
+         }
+      }
+   };
+
+   template <typename... Args_T>
+   Helper(bool const Condition,
+         str const Format,
+         Args_T const... Args) -> Helper<Args_T...>;
+
+   template <typename Dymcept, typename... Args_T>
+   inline void ymTestAssert(bool const Condition,
+                           str const Format,
+                           Args_T const... Args)
+   {
+      Dymcept(Condition, Format, Args...);
+   }
+}
+
 /**
  * TODO
  */
@@ -114,7 +154,8 @@ ym::ArgParser::Arg::Arg(str const Name)
      _val  {nullptr}
 {
    // ymAssert<ArgParserError_NameEmpty>(ymIsStrNonEmpty(getName()), "Name must be non-empty");
-   Ymception::assert(ymIsStrNonEmpty(getName()), "Name must be non-empty", 7);
+
+   ymTestAssert<Helper>(ymIsStrNonEmpty(getName()), "Name must be non-empty", 7);
 }
 
 /**
