@@ -125,18 +125,34 @@ public:
    //    return "Ymception";
    // }
 
-   template <Loggable... Args_T>
-   static void assert(bool                 const    Condition,
-                      std::string_view     const    Format,
-                      Args_T               const... Args,
-                      std::source_location const    SrcLoc = std::source_location::current());
+   template <Loggable Arg_T>
+   static inline void assert(bool                 const Condition,
+                             str                  const Format,
+                             Arg_T                const Arg,
+                             std::source_location const SrcLoc = std::source_location::current())
+   {
+      if (Condition) { assertHandler(SrcLoc, Format, Arg); }
+   }
+
+   template <Loggable Arg0_T,
+             Loggable Arg1_T>
+   static inline void assert(bool                 const Condition,
+                             str                  const Format,
+                             Arg0_T               const Arg0,
+                             Arg1_T               const Arg1,
+                             std::source_location const SrcLoc = std::source_location::current())
+   {
+      if (Condition) { assertHandler(SrcLoc, Format, Arg0, Arg1); }
+   }
 
    // template <Ymceptable DerivedYmception_T>
    // friend void ymAssert(bool                 const Condition,
    //                      std::string          const Msg);
 
 private:
-   static void assertHandler(void);
+   void assertHandler(std::source_location const SrcLoc,
+                      str                  const Format,
+                      /*variadic*/               ...);
 
    std::string const _Msg;
 };

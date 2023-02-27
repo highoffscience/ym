@@ -9,7 +9,9 @@
 
 #include <boost/stacktrace.hpp>
 
-#include <stacktrace>
+#include <array>
+#include <cstdarg>
+#include <cstdio>
 #include <string>
 
 /** assertHandler
@@ -18,8 +20,27 @@
  * 
  * TODO std::stacktrace implementation instead of boost
  */
-void ym::Ymception::assertHandler(void)
+void ym::Ymception::assertHandler(std::source_location const SrcLoc,
+                                  str                  const Format,
+                                  /*variadic*/               ...)
 {
+   std::array<char, 1024_u32> buffer{'\0'};
+
+   std::va_list args;
+   va_start(args, Format);
+
+   // vsnprintf writes a null terminator for us
+   (void)std::vsnprintf(buffer.data(), buffer.size(), Format, args);
+
+   va_end(args);
+
+   ymLog(VGM_T::Ymception_Assert, Format, ...);
+
+   std::va_list args;
+   va_start(args, Format);
+   
+   va_end(args);
+
    ymLog(VGM_T::Ymception_Assert, "Assert failed!");
    // ymLog(VGM_T::Ymception_Assert, what());
    // ymLog(VGM_T::Ymception_Assert, "Stack dump follows...(pending new implementation)");

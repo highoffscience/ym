@@ -6,6 +6,7 @@
 
 #include "textlogger.h"
 
+#include <cstdarg>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
@@ -128,7 +129,6 @@ bool ym::TextLogger::open(
       TSFM_T const TSFilenameMode
    #endif // YM_PRINT_TO_SCREEN
 )
-
 {
    auto opened = false;
 

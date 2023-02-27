@@ -122,7 +122,7 @@ namespace ym
       Assert_ArgParserError_NameEmpty(bool const Condition,
             str const Format,
             [[maybe_unused]] Args_T const... Args,
-            std::source_location const SrcLoc = std::source_location::current())
+            std::source_location const SrcLoc = std::source_location::current()) 
       {
          if (Condition)
          {
@@ -136,6 +136,14 @@ namespace ym
    Assert_ArgParserError_NameEmpty(bool const Condition,
          str const Format,
          Args_T const... Args) -> Assert_ArgParserError_NameEmpty<Args_T...>;
+
+   inline void ymAssert([[maybe_unused]] bool const Condition,
+                        [[maybe_unused]] str  const Format) { if (Condition) }
+   
+   template <Loggable Arg_T>
+   inline void ymAssert([[maybe_unused]] bool  const Condition,
+                        [[maybe_unused]] str   const Format,
+                        [[maybe_unused]] Arg_T const Arg) {}
 }
 
 /**
@@ -148,7 +156,7 @@ ym::ArgParser::Arg::Arg(str const Name)
 {
    // ymAssert<ArgParserError_NameEmpty>(ymIsStrNonEmpty(getName()), "Name must be non-empty");
 
-   Assert_ArgParserError_NameEmpty(ymIsStrNonEmpty(getName()), "Name must be non-empty", 7);
+   ymAssert(ymIsStrNonEmpty(getName()), "Name must be non-empty", 7);
 }
 
 /**
@@ -156,9 +164,9 @@ ym::ArgParser::Arg::Arg(str const Name)
  */
 auto ym::ArgParser::Arg::desc(str const Desc) -> Arg &
 {
-   // ymAssert<ArgParserError_DescInUse>(!getDesc(), "Description must not have already been set");
+   // ymAssert<ArgParserError_DescInUse>(!getDesc(), YM_SRCLOC(), "Description must not have already been set");
 
-   Ymception::assert(!getDesc(), "Description must not have already been set");
+   //Ymception::assert(!getDesc(), "Description must not have already been set");
 
    _desc = Desc;
 
