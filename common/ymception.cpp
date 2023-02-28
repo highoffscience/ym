@@ -26,6 +26,8 @@ void ym::Ymception::assertHandler(std::source_location const SrcLoc,
 {
    std::array<char, 1024_u32> buffer{'\0'};
 
+   (void)SrcLoc;
+
    std::va_list args;
    va_start(args, Format);
 
@@ -34,12 +36,7 @@ void ym::Ymception::assertHandler(std::source_location const SrcLoc,
 
    va_end(args);
 
-   ymLog(VGM_T::Ymception_Assert, Format, ...);
-
-   std::va_list args;
-   va_start(args, Format);
-   
-   va_end(args);
+   // ymLog(VGM_T::Ymception_Assert, Format, ...);
 
    ymLog(VGM_T::Ymception_Assert, "Assert failed!");
    // ymLog(VGM_T::Ymception_Assert, what());

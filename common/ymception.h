@@ -171,17 +171,17 @@ inline Ymception::Ymception(std::string const & Msg)
 {
 }
 
-/**
- * TODO
- */
-template <Loggable... Args_T>
-void Ymception::assert([[maybe_unused]] bool                 const    Condition,
-                       [[maybe_unused]] std::string_view     const    Format,
-                       [[maybe_unused]] Args_T               const... Args,
-                       [[maybe_unused]] std::source_location const    SrcLoc)
-{
-   assertHandler();
-}
+// /**
+//  * TODO
+//  */
+// template <Loggable... Args_T>
+// void Ymception::assert([[maybe_unused]] bool                 const    Condition,
+//                        [[maybe_unused]] std::string_view     const    Format,
+//                        [[maybe_unused]] Args_T               const... Args,
+//                        [[maybe_unused]] std::source_location const    SrcLoc)
+// {
+//    assertHandler();
+// }
 
 // /** ymAssert
 //  *
