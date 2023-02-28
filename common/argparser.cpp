@@ -120,7 +120,7 @@ namespace ym
    {
       inline TestError() : Ymception("") {}
 
-      static void assertHandler_test(str const Format)
+      static void assertHandler_test(str name, str const Format)
       {
          (void)Format;
          TestError e;
@@ -137,7 +137,7 @@ namespace ym
          {
             if (Condition)
             {
-               assertHandler_test(Format);
+               assertHandler_test("" /*getClassName()*/, Format);
                (void)SrcLoc;
             }
          }
