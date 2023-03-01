@@ -44,8 +44,8 @@ public:
 
    explicit ArgParser(std::vector<Arg> && args_uref);
 
-   // YM_DECL_YMCEPT(ArgParserError)
-   // YM_DECL_YMCEPT(ArgParserError, ArgParserError_NameEmpty)
+   YM_DECL_YMCEPT(ArgParserError)
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NameEmpty)
    // YM_DECL_YMCEPT(ArgParserError, ArgParserError_DescEmpty)
    // YM_DECL_YMCEPT(ArgParserError, ArgParserError_DescInUse)
    // YM_DECL_YMCEPT(ArgParserError, ArgParserError_ValEmpty )

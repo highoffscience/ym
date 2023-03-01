@@ -106,97 +106,6 @@ auto ym::ArgParser::getArgPtr(str const Key) -> Arg *
       );
 }
 
-namespace ym
-{
-   struct Base
-   {
-      void store(str const Format)
-      {
-         (void)Format;
-      }
-   };
-
-   struct TestError : public Ymception
-   {
-      inline TestError() : Ymception("") {}
-
-      static void assertHandler_test(str name, str const Format)
-      {
-         (void)Format;
-         TestError e;
-         (void)e;
-      }
-
-      template <Loggable... Args_T>
-      struct assert
-      {
-         explicit inline assert(bool const Condition,
-                     str const Format,
-                     [[maybe_unused]] Args_T const... Args,
-                     std::source_location const SrcLoc = std::source_location::current())
-         {
-            if (Condition)
-            {
-               assertHandler_test("" /*getClassName()*/, Format);
-               (void)SrcLoc;
-            }
-         }
-      };
-
-      template <typename... Args_T>
-      assert(bool const Condition,
-            str const Format,
-            Args_T const... Args) -> assert<Args_T...>;
-   };
-
-   // template <Ymceptable DerivedYmception_T>
-   // struct ymAssert
-   // {
-   //    template <Loggable... Args_T>
-   //    explicit inline ymAssert(bool const Condition,
-   //                             str const Format,
-   //                             [[maybe_unused]] Args_T const... Args,
-   //                             std::source_location const SrcLoc = std::source_location::current())
-   //    {
-   //       if (Condition)
-   //       {
-   //          (void)Format;
-   //          (void)SrcLoc;
-   //       }
-   //    }
-   // };
-
-   // template <typename... Args_T>
-   // struct Assert_ArgParserError_NameEmpty : public Base
-   // {
-   //    Assert_ArgParserError_NameEmpty(bool const Condition,
-   //          str const Format,
-   //          [[maybe_unused]] Args_T const... Args,
-   //          std::source_location const SrcLoc = std::source_location::current()) 
-   //    {
-   //       if (Condition)
-   //       {
-   //          store(Format);
-   //          (void)SrcLoc;
-   //       }
-   //    }
-   // };
-
-   // template <Ymceptable DerivedYmception_T>
-   // template <typename... Args_T>
-   // ymAssert<DerivedYmception_T>(bool const Condition,
-   //       str const Format,
-   //       Args_T const... Args) -> ymAssert<Args_T...>;
-
-   // inline void ymAssert([[maybe_unused]] bool const Condition,
-   //                      [[maybe_unused]] str  const Format) { if (Condition) }
-   
-   // template <Loggable Arg_T>
-   // inline void ymAssert([[maybe_unused]] bool  const Condition,
-   //                      [[maybe_unused]] str   const Format,
-   //                      [[maybe_unused]] Arg_T const Arg) {}
-}
-
 /**
  * TODO
  */
@@ -205,9 +114,7 @@ ym::ArgParser::Arg::Arg(str const Name)
      _desc {nullptr},
      _val  {nullptr}
 {
-   // ymAssert<ArgParserError_NameEmpty>(ymIsStrNonEmpty(getName()), "Name must be non-empty");
-
-   TestError::assert(ymIsStrNonEmpty(getName()), "Name must be non-empty", 7, 9.0);
+   ArgParserError_NameEmpty::assert(ymIsStrNonEmpty(getName()), "Name must be non-empty");
 }
 
 /**
