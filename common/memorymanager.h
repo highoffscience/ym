@@ -13,6 +13,7 @@
 #include <alloca.h>
 #include <cstdint>
 #include <memory>
+#include <new>
 
 namespace ym
 {
@@ -51,7 +52,7 @@ using MemMgr = class MemoryManager;
  * @tparam T -- Type that is chunkable.
  */
 template <typename T>
-concept Chunkable_T = (sizeof(T) >= sizeof(std::uintptr_t));
+concept Chunkable_T = (sizeof(T) >= sizeof(uintptr));
 
 /** MemoryManager
  *
@@ -65,6 +66,12 @@ public:
    // YM_DECL_YMCEPT(MemoryManagerError)
    // YM_DECL_YMCEPT(MemoryManagerError, MemoryManagerError_InvalidNChunks)
 
+   template <typename T>
+   static inline T * allocate_raw(uint64 const NElements);
+
+   template <typename T>
+   static inline std::unique_ptr<T> allocate_safe(uint64 const NElements);
+
    /** Pool
     *
     * @brief Class that manages a particular pool of memory.
@@ -75,7 +82,7 @@ public:
    public:
       explicit Pool(uint64 const NChunksPerBlock);
 
-      Chunk_T *                allocate     (void);
+      Chunk_T *                allocate_raw (void);
       std::unique_ptr<Chunk_T> allocate_safe(void);
 
       void deallocate(Chunk_T * const datum_Ptr);
@@ -94,6 +101,36 @@ private:
    static void * allocateBlock(uint64 const NChunksPerBlock,
                                uint64 const ChunkSize_bytes);
 };
+
+/**
+ * @brief TODO
+ * 
+ * @tparam T 
+ * 
+ * @param NElements 
+ * 
+ * @return T* 
+ */
+template <typename T>
+inline T * MemMgr::allocate_raw(uint64 const NElements)
+{
+   return static_cast<T *>(::operator new(NElements * sizeof(T)));
+}
+
+/**
+ * @brief TODO
+ * 
+ * @tparam T 
+ * 
+ * @param NElements 
+ * 
+ * @return T* 
+ */
+template <typename T>
+inline std::unique_ptr<T> MemMgr::allocate_safe(uint64 const NElements)
+{
+   return std::unique_ptr(allocate_raw<T>(NElements));
+}
 
 /** Pool
  *
@@ -121,7 +158,7 @@ MemMgr::Pool<Chunk_T>::Pool(uint64 const NChunksPerBlock)
  * @return Pointer to block of raw memory equal to sizeof(Chunk_T).
  */
 template <Chunkable_T Chunk_T>
-Chunk_T * MemMgr::Pool<Chunk_T>::allocate(void)
+Chunk_T * MemMgr::Pool<Chunk_T>::allocate_raw(void)
 {
    if (_nextFreeChunk_ptr == _sentinel_ptr)
    { // current pool is exhausted - create another one

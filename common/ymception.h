@@ -12,9 +12,8 @@
 
 #include <cstdio>
 #include <exception>
+#include <memory>
 #include <source_location>
-#include <string>
-#include <string_view>
 #include <type_traits>
 
 /**
@@ -52,7 +51,10 @@
          {                                                                          \
             if (!Condition)                                                         \
             {                                                                       \
-               assertHandler(#DerivedYmception_, SrcLoc, Format, Args...);          \
+               throw DerivedYmception_(assertHandler(#DerivedYmception_,            \
+                                                     SrcLoc,                        \
+                                                     Format,                        \
+                                                     Args...));                     \
             }                                                                       \
          }                                                                          \
       };                                                                            \
@@ -141,10 +143,10 @@ public:
    virtual str what(void) const noexcept override;
 
 protected:
-   static void assertHandler(str                  const Name,
-                             std::source_location const SrcLoc,
-                             str                  const Format,
-                             /*variadic*/               ...);
+   static std::string assertHandler(str                  const Name,
+                                    std::source_location const SrcLoc,
+                                    str                  const Format,
+                                    /*variadic*/               ...);
 
 private:
    std::string const _Msg;

@@ -6,8 +6,6 @@
 
 #include "memorymanager.h"
 
-#include <new>
-
 /** allocateBlock
  * 
  * @brief Allocates and initializes block of memory.
@@ -29,6 +27,7 @@
 void * ym::MemMgr::allocateBlock(uint64 const NChunksPerBlock,
                                  uint64 const ChunkSize_bytes)
 {
+   // size allocated may not be a multiple of sizeof(uintptr)
    auto * const block_Ptr =
       static_cast<uintptr *>(
          ::operator new((NChunksPerBlock * ChunkSize_bytes) + sizeof(uintptr)));
