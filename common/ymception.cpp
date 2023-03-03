@@ -7,20 +7,21 @@
 #include "textlogger.h"
 #include "verbositygroup.h"
 
-#include <boost/stacktrace.hpp>
-
 #include <array>
 #include <cstdarg>
 #include <cstdio>
 
-// TODO does this belong additionally in ym.h?
-#define YM_EXC_DISABLE_STACKTRACE
+#define YM_SPECIAL_DISABLE_STACKTRACE
+
+#if !defined(YM_SPECIAL_DISABLE_STACKTRACE)
+   #include <boost/stacktrace.hpp>
+#endif // YM_SPECIAL_DISABLE_STACKTRACE
 
 /** assertHandler
  *
  * @brief Assert has failed. Print diagnostic information and throw.
  * 
- * TODO std::stacktrace implementation instead of boost.
+ * @todo std::stacktrace implementation instead of boost.
  */
 std::string ym::Ymception::assertHandler(str                  const Name,
                                          std::source_location const SrcLoc,
@@ -55,6 +56,8 @@ std::string ym::Ymception::assertHandler(str                  const Name,
 
    ymLog(VGM_T::Ymception_Assert, "Assert failed!");
    ymLog(VGM_T::Ymception_Assert, "%s!", buffer.data());
+
+#if !defined(YM_SPECIAL_DISABLE_STACKTRACE)
    ymLog(VGM_T::Ymception_Assert, "Stack dump follows...");
 
    { // split and print stack dump
@@ -69,6 +72,7 @@ std::string ym::Ymception::assertHandler(str                  const Name,
          startPos = StackDumpStr.find_first_not_of('\n', EndPos);
       }
    }
+#endif // YM_SPECIAL_DISABLE_STACKTRACE
 
    return std::string(buffer.data());
 }
@@ -77,7 +81,7 @@ std::string ym::Ymception::assertHandler(str                  const Name,
  *
  * @brief Returns the saved off message describing the exception.
  *
- * @return str -- The saved off message
+ * @return str -- The saved off message.
  */
 auto ym::Ymception::what(void) const noexcept -> str
 {

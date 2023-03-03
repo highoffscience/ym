@@ -7,10 +7,13 @@
  *       standard declarations to be shared throughout.
  * 
  * @note Macros start with "YM_".
+ * 
+ * @note Macros used for a particular purpose start with "YM_SPECIAL_".
  */
 
 #pragma once
 
+#include <cstdint>
 #include <limits>
 #include <type_traits>
 #include <utility>
@@ -106,10 +109,6 @@ static_assert(YM_IS_CLANG_ID +
    #endif // _DEBUG
 #endif // YM_IS_MSVC
 
-#if defined(YM_DBG)
-   #define YM_PRINT_TO_SCREEN // redirects output to stdout
-#endif // YM_DBG
-
 #if !defined(YM_EXPERIMENTAL)
    // #define YM_EXPERIMENTAL
 #endif // !YM_EXPERIMENTAL
@@ -128,10 +127,24 @@ static_assert(YM_IS_CLANG_ID +
 #define YM_NO_MOVE_CONSTRUCT( ClassName_ ) ClassName_              (ClassName_ &&     ) = delete;
 #define YM_NO_Move_ASSIGN(    ClassName_ ) ClassName_ & operator = (ClassName_ &&     ) = delete;
 
-/*
- * TODO
+/** YM_MACRO_OVERLOAD
+ * 
+ * @brief Helper macro to allow for macro overloading based on number of arguments.
+ * 
+ * @ref <https://stackoverflow.com/questions/11761703/overloading-macro-on-number-of-arguments>
  */
-#define YM_MACRO_OVERLOAD(_1, _2, Name_, ...) Name_
+
+// get number of arguments with __NARG__
+#define YM__NARG__(...)  YM__NARG_I_(__VA_ARGS__, YM__RSEQ_N())
+#define YM__NARG_I_(...) YM__ARG_N(__VA_ARGS__)
+#define YM__ARG_N(_1, _2, _3, _4, _5, _6, _7, _8, N, ...) N
+#define YM__RSEQ_N() 8,7,6,5,4,3,2,1,0
+
+// general definition for any function name
+#define YM_MACRO_OVERLOAD_HELPER_1(name, n) name##n
+#define YM_MACRO_OVERLOAD_HELPER_2(name, n) YM_MACRO_OVERLOAD_HELPER_1(name, n)
+#define YM_MACRO_OVERLOAD(func, ...) \
+   YM_MACRO_OVERLOAD_HELPER_2(func, YM__NARG__(__VA_ARGS__)) (__VA_ARGS__)
 
 // ----------------------------------------------------------------------------
 
@@ -235,9 +248,8 @@ using float128 = std::conditional_t<std::numeric_limits<long double>::digits == 
 #undef YM_UntIntegrity
 #undef YM_IntIntegrity
 
-// TODO shoudl this be std::uintptr_t?
-using uintptr = uint64; static_assert(sizeof(uintptr) >= sizeof(void *),
-                                      "uintptr cannot hold ptr value");
+/// @brief Convenience alias.
+using uintptr = std::uintptr_t;
 
 /** ymPtrToUint
  *
@@ -291,8 +303,13 @@ constexpr auto ymToUnderlying(T const Value) noexcept
    return static_cast<std::underlying_type_t<T>>(Value);
 }
 
-/**
- * TODO
+/** ymIsStrNonEmpty
+ * 
+ * @brief Convenience method to detect if a c-style string is non-empty.
+ * 
+ * @param S -- String to test.
+ * 
+ * @return bool -- True if string S is non-empty, false otherwise.
  */
 constexpr bool ymIsStrNonEmpty(str const S)
 {

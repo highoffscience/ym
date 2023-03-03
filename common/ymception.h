@@ -20,9 +20,7 @@
 /**
  * TODO
  */
-#define YM_DECL_YMCEPT(...)                        \
-   YM_MACRO_OVERLOAD(__VA_ARGS__, YM_DECL_YMCEPT2, \
-                                  YM_DECL_YMCEPT1  )(__VA_ARGS__)
+#define YM_DECL_YMCEPT(...) YM_MACRO_OVERLOAD(YM_DECL_YMCEPT, __VA_ARGS__)
 
 /**
  * TODO

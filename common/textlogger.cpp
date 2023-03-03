@@ -12,6 +12,8 @@
 #include <ctime>
 #include <memory>
 
+#define YM_SPECIAL_PRINT_TO_SCREEN // redirects output to stdout
+
 /** TextLogger
  *
  * @brief Constructor.
@@ -121,22 +123,22 @@ bool ym::TextLogger::open(str const Filename)
  */
 bool ym::TextLogger::open(
 
-   #if defined(YM_PRINT_TO_SCREEN)
+   #if defined(YM_SPECIAL_PRINT_TO_SCREEN)
       [[maybe_unused]] str    const Filename,
       [[maybe_unused]] TSFM_T const TSFilenameMode
    #else
       str    const Filename,
       TSFM_T const TSFilenameMode
-   #endif // YM_PRINT_TO_SCREEN
+   #endif // YM_SPECIAL_PRINT_TO_SCREEN
 )
 {
    auto opened = false;
 
-#if defined(YM_PRINT_TO_SCREEN)
+#if defined(YM_SPECIAL_PRINT_TO_SCREEN)
    opened = openToStdout();
 #else
    opened = open_Helper(openOutfile(Filename, TSFilenameMode));
-#endif // YM_PRINT_TO_SCREEN
+#endif // YM_SPECIAL_PRINT_TO_SCREEN
 
    return opened;
 }
