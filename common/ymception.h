@@ -12,9 +12,10 @@
 
 #include <cstdio>
 #include <exception>
-#include <memory>
 #include <source_location>
+#include <string>
 #include <type_traits>
+#include <utility>
 
 /**
  * TODO
@@ -34,8 +35,8 @@
    class DerivedYmception_ : public BaseYmception_                                  \
    {                                                                                \
    public:                                                                          \
-      explicit inline DerivedYmception_(std::string const & Msg)                    \
-         : BaseYmception_(Msg)                                                      \
+      explicit inline DerivedYmception_(std::string && msg_uref)                    \
+         : BaseYmception_(std::move(msg_uref))                                      \
       { }                                                                           \
                                                                                     \
       virtual ~DerivedYmception_(void) = default;                                   \
@@ -117,8 +118,8 @@ private:
  * @param Format -- Format string.
  * @param Args   -- Arguments.
  */
-inline Ymception::Ymception(std::string const & Msg)
-   : _Msg {Msg}
+inline Ymception::Ymception(std::string && msg_uref)
+   : _Msg {std::move(msg_uref)}
 {
 }
 

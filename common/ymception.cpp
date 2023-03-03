@@ -4,15 +4,17 @@
 
 #include "ymception.h"
 
-#include "memorymanager.h"
 #include "textlogger.h"
 #include "verbositygroup.h"
 
 #include <boost/stacktrace.hpp>
 
+#include <array>
 #include <cstdarg>
 #include <cstdio>
-#include <cstring>
+
+// TODO does this belong additionally in ym.h?
+#define YM_EXC_DISABLE_STACKTRACE
 
 /** assertHandler
  *
@@ -25,14 +27,11 @@ std::string ym::Ymception::assertHandler(str                  const Name,
                                          str                  const Format,
                                          /*variadic*/               ...)
 {
-   constexpr auto BufferSize_bytes = 1024_u64;
-   auto * const   buffer_Ptr       = MemMgr::allocate_raw<char>(BufferSize_bytes);
-   
-   std::memset(buffer_Ptr, '\0', BufferSize_bytes);
+   std::array<char, 1024_u64> buffer{'\0'};
 
    // writes null terminator for us
-   auto const NCharsWritten = snprintf(buffer_Ptr,
-                                       BufferSize_bytes,
+   auto const NCharsWritten = snprintf(buffer.data(),
+                                       buffer.size(),
                                        "%s \"%s:%u\": ",
                                        Name,
                                        SrcLoc.file_name(),
@@ -40,39 +39,38 @@ std::string ym::Ymception::assertHandler(str                  const Name,
 
    auto const Offset = 
       (                    NCharsWritten  < 0_i32        ) ? 0_u32 : // snprintf encountered an error
-      (static_cast<uint32>(NCharsWritten) < BufferSize_bytes) ? static_cast<uint32>(NCharsWritten) :
-                                                             BufferSize_bytes;
+      (static_cast<uint32>(NCharsWritten) < buffer.size()) ? static_cast<uint32>(NCharsWritten) :
+                                                             buffer.size();
 
    std::va_list args;
    va_start(args, Format);
 
    // writes null terminator for us
-   (void)std::vsnprintf(buffer_Ptr + Offset,
-                        BufferSize_bytes - Offset,
+   (void)std::vsnprintf(buffer.data() + Offset,
+                        buffer.size() - Offset,
                         Format,
                         args);
 
    va_end(args);
 
    ymLog(VGM_T::Ymception_Assert, "Assert failed!");
-   ymLog(VGM_T::Ymception_Assert, "%s!", buffer_Ptr);
-   // ymLog(VGM_T::Ymception_Assert, "Stack dump follows...");
-   // // ymLog(VGM_T::Ymception_Assert, std::to_string(std::stacktrace::current()).c_str());
+   ymLog(VGM_T::Ymception_Assert, "%s!", buffer.data());
+   ymLog(VGM_T::Ymception_Assert, "Stack dump follows...");
 
-   // { // split and print stack dump
-   //    auto const StackDumpStr = boost::stacktrace::to_string(boost::stacktrace::stacktrace());
+   { // split and print stack dump
+      auto const StackDumpStr = boost::stacktrace::to_string(boost::stacktrace::stacktrace());
 
-   //    for (auto startPos = StackDumpStr.find_first_not_of('\n', 0);
-   //         startPos != std::string::npos;
-   //         /*empty*/)
-   //    { // print each line of the stack dump separately
-   //       auto const EndPos = StackDumpStr.find_first_of('\n', startPos);
-   //       ymLog(VGM_T::Ymception_Assert, StackDumpStr.substr(startPos, EndPos - startPos).c_str());
-   //       startPos = StackDumpStr.find_first_not_of('\n', EndPos);
-   //    }
-   // }
+      for (auto startPos = StackDumpStr.find_first_not_of('\n', 0);
+           startPos != std::string::npos;
+           /*empty*/)
+      { // print each line of the stack dump separately
+         auto const EndPos = StackDumpStr.find_first_of('\n', startPos);
+         ymLog(VGM_T::Ymception_Assert, StackDumpStr.substr(startPos, EndPos - startPos).c_str());
+         startPos = StackDumpStr.find_first_not_of('\n', EndPos);
+      }
+   }
 
-   return std::unique_ptr<char>(buffer_Ptr);
+   return std::string(buffer.data());
 }
 
 /** what

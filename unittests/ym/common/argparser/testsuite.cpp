@@ -40,7 +40,7 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
          Arg("")
       });
    }
-   catch(Ymception const & E)
+   catch(ArgParser::ArgParserError const & E)
    {
       excHappened = true;
    }
