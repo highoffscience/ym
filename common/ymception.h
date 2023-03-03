@@ -80,54 +80,10 @@ namespace ym
  *
  * @brief Represents a Ymception class.
  *
- * @tparam T -- Type that is derived from Ymception.
+ * @tparam T -- Type that is or is derived from Ymception.
  */
 template <typename T>
-concept Ymceptable =  std::is_base_of_v<class Ymception, T> &&
-                     !std::is_same_v<   class Ymception, T>;
-
-/*
- * Convenience functions.
- * -------------------------------------------------------------------------- */
-
-// // TODO <https://stackoverflow.com/questions/14805192/c-variadic-template-function-parameter-with-default-value>
-// template <Ymceptable  DerivedYmception_T,
-//           Loggable... Args_T>
-// struct ymAssert_Helper
-// {
-//    explicit ymAssert_Helper(bool                 const    Condition,
-//                             std::string_view     const    Format,
-//                             Args_T               const... Args,
-//                             std::source_location const    SrcLoc = std::source_location::current())
-//    {
-//       if (Condition)
-//       {
-//          std::string s;
-
-//          s += DerivedYmception_T::getClassName();
-//          s += " <";
-//          s += SrcLoc.file_name();
-//          s += ":";
-//          s += std::to_string(SrcLoc.line());
-//          s += "> ";
-//          // s += fmt::format(fmt::runtime(Format), Args...);
-
-//          throw DerivedYmception_T(s);
-//       }
-//    }
-// };
-
-// template <Ymceptable  DerivedYmception_T,
-//           Loggable... Args_T>
-// ymAssert_Helper(bool   const    Condition,
-//                 std::string_view    const    Format,
-//                 Args_T const... Args) -> ymAssert_Helper<DerivedYmception_T, Args_T...>;
-
-// template <Ymceptable DerivedYmception_T>
-// void ymAssert(bool                 const Condition,
-//               std::string          const Msg);
-
-/* -------------------------------------------------------------------------- */
+concept Ymceptable = std::is_base_of_v<class Ymception, T>;
 
 /** Ymception
  *
@@ -136,7 +92,7 @@ concept Ymceptable =  std::is_base_of_v<class Ymception, T> &&
 class Ymception : public std::exception
 {
 public:
-   explicit inline Ymception(std::string const & Msg);
+   explicit inline Ymception(std::string && msg_uref);
 
    virtual ~Ymception(void) = default;
 

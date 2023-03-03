@@ -72,7 +72,7 @@ std::string ym::Ymception::assertHandler(str                  const Name,
    //    }
    // }
 
-   return std::unique_ptr(buffer_Ptr);
+   return std::unique_ptr<char>(buffer_Ptr);
 }
 
 /** what
