@@ -10,6 +10,7 @@
 
 #include "ymception.h"
 
+#include <array>
 #include <vector>
 
 namespace ym
@@ -21,15 +22,14 @@ namespace ym
 class ArgParser
 {
 public:
-   YM_NO_DEFAULT(ArgParser);
-
    /**
     * TODO
     */
    class Arg
    {
    public:
-      explicit Arg(str const Name);
+      explicit Arg(str         const Name,
+                   ArgParser * const ap_Ptr);
 
       inline auto getName(void) const { return _Name; }
       inline auto getDesc(void) const { return _desc; }
@@ -41,13 +41,23 @@ public:
       Arg & abbr      (char const Abbr      );
 
    private:
-      str const _Name; // arg name (used as the key)
-      str       _desc; // description
-      str       _val;  // value
-      char      _abbr; // abbreviation
+      ArgParser * const _ap_Ptr;
+      str         const _Name; // arg name (used as the key)
+      str               _desc; // description
+      str               _val;  // value
+      char              _abbr; // abbreviation
    };
 
-   static void init(std::vector<Arg> && args_uref);
+   explicit ArgParser(void);
+
+   void init(std::vector<Arg> && args_uref);
+
+   Arg arg(str const Name);
+
+   void parse(int const         Argc,
+              str const * const Argv_Ptr);
+
+   Arg * getArgPtr(str const Key);
 
    YM_DECL_YMCEPT(ArgParserError)
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_NameEmpty)
@@ -58,13 +68,9 @@ public:
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_InvalidAbbr )
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_AbbrInUse )
 
-   static void parse(int const         Argc,
-                     str const * const Argv_Ptr);
-
-   static Arg * getArgPtr(str const Key);
-
 private:
-   static std::vector<Arg> s_args;
+   std::vector<Arg>          _args;
+   std::array<Arg *, 52_u64> _abbrs;
 };
 
 } // ym
