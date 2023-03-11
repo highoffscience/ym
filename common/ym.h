@@ -132,6 +132,9 @@ static_assert(YM_IS_CLANG_ID +
  * @brief Helper macro to allow for macro overloading based on number of arguments.
  * 
  * @ref <https://stackoverflow.com/questions/11761703/overloading-macro-on-number-of-arguments>
+ * 
+ * @param MACRO_ -- Name of macro to overload.
+ * @param ...    -- Args to pass to macro.
  */
 
 // get number of arguments with __NARG__
@@ -141,10 +144,10 @@ static_assert(YM_IS_CLANG_ID +
 #define YM__RSEQ_N() 8,7,6,5,4,3,2,1,0
 
 // general definition for any function name
-#define YM_MACRO_OVERLOAD_HELPER_1(name, n) name##n
-#define YM_MACRO_OVERLOAD_HELPER_2(name, n) YM_MACRO_OVERLOAD_HELPER_1(name, n)
-#define YM_MACRO_OVERLOAD(func, ...) \
-   YM_MACRO_OVERLOAD_HELPER_2(func, YM__NARG__(__VA_ARGS__)) (__VA_ARGS__)
+#define YM_MACRO_OVERLOAD_HELPER_1(Name_, N_) Name_##N_
+#define YM_MACRO_OVERLOAD_HELPER_2(Name_, N_) YM_MACRO_OVERLOAD_HELPER_1(Name_, N_)
+#define YM_MACRO_OVERLOAD(MACRO_, ...) \
+   YM_MACRO_OVERLOAD_HELPER_2(MACRO_, YM__NARG__(__VA_ARGS__)) (__VA_ARGS__)
 
 // ----------------------------------------------------------------------------
 

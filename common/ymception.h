@@ -17,13 +17,20 @@
 #include <type_traits>
 #include <utility>
 
-/**
- * TODO
+/** YM_DECL_YMCEPT
+ * 
+ * @brief Macro to facilitate macro overloading.
+ * 
+ * @param ... -- Args to pass to macro.
  */
 #define YM_DECL_YMCEPT(...) YM_MACRO_OVERLOAD(YM_DECL_YMCEPT, __VA_ARGS__)
 
-/**
- * TODO
+/** YM_DECL_YMCEPT2
+ *
+ * @brief Convenience macro to declare empty custom Ymception classes.
+ *
+ * @param BaseYmception_    -- Name of base class.
+ * @param DerivedYmception_ -- Name of custom Ymception class.
  */
 #define YM_DECL_YMCEPT2(BaseYmception_, DerivedYmception_)                          \
                                                                                     \

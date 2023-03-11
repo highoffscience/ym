@@ -15,9 +15,10 @@
 /**
  * TODO
  */
-ym::ArgParser::ArgParser(std::vector<Arg> && args_uref)
-   : _args {std::move(args_uref)}
+void ym::ArgParser::init(std::vector<Arg> && args_uref)
 {
+   s_args = std::move(args_uref);
+
    // std::sort(_args.begin(), _args.end(),
    //    [](Arg const & Lhs, Arg const & Rhs) -> bool {
    //       return std::strcmp(Lhs.getName(), Rhs.getName()) < 0_i32;
@@ -97,7 +98,7 @@ auto ym::ArgParser::getArgPtr(str const Key) -> Arg *
 {
    return
       static_cast<Arg *>(
-         std::bsearch(Key, _args.data(), _args.size(), sizeof(Arg),
+         std::bsearch(Key, s_args.data(), s_args.size(), sizeof(Arg),
             [](void const * Lhs_ptr, void const * Rhs_ptr) -> int {
                return std::strcmp(static_cast<str>(Lhs_ptr),
                                   static_cast<str>(Rhs_ptr));
@@ -122,13 +123,11 @@ ym::ArgParser::Arg::Arg(str const Name)
  */
 auto ym::ArgParser::Arg::desc(str const Desc) -> Arg &
 {
-   // ymAssert<ArgParserError_DescInUse>(!getDesc(), YM_SRCLOC(), "Description must not have already been set");
-
-   //Ymception::assert(!getDesc(), "Description must not have already been set");
+   ArgParserError_DescInUse::assert(!getDesc(), "Description must not have already been set");
 
    _desc = Desc;
 
-   // ymAssert<ArgParserError_DescEmpty>(ymIsStrNonEmpty(getDesc()), "Description must be non-empty");
+   ArgParserError_DescEmpty::assert(ymIsStrNonEmpty(getDesc()), "Description must be non-empty");
 
    return *this;
 }
@@ -138,40 +137,37 @@ auto ym::ArgParser::Arg::desc(str const Desc) -> Arg &
  */
 auto ym::ArgParser::Arg::defaultVal(str const DefaultVal) -> Arg &
 {
-   // ymAssert<ArgParserError_ValEmpty>(!getVal(), "Value must not have already been set");
+   ArgParserError_ValInUse::assert(!getVal(), "Value must not have already been set");
 
    _val = DefaultVal;
 
-   // ymAssert<ArgParserError_ValInUse>(ymIsStrNonEmpty(getVal()), "Val must be non-empty");
+   ArgParserError_ValEmpty::assert(ymIsStrNonEmpty(getVal()), "Val must be non-empty");
 
    return *this;
 }
 
-// /**
-//  *
-//  */
-// auto ArgParser::Arg::abbr(char const Abbr) -> Arg *
-// {
-//    uint32 const Idx = (Abbr >= 'A' && Abbr <= 'Z') ? (Abbr - 'A'     ) :
-//                       (Abbr >= 'a' && Abbr <= 'z') ? (Abbr - 'a' + 26) : _args.size();
+/**
+ *
+ */
+auto ym::ArgParser::Arg::abbr(char const Abbr) -> Arg &
+{
+   auto const Idx = (Abbr >= 'A' && Abbr <= 'Z') ? (Abbr - 'A'         ) :
+                    (Abbr >= 'a' && Abbr <= 'z') ? (Abbr - 'a' + 26_i32) :
+                    s_args.size();
 
-//    if (Idx >= 52)
-//    {
-//       throw ParseError("Illegal abbr '%c' found for arg '%s'!", Abbr, getName());
-//    }
+   ArgParserError_InvalidAbbr::assert(Idx < 52_u64,
+      "Illegal abbr '%c' found for arg '%s'!", Abbr, getName());
 
-//    if (_abbrs[Idx])
-//    {
-//       throw ParseError("Arg '%s' wants abbr '%c' but it's already used by arg '%s'!",
-//                        getName(), Abbr, _abbrs[Idx]->getName());
-//    }
+   ArgParserError_AbbrInUse::assert(!_abbrs[Idx],
+      "Arg '%s' wants abbr '%c' but it's already used by arg '%s'!",
+      getName(), Abbr, _abbrs[Idx]->getName());
 
-//    // TODO need to preserve MSB
-//    _abbr = Abbr & 0x7F;
-//    _abbrs[Idx] = this;
+   // TODO need to preserve MSB
+   _abbr = Abbr & 0x7F;
+   _abbrs[Idx] = this;
 
-//    return this;
-// }
+   return this;
+}
 
 // /**
 //  *
