@@ -70,7 +70,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       results = self.run_test_case("BasicParse")
 
       exc = results.get[bool]("Exc")
-      self.assertTrue(exc, "Exception happened")
+      self.assertFalse(exc, "Exception happened")
 
 # kick-off
 if __name__ == "__main__":

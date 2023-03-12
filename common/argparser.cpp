@@ -15,43 +15,26 @@
  * TODO
  */
 ym::ArgParser::ArgParser(void)
-   : _args {/*default*/}
+   : _args  {/*default*/},
+     _abbrs {/*default*/}
 {
-   // std::sort(_args.begin(), _args.end(),
-   //    [](Arg const & Lhs, Arg const & Rhs) -> bool {
-   //       return std::strcmp(Lhs.getName(), Rhs.getName()) < 0_i32;
-   //    }
-   // );
-}
-
-/**
- * TODO
- */
-void ym::ArgParser::init(std::vector<Arg> && args_uref)
-{
-   _args = std::move(args_uref);
-
-   // std::sort(_args.begin(), _args.end(),
-   //    [](Arg const & Lhs, Arg const & Rhs) -> bool {
-   //       return std::strcmp(Lhs.getName(), Rhs.getName()) < 0_i32;
-   //    }
-   // );
-}
-
-/**
- * TODO
- */
-auto ym::ArgParser::arg(str const Name) -> Arg
-{
-   return Arg(Name, this);
 }
 
 /**
  * TODO this should return an exception with all the errors
  */
-void ym::ArgParser::parse([[maybe_unused]] int const         Argc,
+void ym::ArgParser::parse(std::vector<Arg> &&                args_uref,
+                          [[maybe_unused]] int const         Argc,
                           [[maybe_unused]] str const * const Argv_Ptr)
 {
+   _args = std::move(args_uref);
+
+   std::sort(_args.begin(), _args.end(),
+      [](Arg const & Lhs, Arg const & Rhs) -> bool {
+         return std::strcmp(Lhs.getName(), Rhs.getName()) < 0_i32;
+      }
+   );
+
    // auto isAlpha = [](char const C) -> bool {
    //    return (C >= 'A' && C <= 'Z') ||
    //           (C >= 'a' && C <= 'z');
@@ -133,9 +116,10 @@ auto ym::ArgParser::getArgPtr(str const Key) -> Arg *
 ym::ArgParser::Arg::Arg(str         const Name,
                         ArgParser * const ap_Ptr)
    : _ap_Ptr {ap_Ptr },
-     _Name   {Name   },
+     _name   {Name   },
      _desc   {nullptr},
-     _val    {nullptr}
+     _val    {nullptr},
+     _abbr   {'\0'   }
 {
    ArgParserError_NameEmpty::assert(ymIsStrNonEmpty(getName()), "Name must be non-empty");
 }
@@ -180,13 +164,12 @@ auto ym::ArgParser::Arg::abbr(char const Abbr) -> Arg &
    ArgParserError_InvalidAbbr::assert(Idx < _ap_Ptr->_args.size(),
       "Illegal abbr '%c' found for arg '%s'", Abbr, getName());
 
-   // ArgParserError_AbbrInUse::assert(!_abbrs[Idx],
-   //    "Arg '%s' wants abbr '%c' but it's already used by arg '%s'",
-   //    getName(), Abbr, _abbrs[Idx]->getName());
+   ArgParserError_AbbrInUse::assert(!_ap_Ptr->_abbrs[Idx],
+      "Arg '%s' wants abbr '%c' but it's already used by arg '%s'",
+      getName(), Abbr, _ap_Ptr->_abbrs[Idx]->getName());
 
-   // // TODO need to preserve MSB
-   // _abbr = Abbr & 0x7F;
-   // _abbrs[Idx] = this;
+   _abbr = Abbr;
+   _ap_Ptr->_abbrs[Idx] = this;
 
    return *this;
 }

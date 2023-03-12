@@ -21,7 +21,7 @@ namespace ym
  */
 class ArgParser
 {
-public:
+private:
    /**
     * TODO
     */
@@ -31,7 +31,7 @@ public:
       explicit Arg(str         const Name,
                    ArgParser * const ap_Ptr);
 
-      inline auto getName(void) const { return _Name; }
+      inline auto getName(void) const { return _name; }
       inline auto getDesc(void) const { return _desc; }
       inline auto getVal (void) const { return _val;  }
       inline auto getAbbr(void) const { return _abbr; }
@@ -41,21 +41,22 @@ public:
       Arg & abbr      (char const Abbr      );
 
    private:
-      ArgParser * const _ap_Ptr;
-      str         const _Name; // arg name (used as the key)
-      str               _desc; // description
-      str               _val;  // value
-      char              _abbr; // abbreviation
+      // no consts! std::sort needs to have assignables
+      ArgParser * _ap_Ptr;
+      str         _name; // arg name (used as the key)
+      str         _desc; // description
+      str         _val;  // value
+      char        _abbr; // abbreviation
    };
 
+public:
    explicit ArgParser(void);
 
-   void init(std::vector<Arg> && args_uref);
+   inline Arg arg(str const Name);
 
-   Arg arg(str const Name);
-
-   void parse(int const         Argc,
-              str const * const Argv_Ptr);
+   void parse(std::vector<Arg> && args_uref,
+              int const           Argc,
+              str const * const   Argv_Ptr);
 
    Arg * getArgPtr(str const Key);
 
@@ -72,5 +73,13 @@ private:
    std::vector<Arg>          _args;
    std::array<Arg *, 52_u64> _abbrs;
 };
+
+/**
+ * TODO
+ */
+inline auto ArgParser::arg(str const Name) -> Arg
+{
+   return Arg(Name, this);
+}
 
 } // ym

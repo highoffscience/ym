@@ -168,7 +168,7 @@ namespace ym
  */
 
 // int = signed integer
-#define YM_IntIntegrity(Prim_T_, NMantissaBits_)                         \
+#define YM_INT_INTEGRITY(Prim_T_, NMantissaBits_)                        \
    static_assert(std::numeric_limits<Prim_T_>::is_signed,                \
                  #Prim_T_" not signed");                                 \
                                                                          \
@@ -176,7 +176,7 @@ namespace ym
                  #Prim_T_" doesn't have expected range");
 
 // unt = unsigned integer
-#define YM_UntIntegrity(Prim_T_, NMantissaBits_)                         \
+#define YM_UNT_INTEGRITY(Prim_T_, NMantissaBits_)                        \
    static_assert(!std::numeric_limits<Prim_T_>::is_signed,               \
                  #Prim_T_" is signed");                                  \
                                                                          \
@@ -184,7 +184,7 @@ namespace ym
                  #Prim_T_" doesn't have expected range");
 
 // flt = float
-#define YM_FltIntegrity(Prim_T_, NMantissaBits_)                         \
+#define YM_FLT_INTEGRITY(Prim_T_, NMantissaBits_)                        \
    static_assert(std::is_floating_point_v<Prim_T_>,                      \
                  #Prim_T_" not floating point");                         \
                                                                          \
@@ -201,18 +201,18 @@ namespace ym
 using str     = char const *   ;
 using uchar   = unsigned char  ;
 
-using int8    = signed char    ; YM_IntIntegrity(int8   ,  7)
-using int16   = signed short   ; YM_IntIntegrity(int16  , 15)
-using int32   = signed int     ; YM_IntIntegrity(int32  , 31)
-using int64   = signed long    ; YM_IntIntegrity(int64  , 63)
+using int8    = signed char    ; YM_INT_INTEGRITY(int8   ,  7)
+using int16   = signed short   ; YM_INT_INTEGRITY(int16  , 15)
+using int32   = signed int     ; YM_INT_INTEGRITY(int32  , 31)
+using int64   = signed long    ; YM_INT_INTEGRITY(int64  , 63)
 
-using uint8   = unsigned char  ; YM_UntIntegrity(uint8  ,  8)
-using uint16  = unsigned short ; YM_UntIntegrity(uint16 , 16)
-using uint32  = unsigned int   ; YM_UntIntegrity(uint32 , 32)
-using uint64  = unsigned long  ; YM_UntIntegrity(uint64 , 64)
+using uint8   = unsigned char  ; YM_UNT_INTEGRITY(uint8  ,  8)
+using uint16  = unsigned short ; YM_UNT_INTEGRITY(uint16 , 16)
+using uint32  = unsigned int   ; YM_UNT_INTEGRITY(uint32 , 32)
+using uint64  = unsigned long  ; YM_UNT_INTEGRITY(uint64 , 64)
 
-using float32 = float          ; YM_FltIntegrity(float32, 24)
-using float64 = double         ; YM_FltIntegrity(float64, 53)
+using float32 = float          ; YM_FLT_INTEGRITY(float32, 24)
+using float64 = double         ; YM_FLT_INTEGRITY(float64, 53)
 
 using float80 = std::conditional_t<std::numeric_limits<long double>::digits == 64,
                    long double,
@@ -247,9 +247,9 @@ using float128 = std::conditional_t<std::numeric_limits<long double>::digits == 
                  "float80 doesn't have expected size (range)");
 
 // don't pollute namespace
-#undef YM_FltIntegrity
-#undef YM_UntIntegrity
-#undef YM_IntIntegrity
+#undef YM_FLT_INTEGRITY
+#undef YM_UNT_INTEGRITY
+#undef YM_INT_INTEGRITY
 
 /// @brief Convenience alias.
 using uintptr = std::uintptr_t;
@@ -286,6 +286,11 @@ constexpr auto ymPtrToUint(T const Ptr)
    return reinterpret_cast<uintptr>(Ptr);
 }
 
+/**
+ * TODO
+ */
+#define YM_ARRAY_SIZE(Array_) (sizeof(Array_) / sizeof(*Array_))
+
 // ----------------------------------------------------------------------------
 
 /** ymToUnderlying
@@ -316,7 +321,7 @@ constexpr auto ymToUnderlying(T const Value) noexcept
  */
 constexpr bool ymIsStrNonEmpty(str const S)
 {
-   return !S && !*S;
+   return (S != nullptr) && (*S != '\0');
 }
 
 // ----------------------------------------------------------------------------

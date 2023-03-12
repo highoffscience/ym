@@ -29,17 +29,22 @@ ym::ut::TestSuite::TestSuite(void)
 auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    TextLogger::getGlobalInstance()->enable(VGM_T::Ymception);
+
+   str  const Argv[] = {"testsuite"};
+   auto const Argc   = static_cast<int32>(YM_ARRAY_SIZE(Argv));
    
    auto excHappened = false;
 
    ArgParser argparse;
    try
    {
-      argparse.init({
-         argparse.arg("")
-      });
+      argparse.parse({
+         argparse.arg("input").desc("input file"),
+         argparse.arg("output").desc("output file")
+      },
+      Argc, Argv);
    }
-   catch(ArgParser::ArgParserError const & E)
+   catch (ArgParser::ArgParserError const & E)
    {
       excHappened = true;
    }
