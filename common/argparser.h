@@ -28,6 +28,8 @@ private:
    class Arg
    {
    public:
+      friend class ArgParser;
+
       explicit Arg(str         const Name,
                    ArgParser * const ap_Ptr);
 
@@ -41,6 +43,8 @@ private:
       Arg & abbr      (char const Abbr      );
 
    private:
+      void setVal(str const Val);
+
       // no consts! std::sort needs to have assignables
       ArgParser * _ap_Ptr;
       str         _name; // arg name (used as the key)
@@ -62,12 +66,14 @@ public:
 
    YM_DECL_YMCEPT(ArgParserError)
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_NameEmpty)
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NameInvalid)
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_DescEmpty)
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_DescInUse)
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_ValEmpty )
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_ValInUse )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_InvalidAbbr )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_AbbrInvalid )
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_AbbrInUse )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_LongHandNoVal )
 
 private:
    std::vector<Arg>          _args;

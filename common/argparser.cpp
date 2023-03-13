@@ -7,8 +7,10 @@
 #include "argparser.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cstdlib>
 #include <cstring>
+#include <string_view>
 #include <utility>
 
 /**
@@ -16,7 +18,7 @@
  */
 ym::ArgParser::ArgParser(void)
    : _args  {/*default*/},
-     _abbrs {/*default*/}
+     _abbrs {nullptr    }
 {
 }
 
@@ -29,66 +31,73 @@ void ym::ArgParser::parse(std::vector<Arg> &&                args_uref,
 {
    _args = std::move(args_uref);
 
+   // we use binary search to find keys so sort first
    std::sort(_args.begin(), _args.end(),
       [](Arg const & Lhs, Arg const & Rhs) -> bool {
          return std::strcmp(Lhs.getName(), Rhs.getName()) < 0_i32;
       }
    );
 
-   // auto isAlpha = [](char const C) -> bool {
-   //    return (C >= 'A' && C <= 'Z') ||
-   //           (C >= 'a' && C <= 'z');
-   // }
+   for (auto i = 1_i32; i < Argc; ++i)
+   {
+      std::string_view name = Argv_Ptr[i];
 
-   // for (int i = 1; i < Argc; ++i)
-   // {
-   //    auto name = Argv_Ptr[i];
+      if (name.starts_with("--"))
+      { // found longhand arg
+         name.remove_prefix(2_u32);
 
-   //    if (name[0] == '-') // accessing 0th element is safe because it's null terminated
-   //    { // potential arg
-   //       if (name[1] == '-')
-   //       { // potential longhand arg
-   //          if (isAlpha(name[2]))
-   //          { // found longhand arg
-   //             name += 2;
-   //             if (auto * const arg_Ptr = get(name); arg_Ptr)
-   //             { // found match
-   //                // TODO
-   //                if (arg_Ptr->isBool())
-   //                {
-   //                   arg_Ptr->setVal(...)
-   //                }
-   //                if (++i < Argc)
-   //                { // found value
-   //                   arg_Ptr->_val = Argv_Ptr[i];
-   //                }
-   //                else
-   //                { // no value - EOF
-   //                   std::printf("No value for arg %s!\n", arg);
-   //                   everythingGood = false;
-   //                }
-   //             }
-   //             else
-   //             { // found unregistered arg
-   //                std::printf("Found unregistered arg %s!\n", arg);
-   //                everythingGood = false;
-   //             }
-   //             continue;
-   //          }
-   //       }
-   //       else if (isAlpha(arg[1]))
-   //       { // found shorthand arg(s)
-   //          arg += 1;
-   //          // TODO
-   //          continue;
-   //       }
-   //    }
+         auto const Pos = name.find('=');
+         name = name.substr(Pos); // allowed to be npos
+      }
 
-   //    std::printf("Found rogue value %s!\n", arg);
-   //    everythingGood = false;
-   // }
+      if (name[0_u32] == '-')
+      { // potential arg
+         if (name[1_u32] == '-')
+         { // potential longhand arg
+            if (std::isalpha(name[2_u32]))
+            { // found longhand arg
+               name.remove_prefix(2_u32);
 
-   // return everythingGood;
+
+
+               if (auto * const arg_Ptr = getArgPtr(name); arg_Ptr)
+               { // found match
+                  i += 1_i32; // move to get value
+                  ArgParserError_LongHandNoVal
+                  if (i < Argc)
+                  {
+                     arg_Ptr->setVal(name);
+                  }
+                  
+
+                  if (++i < Argc)
+                  { // found value
+                     arg_Ptr->_val = Argv_Ptr[i];
+                  }
+                  else
+                  { // no value - EOF
+                     std::printf("No value for arg %s!\n", arg);
+                     everythingGood = false;
+                  }
+               }
+               else
+               { // found unregistered arg
+                  std::printf("Found unregistered arg %s!\n", arg);
+                  everythingGood = false;
+               }
+               continue;
+            }
+         }
+         else if (isAlpha(arg[1]))
+         { // found shorthand arg(s)
+            arg += 1;
+            // TODO
+            continue;
+         }
+      }
+
+      std::printf("Found rogue value %s!\n", arg);
+   }
 }
 
 /**
@@ -122,6 +131,8 @@ ym::ArgParser::Arg::Arg(str         const Name,
      _abbr   {'\0'   }
 {
    ArgParserError_NameEmpty::assert(ymIsStrNonEmpty(getName()), "Name must be non-empty");
+
+   ArgParserError_NameInvalid::assert(std::isalpha(getName()[0_u32]), "Name '%s' is invalid", getName());
 }
 
 /**
@@ -161,7 +172,7 @@ auto ym::ArgParser::Arg::abbr(char const Abbr) -> Arg &
                     (Abbr >= 'a' && Abbr <= 'z') ? (Abbr - 'a' + 26_i32) :
                     _ap_Ptr->_args.size();
 
-   ArgParserError_InvalidAbbr::assert(Idx < _ap_Ptr->_args.size(),
+   ArgParserError_AbbrInvalid::assert(Idx < _ap_Ptr->_args.size(),
       "Illegal abbr '%c' found for arg '%s'", Abbr, getName());
 
    ArgParserError_AbbrInUse::assert(!_ap_Ptr->_abbrs[Idx],
@@ -172,6 +183,14 @@ auto ym::ArgParser::Arg::abbr(char const Abbr) -> Arg &
    _ap_Ptr->_abbrs[Idx] = this;
 
    return *this;
+}
+
+/**
+ * TODO count values
+ */
+void ym::ArgParser::Arg::setVal(str const Val)
+{
+   _val = Val;
 }
 
 // /**
