@@ -38,6 +38,8 @@ void ym::ArgParser::parse(std::vector<Arg> &&                args_uref,
       }
    );
 
+   Arg * arg_ptr = nullptr;
+
    for (auto i = 1_i32; i < Argc; ++i)
    {
       std::string_view name = Argv_Ptr[i];
@@ -48,6 +50,12 @@ void ym::ArgParser::parse(std::vector<Arg> &&                args_uref,
 
          auto const Pos = name.find('=');
          name = name.substr(Pos); // allowed to be npos
+
+         // TODO set arg_ptr
+      }
+      else if (name.starts_with('-'))
+      { // potential shorthand args or negative number
+
       }
 
       if (name[0_u32] == '-')
@@ -119,6 +127,18 @@ auto ym::ArgParser::getArgPtr(str const Key) -> Arg *
       );
 }
 
+/** getArgPtr_soft
+ * 
+ * @brief TODO
+ */
+auto ym::ArgParser::getArgPtr_soft(str const Key) -> Arg *
+{
+   for (auto const Name : _args)
+   {
+      
+   }
+}
+
 /**
  * TODO
  */
@@ -178,6 +198,8 @@ auto ym::ArgParser::Arg::abbr(char const Abbr) -> Arg &
    ArgParserError_AbbrInUse::assert(!_ap_Ptr->_abbrs[Idx],
       "Arg '%s' wants abbr '%c' but it's already used by arg '%s'",
       getName(), Abbr, _ap_Ptr->_abbrs[Idx]->getName());
+
+   // TODO only can have abbr for flag arguments
 
    _abbr = Abbr;
    _ap_Ptr->_abbrs[Idx] = this;

@@ -76,6 +76,8 @@ public:
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_LongHandNoVal )
 
 private:
+   Arg * getArgPtr_soft(str const Key);
+
    std::vector<Arg>          _args;
    std::array<Arg *, 52_u64> _abbrs;
 };
