@@ -31,7 +31,7 @@ void ym::ArgParser::parse(std::vector<Arg> &&                args_uref,
 {
    _args = std::move(args_uref);
 
-   // we use binary search to find keys so sort first
+   // searching algorithms require keys be sorted
    std::sort(_args.begin(), _args.end(),
       [](Arg const & Lhs, Arg const & Rhs) -> bool {
          return std::strcmp(Lhs.getName(), Rhs.getName()) < 0_i32;
@@ -41,70 +41,32 @@ void ym::ArgParser::parse(std::vector<Arg> &&                args_uref,
    Arg * arg_ptr = nullptr;
 
    for (auto i = 1_i32; i < Argc; ++i)
-   {
-      std::string_view name = Argv_Ptr[i];
-
-      if (name.starts_with("--"))
-      { // found longhand arg
-         name.remove_prefix(2_u32);
-
-         auto const Pos = name.find('=');
-         name = name.substr(Pos); // allowed to be npos
-
-         // TODO set arg_ptr
-      }
-      else if (name.starts_with('-'))
-      { // potential shorthand args or negative number
-
-      }
+   { // go through all command line arguments
+      auto name = Argv_Ptr[i];
 
       if (name[0_u32] == '-')
-      { // potential arg
+      { // arg found
          if (name[1_u32] == '-')
-         { // potential longhand arg
-            if (std::isalpha(name[2_u32]))
-            { // found longhand arg
-               name.remove_prefix(2_u32);
-
-
-
-               if (auto * const arg_Ptr = getArgPtr(name); arg_Ptr)
-               { // found match
-                  i += 1_i32; // move to get value
-                  ArgParserError_LongHandNoVal
-                  if (i < Argc)
-                  {
-                     arg_Ptr->setVal(name);
-                  }
-                  
-
-                  if (++i < Argc)
-                  { // found value
-                     arg_Ptr->_val = Argv_Ptr[i];
-                  }
-                  else
-                  { // no value - EOF
-                     std::printf("No value for arg %s!\n", arg);
-                     everythingGood = false;
-                  }
-               }
-               else
-               { // found unregistered arg
-                  std::printf("Found unregistered arg %s!\n", arg);
-                  everythingGood = false;
-               }
-               continue;
+         { // longhand arg found
+            name += 2_u32;
+            auto * const agr_Ptr = getArgPtrFromPrefix(name);
+            ArgParserError_NoArgFound::assert(agr_Ptr, "Arg '%s' not registered", name);
+            ArgParserError_NoValFound::assert(++i < Argc, "No value for arg '%s'", name);
+            agr_Ptr->setVal(Argv_Ptr[i]);
+         }
+         else
+         { // shorthand arg found
+            name += 1_u32;
+            // TODO make different assert for each check
+            ArgParserError_NoAbbrFound::assert(name[0_u32] != '\0', "Expected abbr but none found");
+            for (auto const Abbr : std::string_view(name)) // TODO can use a regular for loop here
+            {
+               auto * const arg_Ptr = getArgPtrFromAbbr(Abbr);
+               ArgParserError_NoAbbrFound::assert(arg_Ptr, "Abbr '%c' not registered", Abbr);
+               arg_Ptr->flag();
             }
          }
-         else if (isAlpha(arg[1]))
-         { // found shorthand arg(s)
-            arg += 1;
-            // TODO
-            continue;
-         }
       }
-
-      std::printf("Found rogue value %s!\n", arg);
    }
 }
 
@@ -127,16 +89,53 @@ auto ym::ArgParser::getArgPtr(str const Key) -> Arg *
       );
 }
 
-/** getArgPtr_soft
+/** getArgPtrFromPrefix
  * 
  * @brief TODO
  */
-auto ym::ArgParser::getArgPtr_soft(str const Key) -> Arg *
+auto ym::ArgParser::getArgPtrFromPrefix(str const Key) -> Arg *
 {
-   for (auto const Name : _args)
-   {
-      
+   Arg *      arg_ptr = nullptr;
+   auto const KeyLen  = std::strlen(Key);
+
+   for (auto & arg_ref : _args)
+   { // search through all stored args
+      auto const Cmp = std::strncmp(Key, arg_ref.getName(), KeyLen);
+
+      if (Cmp == 0_i32)
+      { // prefix found (whole key matched)
+         ArgParserError_AmbigPrefix::assert(!arg_ptr, "Prefix '%s' is ambiguous", Key);
+         arg_ptr = &arg_ref;
+      }
+      else if (Cmp > 0_i32)
+      { // not a match - end search
+         break;
+      }
    }
+
+   return arg_ptr;
+}
+
+/** getArgPtrFromAbbr
+ * 
+ * @brief TODO
+ */
+auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> Arg *
+{
+   auto * const * const agr_Ptr_Ptr = getArgPtrPtrFromAbbr(Abbr);
+   return (agr_Ptr_Ptr) ? *agr_Ptr_Ptr : nullptr;
+}
+
+/** getArgPtrPtrFromAbbr
+ * 
+ * @brief TODO
+ */
+auto ym::ArgParser::getArgPtrPtrFromAbbr(char const Abbr) -> Arg * *
+{
+   return (Abbr >= 'A' && Abbr <= 'Z') ? &_abbrs[Abbr - 'A'         ] :
+          (Abbr >= 'a' && Abbr <= 'z') ? &_abbrs[Abbr - 'a' + 26_i32] :
+          (Abbr >= '0' && Abbr <= '9') ? &_abbrs[Abbr - '0' + 52_i32] :
+          nullptr;
 }
 
 /**
@@ -148,11 +147,12 @@ ym::ArgParser::Arg::Arg(str         const Name,
      _name   {Name   },
      _desc   {nullptr},
      _val    {nullptr},
-     _abbr   {'\0'   }
+     _abbr   {'\0'   },
+     _flag   {false  },
+     _enbl   {false  }
 {
    ArgParserError_NameEmpty::assert(ymIsStrNonEmpty(getName()), "Name must be non-empty");
-
-   ArgParserError_NameInvalid::assert(std::isalpha(getName()[0_u32]), "Name '%s' is invalid", getName());
+   ArgParserError_NameInvalid::assert(std::isalnum(getName()[0_u32]), "Name '%s' is invalid", getName());
 }
 
 /**
@@ -174,11 +174,16 @@ auto ym::ArgParser::Arg::desc(str const Desc) -> Arg &
  */
 auto ym::ArgParser::Arg::defaultVal(str const DefaultVal) -> Arg &
 {
-   ArgParserError_ValInUse::assert(!getVal(), "Value must not have already been set");
+   ArgParserError_ValWithFlag::assert(!getFlag(),
+      "Arg '%s' is flag but requests default val '%s'", getName(), DefaultVal);
+
+   ArgParserError_ValInUse::assert(!getVal(),
+      "Arg '%s' already set with val '%s' (requested '%s')", getName(), getVal(), DefaultVal);
 
    _val = DefaultVal;
 
-   ArgParserError_ValEmpty::assert(ymIsStrNonEmpty(getVal()), "Val must be non-empty");
+   ArgParserError_ValEmpty::assert(ymIsStrNonEmpty(getVal()),
+      "Val must be non-empty for arg '%s'", getName());
 
    return *this;
 }
@@ -188,21 +193,42 @@ auto ym::ArgParser::Arg::defaultVal(str const DefaultVal) -> Arg &
  */
 auto ym::ArgParser::Arg::abbr(char const Abbr) -> Arg &
 {
-   auto const Idx = (Abbr >= 'A' && Abbr <= 'Z') ? (Abbr - 'A'         ) :
-                    (Abbr >= 'a' && Abbr <= 'z') ? (Abbr - 'a' + 26_i32) :
-                    _ap_Ptr->_args.size();
+   auto * * const arg_ptr_Ptr = _ap_Ptr->getArgPtrPtrFromAbbr(Abbr);
 
-   ArgParserError_AbbrInvalid::assert(Idx < _ap_Ptr->_args.size(),
+   ArgParserError_AbbrInvalid::assert(arg_ptr_Ptr,
       "Illegal abbr '%c' found for arg '%s'", Abbr, getName());
 
-   ArgParserError_AbbrInUse::assert(!_ap_Ptr->_abbrs[Idx],
+   ArgParserError_AbbrInUse::assert((*arg_ptr_Ptr)->getAbbr() == '\0',
       "Arg '%s' wants abbr '%c' but it's already used by arg '%s'",
-      getName(), Abbr, _ap_Ptr->_abbrs[Idx]->getName());
-
-   // TODO only can have abbr for flag arguments
+      getName(), Abbr, (*arg_ptr_Ptr)->getName());
 
    _abbr = Abbr;
-   _ap_Ptr->_abbrs[Idx] = this;
+   *arg_ptr_Ptr = this;
+   enable(true);
+
+   return *this;
+}
+
+/**
+ * TODO count values
+ */
+auto ym::ArgParser::Arg::flag(void) -> Arg &
+{
+   ArgParserError_ValWithFlag::assert(!getVal(),
+      "Arg '%s' has val '%s' but requested to be a flag", getName(), getVal());
+
+   _flag = true;
+
+   return *this;
+}
+
+/**
+ * TODO count values
+ */
+auto ym::ArgParser::Arg::enable(bool const Enable) -> Arg &
+{
+   flag();
+   _enbl = Enable;
 
    return *this;
 }
@@ -214,13 +240,3 @@ void ym::ArgParser::Arg::setVal(str const Val)
 {
    _val = Val;
 }
-
-// /**
-//  *
-//  */
-// auto ArgParser::Arg::binary(void) -> Arg *
-// {
-//    _abbr; // TODO
-
-//    return this;
-// }

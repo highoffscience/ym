@@ -37,10 +37,14 @@ private:
       inline auto getDesc(void) const { return _desc; }
       inline auto getVal (void) const { return _val;  }
       inline auto getAbbr(void) const { return _abbr; }
+      inline auto getFlag(void) const { return _flag; }
+      inline auto getEnbl(void) const { return _enbl; }
 
       Arg & desc      (str  const Desc      );
       Arg & defaultVal(str  const DefaultVal);
       Arg & abbr      (char const Abbr      );
+      Arg & flag      (void                 );
+      Arg & enable    (bool const Enable    );
 
    private:
       void setVal(str const Val);
@@ -51,6 +55,8 @@ private:
       str         _desc; // description
       str         _val;  // value
       char        _abbr; // abbreviation
+      bool        _flag; // if binary value
+      bool        _enbl; // enabled/disabled
    };
 
 public:
@@ -73,13 +79,19 @@ public:
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_ValInUse )
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_AbbrInvalid )
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_AbbrInUse )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_LongHandNoVal )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_AmbigPrefix )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NoArgFound )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NoAbbrFound )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NoValFound )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ValWithFlag )
 
 private:
-   Arg * getArgPtr_soft(str const Key);
+   Arg *   getArgPtrFromPrefix (str  const Key );
+   Arg *   getArgPtrFromAbbr   (char const Abbr);
+   Arg * * getArgPtrPtrFromAbbr(char const Abbr);
 
    std::vector<Arg>          _args;
-   std::array<Arg *, 52_u64> _abbrs;
+   std::array<Arg *, 62_u64> _abbrs;
 };
 
 /**
