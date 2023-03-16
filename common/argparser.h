@@ -84,6 +84,7 @@ public:
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_NoAbbrFound )
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_NoValFound )
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_ValWithFlag )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_AbbrNoFlag )
 
 private:
    Arg *   getArgPtrFromPrefix (str  const Key );

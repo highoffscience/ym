@@ -25,9 +25,9 @@ ym::ArgParser::ArgParser(void)
 /**
  * TODO this should return an exception with all the errors
  */
-void ym::ArgParser::parse(std::vector<Arg> &&                args_uref,
-                          [[maybe_unused]] int const         Argc,
-                          [[maybe_unused]] str const * const Argv_Ptr)
+void ym::ArgParser::parse(std::vector<Arg> && args_uref,
+                          int const           Argc,
+                          str const * const   Argv_Ptr)
 {
    _args = std::move(args_uref);
 
@@ -37,8 +37,6 @@ void ym::ArgParser::parse(std::vector<Arg> &&                args_uref,
          return std::strcmp(Lhs.getName(), Rhs.getName()) < 0_i32;
       }
    );
-
-   Arg * arg_ptr = nullptr;
 
    for (auto i = 1_i32; i < Argc; ++i)
    { // go through all command line arguments
@@ -57,13 +55,15 @@ void ym::ArgParser::parse(std::vector<Arg> &&                args_uref,
          else
          { // shorthand arg found
             name += 1_u32;
-            // TODO make different assert for each check
-            ArgParserError_NoAbbrFound::assert(name[0_u32] != '\0', "Expected abbr but none found");
-            for (auto const Abbr : std::string_view(name)) // TODO can use a regular for loop here
+            ArgParserError_NoAbbrFound::assert(name[0_u32] != '\0',
+               "Expected abbr at count %d but none found", i);
+            for (auto i = 0_u32; name[i] != '\0'; ++i)
             {
+               auto   const Abbr    = name[i];
                auto * const arg_Ptr = getArgPtrFromAbbr(Abbr);
                ArgParserError_NoAbbrFound::assert(arg_Ptr, "Abbr '%c' not registered", Abbr);
-               arg_Ptr->flag();
+               ArgParserError_AbbrNoFlag::assert(arg_Ptr->getFlag(), "Abbr '%c' not a flag");
+               arg_Ptr->enable(true);
             }
          }
       }

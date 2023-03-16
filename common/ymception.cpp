@@ -11,11 +11,11 @@
 #include <cstdarg>
 #include <cstdio>
 
-#define YM_SPECIAL_DISABLE_STACKTRACE
+#define YM_DISABLE_STACKTRACE
 
-#if !defined(YM_SPECIAL_DISABLE_STACKTRACE)
+#if !defined(YM_DISABLE_STACKTRACE)
    #include <boost/stacktrace.hpp>
-#endif // YM_SPECIAL_DISABLE_STACKTRACE
+#endif // YM_DISABLE_STACKTRACE
 
 /** assertHandler
  *
@@ -57,7 +57,7 @@ std::string ym::Ymception::assertHandler(str                  const Name,
    ymLog(VGM_T::Ymception_Assert, "Assert failed!");
    ymLog(VGM_T::Ymception_Assert, "%s!", buffer.data());
 
-#if !defined(YM_SPECIAL_DISABLE_STACKTRACE)
+#if !defined(YM_DISABLE_STACKTRACE)
    ymLog(VGM_T::Ymception_Assert, "Stack dump follows...");
 
    { // split and print stack dump
@@ -72,7 +72,7 @@ std::string ym::Ymception::assertHandler(str                  const Name,
          startPos = StackDumpStr.find_first_not_of('\n', EndPos);
       }
    }
-#endif // YM_SPECIAL_DISABLE_STACKTRACE
+#endif // YM_DISABLE_STACKTRACE
 
    return std::string(buffer.data());
 }
