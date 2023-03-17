@@ -6,6 +6,8 @@
 
 #include "argparser.h"
 
+#include "textlogger.h"
+
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
@@ -83,7 +85,7 @@ auto ym::ArgParser::getArgPtr(str const Key) -> Arg *
          std::bsearch(Key, _args.data(), _args.size(), sizeof(Arg),
             [](void const * Lhs_ptr, void const * Rhs_ptr) -> int {
                return std::strcmp(static_cast<str>(Lhs_ptr),
-                                  static_cast<str>(Rhs_ptr));
+                                  static_cast<Arg const *>(Rhs_ptr)->getName());
             }
          )
       );

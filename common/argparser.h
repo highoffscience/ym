@@ -70,6 +70,8 @@ public:
 
    Arg * getArgPtr(str const Key);
 
+   inline Arg * operator[](str const Key);
+
    YM_DECL_YMCEPT(ArgParserError)
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_NameEmpty)
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_NameInvalid)
@@ -101,6 +103,14 @@ private:
 inline auto ArgParser::arg(str const Name) -> Arg
 {
    return Arg(Name, this);
+}
+
+/**
+ * TODO
+ */
+inline auto ArgParser::operator[](str const Key) -> Arg *
+{
+   return getArgPtr(Key);
 }
 
 } // ym

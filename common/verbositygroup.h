@@ -31,7 +31,10 @@ struct VerbosityGroup
    /// @brief Verbosity groups.
    enum class T : uint32
    {
+      ArgParser,
+      General,
       Logger,
+      UnitTest,
       Ymception,
 
       NGroups
@@ -74,6 +77,8 @@ struct VerbosityGroupMask
 {
    /**
     * @brief Underlying mask definitions.
+    * 
+    * TODO capitalize macros
     */
    enum class T : std::underlying_type_t<VerbosityGroup::T>
    {
@@ -81,9 +86,15 @@ struct VerbosityGroupMask
    #define YM_FmtMsk(Group_, Mask_) ((ymToUnderlying(VerbosityGroup::T::Group_) << 8_u32) | Mask_##_u32)
    #define YM_FmtGrp(Group_       ) YM_FmtMsk(Group_, 0xff)
 
+      ArgParser        = YM_FmtGrp(ArgParser             ),
+
+      General          = YM_FmtGrp(General               ),
+
       Logger           = YM_FmtGrp(Logger                ),
       Logger_Basic     = YM_FmtMsk(Logger,    0b0000'0001),
       Logger_Detail    = YM_FmtMsk(Logger,    0b0000'0010),
+
+      UnitTest         = YM_FmtGrp(UnitTest              ),
 
       Ymception        = YM_FmtGrp(Ymception             ),
       Ymception_Assert = YM_FmtMsk(Ymception, 0b0000'0001),
