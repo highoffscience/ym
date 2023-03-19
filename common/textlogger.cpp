@@ -319,8 +319,6 @@ void ym::TextLogger::printf_Producer(str const    Format,
  */
 void ym::TextLogger::writeMessagesToFile(void)
 {
-   char timeStampBuffer[getTimeStampSize_bytes()] = {'\0'};
-
    auto writerEnabled = true;
 
    while (writerEnabled)
@@ -341,10 +339,11 @@ void ym::TextLogger::writeMessagesToFile(void)
          auto const * const Read_Ptr = _buffer + (ReadPos * getMaxMessageSize_bytes());
          _readPos++; // doesn't wrap - needs to keep pace with _writePos which doesn't wrap
 
-         auto nCharsWrittenInTheory = -1; // default to error value
+         auto nCharsWrittenInTheory = -1_i32; // default to error value
 
          if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
          { // print message with time stamp
+            char timeStampBuffer[getTimeStampSize_bytes()] = {'\0'};
             populateFormattedTime(timeStampBuffer);
 
             nCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), "%s%s\n", timeStampBuffer, Read_Ptr);
@@ -354,7 +353,7 @@ void ym::TextLogger::writeMessagesToFile(void)
             nCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), "%s", Read_Ptr);
          }
 
-         if (nCharsWrittenInTheory < 0)
+         if (nCharsWrittenInTheory < 0_i32)
          { // fwrite hit an internal error
             printfInternalError("std::fprintf failed with error code %d! "
                                 "Message was '%s'\n",
@@ -431,6 +430,8 @@ void ym::TextLogger::populateFormattedTime(char * const write_Ptr) const
    write_Ptr[31] = write_Ptr[12];
    write_Ptr[32] = ':';
    write_Ptr[33] = ' ';
+
+   // TODO get rid of ": " and explicitly add null terminator
 
    static_assert(getTimeStampSize_bytes() == 34_u64, "Time stamp buffer is incorrect size");
 }

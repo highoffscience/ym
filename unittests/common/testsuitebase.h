@@ -33,7 +33,7 @@ public:
    using TCContainer_T = std::vector<std::unique_ptr<TestCase>>;
 
    explicit TestSuiteBase(std::string name);
-   virtual ~TestSuiteBase(void) = default; // TODO need to delete test cases
+   virtual ~TestSuiteBase(void) = default;
 
    template <typename    DerivedTestCase_T,
              typename... Args_T>
