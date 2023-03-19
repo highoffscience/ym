@@ -15,13 +15,13 @@
 namespace ym::ut
 {
 
-/** UT_DEFN_UTCEPTION
+/** YM_UT_DEFN_UTCEPTION
  * 
  * @brief Defines a custom Utception class.
  * 
  * @param Name_ -- Name of class.
  */
-#define UT_DEFN_UTCEPTION(Name_)      \
+#define YM_UT_DEFN_UTCEPTION(Name_)   \
    class Name_ : public Utception     \
    {                                  \
    public:                            \

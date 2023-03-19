@@ -109,7 +109,7 @@ auto ym::ArgParser::getArgPtrFromPrefix(str const Key) -> Arg *
          ArgParserError_AmbigPrefix::assert(!arg_ptr, "Prefix '%s' is ambiguous", Key);
          arg_ptr = &arg_ref;
       }
-      else if (Cmp > 0_i32)
+      else if (Cmp < 0_i32)
       { // not a match - end search
          break;
       }

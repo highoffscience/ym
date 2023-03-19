@@ -208,9 +208,9 @@ void ym::TextLogger::close_Helper(str          msg,
  *
  * @param VG -- Verbosity group to enable.
  */
-void ym::TextLogger::enable(VGM_T const VG)
+void ym::TextLogger::enable(VG const VG)
 {
-   using VGM = VerbosityGroupMask;
+   using VGM = VerboGroupMask;
 
    _vGroups[VGM::getGroup(VG)] |= VGM::getMask_asByte(VG);
 }
@@ -221,9 +221,9 @@ void ym::TextLogger::enable(VGM_T const VG)
  *
  * @param VG -- Verbosity group to disable.
  */
-void ym::TextLogger::disable(VGM_T const VG)
+void ym::TextLogger::disable(VG const VG)
 {
-   using VGM = VerbosityGroupMask;
+   using VGM = VerboGroupMask;
 
    _vGroups[VGM::getGroup(VG)] &= ~VGM::getMask_asByte(VG);
 }
@@ -238,14 +238,14 @@ void ym::TextLogger::disable(VGM_T const VG)
  * @param Format -- Format string.
  * @param ...    -- Arguments.
  */
-void ym::TextLogger::printf_Handler(VGM_T const  VG,
+void ym::TextLogger::printf_Handler(VG    const  VG,
                                     str   const  Format,
                                     /*variadic*/ ...)
 {
    if (isOpen())
    { // ok to print
 
-      using VGM = VerbosityGroupMask;
+      using VGM = VerboGroupMask;
       auto const IsEnabled = (_vGroups[VGM::getGroup(VG)] & VGM::getMask_asByte(VG)) > 0_u8;
 
       if (IsEnabled)

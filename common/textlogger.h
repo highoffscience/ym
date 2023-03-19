@@ -10,7 +10,7 @@
 
 #include "logger.h"
 #include "timer.h"
-#include "verbositygroup.h"
+#include "verbogroup.h"
 #include "ymception.h"
 
 #include <array>
@@ -29,7 +29,7 @@ namespace ym
  * -------------------------------------------------------------------------- */
 
 template <Loggable... Args_T>
-inline void ymLog(VGM_T  const    VG,
+inline void ymLog(VG     const    VG,
                   str    const    Format,
                   Args_T const... Args);
 
@@ -79,16 +79,16 @@ public:
    static constexpr auto getBufferSize_bytes    (void) { return _s_BufferSize_bytes;     }
    static constexpr auto getTimeStampSize_bytes (void) { return _s_TimeStampSize_bytes;  }
 
-   void enable (VGM_T const VG);
-   void disable(VGM_T const VG);
+   void enable (VG const VG);
+   void disable(VG const VG);
 
    template <Loggable... Args_T>
-   inline void printf(VGM_T  const    VG,
+   inline void printf(VG     const    VG,
                       str    const    Format,
                       Args_T const... Args);
 
 private:
-   void printf_Handler(VGM_T const  VG,
+   void printf_Handler(VG    const  VG,
                        str   const  Format,
                        /*variadic*/ ...);
 
@@ -136,7 +136,7 @@ private:
    };
 
    using MsgSemaphore_T = std::counting_semaphore<_s_MaxNMessagesInBuffer>;
-   using VGroups_T      = std::array<std::atomic<uint8>, VerbosityGroup::getNGroups()>;
+   using VGroups_T      = std::array<std::atomic<uint8>, VerboGroup::getNGroups()>;
 
    char                      _buffer[_s_BufferSize_bytes];
    VGroups_T                 _vGroups;
@@ -162,7 +162,7 @@ private:
  * @param Args   -- Arguments.
  */
 template <Loggable... Args_T>
-inline void TextLogger::printf(VGM_T  const    VG,
+inline void TextLogger::printf(VG     const    VG,
                                str    const    Format,
                                Args_T const... Args)
 {
@@ -180,7 +180,7 @@ inline void TextLogger::printf(VGM_T  const    VG,
  * @param Args   -- Arguments.
  */
 template <Loggable... Args_T>
-inline void ymLog(VGM_T  const    VG,
+inline void ymLog(VG     const    VG,
                   str    const    Format,
                   Args_T const... Args)
 {

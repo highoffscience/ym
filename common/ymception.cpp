@@ -5,7 +5,7 @@
 #include "ymception.h"
 
 #include "textlogger.h"
-#include "verbositygroup.h"
+#include "verbogroup.h"
 
 #include <array>
 #include <cstdarg>
@@ -54,8 +54,8 @@ std::string ym::Ymception::assertHandler(str                  const Name,
 
    va_end(args);
 
-   ymLog(VGM_T::Ymception_Assert, "Assert failed!");
-   ymLog(VGM_T::Ymception_Assert, "%s!", buffer.data());
+   ymLog(VG::Ymception_Assert, "Assert failed!");
+   ymLog(VG::Ymception_Assert, "%s!", buffer.data());
 
 #if !defined(YM_DISABLE_STACKTRACE)
    ymLog(VGM_T::Ymception_Assert, "Stack dump follows...");

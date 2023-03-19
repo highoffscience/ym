@@ -1,5 +1,5 @@
 /**
- * @file    verbositygroup.h
+ * @file    verbogroup.h
  * @version 1.0.0
  * @author  Forrest Jablonski
  */
@@ -11,9 +11,9 @@
 namespace ym
 {
 
-/** VerbosityGroup
+/** VerboGroup
  *
- * @brief Top-level group of registered objects.
+ * @brief Top-level group of registered objects (verbosity group).
  *
  * @note This grouping is a two-tiered mechanism to organize, to a minimal extent,
  *       groups of related functionality. The Grouping_T is used for the higher
@@ -26,12 +26,13 @@ namespace ym
  *
  * @note Keep in alphabetical order.
  */
-struct VerbosityGroup
+struct VerboGroup
 {
    /// @brief Verbosity groups.
    enum class T : uint32
    {
       ArgParser,
+      Debug,
       General,
       Logger,
       UnitTest,
@@ -49,11 +50,10 @@ struct VerbosityGroup
    static constexpr auto getNGroups(void) { return ymToUnderlying(T::NGroups); }
 };
 
-/// @link VGMask_T @endlink
-static_assert(VerbosityGroup::getNGroups() <= (1_u32 << 24_u32),
+static_assert(VerboGroup::getNGroups() <= (1_u32 << 24_u32),
               "Underlying type cannot support # of desired groups");
 
-/** VerbosityGroupMask
+/** VerboGroupMask
  *
  * @brief Verbosity Group Mask definitions. Sub-groups represented as masks.
  *
@@ -73,35 +73,35 @@ static_assert(VerbosityGroup::getNGroups() <= (1_u32 << 24_u32),
  *
  *       void set(VGMask const Mask);       set(VGMask::Logger_Basic);
  */
-struct VerbosityGroupMask
+struct VerboGroupMask
 {
    /**
     * @brief Underlying mask definitions.
-    * 
-    * TODO capitalize macros
     */
-   enum class T : std::underlying_type_t<VerbosityGroup::T>
+   enum class T : std::underlying_type_t<VerboGroup::T>
    {
    /// @brief Convenience macros.
-   #define YM_FmtMsk(Group_, Mask_) ((ymToUnderlying(VerbosityGroup::T::Group_) << 8_u32) | Mask_##_u32)
-   #define YM_FmtGrp(Group_       ) YM_FmtMsk(Group_, 0xff)
+   #define YM_FMT_MSK(Group_, Mask_) ((ymToUnderlying(VerboGroup::T::Group_) << 8_u32) | Mask_##_u32)
+   #define YM_FMT_GRP(Group_       ) YM_FMT_MSK(Group_, 0xff)
 
-      ArgParser        = YM_FmtGrp(ArgParser             ),
+      ArgParser        = YM_FMT_GRP(ArgParser             ),
 
-      General          = YM_FmtGrp(General               ),
+      Debug            = YM_FMT_GRP(Debug                 ),
 
-      Logger           = YM_FmtGrp(Logger                ),
-      Logger_Basic     = YM_FmtMsk(Logger,    0b0000'0001),
-      Logger_Detail    = YM_FmtMsk(Logger,    0b0000'0010),
+      General          = YM_FMT_GRP(General               ),
 
-      UnitTest         = YM_FmtGrp(UnitTest              ),
+      Logger           = YM_FMT_GRP(Logger                ),
+      Logger_Basic     = YM_FMT_MSK(Logger,    0b0000'0001),
+      Logger_Detail    = YM_FMT_MSK(Logger,    0b0000'0010),
 
-      Ymception        = YM_FmtGrp(Ymception             ),
-      Ymception_Assert = YM_FmtMsk(Ymception, 0b0000'0001),
+      UnitTest         = YM_FMT_GRP(UnitTest              ),
+
+      Ymception        = YM_FMT_GRP(Ymception             ),
+      Ymception_Assert = YM_FMT_MSK(Ymception, 0b0000'0001),
 
    // don't pollute namespace
-   #undef YM_FmtGrp
-   #undef YM_FmtMsk
+   #undef YM_FMT_GRP
+   #undef YM_FMT_MSK
    };
 
    /**
@@ -111,12 +111,12 @@ struct VerbosityGroupMask
     * 
     * @return auto -- Desired underlying type
     */
-   static constexpr auto getGroup      (T const VG) { return ymToUnderlying      (VG) >> 8_u32;    }
-   static constexpr auto getMask       (T const VG) { return ymToUnderlying      (VG) &  0xff_u32; }
-   static constexpr auto getMask_asByte(T const VG) { return static_cast<uint8>(VG);               }
+   static constexpr auto getGroup      (T const VG) { return ymToUnderlying    (VG) >> 8_u32;    }
+   static constexpr auto getMask       (T const VG) { return ymToUnderlying    (VG) &  0xff_u32; }
+   static constexpr auto getMask_asByte(T const VG) { return static_cast<uint8>(VG);             }
 };
 
-/// @brief Convenience alias.
-using VGM_T = VerbosityGroupMask::T;
+/// @brief Convenience alias (no _T suffix because of common usage).
+using VG = VerboGroupMask::T;
 
 } // ym

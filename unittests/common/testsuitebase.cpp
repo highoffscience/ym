@@ -21,24 +21,6 @@ ym::ut::TestSuiteBase::TestSuiteBase(std::string name)
 {
 }
 
-/** runAllTestCases
- *
- * @brief Runs all registered test cases.
- * 
- * @return SuiteDataShuttle_T -- Results of all run test cases.
- */
-auto ym::ut::TestSuiteBase::runAllTestCases(void) -> SuiteDataShuttle_T
-{
-   SuiteDataShuttle_T outData;
-
-   for (auto & tc_ref : _testCases)
-   {
-      outData[tc_ref->getName()] = tc_ref->run();
-   }
-
-   return outData;
-}
-
 /** runTestCase
  *
  * @brief Runs specified test case.

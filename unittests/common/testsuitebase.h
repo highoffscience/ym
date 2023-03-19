@@ -17,7 +17,6 @@
 #include <memory>
 #include <string>
 #include <type_traits>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -31,24 +30,19 @@ namespace ym::ut
 class TestSuiteBase : public Nameable
 {
 public:
-   using TCContainer_T      = std::vector<std::unique_ptr<TestCase>>;
-   using SuiteDataShuttle_T = std::unordered_map<std::string, DataShuttle>;
+   using TCContainer_T = std::vector<std::unique_ptr<TestCase>>;
 
    explicit TestSuiteBase(std::string name);
    virtual ~TestSuiteBase(void) = default; // TODO need to delete test cases
-
-   auto const & getTestCases(void) const { return _testCases; }
 
    template <typename    DerivedTestCase_T,
              typename... Args_T>
    void addTestCase(Args_T &&... args_uref);
 
-   SuiteDataShuttle_T runAllTestCases(void);
-
    DataShuttle runTestCase(std::string const & Name,
                            DataShuttle const & InData = {});
 
-   UT_DEFN_UTCEPTION(TestCaseNotFoundException)
+   YM_UT_DEFN_UTCEPTION(TestCaseNotFoundException)
 
 private:
    TCContainer_T _testCases;
