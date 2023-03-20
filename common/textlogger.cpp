@@ -12,6 +12,8 @@
 #include <ctime>
 #include <memory>
 
+#include <boost/stacktrace.hpp>
+
 #define YM_SPECIAL_PRINT_TO_SCREEN // redirects output to stdout
 
 /** TextLogger
@@ -37,6 +39,7 @@ ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
      _messagesSem    {0_i32                    },
      _writePos       {0_u32                    },
      _readPos        {0_u32                    },
+     _baseStackDepth {0_u32                    },
      _writerMode     {WriterMode_T::Closed     },
      _TimeStampMode  {TimeStampMode            }
 {
@@ -95,21 +98,6 @@ auto ym::TextLogger::getGlobalInstance(void) -> TextLogger *
 bool ym::TextLogger::openToStdout(void)
 {
    return open_Helper(openOutfileToStdout());
-}
-
-/** open
- *
- * @brief Opens and prepares the logger to be written to.
- * 
- * @note Defaults to appending time stamp.
- *
- * @param Filename -- Name of outfile to open.
- *
- * @return bool -- Whether the outfile was opened successfully, false otherwise.
- */
-bool ym::TextLogger::open(str const Filename)
-{
-   return open(Filename, TimeStampFilenameMode_T::Append);
 }
 
 /** open
@@ -341,12 +329,21 @@ void ym::TextLogger::writeMessagesToFile(void)
 
          auto nCharsWrittenInTheory = -1_i32; // default to error value
 
+         // OR log mode is debug
          if (_TimeStampMode == TimeStampMode_T::RecordTimeStamp)
          { // print message with time stamp
             char timeStampBuffer[getTimeStampSize_bytes()] = {'\0'};
             populateFormattedTime(timeStampBuffer);
 
-            nCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), "%s%s\n", timeStampBuffer, Read_Ptr);
+            // constexpr auto MaxStackDepth = 64_u32;
+            // char stackDepthBuffer[MaxStackDepth] = {'\0'};
+
+            // TODO make sure lhs >= rhs
+            // TODO this doesn't work since this function is in it's own thread, not the thread
+            //      of the calling function!
+            auto const StackDepth = boost::stacktrace::basic_stacktrace().size() - getBaseStackDepth();
+
+            nCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), "%lu %s: %s\n", StackDepth, timeStampBuffer, Read_Ptr);
          }
          else
          { // print message plain
@@ -391,47 +388,45 @@ void ym::TextLogger::writeMessagesToFile(void)
  */
 void ym::TextLogger::populateFormattedTime(char * const write_Ptr) const
 {
-   auto const ElapsedTime_us  = _timer.getElapsedTime<std::micro>();
-   auto const ElapsedTime_sec = (ElapsedTime_us /  1'000'000ll      ) % 60;
-   auto const ElapsedTime_min = (ElapsedTime_us / (1'000'000ll * 60)) % 60;
-   auto const ElapsedTime_hrs =  ElapsedTime_us / (1'000'000ll * 3'600);
+   // we want signedness so it's not awkward adding char
+   auto const ElapsedTime_us  = static_cast<int64>(_timer.getElapsedTime<std::micro>());
+   auto const ElapsedTime_sec = (ElapsedTime_us /  1'000'000_i64             ) % 60_i64;
+   auto const ElapsedTime_min = (ElapsedTime_us / (1'000'000_i64 *    60_i64)) % 60_i64;
+   auto const ElapsedTime_hrs =  ElapsedTime_us / (1'000'000_i64 * 3'600_i64);
 
-   write_Ptr[ 0] = '(';
-   write_Ptr[ 1] = ((ElapsedTime_us / 100'000'000'000ll) % 10) + '0';
-   write_Ptr[ 2] = ((ElapsedTime_us /  10'000'000'000ll) % 10) + '0';
-   write_Ptr[ 3] = ((ElapsedTime_us /   1'000'000'000ll) % 10) + '0';
-   write_Ptr[ 4] = ((ElapsedTime_us /     100'000'000ll) % 10) + '0';
-   write_Ptr[ 5] = ((ElapsedTime_us /      10'000'000ll) % 10) + '0';
-   write_Ptr[ 6] = ((ElapsedTime_us /       1'000'000ll) % 10) + '0';
-   write_Ptr[ 7] = ((ElapsedTime_us /         100'000ll) % 10) + '0';
-   write_Ptr[ 8] = ((ElapsedTime_us /          10'000ll) % 10) + '0';
-   write_Ptr[ 9] = ((ElapsedTime_us /           1'000ll) % 10) + '0';
-   write_Ptr[10] = ((ElapsedTime_us /             100ll) % 10) + '0';
-   write_Ptr[11] = ((ElapsedTime_us /              10ll) % 10) + '0';
-   write_Ptr[12] = ((ElapsedTime_us /               1ll) % 10) + '0';
-   write_Ptr[13] = ')';
-   write_Ptr[14] = ' ';
-   write_Ptr[15] = ((ElapsedTime_hrs / 100) % 10) + '0';
-   write_Ptr[16] = ((ElapsedTime_hrs /  10) % 10) + '0';
-   write_Ptr[17] = ((ElapsedTime_hrs /   1) % 10) + '0';
-   write_Ptr[18] = ':';
-   write_Ptr[19] = ((ElapsedTime_min / 10) % 10) + '0';
-   write_Ptr[20] = ((ElapsedTime_min /  1) % 10) + '0';
-   write_Ptr[21] = ':';
-   write_Ptr[22] = ((ElapsedTime_sec / 10) % 10) + '0';
-   write_Ptr[23] = ((ElapsedTime_sec /  1) % 10) + '0';
-   write_Ptr[24] = '.';
-   write_Ptr[25] = write_Ptr[ 7];
-   write_Ptr[26] = write_Ptr[ 8];
-   write_Ptr[27] = write_Ptr[ 9];
-   write_Ptr[28] = '\'';
-   write_Ptr[29] = write_Ptr[10];
-   write_Ptr[30] = write_Ptr[11];
-   write_Ptr[31] = write_Ptr[12];
-   write_Ptr[32] = ':';
-   write_Ptr[33] = ' ';
+   write_Ptr[ 0_u32] = '(';
+   write_Ptr[ 1_u32] = static_cast<int8>(((ElapsedTime_us / 100'000'000'000_i64) % 10_i64) + '0');
+   write_Ptr[ 2_u32] = static_cast<int8>(((ElapsedTime_us /  10'000'000'000_i64) % 10_i64) + '0');
+   write_Ptr[ 3_u32] = static_cast<int8>(((ElapsedTime_us /   1'000'000'000_i64) % 10_i64) + '0');
+   write_Ptr[ 4_u32] = static_cast<int8>(((ElapsedTime_us /     100'000'000_i64) % 10_i64) + '0');
+   write_Ptr[ 5_u32] = static_cast<int8>(((ElapsedTime_us /      10'000'000_i64) % 10_i64) + '0');
+   write_Ptr[ 6_u32] = static_cast<int8>(((ElapsedTime_us /       1'000'000_i64) % 10_i64) + '0');
+   write_Ptr[ 7_u32] = static_cast<int8>(((ElapsedTime_us /         100'000_i64) % 10_i64) + '0');
+   write_Ptr[ 8_u32] = static_cast<int8>(((ElapsedTime_us /          10'000_i64) % 10_i64) + '0');
+   write_Ptr[ 9_u32] = static_cast<int8>(((ElapsedTime_us /           1'000_i64) % 10_i64) + '0');
+   write_Ptr[10_u32] = static_cast<int8>(((ElapsedTime_us /             100_i64) % 10_i64) + '0');
+   write_Ptr[11_u32] = static_cast<int8>(((ElapsedTime_us /              10_i64) % 10_i64) + '0');
+   write_Ptr[12_u32] = static_cast<int8>(((ElapsedTime_us /               1_i64) % 10_i64) + '0');
+   write_Ptr[13_u32] = ')';
+   write_Ptr[14_u32] = ' ';
+   write_Ptr[15_u32] = static_cast<int8>(((ElapsedTime_hrs / 100_i64) % 10_i64) + '0');
+   write_Ptr[16_u32] = static_cast<int8>(((ElapsedTime_hrs /  10_i64) % 10_i64) + '0');
+   write_Ptr[17_u32] = static_cast<int8>(((ElapsedTime_hrs /   1_i64) % 10_i64) + '0');
+   write_Ptr[18_u32] = ':';
+   write_Ptr[19_u32] = static_cast<int8>(((ElapsedTime_min / 10_i64) % 10_i64) + '0');
+   write_Ptr[20_u32] = static_cast<int8>(((ElapsedTime_min /  1_i64) % 10_i64) + '0');
+   write_Ptr[21_u32] = ':';
+   write_Ptr[22_u32] = static_cast<int8>(((ElapsedTime_sec / 10_i64) % 10_i64) + '0');
+   write_Ptr[23_u32] = static_cast<int8>(((ElapsedTime_sec /  1_i64) % 10_i64) + '0');
+   write_Ptr[24_u32] = '.';
+   write_Ptr[25_u32] = write_Ptr[ 7_u32];
+   write_Ptr[26_u32] = write_Ptr[ 8_u32];
+   write_Ptr[27_u32] = write_Ptr[ 9_u32];
+   write_Ptr[28_u32] = '\'';
+   write_Ptr[29_u32] = write_Ptr[10_u32];
+   write_Ptr[30_u32] = write_Ptr[11_u32];
+   write_Ptr[31_u32] = write_Ptr[12_u32];
+   write_Ptr[32_u32] = '\0';
 
-   // TODO get rid of ": " and explicitly add null terminator
-
-   static_assert(getTimeStampSize_bytes() == 34_u64, "Time stamp buffer is incorrect size");
+   static_assert(getTimeStampSize_bytes() == 33_u32, "Time stamp buffer is incorrect size");
 }
