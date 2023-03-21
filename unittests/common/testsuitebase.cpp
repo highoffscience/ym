@@ -44,6 +44,7 @@ auto ym::ut::TestSuiteBase::runTestCase(std::string const & Name,
    }
    else
    { // test case not found
+      // TODO error should renamed UTError_TestCaseNotFound
       throw TestCaseNotFoundException(fmt::format("Test case {} not found", Name));
    }
 

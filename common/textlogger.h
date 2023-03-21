@@ -73,9 +73,6 @@ public:
              TSFM_T const TSFilenameMode = TimeStampFilenameMode_T::Append);
    void close(void);
 
-   inline auto getBaseStackDepth(void) const { return _baseStackDepth; }
-   inline void setBaseStackDepth(uint32 const BaseStackDepth) { _baseStackDepth = BaseStackDepth; }
-
    static constexpr auto getMaxMessageSize_bytes(void) { return _s_MaxMessageSize_bytes; }
    static constexpr auto getMaxNMessagesInBuffer(void) { return _s_MaxNMessagesInBuffer; }
    static constexpr auto getBufferSize_bytes    (void) { return _s_BufferSize_bytes;     }
@@ -149,7 +146,6 @@ private:
    MsgSemaphore_T            _messagesSem;
    std::atomic<uint32>       _writePos;
    uint32                    _readPos;
-   uint32                    _baseStackDepth;
    std::atomic<WriterMode_T> _writerMode;
    TimeStampMode_T const     _TimeStampMode;
 };

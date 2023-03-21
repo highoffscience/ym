@@ -25,6 +25,8 @@
  */
 #define YM_DECL_YMCEPT(...) YM_MACRO_OVERLOAD(YM_DECL_YMCEPT, __VA_ARGS__)
 
+// TODO assert func should be renamed. boost has a #define for assert
+
 /** YM_DECL_YMCEPT2
  *
  * @brief Convenience macro to declare empty custom Ymception classes.

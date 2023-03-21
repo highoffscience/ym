@@ -12,8 +12,6 @@
 #include <ctime>
 #include <memory>
 
-#include <boost/stacktrace.hpp>
-
 #define YM_SPECIAL_PRINT_TO_SCREEN // redirects output to stdout
 
 /** TextLogger
@@ -39,7 +37,6 @@ ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
      _messagesSem    {0_i32                    },
      _writePos       {0_u32                    },
      _readPos        {0_u32                    },
-     _baseStackDepth {0_u32                    },
      _writerMode     {WriterMode_T::Closed     },
      _TimeStampMode  {TimeStampMode            }
 {
@@ -335,15 +332,7 @@ void ym::TextLogger::writeMessagesToFile(void)
             char timeStampBuffer[getTimeStampSize_bytes()] = {'\0'};
             populateFormattedTime(timeStampBuffer);
 
-            // constexpr auto MaxStackDepth = 64_u32;
-            // char stackDepthBuffer[MaxStackDepth] = {'\0'};
-
-            // TODO make sure lhs >= rhs
-            // TODO this doesn't work since this function is in it's own thread, not the thread
-            //      of the calling function!
-            auto const StackDepth = boost::stacktrace::basic_stacktrace().size() - getBaseStackDepth();
-
-            nCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), "%lu %s: %s\n", StackDepth, timeStampBuffer, Read_Ptr);
+            nCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), "%s: %s\n", timeStampBuffer, Read_Ptr);
          }
          else
          { // print message plain

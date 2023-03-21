@@ -41,6 +41,8 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
    
    auto excHappened = false;
 
+   ymLog(VG::General, "stack depth %u", boost::stacktrace::basic_stacktrace().size());
+
    ArgParser argparse;
    try
    {
@@ -54,8 +56,6 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
    {
       excHappened = true;
    }
-
-   ymLog(VG::General, "stack depth %u", boost::stacktrace::basic_stacktrace().size());
 
    auto const * InputArg_Ptr  = (excHappened) ? nullptr : argparse["input" ];
    auto const * OutputArg_Ptr = (excHappened) ? nullptr : argparse["output"];
