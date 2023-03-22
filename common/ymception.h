@@ -25,11 +25,11 @@
  */
 #define YM_DECL_YMCEPT(...) YM_MACRO_OVERLOAD(YM_DECL_YMCEPT, __VA_ARGS__)
 
-// TODO assert func should be renamed. boost has a #define for assert
-
 /** YM_DECL_YMCEPT2
  *
  * @brief Convenience macro to declare empty custom Ymception classes.
+ * 
+ * @note ::check instead of ::assert to avoid name clashes (like boost's #define assert).
  *
  * @param BaseYmception_    -- Name of base class.
  * @param DerivedYmception_ -- Name of custom Ymception class.
@@ -49,9 +49,9 @@
       virtual ~DerivedYmception_(void) = default;                                   \
                                                                                     \
       template <Loggable... Args_T>                                                 \
-      struct assert                                                                 \
+      struct check                                                                  \
       {                                                                             \
-         explicit inline assert(                                                    \
+         explicit inline check(                                                     \
             bool                 const    Condition,                                \
             str                  const    Format,                                   \
             Args_T               const... Args,                                     \
@@ -68,9 +68,9 @@
       };                                                                            \
                                                                                     \
       template <typename... Args_T>                                                 \
-      assert(bool   const    Condition,                                             \
-             str    const    Format,                                                \
-             Args_T const... Args) -> assert<Args_T...>;                            \
+      check(bool   const    Condition,                                              \
+            str    const    Format,                                                 \
+            Args_T const... Args) -> check<Args_T...>;                              \
    };
 
 /** YM_DECL_YMCEPT1

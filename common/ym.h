@@ -218,11 +218,11 @@ using float80 = std::conditional_t<std::numeric_limits<long double>::digits == 6
                    long double,
                    std::conditional_t<std::numeric_limits<long double>::digits == 113,
                       void,
-                   #if defined(YM_IsGNU)
+                   #if defined(YM_IS_GNU)
                       __float80
                    #else
                       void
-                   #endif // YM_IsGNU
+                   #endif // YM_IS_GNU
                    >
                 >;
    static_assert(sizeof(std::conditional_t<std::is_void_v<float80>,
@@ -233,11 +233,11 @@ using float80 = std::conditional_t<std::numeric_limits<long double>::digits == 6
 
 using float128 = std::conditional_t<std::numeric_limits<long double>::digits == 113,
                     long double,
-                 #if defined(YM_IsGNU) || defined(YM_IsClang)
+                 #if defined(YM_IS_GNU) || defined(YM_IS_CLANG)
                     __float128
                  #else
                     void
-                 #endif // YM_IsGNU || YM_IsClang
+                 #endif // YM_IS_GNU || YM_IS_CLANG
                  >;
 
    static_assert(sizeof(std::conditional_t<std::is_void_v<float128>,

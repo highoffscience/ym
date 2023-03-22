@@ -62,31 +62,38 @@ private:
 public:
    explicit ArgParser(void);
 
-   inline Arg arg(str const Name);
+   Arg arg(str const Name);
 
    void parse(std::vector<Arg> && args_uref,
               int const           Argc,
               str const * const   Argv_Ptr);
 
+   template <typename T>
+   T     getArgAs (str const Key) = delete;
    Arg * getArgPtr(str const Key);
 
-   inline Arg * operator[](str const Key);
+   Arg * operator[](str const Key);
 
    YM_DECL_YMCEPT(ArgParserError)
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NameEmpty)
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NameInvalid)
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_DescEmpty)
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_DescInUse)
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ValEmpty )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ValInUse )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NameEmpty   )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NameInvalid )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_DescEmpty   )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_DescInUse   )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ValEmpty    )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ValInUse    )
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_AbbrInvalid )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_AbbrInUse )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_AbbrInUse   )
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_AmbigPrefix )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NoArgFound )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NoArgFound  )
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_NoAbbrFound )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NoValFound )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NoAbbrReg   )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NoValFound  )
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_ValWithFlag )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_AbbrNoFlag )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_AbbrNoFlag  )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_KeyInvalid  )
+
+   YM_DECL_YMCEPT(ArgParserError,         ArgParserError_BadCast       )
+   YM_DECL_YMCEPT(ArgParserError_BadCast, ArgParserError_BadCastToChar )
 
 private:
    Arg *   getArgPtrFromPrefix (str  const Key );
@@ -100,17 +107,26 @@ private:
 /**
  * TODO
  */
-inline auto ArgParser::arg(str const Name) -> Arg
-{
-   return Arg(Name, this);
-}
+// template <>
+// char ArgParser::getArgAs<char>(str const Key);
+// // {
+// //    auto const Val = (*this)[Key]->getVal();
+// //    // TODO assert not null and length 1
+// //    return '\0';
+// // }
 
-/**
- * TODO
- */
-inline auto ArgParser::operator[](str const Key) -> Arg *
-{
-   return getArgPtr(Key);
-}
+template <> char    ArgParser::getArgAs<char>   (str const Key);
+template <> str     ArgParser::getArgAs<str>    (str const Key);
+template <> int8    ArgParser::getArgAs<int8>   (str const Key);
+template <> int16   ArgParser::getArgAs<int16>  (str const Key);
+template <> int32   ArgParser::getArgAs<int32>  (str const Key);
+template <> int64   ArgParser::getArgAs<int64>  (str const Key);
+template <> uint8   ArgParser::getArgAs<uint8>  (str const Key);
+template <> uint16  ArgParser::getArgAs<uint16> (str const Key);
+template <> uint32  ArgParser::getArgAs<uint32> (str const Key);
+template <> uint64  ArgParser::getArgAs<uint64> (str const Key);
+template <> float32 ArgParser::getArgAs<float32>(str const Key);
+template <> float64 ArgParser::getArgAs<float64>(str const Key);
+template <> float80 ArgParser::getArgAs<float80>(str const Key);
 
 } // ym

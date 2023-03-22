@@ -79,7 +79,7 @@ private:
 
    bool openOutfile_appendTimeStamp(str const Filename);
 
-   void populateTimeStamp(char * const timeStamp_Ptr) const;
+   void populateFilenameTimeStamp(char * const timeStamp_Ptr) const;
 };
 
 /** printfInternalError

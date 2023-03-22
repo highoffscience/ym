@@ -114,7 +114,7 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
    std::strncpy(tsFilename_Ptr, Filename, StemSize_bytes);
 
    // write time stamp
-   populateTimeStamp(tsFilename_Ptr + StemSize_bytes);
+   populateFilenameTimeStamp(tsFilename_Ptr + StemSize_bytes);
 
    // write extension
    std::strncpy(tsFilename_Ptr + StemSize_bytes + s_DefaultTS.length(),
@@ -133,7 +133,7 @@ void ym::Logger::closeOutfile(void)
    _outfile_uptr.reset(nullptr);
 }
 
-/** populateTimeStamp
+/** populateFilenameTimeStamp
  *
  * @brief Writes the current timestamp to the specified buffer.
  *
@@ -143,7 +143,7 @@ void ym::Logger::closeOutfile(void)
  *
  * @param timeStamp_Ptr -- Pointer to buffer to write timestamp to
  */
-void ym::Logger::populateTimeStamp(char * const timeStamp_Ptr) const
+void ym::Logger::populateFilenameTimeStamp(char * const timeStamp_Ptr) const
 {
    auto t = std::time(nullptr);
    std::tm timeinfo;

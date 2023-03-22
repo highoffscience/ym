@@ -12,7 +12,6 @@
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
-#include <string_view>
 #include <utility>
 
 /**
@@ -22,6 +21,14 @@ ym::ArgParser::ArgParser(void)
    : _args  {/*default*/},
      _abbrs {nullptr    }
 {
+}
+
+/**
+ * TODO
+ */
+auto ym::ArgParser::arg(str const Name) -> Arg
+{
+   return Arg(Name, this);
 }
 
 /**
@@ -50,26 +57,38 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
          { // longhand arg found
             name += 2_u32;
             auto * const agr_Ptr = getArgPtrFromPrefix(name);
-            ArgParserError_NoArgFound::assert(agr_Ptr, "Arg '%s' not registered", name);
-            ArgParserError_NoValFound::assert(++i < Argc, "No value for arg '%s'", name);
+            ArgParserError_NoArgFound::check(agr_Ptr, "Arg '%s' not registered", name);
+            ArgParserError_NoValFound::check(++i < Argc, "No value for arg '%s'", name);
             agr_Ptr->setVal(Argv_Ptr[i]);
          }
          else
          { // shorthand arg found
             name += 1_u32;
-            ArgParserError_NoAbbrFound::assert(name[0_u32] != '\0',
+            ArgParserError_NoAbbrFound::check(name[0_u32] != '\0',
                "Expected abbr at count %d but none found", i);
             for (auto i = 0_u32; name[i] != '\0'; ++i)
             {
                auto   const Abbr    = name[i];
                auto * const arg_Ptr = getArgPtrFromAbbr(Abbr);
-               ArgParserError_NoAbbrFound::assert(arg_Ptr, "Abbr '%c' not registered", Abbr);
-               ArgParserError_AbbrNoFlag::assert(arg_Ptr->getFlag(), "Abbr '%c' not a flag");
+               ArgParserError_NoAbbrReg::check(arg_Ptr, "Abbr '%c' not registered", Abbr);
+               ArgParserError_AbbrNoFlag::check(arg_Ptr->getFlag(), "Abbr '%c' not a flag", Abbr);
                arg_Ptr->enable(true);
             }
          }
       }
    }
+}
+
+/**
+ * TODO
+ */
+template <>
+char ym::ArgParser::getArgAs<char>(str const Key)
+{
+   auto const Val = (*this)[Key]->getVal();
+   ArgParserError_BadCastToChar::check(Val && std::strlen(Val) == 1_u64,
+      "Val '%s' from key '%s' not a valid char", Val, Key);
+   return Val[0_u32];
 }
 
 /**
@@ -91,6 +110,16 @@ auto ym::ArgParser::getArgPtr(str const Key) -> Arg *
       );
 }
 
+/**
+ * TODO
+ */
+auto ym::ArgParser::operator[](str const Key) -> Arg *
+{
+   auto * const arg_Ptr = getArgPtr(Key);
+   ArgParserError_KeyInvalid::check(arg_Ptr, "Key '%s' not found", Key);
+   return arg_Ptr;
+}
+
 /** getArgPtrFromPrefix
  * 
  * @brief TODO
@@ -106,7 +135,7 @@ auto ym::ArgParser::getArgPtrFromPrefix(str const Key) -> Arg *
 
       if (Cmp == 0_i32)
       { // prefix found (whole key matched)
-         ArgParserError_AmbigPrefix::assert(!arg_ptr, "Prefix '%s' is ambiguous", Key);
+         ArgParserError_AmbigPrefix::check(!arg_ptr, "Prefix '%s' is ambiguous", Key);
          arg_ptr = &arg_ref;
       }
       else if (Cmp < 0_i32)
@@ -153,8 +182,8 @@ ym::ArgParser::Arg::Arg(str         const Name,
      _flag   {false  },
      _enbl   {false  }
 {
-   ArgParserError_NameEmpty::assert(ymIsStrNonEmpty(getName()), "Name must be non-empty");
-   ArgParserError_NameInvalid::assert(std::isalnum(getName()[0_u32]), "Name '%s' is invalid", getName());
+   ArgParserError_NameEmpty::check(ymIsStrNonEmpty(getName()), "Name must be non-empty");
+   ArgParserError_NameInvalid::check(std::isalnum(getName()[0_u32]), "Name '%s' is invalid", getName());
 }
 
 /**
@@ -162,11 +191,11 @@ ym::ArgParser::Arg::Arg(str         const Name,
  */
 auto ym::ArgParser::Arg::desc(str const Desc) -> Arg &
 {
-   ArgParserError_DescInUse::assert(!getDesc(), "Description must not have already been set");
+   ArgParserError_DescInUse::check(!getDesc(), "Description must not have already been set");
 
    _desc = Desc;
 
-   ArgParserError_DescEmpty::assert(ymIsStrNonEmpty(getDesc()), "Description must be non-empty");
+   ArgParserError_DescEmpty::check(ymIsStrNonEmpty(getDesc()), "Description must be non-empty");
 
    return *this;
 }
@@ -176,15 +205,15 @@ auto ym::ArgParser::Arg::desc(str const Desc) -> Arg &
  */
 auto ym::ArgParser::Arg::defaultVal(str const DefaultVal) -> Arg &
 {
-   ArgParserError_ValWithFlag::assert(!getFlag(),
+   ArgParserError_ValWithFlag::check(!getFlag(),
       "Arg '%s' is flag but requests default val '%s'", getName(), DefaultVal);
 
-   ArgParserError_ValInUse::assert(!getVal(),
+   ArgParserError_ValInUse::check(!getVal(),
       "Arg '%s' already set with val '%s' (requested '%s')", getName(), getVal(), DefaultVal);
 
    _val = DefaultVal;
 
-   ArgParserError_ValEmpty::assert(ymIsStrNonEmpty(getVal()),
+   ArgParserError_ValEmpty::check(ymIsStrNonEmpty(getVal()),
       "Val must be non-empty for arg '%s'", getName());
 
    return *this;
@@ -197,10 +226,10 @@ auto ym::ArgParser::Arg::abbr(char const Abbr) -> Arg &
 {
    auto * * const arg_ptr_Ptr = _ap_Ptr->getArgPtrPtrFromAbbr(Abbr);
 
-   ArgParserError_AbbrInvalid::assert(arg_ptr_Ptr,
+   ArgParserError_AbbrInvalid::check(arg_ptr_Ptr,
       "Illegal abbr '%c' found for arg '%s'", Abbr, getName());
 
-   ArgParserError_AbbrInUse::assert((*arg_ptr_Ptr)->getAbbr() == '\0',
+   ArgParserError_AbbrInUse::check((*arg_ptr_Ptr)->getAbbr() == '\0',
       "Arg '%s' wants abbr '%c' but it's already used by arg '%s'",
       getName(), Abbr, (*arg_ptr_Ptr)->getName());
 
@@ -216,7 +245,7 @@ auto ym::ArgParser::Arg::abbr(char const Abbr) -> Arg &
  */
 auto ym::ArgParser::Arg::flag(void) -> Arg &
 {
-   ArgParserError_ValWithFlag::assert(!getVal(),
+   ArgParserError_ValWithFlag::check(!getVal(),
       "Arg '%s' has val '%s' but requested to be a flag", getName(), getVal());
 
    _flag = true;
