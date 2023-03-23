@@ -81,18 +81,6 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
 
 /**
  * TODO
- */
-template <>
-char ym::ArgParser::getArgAs<char>(str const Key)
-{
-   auto const Val = (*this)[Key]->getVal();
-   ArgParserError_BadCastToChar::check(Val && std::strlen(Val) == 1_u64,
-      "Val '%s' from key '%s' not a valid char", Val, Key);
-   return Val[0_u32];
-}
-
-/**
- * TODO
  * 
  * @note std::binary_search doesn't return a pointer to the found object, which is
  *       why we use std::bsearch.

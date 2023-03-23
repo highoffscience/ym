@@ -68,8 +68,6 @@ public:
               int const           Argc,
               str const * const   Argv_Ptr);
 
-   template <typename T>
-   T     getArgAs (str const Key) = delete;
    Arg * getArgPtr(str const Key);
 
    Arg * operator[](str const Key);
@@ -92,9 +90,6 @@ public:
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_AbbrNoFlag  )
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_KeyInvalid  )
 
-   YM_DECL_YMCEPT(ArgParserError,         ArgParserError_BadCast       )
-   YM_DECL_YMCEPT(ArgParserError_BadCast, ArgParserError_BadCastToChar )
-
 private:
    Arg *   getArgPtrFromPrefix (str  const Key );
    Arg *   getArgPtrFromAbbr   (char const Abbr);
@@ -103,30 +98,5 @@ private:
    std::vector<Arg>          _args;
    std::array<Arg *, 62_u64> _abbrs;
 };
-
-/**
- * TODO
- */
-// template <>
-// char ArgParser::getArgAs<char>(str const Key);
-// // {
-// //    auto const Val = (*this)[Key]->getVal();
-// //    // TODO assert not null and length 1
-// //    return '\0';
-// // }
-
-template <> char    ArgParser::getArgAs<char>   (str const Key);
-template <> str     ArgParser::getArgAs<str>    (str const Key);
-template <> int8    ArgParser::getArgAs<int8>   (str const Key);
-template <> int16   ArgParser::getArgAs<int16>  (str const Key);
-template <> int32   ArgParser::getArgAs<int32>  (str const Key);
-template <> int64   ArgParser::getArgAs<int64>  (str const Key);
-template <> uint8   ArgParser::getArgAs<uint8>  (str const Key);
-template <> uint16  ArgParser::getArgAs<uint16> (str const Key);
-template <> uint32  ArgParser::getArgAs<uint32> (str const Key);
-template <> uint64  ArgParser::getArgAs<uint64> (str const Key);
-template <> float32 ArgParser::getArgAs<float32>(str const Key);
-template <> float64 ArgParser::getArgAs<float64>(str const Key);
-template <> float80 ArgParser::getArgAs<float80>(str const Key);
 
 } // ym
