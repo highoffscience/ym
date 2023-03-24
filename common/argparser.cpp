@@ -6,6 +6,7 @@
 
 #include "argparser.h"
 
+#include "ops.h"
 #include "textlogger.h"
 
 #include <algorithm>
