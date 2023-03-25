@@ -13,7 +13,7 @@
  */
 template <>
 auto ym::Ops::castTo<char>(str    const S,
-                           uint32 const Base) -> char
+                           uint32 const  ) -> char
 {
    OpsError_BadCastToChar::check(S && S[0_u32] && !S[1_u32],
       "String '%s' not a valid char", S);
@@ -24,8 +24,8 @@ auto ym::Ops::castTo<char>(str    const S,
  * TODO
  */
 template <>
-auto ym::Ops::castTo<int8>(str    const S,
-                           uint32 const Base) -> int8
+auto ym::Ops::castTo<ym::int8>(str    const S,
+                               uint32 const Base) -> int8
 {
    errno = 0_i32;
    auto const Val = std::strtol(S, nullptr, Base);
@@ -37,8 +37,8 @@ auto ym::Ops::castTo<int8>(str    const S,
  * TODO
  */
 template <>
-auto ym::Ops::castTo<int16>(str    const S,
-                            uint32 const Base) -> int8
+auto ym::Ops::castTo<ym::int16>(str    const S,
+                                uint32 const Base) -> int16
 {
    errno = 0_i32;
    auto const Val = std::strtol(S, nullptr, Base);
@@ -50,8 +50,8 @@ auto ym::Ops::castTo<int16>(str    const S,
  * TODO
  */
 template <>
-auto ym::Ops::castTo<int32>(str    const S,
-                            uint32 const Base) -> int8
+auto ym::Ops::castTo<ym::int32>(str    const S,
+                                uint32 const Base) -> int32
 {
    errno = 0_i32;
    auto const Val = std::strtol(S, nullptr, Base);
@@ -63,8 +63,8 @@ auto ym::Ops::castTo<int32>(str    const S,
  * TODO
  */
 template <>
-auto ym::Ops::castTo<int64>(str    const S,
-                            uint32 const Base) -> int8
+auto ym::Ops::castTo<ym::int64>(str    const S,
+                                uint32 const Base) -> int64
 {
    errno = 0_i32;
    auto const Val = std::strtoll(S, nullptr, Base);
@@ -76,8 +76,8 @@ auto ym::Ops::castTo<int64>(str    const S,
  * TODO
  */
 template <>
-auto ym::Ops::castTo<uint8>(str    const S,
-                            uint32 const Base) -> int8
+auto ym::Ops::castTo<ym::uint8>(str    const S,
+                                uint32 const Base) -> uint8
 {
    errno = 0_i32;
    auto const Val = std::strtoul(S, nullptr, Base);
@@ -89,8 +89,8 @@ auto ym::Ops::castTo<uint8>(str    const S,
  * TODO
  */
 template <>
-auto ym::Ops::castTo<uint16>(str    const S,
-                             uint32 const Base) -> int8
+auto ym::Ops::castTo<ym::uint16>(str    const S,
+                                 uint32 const Base) -> uint16
 {
    errno = 0_i32;
    auto const Val = std::strtoul(S, nullptr, Base);
@@ -102,8 +102,8 @@ auto ym::Ops::castTo<uint16>(str    const S,
  * TODO
  */
 template <>
-auto ym::Ops::castTo<uint32>(str    const S,
-                             uint32 const Base) -> int8
+auto ym::Ops::castTo<ym::uint32>(str    const S,
+                                 uint32 const Base) -> uint32
 {
    errno = 0_i32;
    auto const Val = std::strtoul(S, nullptr, Base);
@@ -115,8 +115,8 @@ auto ym::Ops::castTo<uint32>(str    const S,
  * TODO
  */
 template <>
-auto ym::Ops::castTo<int64>(str    const S,
-                            uint32 const Base) -> int8
+auto ym::Ops::castTo<ym::uint64>(str    const S,
+                                 uint32 const Base) -> uint64
 {
    errno = 0_i32;
    auto const Val = std::strtoull(S, nullptr, Base);
@@ -128,8 +128,8 @@ auto ym::Ops::castTo<int64>(str    const S,
  * TODO
  */
 template <>
-auto ym::Ops::castTo<float32>(str    const S,
-                              uint32 const  ) -> int8
+auto ym::Ops::castTo<ym::float32>(str    const S,
+                                  uint32 const  ) -> float32
 {
    errno = 0_i32;
    auto const Val = std::strtof(S, nullptr);
@@ -141,8 +141,8 @@ auto ym::Ops::castTo<float32>(str    const S,
  * TODO
  */
 template <>
-auto ym::Ops::castTo<float64>(str    const S,
-                              uint32 const  ) -> int8
+auto ym::Ops::castTo<ym::float64>(str    const S,
+                                  uint32 const  ) -> float64
 {
    errno = 0_i32;
    auto const Val = std::strtod(S, nullptr);
@@ -154,11 +154,12 @@ auto ym::Ops::castTo<float64>(str    const S,
  * TODO
  */
 template <>
-auto ym::Ops::castTo<float80>(str    const S,
-                              uint32 const  ) -> int8
+auto ym::Ops::castTo<ym::float80>(str    const S,
+                                  uint32 const  ) -> float80
 {
    errno = 0_i32;
    auto const Val = std::strtold(S, nullptr);
+   // TODO confirm long double is at least float80
    OpsError_BadCastToFlt32::check(errno == 0_i32, "String '%s' not a valid float80", S);
    return static_cast<float80>(Val);
 }

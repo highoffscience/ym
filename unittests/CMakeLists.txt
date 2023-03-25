@@ -12,6 +12,7 @@ include(utcommon.cmake)
 
 set(RelativeFilePaths
    ym/common/argparser
+   ym/common/ops
    ym/common/random
    ym/common/textlogger
    ym/common/timer
@@ -31,6 +32,7 @@ foreach(RelativeFilePath IN LISTS RelativeFilePaths)
          ${RootDir}/../${RelativeFilePath}.cpp
          ${AbsoluteUTFilePath}/testsuite.cpp
          ${CommonDir}/argparser.cpp
+         ${CommonDir}/ops.cpp
          ${CommonDir}/logger.cpp
          ${CommonDir}/memorymanager.cpp
          ${CommonDir}/timer.cpp

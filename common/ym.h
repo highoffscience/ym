@@ -337,7 +337,7 @@ constexpr bool ymIsStrNonEmpty(str const S)
  * 
  * @return auto -- Input casted to TypeToCastTo_.
  */
-#define YM_LITERAL_DECL(UDL_, TypeToCastTo_)                                                                 \
+#define YM_LITERAL_DECL(UDL_, TypeToCastTo_)                                                                \
    constexpr auto operator"" _##UDL_(unsigned long long int    i) { return static_cast<TypeToCastTo_>(i); } \
    constexpr auto operator"" _##UDL_(              long double d) { return static_cast<TypeToCastTo_>(d); } \
                                                                                                             \

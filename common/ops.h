@@ -42,7 +42,7 @@ public:
    YM_DECL_YMCEPT(OpsError_BadCast, OpsError_BadCastToFlt80  )
 };
 
-template <> char    Ops::castTo<char>   (str const S, uint32 const Base);
+template <> char    Ops::castTo<char>   (str const S, uint32 const     );
 template <> int8    Ops::castTo<int8>   (str const S, uint32 const Base);
 template <> int16   Ops::castTo<int16>  (str const S, uint32 const Base);
 template <> int32   Ops::castTo<int32>  (str const S, uint32 const Base);

@@ -29,8 +29,8 @@ auto ym::ut::TestSuite::OpenAndClose::run([[maybe_unused]] DataShuttle const & I
 {
    TextLogger t;
    t.openToStdout();
-   t.enable(VGM_T::Logger);
-   t.printf(VGM_T::Logger, "Go! Torchic!");
+   t.enable(VG::Logger);
+   t.printf(VG::Logger, "Go! Torchic!");
 
    auto const IsOpen = t.isOpen();
 
