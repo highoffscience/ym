@@ -6,6 +6,8 @@
 
 #include "ops.h"
 
+#include "textlogger.h"
+
 #include <cstdlib>
 
 /**
@@ -27,6 +29,8 @@ template <>
 auto ym::Ops::castTo<ym::int8>(str    const S,
                                uint32 const Base) -> int8
 {
+   TextLogger::getGlobalInstance()->enable(VG::General);
+   ymLog(VG::General, "calling int8 cast!");
    errno = 0_i32;
    auto const Val = std::strtol(S, nullptr, Base);
    OpsError_BadCastToInt8::check(errno == 0_i32, "String '%s' not a valid int8", S);

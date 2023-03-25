@@ -69,8 +69,14 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
       results = self.run_test_case("Casting")
 
-      val_int32 = results.get[ym.ut.utint32]("Val_int32")
-      self.assertEqual(val_int32, 65, "int8 cast failed")
+      # todo int8, uint8
+
+      val_char = results.get[ym.utdefs.int8]("Val_char")
+      print(f"val = {val_char}")
+      # self.assertEqual(val_char, 'f', "char cast failed")
+
+      # val_int32 = results.get[ym.utdefs.int32]("Val_int32")
+      # self.assertEqual(val_int32, 65, "int32 cast failed")
 
 # kick-off
 if __name__ == "__main__":

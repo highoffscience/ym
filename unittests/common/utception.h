@@ -42,7 +42,7 @@ public:
    explicit Utception(std::string msg);
    virtual ~Utception(void) = default;
 
-   virtual utstr what(void) const noexcept override;
+   virtual char const * what(void) const noexcept override;
 
 private:
    std::string const _Msg;

@@ -21,7 +21,7 @@ ym::ut::Utception::Utception(std::string msg)
  *
  * @brief Constructor.
  */
-auto ym::ut::Utception::what(void) const noexcept -> utstr
+char const * ym::ut::Utception::what(void) const noexcept
 {
    return _Msg.c_str();
 }
