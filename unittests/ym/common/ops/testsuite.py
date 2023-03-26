@@ -69,14 +69,18 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
       results = self.run_test_case("Casting")
 
-      # todo int8, uint8
+      # val_char = results.get[ym.utdefs.uchar]("Val_char")
+      # print(f"val = {val_char}")
+      # # self.assertEqual(val_char, 'f', "char cast failed")
 
-      val_char = results.get[ym.utdefs.int8]("Val_char")
-      print(f"val = {val_char}")
-      # self.assertEqual(val_char, 'f', "char cast failed")
+      # because int8/uint8 are represented as chars under the hood, cppyy, and hence python,
+      #  interprets them as strings, and the bits cannot be converted to int type (for
+      #  some reason)
+      val_int8 = int(results.get[ym.utdefs.int8]("Val_int8"), 2)
+      self.assertEqual(val_int8, -128, "int8 cast failed")
 
-      # val_int32 = results.get[ym.utdefs.int32]("Val_int32")
-      # self.assertEqual(val_int32, 65, "int32 cast failed")
+      val_int32 = results.get[ym.utdefs.int32]("Val_int32")
+      self.assertEqual(val_int32, -2147483648, "int32 cast failed")
 
 # kick-off
 if __name__ == "__main__":

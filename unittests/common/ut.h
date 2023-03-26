@@ -6,6 +6,8 @@
 
 #pragma once
 
+// TODO rename to utdefs.h
+
 // ----------------------------------------------------------------------------
 
 #if defined(YM_UNITTEST)

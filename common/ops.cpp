@@ -13,9 +13,7 @@
 /**
  * TODO
  */
-template <>
-auto ym::Ops::castTo<char>(str    const S,
-                           uint32 const  ) -> char
+char ym::Ops::castToChar(str const S)
 {
    OpsError_BadCastToChar::check(S && S[0_u32] && !S[1_u32],
       "String '%s' not a valid char", S);
