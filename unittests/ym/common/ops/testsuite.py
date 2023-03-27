@@ -69,18 +69,21 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
       results = self.run_test_case("Casting")
 
-      # val_char = results.get[ym.utdefs.uchar]("Val_char")
-      # print(f"val = {val_char}")
-      # # self.assertEqual(val_char, 'f', "char cast failed")
+      self.assertTrue(results.get[bool]("Val_char"  ), "char cast failed")
 
-      # because int8/uint8 are represented as chars under the hood, cppyy, and hence python,
-      #  interprets them as strings, and the bits cannot be converted to int type (for
-      #  some reason)
-      val_int8 = int(results.get[ym.utdefs.int8]("Val_int8"), 2)
-      self.assertEqual(val_int8, -128, "int8 cast failed")
+      self.assertTrue(results.get[bool]("Val_int8"  ), "int8  cast failed")
+      self.assertTrue(results.get[bool]("Val_int16" ), "int16 cast failed")
+      self.assertTrue(results.get[bool]("Val_int32" ), "int32 cast failed")
+      self.assertTrue(results.get[bool]("Val_int64" ), "int64 cast failed")
 
-      val_int32 = results.get[ym.utdefs.int32]("Val_int32")
-      self.assertEqual(val_int32, -2147483648, "int32 cast failed")
+      self.assertTrue(results.get[bool]("Val_uint8" ), "uint8  cast failed")
+      self.assertTrue(results.get[bool]("Val_uint16"), "uint16 cast failed")
+      self.assertTrue(results.get[bool]("Val_uint32"), "uint32 cast failed")
+      self.assertTrue(results.get[bool]("Val_uint64"), "uint64 cast failed")
+
+      self.assertTrue(results.get[bool]("Val_float32"), "float32 cast failed")
+      self.assertTrue(results.get[bool]("Val_float64"), "float64 cast failed")
+      self.assertTrue(results.get[bool]("Val_float80"), "float80 cast failed")
 
 # kick-off
 if __name__ == "__main__":

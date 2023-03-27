@@ -6,8 +6,6 @@
 
 #include "ops.h"
 
-#include "textlogger.h"
-
 #include <cstdlib>
 
 /**
@@ -27,8 +25,6 @@ template <>
 auto ym::Ops::castTo<ym::int8>(str    const S,
                                uint32 const Base) -> int8
 {
-   TextLogger::getGlobalInstance()->enable(VG::General);
-   ymLog(VG::General, "calling int8 cast!");
    errno = 0_i32;
    auto const Val = std::strtol(S, nullptr, Base);
    OpsError_BadCastToInt8::check(errno == 0_i32, "String '%s' not a valid int8", S);
@@ -130,8 +126,7 @@ auto ym::Ops::castTo<ym::uint64>(str    const S,
  * TODO
  */
 template <>
-auto ym::Ops::castTo<ym::float32>(str    const S,
-                                  uint32 const  ) -> float32
+auto ym::Ops::castTo<ym::float32>(str const S) -> float32
 {
    errno = 0_i32;
    auto const Val = std::strtof(S, nullptr);
@@ -143,8 +138,7 @@ auto ym::Ops::castTo<ym::float32>(str    const S,
  * TODO
  */
 template <>
-auto ym::Ops::castTo<ym::float64>(str    const S,
-                                  uint32 const  ) -> float64
+auto ym::Ops::castTo<ym::float64>(str const S) -> float64
 {
    errno = 0_i32;
    auto const Val = std::strtod(S, nullptr);
@@ -156,8 +150,7 @@ auto ym::Ops::castTo<ym::float64>(str    const S,
  * TODO
  */
 template <>
-auto ym::Ops::castTo<ym::float80>(str    const S,
-                                  uint32 const  ) -> float80
+auto ym::Ops::castTo<ym::float80>(str const S) -> float80
 {
    errno = 0_i32;
    auto const Val = std::strtold(S, nullptr);

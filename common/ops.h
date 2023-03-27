@@ -10,6 +10,8 @@
 
 #include "ymception.h"
 
+#include <type_traits>
+
 namespace ym
 {
 
@@ -24,6 +26,11 @@ public:
    static char castToChar(str const S);
 
    template <typename T>
+   requires std::is_floating_point_v<T>
+   static T castTo(str    const S) = delete;
+
+   template <typename T>
+   requires std::is_integral_v<T>
    static T castTo(str    const S,
                    uint32 const Base = 10_u32) = delete;
 
@@ -52,8 +59,8 @@ template <> uint8   Ops::castTo<uint8>  (str const S, uint32 const Base);
 template <> uint16  Ops::castTo<uint16> (str const S, uint32 const Base);
 template <> uint32  Ops::castTo<uint32> (str const S, uint32 const Base);
 template <> uint64  Ops::castTo<uint64> (str const S, uint32 const Base);
-template <> float32 Ops::castTo<float32>(str const S, uint32 const     );
-template <> float64 Ops::castTo<float64>(str const S, uint32 const     );
-template <> float80 Ops::castTo<float80>(str const S, uint32 const     );
+template <> float32 Ops::castTo<float32>(str const S);
+template <> float64 Ops::castTo<float64>(str const S);
+template <> float80 Ops::castTo<float80>(str const S);
 
 } // ym
