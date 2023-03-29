@@ -8,6 +8,7 @@
 #include "testsuite.h"
 
 #include "ops.h"
+
 #include "textlogger.h"
 #include "ymception.h"
 
@@ -31,9 +32,6 @@ ym::ut::TestSuite::TestSuite(void)
  */
 auto ym::ut::TestSuite::Casting::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   // TODO this line should be added to every test. Update setup_scaffold. create UnitTest verbogroup
-   TextLogger::getGlobalInstance()->enable(VG::General);
-
    auto const Val_char    = Ops::castToChar   ("A"                     ) == 'A';
 
    auto const Val_int8    = Ops::castTo<int8 >("-128"                  ) == std::numeric_limits<int8  >::min();

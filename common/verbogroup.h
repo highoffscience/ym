@@ -35,7 +35,8 @@ struct VerboGroup
       Debug,
       General,
       Logger,
-      UnitTest,
+      UnitTest_ArgParser,
+      UnitTest_Ops,
       Ymception,
 
       NGroups
@@ -84,20 +85,21 @@ struct VerboGroupMask
    #define YM_FMT_MSK(Group_, Mask_) ((ymToUnderlying(VerboGroup::T::Group_) << 8_u32) | Mask_##_u32)
    #define YM_FMT_GRP(Group_       ) YM_FMT_MSK(Group_, 0xff)
 
-      ArgParser        = YM_FMT_GRP(ArgParser             ),
+      ArgParser          = YM_FMT_GRP(ArgParser             ),
 
-      Debug            = YM_FMT_GRP(Debug                 ),
+      Debug              = YM_FMT_GRP(Debug                 ),
 
-      General          = YM_FMT_GRP(General               ),
+      General            = YM_FMT_GRP(General               ),
 
-      Logger           = YM_FMT_GRP(Logger                ),
-      Logger_Basic     = YM_FMT_MSK(Logger,    0b0000'0001),
-      Logger_Detail    = YM_FMT_MSK(Logger,    0b0000'0010),
+      Logger             = YM_FMT_GRP(Logger                ),
+      Logger_Basic       = YM_FMT_MSK(Logger,    0b0000'0001),
+      Logger_Detail      = YM_FMT_MSK(Logger,    0b0000'0010),
 
-      UnitTest         = YM_FMT_GRP(UnitTest              ),
+      UnitTest_ArgParser = YM_FMT_GRP(UnitTest_ArgParser    ),
+      UnitTest_Ops       = YM_FMT_GRP(UnitTest_Ops          ),
 
-      Ymception        = YM_FMT_GRP(Ymception             ),
-      Ymception_Assert = YM_FMT_MSK(Ymception, 0b0000'0001),
+      Ymception          = YM_FMT_GRP(Ymception             ),
+      Ymception_Assert   = YM_FMT_MSK(Ymception, 0b0000'0001),
 
    // don't pollute namespace
    #undef YM_FMT_GRP
