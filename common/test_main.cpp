@@ -8,7 +8,7 @@
 #include <iostream>
 #include <thread>
 
-#include "ym.h"
+#include "ymdefs.h"
 #include "lightlogger.h"
 
 int main(void)

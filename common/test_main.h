@@ -4,7 +4,7 @@
  * @author  Forrest Jablonski
  */
 
-#include "ym.h"
+#include "ymdefs.h"
 
 namespace ym
 {

@@ -4,7 +4,7 @@
  * @author  Forrest Jablonski
  */
 
-#include "ym.h"
+#include "ymdefs.h"
 #include "testsuite.h"
 
 #include "ops.h"
@@ -21,12 +21,13 @@
 ym::ut::TestSuite::TestSuite(void)
    : TestSuiteBase("Ops")
 {
-   addTestCase<Casting>();
+   addTestCase<Casting   >();
+   addTestCase<BadCasting>();
 }
 
 /** run
  *
- * @brief TODO.
+ * @brief Tests the primitive casting functions.
  *
  * @return DataShuttle -- Important values acquired during run of test.
  */
@@ -64,5 +65,30 @@ auto ym::ut::TestSuite::Casting::run([[maybe_unused]] DataShuttle const & InData
       {"Val_float32", Val_float32},
       {"Val_float64", Val_float64},
       {"Val_float80", Val_float80}
+   };
+}
+
+/** run
+ *
+ * @brief Tests the primitive casting functions error on invalid inputs.
+ *
+ * @return DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::ut::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto badCast_char = false; // until told otherwise
+   try { (void)Ops::castToChar(""); }
+   catch (Ops::OpsError_BadCastToChar const & E) { badCast_char = true; }
+
+   // TODO "" and "a" don't trigger asserts
+   auto badCast_int8 = false; // until told otherwise
+   try { (void)Ops::castTo<int8>("a"); }
+   catch (Ops::OpsError_BadCastToInt8 const & E) { badCast_int8 = true; }
+
+   // TODO finish test
+
+   return {
+      {"BadCast_char", badCast_char},
+      {"BadCast_int8", badCast_int8}
    };
 }

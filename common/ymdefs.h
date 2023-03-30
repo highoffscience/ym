@@ -127,7 +127,7 @@ static_assert(YM_IS_CLANG_ID +
 #define YM_NO_COPY(           ClassName_ ) ClassName_              (ClassName_ const &) = delete;
 #define YM_NO_ASSIGN(         ClassName_ ) ClassName_ & operator = (ClassName_ const &) = delete;
 #define YM_NO_MOVE_CONSTRUCT( ClassName_ ) ClassName_              (ClassName_ &&     ) = delete;
-#define YM_NO_Move_ASSIGN(    ClassName_ ) ClassName_ & operator = (ClassName_ &&     ) = delete;
+#define YM_NO_MOVE_ASSIGN(    ClassName_ ) ClassName_ & operator = (ClassName_ &&     ) = delete;
 
 /** YM_MACRO_OVERLOAD
  * 

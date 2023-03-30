@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "ym.h"
+#include "ymdefs.h"
 
 #include "lightlogger.h"
 

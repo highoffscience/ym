@@ -69,12 +69,12 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
       results = self.run_test_case("Casting")
 
-      self.assertTrue(results.get[bool]("Val_char"  ), "char cast failed")
+      self.assertTrue(results.get[bool]("Val_char"), "char cast failed")
 
-      self.assertTrue(results.get[bool]("Val_int8"  ), "int8  cast failed")
-      self.assertTrue(results.get[bool]("Val_int16" ), "int16 cast failed")
-      self.assertTrue(results.get[bool]("Val_int32" ), "int32 cast failed")
-      self.assertTrue(results.get[bool]("Val_int64" ), "int64 cast failed")
+      self.assertTrue(results.get[bool]("Val_int8" ), "int8  cast failed")
+      self.assertTrue(results.get[bool]("Val_int16"), "int16 cast failed")
+      self.assertTrue(results.get[bool]("Val_int32"), "int32 cast failed")
+      self.assertTrue(results.get[bool]("Val_int64"), "int64 cast failed")
 
       self.assertTrue(results.get[bool]("Val_uint8" ), "uint8  cast failed")
       self.assertTrue(results.get[bool]("Val_uint16"), "uint16 cast failed")
@@ -84,6 +84,22 @@ class TestSuite(testsuitebase.TestSuiteBase):
       self.assertTrue(results.get[bool]("Val_float32"), "float32 cast failed")
       self.assertTrue(results.get[bool]("Val_float64"), "float64 cast failed")
       self.assertTrue(results.get[bool]("Val_float80"), "float80 cast failed")
+
+   def test_BadCasting(self):
+      """
+      @brief Analyzes results from test case.
+
+      @param results -- Results from test case.
+      """
+
+      from cppyy.gbl import std
+      from cppyy.gbl import ym
+
+      results = self.run_test_case("BadCasting")
+
+      self.assertTrue(results.get[bool]("BadCast_char"), "char cast failed to fail")
+
+      self.assertTrue(results.get[bool]("BadCast_int8"), "int8 cast failed to fail")
 
 # kick-off
 if __name__ == "__main__":

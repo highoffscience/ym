@@ -1,17 +1,15 @@
 /**
- * @file    ut.h
+ * @file    utdefs.h
  * @version 1.0.0
  * @author  Forrest Jablonski
  */
 
 #pragma once
 
-// TODO rename to utdefs.h
-
 // ----------------------------------------------------------------------------
 
 #if defined(YM_UNITTEST)
-static_assert(__cplusplus == 201703L, "C++17 standard required (for cppyy)");
+static_assert(__cplusplus <= 201703L, "C++17 standard required (for cppyy)");
 #endif // YM_UNITTEST
 
 // ----------------------------------------------------------------------------

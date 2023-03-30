@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "ym.h"
+#include "ymdefs.h"
 
 #include "loggable.h"
 #include "ymception.h"

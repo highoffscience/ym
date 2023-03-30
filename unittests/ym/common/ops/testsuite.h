@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "ut.h"
+#include "utdefs.h"
 
 #include "testsuitebase.h"
 
@@ -23,7 +23,8 @@ public:
    explicit TestSuite(void);
    virtual ~TestSuite(void) = default;
 
-   YM_UT_TESTCASE(Casting)
+   YM_UT_TESTCASE(Casting   )
+   YM_UT_TESTCASE(BadCasting)
 };
 
 } // ym::ut
