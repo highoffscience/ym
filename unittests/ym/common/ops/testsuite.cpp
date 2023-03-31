@@ -76,14 +76,22 @@ auto ym::ut::TestSuite::Casting::run([[maybe_unused]] DataShuttle const & InData
  */
 auto ym::ut::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
+   // TODO the caller of this function needs to catch any uncaught exception
+   //      and append to the data shuttle
+
    auto badCast_char = false; // until told otherwise
    try { (void)Ops::castToChar(""); }
    catch (Ops::OpsError_BadCastToChar const & E) { badCast_char = true; }
 
    // TODO "" and "a" don't trigger asserts
    auto badCast_int8 = false; // until told otherwise
-   try { (void)Ops::castTo<int8>("a"); }
-   catch (Ops::OpsError_BadCastToInt8 const & E) { badCast_int8 = true; }
+   try { (void)Ops::castTo<int8>(""); }
+   catch (Ops::OpsError_BadCastToInt8 const & E)
+   {
+      badCast_int8 = true;
+      TextLogger::getGlobalInstance()->enable(VG::UnitTest_Ops);
+      ymLog(VG::UnitTest_Ops, "Exc: %s", E.what());
+   }
 
    // TODO finish test
 

@@ -6,6 +6,12 @@
 
 #include "ops.h"
 
+#include <limits>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
+
+// TODO
 #include <cstdlib>
 
 /**
@@ -24,10 +30,29 @@ template <>
 auto ym::Ops::castTo<ym::int8>(str    const S,
                                uint32 const Base) -> int8
 {
-   errno = 0_i32;
-   auto const Val = std::strtol(S, nullptr, Base);
-   OpsError_BadCastToInt8::check(errno == 0_i32, "String '%s' not a valid int8 (errno %d)", S, errno);
-   return static_cast<int8>(Val);
+   auto val_int32 = 0_i32;
+
+   try
+   {
+      auto const Val = std::stoi(S, nullptr, Base);
+      static_assert(std::is_same_v<decltype(Val), int32 const>, "Unexpected type");
+      val_int32 = Val;
+   }
+   catch (std::invalid_argument const & E)
+   {
+      OpsError_BadCastToInt8::check(false, "String '%s' invalid int8 (%s)", S, E.what());
+   }
+   catch (std::out_of_range const & E)
+   {
+      OpsError_BadCastToInt8::check(false, "String '%s' out of int8 range (%s)", S, E.what());
+   }
+
+   OpsError_BadCastToInt8::check(
+      val_int32 >= static_cast<int32>(std::numeric_limits<int8>::min()) &&
+      val_int32 <= static_cast<int32>(std::numeric_limits<int8>::max()),
+      "String '%s' out of int8 range", S);
+
+   return static_cast<int8>(val_int32);
 }
 
 /**

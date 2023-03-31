@@ -1,5 +1,5 @@
 /**
- * @file    ym.h
+ * @file    ymdefs.h
  * @version 1.0.0
  * @author  Forrest Jablonski
  *

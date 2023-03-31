@@ -51,7 +51,7 @@
       template <Loggable... Args_T>                                                 \
       struct check                                                                  \
       {                                                                             \
-         explicit inline check(                                                     \
+         explicit check(                                                            \
             bool                 const    Condition,                                \
             str                  const    Format,                                   \
             Args_T               const... Args,                                     \
