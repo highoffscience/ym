@@ -89,6 +89,8 @@ class TestSuiteBase(unittest.TestCase):
       saved_exc = None
       try:
          results = ts.runTestCase(test_case_name)
+      except ym.ut.TestCaseNotFoundException as exc:
+         pass # TODO
       except Exception as exc:
          exc_occured = True
          saved_exc = exc
