@@ -83,19 +83,23 @@ class TestSuiteBase(unittest.TestCase):
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
+      class TempExc:
+         def __init__(self, outer):
+            self.outer = outer
+         def what(self):
+            return None
+
       ts = ym.ut.TestSuite()
       results = None
-      exc_occured = False
-      saved_exc = None
+      saved_exc = TempExc(self)
       try:
          results = ts.runTestCase(test_case_name)
-      except ym.ut.TestCaseNotFoundException as exc:
-         pass # TODO
       except Exception as exc:
-         exc_occured = True
          saved_exc = exc
+      except: # catch non-std based exceptions (not guaranteed to have what())
+         self.assertTrue(False, f"Unhandled exception in test case {test_case_name}")
 
-      self.assertFalse(exc_occured, f"Unhandled exception in test case {test_case_name} - {saved_exc}")
+      self.assertTrue(type(saved_exc) is TempExc, f"Unhandled exception in test case {test_case_name} - {saved_exc.what()}")
       self.assertTrue(results, "Results is None")
 
       return results
