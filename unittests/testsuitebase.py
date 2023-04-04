@@ -84,14 +84,12 @@ class TestSuiteBase(unittest.TestCase):
       from cppyy.gbl import ym
 
       class TempExc:
-         def __init__(self, outer):
-            self.outer = outer
          def what(self):
             return None
 
       ts = ym.ut.TestSuite()
       results = None
-      saved_exc = TempExc(self)
+      saved_exc = TempExc()
       try:
          results = ts.runTestCase(test_case_name)
       except Exception as exc:
