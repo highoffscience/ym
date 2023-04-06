@@ -99,7 +99,19 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
       self.assertTrue(results.get[bool]("BadCast_char"), "char cast failed to fail")
 
-      self.assertTrue(results.get[bool]("BadCast_int8"), "int8 cast failed to fail")
+      self.assertTrue(results.get[bool]("BadCast_int8" ), "int8  cast failed to fail")
+      self.assertTrue(results.get[bool]("BadCast_int16"), "int16 cast failed to fail")
+      self.assertTrue(results.get[bool]("BadCast_int32"), "int32 cast failed to fail")
+      self.assertTrue(results.get[bool]("BadCast_int64"), "int64 cast failed to fail")
+
+      self.assertTrue(results.get[bool]("BadCast_uint8" ), "uint8  cast failed to fail")
+      self.assertTrue(results.get[bool]("BadCast_uint16"), "uint16 cast failed to fail")
+      self.assertTrue(results.get[bool]("BadCast_uint32"), "uint32 cast failed to fail")
+      self.assertTrue(results.get[bool]("BadCast_uint64"), "uint64 cast failed to fail")
+
+      self.assertTrue(results.get[bool]("BadCast_flt32"), "float32 cast failed to fail")
+      self.assertTrue(results.get[bool]("BadCast_flt64"), "float64 cast failed to fail")
+      self.assertTrue(results.get[bool]("BadCast_flt80"), "float80 cast failed to fail")
 
 # kick-off
 if __name__ == "__main__":

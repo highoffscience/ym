@@ -8,14 +8,16 @@
 
 #include <limits>
 #include <stdexcept>
-#include <string>
-#include <type_traits>
 
-// TODO
-#include <cstdlib>
-
-/**
- * TODO
+/** castToChar
+ *
+ * @brief Casts string to char.
+ * 
+ * @param S -- String to cast.
+ * 
+ * @exception OpsError_BadCastToChar -- If string is not a valid char.
+ * 
+ * @return char -- String as char.
  */
 char ym::Ops::castToChar(str const S)
 {
@@ -23,46 +25,25 @@ char ym::Ops::castToChar(str const S)
    return S[0_u32];
 }
 
-/**
- * TODO
+/** castTo
+ *
+ * @brief Casts string to int8.
+ * 
+ * @note std::strtoi doesn't flag an error if conversion is invalid.
+ * 
+ * @note Most strings will likely be small enough for small string
+ *       optimization to take effect.
+ * 
+ * @param S    -- String to cast.
+ * @param Base -- Radix of int8.
+ * 
+ * @exception OpsError_BadCastToInt8 -- If string is not a valid int8.
+ * 
+ * @return int8 -- String as int8.
  */
 template <>
-auto ym::Ops::castTo<ym::int8>(str    const S,
-                               uint32 const Base) -> int8
-{
-   auto val_int32 = 0_i32;
-
-   // TODO S should be string if we are just going to convert anyway
-
-   try
-   {
-      auto const Val = std::stoi(S, nullptr, Base);
-      static_assert(std::is_same_v<decltype(Val), int32 const>, "Unexpected type");
-      val_int32 = Val;
-   }
-   catch (std::invalid_argument const & E)
-   {
-      OpsError_BadCastToInt8::check(false, "String '%s' invalid int8 (%s)", S, E.what());
-   }
-   catch (std::out_of_range const & E)
-   {
-      OpsError_BadCastToInt8::check(false, "String '%s' out of int8 range (%s)", S, E.what());
-   }
-
-   OpsError_BadCastToInt8::check(
-      val_int32 >= static_cast<int32>(std::numeric_limits<int8>::min()) &&
-      val_int32 <= static_cast<int32>(std::numeric_limits<int8>::max()),
-      "String '%s' out of int8 range", S);
-
-   return static_cast<int8>(val_int32);
-}
-
-/**
- * TODO
- */
-template <>
-auto ym::Ops::castTo<ym::int16>(str    const S,
-                                uint32 const Base) -> int16
+auto ym::Ops::castTo<ym::int8>(std::string const & S,
+                               uint32      const   Base) -> int8
 {
    auto val_int32 = 0_i32;
 
@@ -74,132 +55,431 @@ auto ym::Ops::castTo<ym::int16>(str    const S,
    }
    catch (std::invalid_argument const & E)
    {
-      OpsError_BadCastToInt8::check(false, "String '%s' invalid int8 (%s)", S, E.what());
+      OpsError_BadCastToInt8::check(false, "String '%s' invalid int32 (%s)", S.c_str(), E.what());
    }
    catch (std::out_of_range const & E)
    {
-      OpsError_BadCastToInt8::check(false, "String '%s' out of int8 range (%s)", S, E.what());
+      OpsError_BadCastToInt8::check(false, "String '%s' out of int32 range (%s)", S.c_str(), E.what());
    }
 
    OpsError_BadCastToInt8::check(
       val_int32 >= static_cast<int32>(std::numeric_limits<int8>::min()) &&
       val_int32 <= static_cast<int32>(std::numeric_limits<int8>::max()),
-      "String '%s' out of int8 range", S);
+      "String '%s' out of int8 range", S.c_str());
 
    return static_cast<int8>(val_int32);
 }
 
-/**
- * TODO
+/** castTo
+ *
+ * @brief Casts string to int16.
+ * 
+ * @note std::strtoi doesn't flag an error if conversion is invalid.
+ * 
+ * @note Most strings will likely be small enough for small string
+ *       optimization to take effect.
+ * 
+ * @param S    -- String to cast.
+ * @param Base -- Radix of int16.
+ * 
+ * @exception OpsError_BadCastToInt16 -- If string is not a valid int16.
+ * 
+ * @return int16 -- String as int16.
  */
 template <>
-auto ym::Ops::castTo<ym::int32>(str    const S,
-                                uint32 const Base) -> int32
+auto ym::Ops::castTo<ym::int16>(std::string const & S,
+                                uint32      const   Base) -> int16
 {
-   errno = 0_i32;
-   auto const Val = std::strtol(S, nullptr, Base);
-   OpsError_BadCastToInt32::check(errno == 0_i32, "String '%s' not a valid int32 (errno %d)", S, errno);
-   return static_cast<int32>(Val);
+   auto val_int32 = 0_i32;
+
+   try
+   {
+      auto const Val = std::stoi(S, nullptr, Base);
+      static_assert(std::is_same_v<decltype(Val), int32 const>, "Unexpected type");
+      val_int32 = Val;
+   }
+   catch (std::invalid_argument const & E)
+   {
+      OpsError_BadCastToInt16::check(false, "String '%s' invalid int32 (%s)", S.c_str(), E.what());
+   }
+   catch (std::out_of_range const & E)
+   {
+      OpsError_BadCastToInt16::check(false, "String '%s' out of int32 range (%s)", S.c_str(), E.what());
+   }
+
+   OpsError_BadCastToInt16::check(
+      val_int32 >= static_cast<int32>(std::numeric_limits<int16>::min()) &&
+      val_int32 <= static_cast<int32>(std::numeric_limits<int16>::max()),
+      "String '%s' out of int16 range", S.c_str());
+
+   return static_cast<int16>(val_int32);
 }
 
-/**
- * TODO
+/** castTo
+ *
+ * @brief Casts string to int32.
+ * 
+ * @note std::strtoi doesn't flag an error if conversion is invalid.
+ * 
+ * @note Most strings will likely be small enough for small string
+ *       optimization to take effect.
+ * 
+ * @param S    -- String to cast.
+ * @param Base -- Radix of int32.
+ * 
+ * @exception OpsError_BadCastToInt32 -- If string is not a valid int32.
+ * 
+ * @return int32 -- String as int32.
  */
 template <>
-auto ym::Ops::castTo<ym::int64>(str    const S,
-                                uint32 const Base) -> int64
+auto ym::Ops::castTo<ym::int32>(std::string const & S,
+                                uint32      const   Base) -> int32
 {
-   errno = 0_i32;
-   auto const Val = std::strtoll(S, nullptr, Base);
-   OpsError_BadCastToInt64::check(errno == 0_i32, "String '%s' not a valid int64 (errno %d)", S, errno);
-   return static_cast<int64>(Val);
+   auto val_int32 = 0_i32;
+
+   try
+   {
+      auto const Val = std::stoi(S, nullptr, Base);
+      static_assert(std::is_same_v<decltype(Val), int32 const>, "Unexpected type");
+      val_int32 = Val;
+   }
+   catch (std::invalid_argument const & E)
+   {
+      OpsError_BadCastToInt32::check(false, "String '%s' invalid int32 (%s)", S.c_str(), E.what());
+   }
+   catch (std::out_of_range const & E)
+   {
+      OpsError_BadCastToInt32::check(false, "String '%s' out of int32 range (%s)", S.c_str(), E.what());
+   }
+
+   return val_int32;
 }
 
-/**
- * TODO
+/** castTo
+ *
+ * @brief Casts string to int64.
+ * 
+ * @note std::strtol doesn't flag an error if conversion is invalid.
+ * 
+ * @note Most strings will likely be small enough for small string
+ *       optimization to take effect.
+ * 
+ * @param S    -- String to cast.
+ * @param Base -- Radix of int64.
+ * 
+ * @exception OpsError_BadCastToInt64 -- If string is not a valid int64.
+ * 
+ * @return int64 -- String as int64.
  */
 template <>
-auto ym::Ops::castTo<ym::uint8>(str    const S,
-                                uint32 const Base) -> uint8
+auto ym::Ops::castTo<ym::int64>(std::string const & S,
+                                uint32      const   Base) -> int64
 {
-   errno = 0_i32;
-   auto const Val = std::strtoul(S, nullptr, Base);
-   OpsError_BadCastToUInt8::check(errno == 0_i32, "String '%s' not a valid uint8 (errno %d)", S, errno);
-   return static_cast<uint8>(Val);
+   auto val_int64 = 0_i64;
+
+   try
+   {
+      auto const Val = std::stol(S, nullptr, Base);
+      static_assert(std::is_same_v<decltype(Val), int64 const>, "Unexpected type");
+      val_int64 = Val;
+   }
+   catch (std::invalid_argument const & E)
+   {
+      OpsError_BadCastToInt64::check(false, "String '%s' invalid int64 (%s)", S.c_str(), E.what());
+   }
+   catch (std::out_of_range const & E)
+   {
+      OpsError_BadCastToInt64::check(false, "String '%s' out of int64 range (%s)", S.c_str(), E.what());
+   }
+
+   return val_int64;
 }
 
-/**
- * TODO
+/** castTo
+ *
+ * @brief Casts string to uint8.
+ * 
+ * @note std::strtoul doesn't flag an error if conversion is invalid.
+ * 
+ * @note Most strings will likely be small enough for small string
+ *       optimization to take effect.
+ * 
+ * @param S    -- String to cast.
+ * @param Base -- Radix of uint8.
+ * 
+ * @exception OpsError_BadCastToInt8 -- If string is not a valid uint8.
+ * 
+ * @return uint8 -- String as uint8.
  */
 template <>
-auto ym::Ops::castTo<ym::uint16>(str    const S,
-                                 uint32 const Base) -> uint16
+auto ym::Ops::castTo<ym::uint8>(std::string const & S,
+                                uint32      const   Base) -> uint8
 {
-   errno = 0_i32;
-   auto const Val = std::strtoul(S, nullptr, Base);
-   OpsError_BadCastToUInt16::check(errno == 0_i32, "String '%s' not a valid uint16 (errno %d)", S, errno);
-   return static_cast<uint16>(Val);
+   auto val_uint64 = 0_u64;
+
+   try
+   {
+      auto const Val = std::stoul(S, nullptr, Base);
+      static_assert(std::is_same_v<decltype(Val), uint64 const>, "Unexpected type");
+      val_uint64 = Val;
+   }
+   catch (std::invalid_argument const & E)
+   {
+      OpsError_BadCastToUInt8::check(false, "String '%s' invalid uint64 (%s)", S.c_str(), E.what());
+   }
+   catch (std::out_of_range const & E)
+   {
+      OpsError_BadCastToUInt8::check(false, "String '%s' out of uint64 range (%s)", S.c_str(), E.what());
+   }
+
+   OpsError_BadCastToUInt8::check(
+      val_uint64 >= static_cast<uint64>(std::numeric_limits<uint8>::min()) &&
+      val_uint64 <= static_cast<uint64>(std::numeric_limits<uint8>::max()),
+      "String '%s' out of uint8 range", S.c_str());
+
+   return static_cast<uint8>(val_uint64);
 }
 
-/**
- * TODO
+/** castTo
+ *
+ * @brief Casts string to uint16.
+ * 
+ * @note std::strtoul doesn't flag an error if conversion is invalid.
+ * 
+ * @note Most strings will likely be small enough for small string
+ *       optimization to take effect.
+ * 
+ * @param S    -- String to cast.
+ * @param Base -- Radix of uint16.
+ * 
+ * @exception OpsError_BadCastToInt16 -- If string is not a valid uint16.
+ * 
+ * @return uint16 -- String as uint16.
  */
 template <>
-auto ym::Ops::castTo<ym::uint32>(str    const S,
-                                 uint32 const Base) -> uint32
+auto ym::Ops::castTo<ym::uint16>(std::string const & S,
+                                 uint32      const   Base) -> uint16
 {
-   errno = 0_i32;
-   auto const Val = std::strtoul(S, nullptr, Base);
-   OpsError_BadCastToUInt32::check(errno == 0_i32, "String '%s' not a valid uint32 (errno %d)", S, errno);
-   return static_cast<uint32>(Val);
+   auto val_uint64 = 0_u64;
+
+   try
+   {
+      auto const Val = std::stoul(S, nullptr, Base);
+      static_assert(std::is_same_v<decltype(Val), uint64 const>, "Unexpected type");
+      val_uint64 = Val;
+   }
+   catch (std::invalid_argument const & E)
+   {
+      OpsError_BadCastToUInt16::check(false, "String '%s' invalid uint64 (%s)", S.c_str(), E.what());
+   }
+   catch (std::out_of_range const & E)
+   {
+      OpsError_BadCastToUInt16::check(false, "String '%s' out of uint64 range (%s)", S.c_str(), E.what());
+   }
+
+   OpsError_BadCastToUInt16::check(
+      val_uint64 >= static_cast<uint64>(std::numeric_limits<uint16>::min()) &&
+      val_uint64 <= static_cast<uint64>(std::numeric_limits<uint16>::max()),
+      "String '%s' out of uint16 range", S.c_str());
+
+   return static_cast<uint16>(val_uint64);
 }
 
-/**
- * TODO
+/** castTo
+ *
+ * @brief Casts string to uint32.
+ * 
+ * @note std::strtoul doesn't flag an error if conversion is invalid.
+ * 
+ * @note Most strings will likely be small enough for small string
+ *       optimization to take effect.
+ * 
+ * @param S    -- String to cast.
+ * @param Base -- Radix of uint32.
+ * 
+ * @exception OpsError_BadCastToInt32 -- If string is not a valid uint32.
+ * 
+ * @return uint32 -- String as uint32.
  */
 template <>
-auto ym::Ops::castTo<ym::uint64>(str    const S,
-                                 uint32 const Base) -> uint64
+auto ym::Ops::castTo<ym::uint32>(std::string const & S,
+                                 uint32      const   Base) -> uint32
 {
-   errno = 0_i32;
-   auto const Val = std::strtoull(S, nullptr, Base);
-   OpsError_BadCastToUInt64::check(errno == 0_i32, "String '%s' not a valid uint64 (errno %d)", S, errno);
-   return static_cast<uint64>(Val);
+   auto val_uint64 = 0_u64;
+
+   try
+   {
+      auto const Val = std::stoul(S, nullptr, Base);
+      static_assert(std::is_same_v<decltype(Val), uint64 const>, "Unexpected type");
+      val_uint64 = Val;
+   }
+   catch (std::invalid_argument const & E)
+   {
+      OpsError_BadCastToUInt32::check(false, "String '%s' invalid uint64 (%s)", S.c_str(), E.what());
+   }
+   catch (std::out_of_range const & E)
+   {
+      OpsError_BadCastToUInt32::check(false, "String '%s' out of uint64 range (%s)", S.c_str(), E.what());
+   }
+
+   OpsError_BadCastToUInt8::check(
+      val_uint64 >= static_cast<uint64>(std::numeric_limits<uint32>::min()) &&
+      val_uint64 <= static_cast<uint64>(std::numeric_limits<uint32>::max()),
+      "String '%s' out of uint32 range", S.c_str());
+
+   return static_cast<uint32>(val_uint64);
 }
 
-/**
- * TODO
+/** castTo
+ *
+ * @brief Casts string to uint64.
+ * 
+ * @note std::strtoul doesn't flag an error if conversion is invalid.
+ * 
+ * @note Most strings will likely be small enough for small string
+ *       optimization to take effect.
+ * 
+ * @param S    -- String to cast.
+ * @param Base -- Radix of uint64.
+ * 
+ * @exception OpsError_BadCastToInt64 -- If string is not a valid uint64.
+ * 
+ * @return uint64 -- String as uint64.
  */
 template <>
-auto ym::Ops::castTo<ym::float32>(str const S) -> float32
+auto ym::Ops::castTo<ym::uint64>(std::string const & S,
+                                 uint32      const   Base) -> uint64
 {
-   errno = 0_i32;
-   auto const Val = std::strtof(S, nullptr);
-   OpsError_BadCastToFlt32::check(errno == 0_i32, "String '%s' not a valid float32 (errno %d)", S, errno);
-   return static_cast<float32>(Val);
+   auto val_uint64 = 0_u64;
+
+   try
+   {
+      auto const Val = std::stoul(S, nullptr, Base);
+      static_assert(std::is_same_v<decltype(Val), uint64 const>, "Unexpected type");
+      val_uint64 = Val;
+   }
+   catch (std::invalid_argument const & E)
+   {
+      OpsError_BadCastToUInt64::check(false, "String '%s' invalid uint64 (%s)", S.c_str(), E.what());
+   }
+   catch (std::out_of_range const & E)
+   {
+      OpsError_BadCastToUInt64::check(false, "String '%s' out of uint64 range (%s)", S.c_str(), E.what());
+   }
+
+   return val_uint64;
 }
 
-/**
- * TODO
+/** castTo
+ *
+ * @brief Casts string to float32.
+ * 
+ * @note std::strtof doesn't flag an error if conversion is invalid.
+ * 
+ * @note Most strings will likely be small enough for small string
+ *       optimization to take effect.
+ * 
+ * @param S -- String to cast.
+ * 
+ * @exception OpsError_BadCastToFlt32 -- If string is not a valid float32.
+ * 
+ * @return float32 -- String as float32.
  */
 template <>
-auto ym::Ops::castTo<ym::float64>(str const S) -> float64
+auto ym::Ops::castTo<ym::float32>(std::string const & S) -> float32
 {
-   errno = 0_i32;
-   auto const Val = std::strtod(S, nullptr);
-   OpsError_BadCastToFlt64::check(errno == 0_i32, "String '%s' not a valid float64 (errno %d)", S, errno);
-   return static_cast<float64>(Val);
+   auto val_float32 = 0_f32;
+
+   try
+   {
+      auto const Val = std::stof(S, nullptr);
+      static_assert(std::is_same_v<decltype(Val), float32 const>, "Unexpected type");
+      val_float32 = Val;
+   }
+   catch (std::invalid_argument const & E)
+   {
+      OpsError_BadCastToFlt32::check(false, "String '%s' invalid float32 (%s)", S.c_str(), E.what());
+   }
+   catch (std::out_of_range const & E)
+   {
+      OpsError_BadCastToFlt32::check(false, "String '%s' out of float32 range (%s)", S.c_str(), E.what());
+   }
+
+   return val_float32;
 }
 
-/**
- * TODO
+/** castTo
+ *
+ * @brief Casts string to float64.
+ * 
+ * @note std::strtof doesn't flag an error if conversion is invalid.
+ * 
+ * @note Most strings will likely be small enough for small string
+ *       optimization to take effect.
+ * 
+ * @param S -- String to cast.
+ * 
+ * @exception OpsError_BadCastToFlt64 -- If string is not a valid float64.
+ * 
+ * @return float64 -- String as float64.
  */
 template <>
-auto ym::Ops::castTo<ym::float80>(str const S) -> float80
+auto ym::Ops::castTo<ym::float64>(std::string const & S) -> float64
 {
-   errno = 0_i32;
-   auto const Val = std::strtold(S, nullptr);
-   // TODO confirm long double is at least float80
-   OpsError_BadCastToFlt32::check(errno == 0_i32, "String '%s' not a valid float80 (errno %d)", S, errno);
-   return static_cast<float80>(Val);
+   auto val_float64 = 0_f64;
+
+   try
+   {
+      auto const Val = std::stod(S, nullptr);
+      static_assert(std::is_same_v<decltype(Val), float64 const>, "Unexpected type");
+      val_float64 = Val;
+   }
+   catch (std::invalid_argument const & E)
+   {
+      OpsError_BadCastToFlt64::check(false, "String '%s' invalid float64 (%s)", S.c_str(), E.what());
+   }
+   catch (std::out_of_range const & E)
+   {
+      OpsError_BadCastToFlt64::check(false, "String '%s' out of float64 range (%s)", S.c_str(), E.what());
+   }
+
+   return val_float64;
+}
+
+/** castTo
+ *
+ * @brief Casts string to float80.
+ * 
+ * @note std::strtof doesn't flag an error if conversion is invalid.
+ * 
+ * @note Most strings will likely be small enough for small string
+ *       optimization to take effect.
+ * 
+ * @param S -- String to cast.
+ * 
+ * @exception OpsError_BadCastToFlt80 -- If string is not a valid float80.
+ * 
+ * @return float80 -- String as float80.
+ */
+template <>
+auto ym::Ops::castTo<ym::float80>(std::string const & S) -> float80
+{
+   auto val_float80 = 0_f80;
+
+   try
+   {
+      auto const Val = std::stold(S, nullptr);
+      static_assert(std::is_same_v<decltype(Val), float80 const>, "Unexpected type");
+      val_float80 = Val;
+   }
+   catch (std::invalid_argument const & E)
+   {
+      OpsError_BadCastToFlt80::check(false, "String '%s' invalid float80 (%s)", S.c_str(), E.what());
+   }
+   catch (std::out_of_range const & E)
+   {
+      OpsError_BadCastToFlt80::check(false, "String '%s' out of float80 range (%s)", S.c_str(), E.what());
+   }
+
+   return val_float80;
 }

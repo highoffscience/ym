@@ -37,13 +37,14 @@ private:
       inline auto getDesc(void) const { return _desc; }
       inline auto getVal (void) const { return _val;  }
       inline auto getAbbr(void) const { return _abbr; }
-      inline auto getFlag(void) const { return _flag; }
+      inline auto getFlag(void) const { return _flag; } // TODO getIsFlag would be more clear
       inline auto getEnbl(void) const { return _enbl; }
 
       Arg & desc      (str  const Desc      );
       Arg & defaultVal(str  const DefaultVal);
       Arg & abbr      (char const Abbr      );
-      Arg & flag      (void                 );
+      Arg & flag      (void                 ); // TODO have a default param, sets val to static true
+                                               //      and false var, eliminate enable
       Arg & enable    (bool const Enable    );
 
    private:
@@ -79,6 +80,7 @@ public:
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_DescInUse   )
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_ValEmpty    )
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_ValInUse    )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ValInvalid  )
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_AbbrInvalid )
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_AbbrInUse   )
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_AmbigPrefix )
@@ -91,9 +93,10 @@ public:
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_KeyInvalid  )
 
 private:
-   Arg *   getArgPtrFromPrefix (str  const Key );
-   Arg *   getArgPtrFromAbbr   (char const Abbr);
-   Arg * * getArgPtrPtrFromAbbr(char const Abbr);
+   Arg * getArgPtrFromPrefix (str  const Key );
+   Arg * getArgPtrFromAbbr   (char const Abbr);
+
+   uint32 getAbbrIdx(char const Abbr);
 
    std::vector<Arg>          _args;
    std::array<Arg *, 62_u64> _abbrs;

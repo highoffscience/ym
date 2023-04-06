@@ -8,11 +8,10 @@
 #include "testsuite.h"
 
 #include "argparser.h"
+#include "ops.h"
 #include "textlogger.h"
 
 #include <cstring>
-
-#include <boost/stacktrace.hpp>
 
 /** TestSuite
  *
@@ -33,38 +32,41 @@ ym::ut::TestSuite::TestSuite(void)
 auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    TextLogger::getGlobalInstance()->enable(VG::ArgParser);
-   TextLogger::getGlobalInstance()->enable(VG::General  );
+   TextLogger::getGlobalInstance()->enable(VG::UnitTest_ArgParser);
    TextLogger::getGlobalInstance()->enable(VG::Ymception);
 
-   str  const Argv[] = {"testsuite", "--input", "settings.json", "--output", "data.csv"};
+   str  const Argv[] = {"testsuite",
+
+      "--input",  "settings.json",
+      "--output", "data.csv",
+      "--clean"
+   };
    auto const Argc   = static_cast<int32>(YM_ARRAY_SIZE(Argv));
    
    auto excHappened = false;
-
-   ymLog(VG::General, "stack depth %u", boost::stacktrace::basic_stacktrace().size());
+   auto val_input   = "";
+   auto val_output  = "";
 
    ArgParser argparse;
    try
    {
       argparse.parse({
-         argparse.arg("input").desc("input file"),
-         argparse.arg("output").desc("output file")
+         argparse.arg("input").desc("Input file"),
+         argparse.arg("output").desc("Output file"),
+         argparse.arg("clean").desc("Cleans the build").flag()
       },
       Argc, Argv);
+
+      val_input  = argparse["input" ]->getVal();
+      val_output = argparse["output"]->getVal();
    }
    catch (ArgParser::ArgParserError const & E)
    {
       excHappened = true;
    }
 
-   auto const * InputArg_Ptr  = (excHappened) ? nullptr : argparse["input" ];
-   auto const * OutputArg_Ptr = (excHappened) ? nullptr : argparse["output"];
-
-   auto const * InputVal_Ptr  = (InputArg_Ptr ) ? InputArg_Ptr ->getVal() : nullptr;
-   auto const * OutputVal_Ptr = (OutputArg_Ptr) ? OutputArg_Ptr->getVal() : nullptr;
-
-   auto const Input  = (InputVal_Ptr)  ? (std::strcmp(InputVal_Ptr,  "settings.json") == 0_i32) : false;
-   auto const Output = (OutputVal_Ptr) ? (std::strcmp(OutputVal_Ptr, "data.csv"     ) == 0_i32) : false;
+   auto const Input  = std::strcmp(val_input,  "settings.json") == 0_i32;
+   auto const Output = std::strcmp(val_output, "data.csv"     ) == 0_i32;
 
    return {
       {"Input",  Input},
