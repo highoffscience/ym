@@ -36,7 +36,6 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
    TextLogger::getGlobalInstance()->enable(VG::Ymception);
 
    str  const Argv[] = {"testsuite",
-
       "--input",  "settings.json",
       "--output", "data.csv",
       "--clean"

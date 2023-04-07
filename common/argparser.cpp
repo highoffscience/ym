@@ -20,16 +20,15 @@
  */
 ym::ArgParser::ArgParser(void)
    : _args  {/*default*/},
-     _abbrs {nullptr    }
+     _abbrs {{nullptr  }}
 {
 }
 
-/**
- * TODO
- */
-auto ym::ArgParser::arg(str const Name) -> Arg
+auto ym::ArgParser::getInstancePtr(void) -> ArgParser *
 {
-   return Arg(Name, this);
+   static ArgParser instance;
+
+   return &instance;
 }
 
 /**
@@ -58,23 +57,26 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
          { // longhand arg found
             name += 2_u32;
             auto * const agr_Ptr = getArgPtrFromPrefix(name);
-            ArgParserError_NoArgFound::check(agr_Ptr, "Arg '%s' not registered", name);
-            ArgParserError_NoValFound::check(++i < Argc, "No value for arg '%s'", name);
+            ArgParserError_ParseError::check(agr_Ptr, "Arg '%s' not registered", name);
+            i += 1_i32;
+            ArgParserError_ParseError::check(i < Argc, "No value for arg '%s'", name);
             agr_Ptr->setVal(Argv_Ptr[i]);
          }
          else
          { // shorthand arg found
             name += 1_u32;
-            ArgParserError_NoAbbrFound::check(name[0_u32] != '\0',
+            ArgParserError_ParseError::check(name[0_u32],
                "Expected abbr at count %d but none found", i);
-            for (auto i = 0_u32; name[i] != '\0'; ++i)
+            for (auto i = 0_u32; name[i]; ++i)
             {
                auto   const Abbr    = name[i];
                auto * const arg_Ptr = getArgPtrFromAbbr(Abbr);
-               ArgParserError_NoAbbrReg::check(arg_Ptr, "Abbr '%c' not registered", Abbr);
-               ArgParserError_AbbrNoFlag::check(arg_Ptr->getFlag(), "Abbr '%c' not a flag", Abbr);
+               ArgParserError_ParseError::check(arg_Ptr, "Abbr '%c' not registered", Abbr);
+               ArgParserError_ParseError::check(arg_Ptr->isFlag(), "Arg '%s' not a flag", arg_Ptr->getName());
                arg_Ptr->enable(true);
             }
+
+            // TODO grab last char in list of shorthand abbrs and check if flag. if not, check for val
          }
       }
    }
@@ -124,7 +126,7 @@ auto ym::ArgParser::getArgPtrFromPrefix(str const Key) -> Arg *
 
       if (Cmp == 0_i32)
       { // prefix found (whole key matched)
-         ArgParserError_AmbigPrefix::check(!arg_ptr, "Prefix '%s' is ambiguous", Key);
+         ArgParserError_ParseError::check(!arg_ptr, "Prefix '%s' is ambiguous", Key);
          arg_ptr = &arg_ref;
       }
       else if (Cmp < 0_i32)
@@ -152,27 +154,24 @@ auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> Arg *
  */
 auto ym::ArgParser::getAbbrIdx(char const Abbr) -> uint32
 {
-   return (Abbr >= 'A' && Abbr <= 'Z') ? static_cast<uint32>(Abbr - 'A'         ) :
-          (Abbr >= 'a' && Abbr <= 'z') ? static_cast<uint32>(Abbr - 'a' + 26_i32) :
-          (Abbr >= '0' && Abbr <= '9') ? static_cast<uint32>(Abbr - '0' + 52_i32) :
-          _abbrs.size();
+   return static_cast<uint32>(
+      (Abbr >= 'A' && Abbr <= 'Z') ? (Abbr - 'A'         ) :
+      (Abbr >= 'a' && Abbr <= 'z') ? (Abbr - 'a' + 26_i32) :
+      (Abbr >= '0' && Abbr <= '9') ? (Abbr - '0' + 52_i32) :
+      _abbrs.size());
 }
 
 /**
  * TODO
  */
-ym::ArgParser::Arg::Arg(str         const Name,
-                        ArgParser * const ap_Ptr)
-   : _ap_Ptr {ap_Ptr},
-     _name   {Name  },
-     _desc   {""    },
-     _val    {""    },
-     _abbr   {'\0'  },
-     _flag   {false },
-     _enbl   {false }
+ym::ArgParser::Arg::Arg(str const Name)
+   : _name   {Name},
+     _desc   {""  },
+     _val    {""  }
 {
-   ArgParserError_NameEmpty::check(ymIsStrNonEmpty(getName()), "Name must be non-empty");
-   ArgParserError_NameInvalid::check(std::isalnum(getName()[0_u32]), "Name '%s' is invalid", getName());
+   // TODO I don't need all these multitude of errors for essentially the same sanity check
+   ArgParserError_ArgError::check(ymIsStrNonEmpty(getName()), "Name must be non-empty");
+   ArgParserError_ArgError::check(std::isalnum(getName()[0_u32]), "Name '%s' is invalid", getName());
 }
 
 /**
@@ -180,8 +179,8 @@ ym::ArgParser::Arg::Arg(str         const Name,
  */
 auto ym::ArgParser::Arg::desc(str const Desc) -> Arg &
 {
-   ArgParserError_DescInUse::check(!ymIsStrNonEmpty(getDesc()), "Description must not have already been set");
-   ArgParserError_DescEmpty::check(ymIsStrNonEmpty(Desc), "Description must be non-empty");
+   ArgParserError_ArgError::check(ymIsStrEmpty(getDesc()), "Description must not have already been set");
+   ArgParserError_ArgError::check(ymIsStrNonEmpty(Desc), "Description must be non-empty");
 
    _desc = Desc;
 
@@ -191,18 +190,15 @@ auto ym::ArgParser::Arg::desc(str const Desc) -> Arg &
 /**
  * TODO count values
  */
-auto ym::ArgParser::Arg::defaultVal(str const DefaultVal) -> Arg &
+auto ym::ArgParser::Arg::val(str const DefaultVal) -> Arg &
 {
-   ArgParserError_ValWithFlag::check(!getFlag(),
-      "Arg '%s' is flag but requests default val '%s'", getName(), DefaultVal);
-
-   ArgParserError_ValInUse::check(!ymIsStrNonEmpty(getVal()),
+   ArgParserError_ArgError::check(ymIsStrEmpty(getVal()),
       "Arg '%s' already set with val '%s' (requested '%s')", getName(), getVal(), DefaultVal);
 
-   ArgParserError_ValEmpty::check(ymIsStrNonEmpty(DefaultVal),
+   ArgParserError_ArgError::check(ymIsStrNonEmpty(DefaultVal),
       "Val must be non-empty for arg '%s'", getName());
 
-   _val = DefaultVal;
+   setVal(DefaultVal);
 
    return *this;
 }
@@ -212,56 +208,53 @@ auto ym::ArgParser::Arg::defaultVal(str const DefaultVal) -> Arg &
  */
 auto ym::ArgParser::Arg::abbr(char const Abbr) -> Arg &
 {
-   auto const AbbrIdx = _ap_Ptr->getAbbrIdx(Abbr);
+   auto * const ap_Ptr  = ArgParser::getInstancePtr();
+   auto   const AbbrIdx = ap_Ptr->getAbbrIdx(Abbr);
 
-   ArgParserError_AbbrInvalid::check(AbbrIdx < _ap_Ptr->_abbrs.size(),
+   ArgParserError_ArgError::check(AbbrIdx < ap_Ptr->_abbrs.size(),
       "Illegal abbr '%c' found for arg '%s'", Abbr, getName());
 
-   auto * & abbr_ptr_ref = _ap_Ptr->_abbrs[AbbrIdx];
+   auto * & abbr_ptr_ref = ap_Ptr->_abbrs[AbbrIdx];
 
-   ArgParserError_AbbrInUse::check(abbr_ptr_ref->getAbbr() == '\0',
+   ArgParserError_ArgError::check(!abbr_ptr_ref,
       "Arg '%s' wants abbr '%c' but it's already used by arg '%s'",
       getName(), Abbr, abbr_ptr_ref->getName());
 
-   _abbr = Abbr;
    abbr_ptr_ref = this;
-   enable(true);
 
    return *this;
 }
 
 /**
- * TODO count values
+ * 
  */
-auto ym::ArgParser::Arg::flag(void) -> Arg &
+auto ym::ArgParser::Arg::flag(bool const DefaultEnbl) -> Arg &
 {
-   // TODO flag should have val point to static true and false var
+   ArgParserError_ArgError::check(!isFlag(),
+      "Arg '%s' already marked as a flag", getName());
 
-   ArgParserError_ValWithFlag::check(!ymIsStrNonEmpty(getVal()),
+   ArgParserError_ArgError::check(ymIsStrEmpty(getVal()),
       "Arg '%s' has val '%s' but requested to be a flag", getName(), getVal());
 
-   _flag = true;
+   enable(DefaultEnbl);
 
    return *this;
 }
 
 /**
- * TODO count values
- */
-auto ym::ArgParser::Arg::enable(bool const Enable) -> Arg &
-{
-   flag();
-   _enbl = Enable;
-
-   return *this;
-}
-
-/**
- * TODO count values
+ * 
  */
 void ym::ArgParser::Arg::setVal(str const Val)
 {
-   ArgParserError_ValInvalid::check(Val, "Arg '%s' cannot have value of null", getName());
+   ArgParserError_ArgError::check(Val, "Arg '%s' cannot have value of null", getName());
 
    _val = Val;
+}
+
+/**
+ * 
+ */
+void ym::ArgParser::Arg::enable(bool const Enbl)
+{
+   setVal(Enbl ? _s_TrueFlag : _s_FalseFlag);
 }

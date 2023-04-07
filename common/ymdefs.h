@@ -323,7 +323,20 @@ constexpr auto ymToUnderlying(T const Value) noexcept
  */
 constexpr bool ymIsStrNonEmpty(str const S)
 {
-   return (S != nullptr) && (*S != '\0');
+   return S && *S;
+}
+
+/** ymIsStrEmpty
+ * 
+ * @brief Convenience method to detect if a c-style string is null or empty.
+ * 
+ * @param S -- String to test.
+ * 
+ * @return bool -- True if string S is null or empty, false otherwise.
+ */
+constexpr bool ymIsStrEmpty(str const S)
+{
+   return !ymIsStrNonEmpty(S);
 }
 
 // ----------------------------------------------------------------------------

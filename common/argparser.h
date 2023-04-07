@@ -28,42 +28,45 @@ private:
    class Arg
    {
    public:
-      friend class ArgParser;
+      friend class ArgParser; // for setVal() and enable()
 
-      explicit Arg(str         const Name,
-                   ArgParser * const ap_Ptr);
+      explicit Arg(str const Name);
 
       inline auto getName(void) const { return _name; }
       inline auto getDesc(void) const { return _desc; }
       inline auto getVal (void) const { return _val;  }
-      inline auto getAbbr(void) const { return _abbr; }
-      inline auto getFlag(void) const { return _flag; } // TODO getIsFlag would be more clear
-      inline auto getEnbl(void) const { return _enbl; }
 
-      Arg & desc      (str  const Desc      );
-      Arg & defaultVal(str  const DefaultVal);
-      Arg & abbr      (char const Abbr      );
-      Arg & flag      (void                 ); // TODO have a default param, sets val to static true
-                                               //      and false var, eliminate enable
-      Arg & enable    (bool const Enable    );
+      inline auto isFlag (void) const { return (getVal() == _s_TrueFlag ) ||
+                                               (getVal() == _s_FalseFlag); }
+      inline auto isEnbl (void) const { return  getVal() == _s_TrueFlag;   }
+
+      Arg & desc(str  const Desc       );
+      Arg & val (str  const DefaultVal );
+      Arg & abbr(char const Abbr       );
+      Arg & flag(bool const DefaultEnbl);
 
    private:
-      void setVal(str const Val);
+      static constexpr str _s_TrueFlag  = "1";
+      static constexpr str _s_FalseFlag = "0";
+
+      void setVal(str  const Val );
+      void enable(bool const Enbl);
 
       // no consts! std::sort needs to have assignables
-      ArgParser * _ap_Ptr;
-      str         _name; // arg name (used as the key)
-      str         _desc; // description
-      str         _val;  // value
-      char        _abbr; // abbreviation
-      bool        _flag; // if binary value
-      bool        _enbl; // enabled/disabled
+      str _name; // arg name (used as the key)
+      str _desc; // description
+      str _val;  // value
    };
 
-public:
    explicit ArgParser(void);
 
-   Arg arg(str const Name);
+public:
+   YM_NO_COPY  (ArgParser)
+   YM_NO_ASSIGN(ArgParser)
+
+   static ArgParser * getInstancePtr(void);
+
+   inline Arg arg(str const Name);
 
    void parse(std::vector<Arg> && args_uref,
               int const           Argc,
@@ -74,32 +77,25 @@ public:
    Arg * operator[](str const Key);
 
    YM_DECL_YMCEPT(ArgParserError)
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NameEmpty   )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NameInvalid )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_DescEmpty   )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_DescInUse   )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ValEmpty    )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ValInUse    )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ValInvalid  )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_AbbrInvalid )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_AbbrInUse   )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_AmbigPrefix )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NoArgFound  )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NoAbbrFound )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NoAbbrReg   )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_NoValFound  )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ValWithFlag )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_AbbrNoFlag  )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_KeyInvalid  )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ParseError)
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ArgError  )
 
 private:
-   Arg * getArgPtrFromPrefix (str  const Key );
-   Arg * getArgPtrFromAbbr   (char const Abbr);
+   Arg * getArgPtrFromPrefix(str  const Key );
+   Arg * getArgPtrFromAbbr  (char const Abbr);
 
    uint32 getAbbrIdx(char const Abbr);
 
    std::vector<Arg>          _args;
    std::array<Arg *, 62_u64> _abbrs;
 };
+
+/**
+ * TODO
+ */
+inline auto ym::ArgParser::arg(str const Name) -> Arg
+{
+   return Arg(Name);
+}
 
 } // ym
