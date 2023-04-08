@@ -40,36 +40,36 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
       "--output", "data.csv",
       "--clean"
    };
-   auto const Argc   = static_cast<int32>(YM_ARRAY_SIZE(Argv));
+   auto const Argc = static_cast<int32>(YM_ARRAY_SIZE(Argv));
    
    auto excHappened = false;
-   auto val_input   = "";
-   auto val_output  = "";
+   auto val_input   = false;
+   auto val_output  = false;
+   auto val_clean   = false;
 
-   ArgParser argparse;
+   auto & ap_ref = *ArgParser::getInstancePtr();
    try
    {
-      argparse.parse({
-         argparse.arg("input").desc("Input file"),
-         argparse.arg("output").desc("Output file"),
-         argparse.arg("clean").desc("Cleans the build").flag()
+      ap_ref.parse({
+         ap_ref.arg("input" ).desc("Input file"  ),
+         ap_ref.arg("output").desc("Output file" ),
+         ap_ref.arg("clean" ).desc("Cleans build").flag()
       },
       Argc, Argv);
 
-      val_input  = argparse["input" ]->getVal();
-      val_output = argparse["output"]->getVal();
+      val_input  = std::strcmp(ap_ref["input" ]->getVal(), "settings.json") == 0_i32;
+      val_output = std::strcmp(ap_ref["output"]->getVal(), "data.csv"     ) == 0_i32;
+      val_clean  =             ap_ref["clean" ]->isEnbl();
    }
    catch (ArgParser::ArgParserError const & E)
    {
       excHappened = true;
    }
 
-   auto const Input  = std::strcmp(val_input,  "settings.json") == 0_i32;
-   auto const Output = std::strcmp(val_output, "data.csv"     ) == 0_i32;
-
    return {
-      {"Input",  Input},
-      {"Output", Output},
-      {"Exc",    excHappened}
+      {"Exc",    excHappened},
+      {"Input",  val_input  },
+      {"Output", val_output },
+      {"Clean",  val_clean  }
    };
 }

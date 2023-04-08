@@ -40,10 +40,10 @@ private:
                                                (getVal() == _s_FalseFlag); }
       inline auto isEnbl (void) const { return  getVal() == _s_TrueFlag;   }
 
-      Arg & desc(str  const Desc       );
-      Arg & val (str  const DefaultVal );
-      Arg & abbr(char const Abbr       );
-      Arg & flag(bool const DefaultEnbl);
+      Arg & desc(str  const Desc               );
+      Arg & val (str  const DefaultVal         );
+      Arg & abbr(char const Abbr               );
+      Arg & flag(bool const DefaultEnbl = false);
 
    private:
       static constexpr str _s_TrueFlag  = "1";
@@ -66,25 +66,27 @@ public:
 
    static ArgParser * getInstancePtr(void);
 
-   inline Arg arg(str const Name);
+   inline Arg arg(str const Name) const;
 
    void parse(std::vector<Arg> && args_uref,
               int const           Argc,
               str const * const   Argv_Ptr);
 
-   Arg * getArgPtr(str const Key);
+   Arg const * getArgPtr (str const Key) const;
+   Arg const * operator[](str const Key) const;
 
-   Arg * operator[](str const Key);
+   bool isSet(str const Key) const;
 
    YM_DECL_YMCEPT(ArgParserError)
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ParseError)
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ArgError  )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ParseError )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ArgError   )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_AccessError)
 
 private:
    Arg * getArgPtrFromPrefix(str  const Key );
    Arg * getArgPtrFromAbbr  (char const Abbr);
 
-   uint32 getAbbrIdx(char const Abbr);
+   uint32 getAbbrIdx(char const Abbr) const;
 
    std::vector<Arg>          _args;
    std::array<Arg *, 62_u64> _abbrs;
@@ -93,7 +95,7 @@ private:
 /**
  * TODO
  */
-inline auto ym::ArgParser::arg(str const Name) -> Arg
+inline auto ym::ArgParser::arg(str const Name) const -> Arg
 {
    return Arg(Name);
 }

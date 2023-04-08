@@ -56,11 +56,18 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
          if (name[1_u32] == '-')
          { // longhand arg found
             name += 2_u32;
-            auto * const agr_Ptr = getArgPtrFromPrefix(name);
-            ArgParserError_ParseError::check(agr_Ptr, "Arg '%s' not registered", name);
-            i += 1_i32;
-            ArgParserError_ParseError::check(i < Argc, "No value for arg '%s'", name);
-            agr_Ptr->setVal(Argv_Ptr[i]);
+            auto * const arg_Ptr = getArgPtrFromPrefix(name);
+            ArgParserError_ParseError::check(arg_Ptr, "Arg '%s' not registered", name);
+            if (arg_Ptr->isFlag())
+            {
+               arg_Ptr->enable(true);
+            }
+            else
+            {
+               i += 1_i32;
+               ArgParserError_ParseError::check(i < Argc, "No value for arg '%s'", name);
+               arg_Ptr->setVal(Argv_Ptr[i]);
+            }
          }
          else
          { // shorthand arg found
@@ -79,6 +86,10 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
             // TODO grab last char in list of shorthand abbrs and check if flag. if not, check for val
          }
       }
+      else
+      {
+         // TODO unexpected command line argument
+      }
    }
 }
 
@@ -88,10 +99,10 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
  * @note std::binary_search doesn't return a pointer to the found object, which is
  *       why we use std::bsearch.
  */
-auto ym::ArgParser::getArgPtr(str const Key) -> Arg *
+auto ym::ArgParser::getArgPtr(str const Key) const -> Arg const *
 {
    return
-      static_cast<Arg *>(
+      static_cast<Arg const *>(
          std::bsearch(Key, _args.data(), _args.size(), sizeof(Arg),
             [](void const * Lhs_ptr, void const * Rhs_ptr) -> int {
                return std::strcmp(static_cast<str>(Lhs_ptr),
@@ -104,11 +115,21 @@ auto ym::ArgParser::getArgPtr(str const Key) -> Arg *
 /**
  * TODO
  */
-auto ym::ArgParser::operator[](str const Key) -> Arg *
+auto ym::ArgParser::operator[](str const Key) const -> Arg const *
 {
-   auto * const arg_Ptr = getArgPtr(Key);
-   ArgParserError_KeyInvalid::check(arg_Ptr, "Key '%s' not found", Key);
-   return arg_Ptr;
+   auto const * const Arg_Ptr = getArgPtr(Key);
+   ArgParserError_AccessError::check(Arg_Ptr, "Key '%s' not found", Key);
+   return Arg_Ptr;
+}
+
+/**
+ * TODO
+ */
+bool ym::ArgParser::isSet(str const Key) const
+{
+   auto const * const Arg_Ptr = (*this)[Key];
+
+   return Arg_Ptr->isFlag() ? Arg_Ptr->isEnbl() : ymIsStrNonEmpty(Arg_Ptr->getVal());
 }
 
 /** getArgPtrFromPrefix
@@ -152,7 +173,7 @@ auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> Arg *
  * 
  * @brief TODO
  */
-auto ym::ArgParser::getAbbrIdx(char const Abbr) -> uint32
+auto ym::ArgParser::getAbbrIdx(char const Abbr) const -> uint32
 {
    return static_cast<uint32>(
       (Abbr >= 'A' && Abbr <= 'Z') ? (Abbr - 'A'         ) :
@@ -169,7 +190,6 @@ ym::ArgParser::Arg::Arg(str const Name)
      _desc   {""  },
      _val    {""  }
 {
-   // TODO I don't need all these multitude of errors for essentially the same sanity check
    ArgParserError_ArgError::check(ymIsStrNonEmpty(getName()), "Name must be non-empty");
    ArgParserError_ArgError::check(std::isalnum(getName()[0_u32]), "Name '%s' is invalid", getName());
 }
