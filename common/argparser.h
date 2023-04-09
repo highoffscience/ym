@@ -72,7 +72,7 @@ public:
               int const           Argc,
               str const * const   Argv_Ptr);
 
-   Arg const * getArgPtr (str const Key) const;
+   Arg       * getArgPtr (str const Key) const;
    Arg const * operator[](str const Key) const;
 
    bool isSet(str const Key) const;
@@ -88,8 +88,8 @@ private:
 
    uint32 getAbbrIdx(char const Abbr) const;
 
-   std::vector<Arg>          _args;
-   std::array<Arg *, 62_u64> _abbrs;
+   std::vector<Arg>        _args;
+   std::array<str, 62_u32> _abbrs; // stores the keys
 };
 
 /**

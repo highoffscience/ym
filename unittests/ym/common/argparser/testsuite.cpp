@@ -38,7 +38,7 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
    str  const Argv[] = {"testsuite",
       "--input",  "settings.json",
       "--output", "data.csv",
-      "--clean"
+      "-cb"
    };
    auto const Argc = static_cast<int32>(YM_ARRAY_SIZE(Argv));
    
@@ -46,6 +46,7 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
    auto val_input   = false;
    auto val_output  = false;
    auto val_clean   = false;
+   auto val_build   = false;
 
    auto & ap_ref = *ArgParser::getInstancePtr();
    try
@@ -53,13 +54,15 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
       ap_ref.parse({
          ap_ref.arg("input" ).desc("Input file"  ),
          ap_ref.arg("output").desc("Output file" ),
-         ap_ref.arg("clean" ).desc("Cleans build").flag()
+         ap_ref.arg("clean" ).desc("Cleans build").abbr('c').flag(),
+         ap_ref.arg("build" ).desc("Builds exe"  ).abbr('b').flag()
       },
       Argc, Argv);
 
       val_input  = std::strcmp(ap_ref["input" ]->getVal(), "settings.json") == 0_i32;
       val_output = std::strcmp(ap_ref["output"]->getVal(), "data.csv"     ) == 0_i32;
       val_clean  =             ap_ref["clean" ]->isEnbl();
+      val_build  =             ap_ref["build" ]->isEnbl();
    }
    catch (ArgParser::ArgParserError const & E)
    {
@@ -70,6 +73,7 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
       {"Exc",    excHappened},
       {"Input",  val_input  },
       {"Output", val_output },
-      {"Clean",  val_clean  }
+      {"Clean",  val_clean  },
+      {"Build",  val_build  }
    };
 }

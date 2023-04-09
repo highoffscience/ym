@@ -69,17 +69,14 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
       results = self.run_test_case("BasicParse")
 
+      expectedArgs = ["Input", "Output", "Clean", "Build"]
+
       exc = results.get[bool]("Exc")
       self.assertFalse(exc, "Unexpected exception happened")
 
-      input = results.get[bool]("Input")
-      self.assertTrue(input, "Input arg failed to parse")
-
-      output = results.get[bool]("Output")
-      self.assertTrue(output, "Output arg failed to parse")
-
-      output = results.get[bool]("Clean")
-      self.assertTrue(output, "Clean arg failed to parse")
+      for arg in expectedArgs:
+         val = results.get[bool](arg)
+         self.assertTrue(val, f"{arg} arg failed to parse")
 
 # kick-off
 if __name__ == "__main__":

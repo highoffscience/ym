@@ -56,14 +56,16 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
          if (name[1_u32] == '-')
          { // longhand arg found
             name += 2_u32;
+
             auto * const arg_Ptr = getArgPtrFromPrefix(name);
             ArgParserError_ParseError::check(arg_Ptr, "Arg '%s' not registered", name);
+
             if (arg_Ptr->isFlag())
-            {
+            { // enable argument - no explicit value
                arg_Ptr->enable(true);
             }
             else
-            {
+            { // value is next command line argument
                i += 1_i32;
                ArgParserError_ParseError::check(i < Argc, "No value for arg '%s'", name);
                arg_Ptr->setVal(Argv_Ptr[i]);
@@ -72,23 +74,41 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
          else
          { // shorthand arg found
             name += 1_u32;
-            ArgParserError_ParseError::check(name[0_u32],
-               "Expected abbr at count %d but none found", i);
-            for (auto i = 0_u32; name[i]; ++i)
-            {
-               auto   const Abbr    = name[i];
+
+            auto const NAbbrs = std::strlen(name);
+            ArgParserError_ParseError::check(NAbbrs > 0_u32, "Expected abbr at count %d but none found", i);
+
+            for (auto j = 0_u32; j < NAbbrs; ++j)
+            { // go through all abbrs in pack
+
+               auto   const Abbr    = name[j];
                auto * const arg_Ptr = getArgPtrFromAbbr(Abbr);
                ArgParserError_ParseError::check(arg_Ptr, "Abbr '%c' not registered", Abbr);
-               ArgParserError_ParseError::check(arg_Ptr->isFlag(), "Arg '%s' not a flag", arg_Ptr->getName());
-               arg_Ptr->enable(true);
-            }
 
-            // TODO grab last char in list of shorthand abbrs and check if flag. if not, check for val
+               if (NAbbrs == 1_u32)
+               { // last abbr in pack
+                  if (arg_Ptr->isFlag())
+                  { // enable argument - no explicit value
+                     arg_Ptr->enable(true);
+                  }
+                  else
+                  { // value is next command line argument
+                     i += 1_i32;
+                     ArgParserError_ParseError::check(i < Argc, "No value for arg '%s'", name);
+                     arg_Ptr->setVal(Argv_Ptr[i]);
+                  }
+               }
+               else
+               { // abbr found
+                  ArgParserError_ParseError::check(arg_Ptr->isFlag(), "Arg '%s' not a flag", arg_Ptr->getName());
+                  arg_Ptr->enable(true);
+               }
+            }
          }
       }
       else
-      {
-         // TODO unexpected command line argument
+      { // unexpected command line argument
+         ArgParserError_ParseError::check(false, "Argument '%s' was unexpected", (Argv_Ptr[i]));
       }
    }
 }
@@ -99,10 +119,10 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
  * @note std::binary_search doesn't return a pointer to the found object, which is
  *       why we use std::bsearch.
  */
-auto ym::ArgParser::getArgPtr(str const Key) const -> Arg const *
+auto ym::ArgParser::getArgPtr(str const Key) const -> Arg *
 {
    return
-      static_cast<Arg const *>(
+      static_cast<Arg *>(
          std::bsearch(Key, _args.data(), _args.size(), sizeof(Arg),
             [](void const * Lhs_ptr, void const * Rhs_ptr) -> int {
                return std::strcmp(static_cast<str>(Lhs_ptr),
@@ -166,7 +186,8 @@ auto ym::ArgParser::getArgPtrFromPrefix(str const Key) -> Arg *
 auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> Arg *
 {
    auto const AbbrIdx = getAbbrIdx(Abbr);
-   return (AbbrIdx < _abbrs.size()) ? _abbrs[AbbrIdx] : nullptr;
+
+   return (AbbrIdx < _abbrs.size()) ? getArgPtr(_abbrs[AbbrIdx]) : nullptr;
 }
 
 /** getArgPtrPtrFromAbbr
@@ -238,9 +259,9 @@ auto ym::ArgParser::Arg::abbr(char const Abbr) -> Arg &
 
    ArgParserError_ArgError::check(!abbr_ptr_ref,
       "Arg '%s' wants abbr '%c' but it's already used by arg '%s'",
-      getName(), Abbr, abbr_ptr_ref->getName());
+      getName(), Abbr, abbr_ptr_ref);
 
-   abbr_ptr_ref = this;
+   abbr_ptr_ref = _name;
 
    return *this;
 }
