@@ -1,12 +1,12 @@
 /**
- * @file    memorymanager.cpp
+ * @file    memio.cpp
  * @version 1.0.0
  * @author  Forrest Jablonski
  */
 
-#include "memorymanager.h"
+#include "memio.h"
 
-/** allocateBlock
+/** allocBlock
  * 
  * @brief Allocates and initializes block of memory.
  * 
@@ -24,9 +24,10 @@
  *
  * @return void * -- Pointer to beginning of block of memory.
  */
-void * ym::MemMgr::allocateBlock(uint64 const NChunksPerBlock,
-                                 uint64 const ChunkSize_bytes)
+void * ym::MemIO::allocBlock(uint64 const NChunksPerBlock,
+                             uint64 const ChunkSize_bytes)
 {
+   // TODO should I add alignment to this?
    // size allocated may not be a multiple of sizeof(uintptr)
    auto * const block_Ptr =
       static_cast<uintptr *>(

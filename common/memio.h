@@ -1,5 +1,5 @@
 /**
- * @file    memorymanager.h
+ * @file    memio.h
  * @version 1.0.0
  * @author  Forrest Jablonski
  */
@@ -42,9 +42,6 @@ namespace ym
 #define YM_STACK_ALLOC(Type_, NElements_) \
    static_cast<Type_ *>(alloca(NElements_ * sizeof(Type_)));
 
-/// @brief Convenience alias.
-using MemMgr = class MemoryManager;
-
 /** Chunkable_T
  *
  * @brief Represents one datum element in a memory pool.
@@ -54,23 +51,27 @@ using MemMgr = class MemoryManager;
 template <typename T>
 concept Chunkable_T = (sizeof(T) >= sizeof(uintptr));
 
-/** MemoryManager
+/** MemIO
  *
  * @brief Class that provides memory management utilities.
  */
-class MemoryManager
+class MemIO
 {
 public:
-   YM_NO_DEFAULT(MemoryManager)
+   YM_NO_DEFAULT(MemIO)
 
-   // YM_DECL_YMCEPT(MemoryManagerError)
-   // YM_DECL_YMCEPT(MemoryManagerError, MemoryManagerError_InvalidNChunks)
-
-   template <typename T>
-   static inline T * allocate_raw(uint64 const NElements);
+   YM_DECL_YMCEPT(MemIOError)
+   YM_DECL_YMCEPT(MemIOError, MemIOError_PoolError)
 
    template <typename T>
-   static inline std::unique_ptr<T> allocate_safe(uint64 const NElements);
+   static inline T * alloc_raw(uint64 const NElements);
+
+   template <typename T>
+   static inline void dealloc_raw(T *    const data_Ptr,
+                                  uint64 const NElements);
+
+   template <typename T>
+   static inline std::unique_ptr<T> alloc_safe(uint64 const NElements);
 
    /** Pool
     *
@@ -82,10 +83,10 @@ public:
    public:
       explicit Pool(uint64 const NChunksPerBlock);
 
-      Chunk_T *                allocate_raw (void);
-      std::unique_ptr<Chunk_T> allocate_safe(void);
+      Chunk_T *                alloc_raw (void);
+      std::unique_ptr<Chunk_T> alloc_safe(void);
 
-      void deallocate(Chunk_T * const datum_Ptr);
+      void dealloc(Chunk_T * const datum_Ptr);
 
    private:
       Chunk_T *       _activeBlock_ptr;
@@ -98,37 +99,63 @@ public:
    static Pool<Chunk_T> getNewPool(uint64 const NChunksPerBlock);
 
 private:
-   static void * allocateBlock(uint64 const NChunksPerBlock,
-                               uint64 const ChunkSize_bytes);
+   static void * allocBlock(uint64 const NChunksPerBlock,
+                            uint64 const ChunkSize_bytes);
 };
 
-/**
- * @brief TODO
+/** alloc_raw
  * 
- * @tparam T 
+ * @brief Allocates raw chunk of memory.
  * 
- * @param NElements 
+ * @tparam T -- Type of data to allocate for.
  * 
- * @return T* 
+ * @param NElements -- Number of elements to allocate for.
+ * 
+ * @return T * -- Pointer to allocated memory.
  */
 template <typename T>
-inline T * MemMgr::allocate_raw(uint64 const NElements)
+inline T * MemIO::alloc_raw(uint64 const NElements)
 {
-   return static_cast<T *>(::operator new(NElements * sizeof(T)));
+   std::allocator<T> a;
+   return a.allocate(NElements);
 }
 
 /**
- * @brief TODO
- * 
- * @tparam T 
- * 
- * @param NElements 
- * 
- * @return T* 
+ * TODO
  */
 template <typename T>
-inline std::unique_ptr<T> MemMgr::allocate_safe(uint64 const NElements)
+inline void MemIO::dealloc_raw(T *    const data_Ptr,
+                               uint64 const NElements)
 {
+   std::allocator<T> a;
+   a.deallocate(data_Ptr, NElements);
+}
+
+/** alloc_safe
+ * 
+ * @brief Allocates raw chunk of memory wrapped in a smart pointer.
+ * 
+ * @tparam T -- Type of data to allocate for.
+ * 
+ * @param NElements -- Number of elements to allocate for.
+ * 
+ * @return T * -- Smart pointer to allocated memory.
+ */
+template <typename T>
+inline std::unique_ptr<T> MemIO::alloc_safe(uint64 const NElements)
+{
+   template<typename Chunk_T>
+   auto deleter = [](Chunk_T * const datum_Ptr) {
+      // ::operator delete[](datum_Ptr);
+      // TODO need to pass in number of Elements
+   };
+
+   return
+      std::unique_ptr<Chunk_T[], decltype(deleter)>(
+         allocate_raw<T>(NElements), &deallocate<Chunk_T>);
+
+   // TODO need to custom deleter to call ::operator delete
+   // TODO what's wrong with using std::allocator?
    return std::unique_ptr(allocate_raw<T>(NElements));
 }
 
@@ -141,15 +168,15 @@ inline std::unique_ptr<T> MemMgr::allocate_safe(uint64 const NElements)
  * @param NChunksPerBlock -- Chunks (datum elements) per block of memory.
  */
 template <Chunkable_T Chunk_T>
-MemMgr::Pool<Chunk_T>::Pool(uint64 const NChunksPerBlock)
+MemIO::Pool<Chunk_T>::Pool(uint64 const NChunksPerBlock)
    : _activeBlock_ptr   {nullptr                           },
      _sentinel_ptr      {_activeBlock_ptr + NChunksPerBlock},
      _nextFreeChunk_ptr {_sentinel_ptr                     }, // forces allocation
-     _originalBlock_Ptr {nullptr /*allocate<Chunk_T>()*/   } // TODO
+     _originalBlock_Ptr {alloc_raw<Chunk_T>()              }
 {
 }
 
-/** allocate
+/** alloc
  *
  * @brief Returns a pointer to a block of raw memory equal to sizeof(Chunk_T).
  *
@@ -158,7 +185,7 @@ MemMgr::Pool<Chunk_T>::Pool(uint64 const NChunksPerBlock)
  * @return Pointer to block of raw memory equal to sizeof(Chunk_T).
  */
 template <Chunkable_T Chunk_T>
-Chunk_T * MemMgr::Pool<Chunk_T>::allocate_raw(void)
+Chunk_T * MemIO::Pool<Chunk_T>::alloc_raw(void)
 {
    if (_nextFreeChunk_ptr == _sentinel_ptr)
    { // current pool is exhausted - create another one
@@ -180,27 +207,26 @@ Chunk_T * MemMgr::Pool<Chunk_T>::allocate_raw(void)
    return data.ptr;
 }
 
-// TODO
-// /** allocate_safe
-//  *
-//  * @brief Returns a smart pointer to a block of raw memory equal to sizeof(Chunk_T).
-//  * 
-//  * @tparam Chunk_T -- Type the pool contains.
-//  * 
-//  * @return Smart pointer to block of raw memory equal to sizeof(Chunk_T).
-//  */
-// template <Chunkable_T Chunk_T>
-// std::unique_ptr<Chunk_T> MemMan::Pool<Chunk_T>::allocate_safe(void)
-// {
-//    template<typename Chunk_T>
-//    auto deleter = [this](Chunk_T * const datum_Ptr) {
+/** alloc_safe
+ *
+ * @brief Returns a smart pointer to a block of raw memory equal to sizeof(Chunk_T).
+ * 
+ * @tparam Chunk_T -- Type the pool contains.
+ * 
+ * @return Smart pointer to block of raw memory equal to sizeof(Chunk_T).
+ */
+template <Chunkable_T Chunk_T>
+std::unique_ptr<Chunk_T> MemIO::Pool<Chunk_T>::alloc_safe(void)
+{
+   template<typename Chunk_T>
+   auto deleter = [this](Chunk_T * const datum_Ptr) {
 
-//    };
+   };
 
-//    return std::unique_ptr<Chunk_T, decltype(deleter)>(allocate(), &deallocate<Chunk_T>);
-// }
+   return std::unique_ptr<Chunk_T, decltype(deleter)>(allocate(), &deallocate<Chunk_T>);
+}
 
-/** deallocate
+/** dealloc
  *
  * @brief Frees chunk of memory to the pool.
  * 
@@ -209,7 +235,7 @@ Chunk_T * MemMgr::Pool<Chunk_T>::allocate_raw(void)
  * @param datum_Ptr -- Chunk of memory to free.
  */
 template <Chunkable_T Chunk_T>
-void MemMgr::Pool<Chunk_T>::deallocate(Chunk_T * const datum_Ptr)
+void MemIO::Pool<Chunk_T>::dealloc(Chunk_T * const datum_Ptr)
 {
    *reinterpret_cast<Chunk_T * *>(datum_Ptr) = _nextFreeChunk_ptr;
    _nextFreeChunk_ptr = datum_Ptr;
@@ -226,13 +252,12 @@ void MemMgr::Pool<Chunk_T>::deallocate(Chunk_T * const datum_Ptr)
  * @return Pool<Chunk_T> -- Pool object.
  */
 template <Chunkable_T Chunk_T>
-auto MemMgr::getNewPool(uint64 const NChunksPerBlock) -> Pool<Chunk_T>
+auto MemIO::getNewPool(uint64 const NChunksPerBlock) -> Pool<Chunk_T>
 {
-   // ymAssert<MemoryManagerError_InvalidNChunks>(NChunksPerBlock > 0_u64,
-   //    "# of chunks must be greater than 0");
+   MemIOError::check(NChunksPerBlock > 0_u64, "# of chunks must be greater than 0");
 
    auto * const originalBlock_Ptr =
-      static_cast<Chunk_T *>(allocateBlock(NChunksPerBlock, sizeof(Chunk_T)));
+      static_cast<Chunk_T *>(allocBlock(NChunksPerBlock, sizeof(Chunk_T)));
 
    return Pool<Chunk_T>(originalBlock_Ptr, NChunksPerBlock);
 }
