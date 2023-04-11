@@ -88,6 +88,11 @@ private:
 
    uint32 getAbbrIdx(char const Abbr) const;
 
+   int32 parse_Helper(Arg       * const arg_Ptr,
+                      int32             idx,
+                      int32       const Argc,
+                      str const * const Argv_Ptr);
+
    std::vector<Arg>        _args;
    std::array<str, 62_u32> _abbrs; // stores the keys
 };

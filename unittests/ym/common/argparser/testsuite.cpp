@@ -38,7 +38,8 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
    str  const Argv[] = {"testsuite",
       "--input",  "settings.json",
       "--output", "data.csv",
-      "-cb"
+      "-cb",
+      "-k", "Torchic1234"
    };
    auto const Argc = static_cast<int32>(YM_ARRAY_SIZE(Argv));
    
@@ -47,6 +48,7 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
    auto val_output  = false;
    auto val_clean   = false;
    auto val_build   = false;
+   auto val_key     = false;
 
    auto & ap_ref = *ArgParser::getInstancePtr();
    try
@@ -55,7 +57,8 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
          ap_ref.arg("input" ).desc("Input file"  ),
          ap_ref.arg("output").desc("Output file" ),
          ap_ref.arg("clean" ).desc("Cleans build").abbr('c').flag(),
-         ap_ref.arg("build" ).desc("Builds exe"  ).abbr('b').flag()
+         ap_ref.arg("build" ).desc("Builds exe"  ).abbr('b').flag(),
+         ap_ref.arg("key"   ).desc("Passkey"     ).abbr('k')
       },
       Argc, Argv);
 
@@ -63,6 +66,7 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
       val_output = std::strcmp(ap_ref["output"]->getVal(), "data.csv"     ) == 0_i32;
       val_clean  =             ap_ref["clean" ]->isEnbl();
       val_build  =             ap_ref["build" ]->isEnbl();
+      val_key    = std::strcmp(ap_ref["key"   ]->getVal(), "Torchic1234"  ) == 0_i32;
    }
    catch (ArgParser::ArgParserError const & E)
    {
@@ -74,6 +78,7 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
       {"Input",  val_input  },
       {"Output", val_output },
       {"Clean",  val_clean  },
-      {"Build",  val_build  }
+      {"Build",  val_build  },
+      {"Key",    val_key    }
    };
 }

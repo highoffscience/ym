@@ -34,7 +34,7 @@ foreach(RelativeFilePath IN LISTS RelativeFilePaths)
          ${CommonDir}/argparser.cpp
          ${CommonDir}/ops.cpp
          ${CommonDir}/logger.cpp
-         ${CommonDir}/memorymanager.cpp
+         ${CommonDir}/memio.cpp
          ${CommonDir}/timer.cpp
          ${CommonDir}/textlogger.cpp
          ${CommonDir}/ymception.cpp)

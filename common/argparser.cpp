@@ -60,16 +60,7 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
             auto * const arg_Ptr = getArgPtrFromPrefix(name);
             ArgParserError_ParseError::check(arg_Ptr, "Arg '%s' not registered", name);
 
-            if (arg_Ptr->isFlag())
-            { // enable argument - no explicit value
-               arg_Ptr->enable(true);
-            }
-            else
-            { // value is next command line argument
-               i += 1_i32;
-               ArgParserError_ParseError::check(i < Argc, "No value for arg '%s'", name);
-               arg_Ptr->setVal(Argv_Ptr[i]);
-            }
+            i = parse_Helper(arg_Ptr, i, Argc, Argv_Ptr);
          }
          else
          { // shorthand arg found
@@ -86,22 +77,13 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
                ArgParserError_ParseError::check(arg_Ptr, "Abbr '%c' not registered", Abbr);
 
                if (NAbbrs == 1_u32)
-               { // last abbr in pack
-                  if (arg_Ptr->isFlag())
-                  { // enable argument - no explicit value
-                     arg_Ptr->enable(true);
-                  }
-                  else
-                  { // value is next command line argument
-                     i += 1_i32;
-                     ArgParserError_ParseError::check(i < Argc, "No value for arg '%s'", name);
-                     arg_Ptr->setVal(Argv_Ptr[i]);
-                  }
+               { // only 1 abbr - might have value
+                  i = parse_Helper(arg_Ptr, i, Argc, Argv_Ptr);
                }
                else
                { // abbr found
                   ArgParserError_ParseError::check(arg_Ptr->isFlag(), "Arg '%s' not a flag", arg_Ptr->getName());
-                  arg_Ptr->enable(true);
+                  arg_Ptr->enable(!arg_Ptr->isEnbl());
                }
             }
          }
@@ -111,6 +93,28 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
          ArgParserError_ParseError::check(false, "Argument '%s' was unexpected", (Argv_Ptr[i]));
       }
    }
+}
+
+/**
+ * TODO
+ */
+auto ym::ArgParser::parse_Helper(Arg       * const arg_Ptr,
+                                 int32             idx,
+                                 int32       const Argc,
+                                 str const * const Argv_Ptr) -> int32
+{
+   if (arg_Ptr->isFlag())
+   { // enable argument - no explicit value
+      arg_Ptr->enable(!arg_Ptr->isEnbl());
+   }
+   else
+   { // value is next command line argument
+      idx += 1_i32;
+      ArgParserError_ParseError::check(idx < Argc, "No value for arg '%s'", arg_Ptr->getName());
+      arg_Ptr->setVal(Argv_Ptr[idx]);
+   }
+
+   return idx;
 }
 
 /**
