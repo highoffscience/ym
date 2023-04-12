@@ -69,7 +69,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
       results = self.run_test_case("BasicParse")
 
-      expectedArgs = ["Input", "Output", "Clean", "Build", "Key"]
+      expectedArgs = ["Input", "Output", "Clean", "Build", "Key", "Denial"]
 
       exc = results.get[bool]("Exc")
       self.assertFalse(exc, "Unexpected exception happened")

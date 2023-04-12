@@ -83,7 +83,7 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
                else
                { // abbr found
                   ArgParserError_ParseError::check(arg_Ptr->isFlag(), "Arg '%s' not a flag", arg_Ptr->getName());
-                  arg_Ptr->enable(!arg_Ptr->isEnbl());
+                  arg_Ptr->enable(true);
                }
             }
          }
@@ -105,7 +105,7 @@ auto ym::ArgParser::parse_Helper(Arg       * const arg_Ptr,
 {
    if (arg_Ptr->isFlag())
    { // enable argument - no explicit value
-      arg_Ptr->enable(!arg_Ptr->isEnbl());
+      arg_Ptr->enable(true);
    }
    else
    { // value is next command line argument
@@ -271,9 +271,9 @@ auto ym::ArgParser::Arg::abbr(char const Abbr) -> Arg &
 }
 
 /**
- * 
+ * TODO state reason we don't have default flag values (kinda pointless)
  */
-auto ym::ArgParser::Arg::flag(bool const DefaultEnbl) -> Arg &
+auto ym::ArgParser::Arg::flag(void) -> Arg &
 {
    ArgParserError_ArgError::check(!isFlag(),
       "Arg '%s' already marked as a flag", getName());
@@ -281,7 +281,7 @@ auto ym::ArgParser::Arg::flag(bool const DefaultEnbl) -> Arg &
    ArgParserError_ArgError::check(ymIsStrEmpty(getVal()),
       "Arg '%s' has val '%s' but requested to be a flag", getName(), getVal());
 
-   enable(DefaultEnbl);
+   enable(false);
 
    return *this;
 }
@@ -297,7 +297,8 @@ void ym::ArgParser::Arg::setVal(str const Val)
 }
 
 /**
- * 
+ * TODO we can't check for isFlag here because that function relies on
+ *      the val being set to true or false.
  */
 void ym::ArgParser::Arg::enable(bool const Enbl)
 {

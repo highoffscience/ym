@@ -40,10 +40,10 @@ private:
                                                (getVal() == _s_FalseFlag); }
       inline auto isEnbl (void) const { return  getVal() == _s_TrueFlag;   }
 
-      Arg & desc(str  const Desc               );
-      Arg & val (str  const DefaultVal         );
-      Arg & abbr(char const Abbr               );
-      Arg & flag(bool const DefaultEnbl = false);
+      Arg & desc(str  const Desc      );
+      Arg & val (str  const DefaultVal);
+      Arg & abbr(char const Abbr      );
+      Arg & flag(void                 ); // defaults to false
 
    private:
       static constexpr str _s_TrueFlag  = "1";
