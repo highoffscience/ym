@@ -11,19 +11,29 @@
 #include "ymception.h"
 
 #include <array>
+#include <type_traits>
 #include <vector>
 
 namespace ym
 {
 
-/**
- * TODO
+/** ArgParser
+ *
+ * @brief A parsing utility for use for command line arguments.
+ * 
+ * @note Singleton.
  */
 class ArgParser
 {
 private:
-   /**
-    * TODO
+   /** Arg
+    * 
+    * @brief Provides type info for each parsable argument.
+    * 
+    * @note Flag based arguments are only able to be turned on, not off.
+    *       For the opposite one can make "--no-..." argument.
+    * 
+    * @note Uses cascading.
     */
    class Arg
    {
@@ -52,11 +62,15 @@ private:
       void setVal(str  const Val );
       void enable(bool const Enbl);
 
-      // no consts! std::sort needs to have assignables
+      // no consts - see static assert below
       str _name; // arg name (used as the key)
       str _desc; // description
       str _val;  // value
    };
+
+   // copyable to load Arg params into vector
+   // assignable for std::sort
+   static_assert(std::is_copy_assignable_v<Arg>, "Arg needs to be copyable/assignable");
 
    explicit ArgParser(void);
 
@@ -97,8 +111,15 @@ private:
    std::array<str, 62_u32> _abbrs; // stores the keys
 };
 
-/**
- * TODO
+/** arg
+ * 
+ * @brief Creates a parsabble argument.
+ * 
+ * @note Class Arg is private so we need this method to create the argument.
+ * 
+ * @param Name -- Name (key) of argument.
+ * 
+ * @return Arg -- Empty named argument.
  */
 inline auto ym::ArgParser::arg(str const Name) const -> Arg
 {

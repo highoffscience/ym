@@ -13,9 +13,9 @@
  *
  * @brief Casts string to char.
  * 
- * @param S -- String to cast.
+ * @throws OpsError_BadCastToChar -- If string is not a valid char.
  * 
- * @exception OpsError_BadCastToChar -- If string is not a valid char.
+ * @param S -- String to cast.
  * 
  * @return char -- String as char.
  */
@@ -34,10 +34,10 @@ char ym::Ops::castToChar(str const S)
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
+ * @throws OpsError_BadCastToInt8 -- If string is not a valid int8.
+ * 
  * @param S    -- String to cast.
  * @param Base -- Radix of int8.
- * 
- * @exception OpsError_BadCastToInt8 -- If string is not a valid int8.
  * 
  * @return int8 -- String as int8.
  */
@@ -79,10 +79,10 @@ auto ym::Ops::castTo<ym::int8>(std::string const & S,
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
+ * @throws OpsError_BadCastToInt16 -- If string is not a valid int16.
+ * 
  * @param S    -- String to cast.
  * @param Base -- Radix of int16.
- * 
- * @exception OpsError_BadCastToInt16 -- If string is not a valid int16.
  * 
  * @return int16 -- String as int16.
  */
@@ -124,10 +124,10 @@ auto ym::Ops::castTo<ym::int16>(std::string const & S,
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
+ * @throws OpsError_BadCastToInt32 -- If string is not a valid int32.
+ * 
  * @param S    -- String to cast.
  * @param Base -- Radix of int32.
- * 
- * @exception OpsError_BadCastToInt32 -- If string is not a valid int32.
  * 
  * @return int32 -- String as int32.
  */
@@ -164,10 +164,10 @@ auto ym::Ops::castTo<ym::int32>(std::string const & S,
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
+ * @throws OpsError_BadCastToInt64 -- If string is not a valid int64.
+ * 
  * @param S    -- String to cast.
  * @param Base -- Radix of int64.
- * 
- * @exception OpsError_BadCastToInt64 -- If string is not a valid int64.
  * 
  * @return int64 -- String as int64.
  */
@@ -204,10 +204,10 @@ auto ym::Ops::castTo<ym::int64>(std::string const & S,
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
+ * @throws OpsError_BadCastToInt8 -- If string is not a valid uint8.
+ * 
  * @param S    -- String to cast.
  * @param Base -- Radix of uint8.
- * 
- * @exception OpsError_BadCastToInt8 -- If string is not a valid uint8.
  * 
  * @return uint8 -- String as uint8.
  */
@@ -249,10 +249,10 @@ auto ym::Ops::castTo<ym::uint8>(std::string const & S,
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
+ * @throws OpsError_BadCastToInt16 -- If string is not a valid uint16.
+ * 
  * @param S    -- String to cast.
  * @param Base -- Radix of uint16.
- * 
- * @exception OpsError_BadCastToInt16 -- If string is not a valid uint16.
  * 
  * @return uint16 -- String as uint16.
  */
@@ -294,10 +294,10 @@ auto ym::Ops::castTo<ym::uint16>(std::string const & S,
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
+ * @throws OpsError_BadCastToInt32 -- If string is not a valid uint32.
+ * 
  * @param S    -- String to cast.
  * @param Base -- Radix of uint32.
- * 
- * @exception OpsError_BadCastToInt32 -- If string is not a valid uint32.
  * 
  * @return uint32 -- String as uint32.
  */
@@ -339,10 +339,10 @@ auto ym::Ops::castTo<ym::uint32>(std::string const & S,
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
+ * @throws OpsError_BadCastToInt64 -- If string is not a valid uint64.
+ * 
  * @param S    -- String to cast.
  * @param Base -- Radix of uint64.
- * 
- * @exception OpsError_BadCastToInt64 -- If string is not a valid uint64.
  * 
  * @return uint64 -- String as uint64.
  */
@@ -379,9 +379,9 @@ auto ym::Ops::castTo<ym::uint64>(std::string const & S,
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
- * @param S -- String to cast.
+ * @throws OpsError_BadCastToFlt32 -- If string is not a valid float32.
  * 
- * @exception OpsError_BadCastToFlt32 -- If string is not a valid float32.
+ * @param S -- String to cast.
  * 
  * @return float32 -- String as float32.
  */
@@ -417,9 +417,9 @@ auto ym::Ops::castTo<ym::float32>(std::string const & S) -> float32
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
- * @param S -- String to cast.
+ * @throws OpsError_BadCastToFlt64 -- If string is not a valid float64.
  * 
- * @exception OpsError_BadCastToFlt64 -- If string is not a valid float64.
+ * @param S -- String to cast.
  * 
  * @return float64 -- String as float64.
  */
@@ -455,9 +455,9 @@ auto ym::Ops::castTo<ym::float64>(std::string const & S) -> float64
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
- * @param S -- String to cast.
+ * @throws OpsError_BadCastToFlt80 -- If string is not a valid float80.
  * 
- * @exception OpsError_BadCastToFlt80 -- If string is not a valid float80.
+ * @param S -- String to cast.
  * 
  * @return float80 -- String as float80.
  */

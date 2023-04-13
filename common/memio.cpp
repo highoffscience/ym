@@ -27,7 +27,7 @@
 // void * ym::MemIO::allocBlock(uint64 const NChunksPerBlock,
 //                              uint64 const ChunkSize_bytes)
 // {
-//    // TODO should I add alignment to this?
+//    // TODO should I add alignment to this? 16 bytes is default. <https://en.cppreference.com/w/cpp/memory/new/operator_new>
 //    // size allocated may not be a multiple of sizeof(uintptr)
 //    auto * const block_Ptr =
 //       static_cast<uintptr *>(

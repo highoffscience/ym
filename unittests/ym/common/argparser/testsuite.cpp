@@ -56,12 +56,12 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
    try
    {
       ap_ref.parse({
-         ap_ref.arg("input"    ).desc("Input file"     ),
-         ap_ref.arg("output"   ).desc("Output file"    ),
-         ap_ref.arg("clean"    ).desc("Cleans build"   ).abbr('c').flag(),
-         ap_ref.arg("build"    ).desc("Builds exe"     ).abbr('b').flag(),
-         ap_ref.arg("key"      ).desc("Passkey"        ).abbr('k'),
-         ap_ref.arg("in-denial").desc("My existence"   )          .flag()
+         ap_ref.arg("input"    ).desc("Input file"  ),
+         ap_ref.arg("output"   ).desc("Output file" ),
+         ap_ref.arg("clean"    ).desc("Cleans build").abbr('c').flag(),
+         ap_ref.arg("build"    ).desc("Builds exe"  ).abbr('b').flag(),
+         ap_ref.arg("key"      ).desc("Passkey"     ).abbr('k'),
+         ap_ref.arg("in-denial").desc("My existence")          .flag()
       },
       Argc, Argv);
 

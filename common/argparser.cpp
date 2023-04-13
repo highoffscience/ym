@@ -6,17 +6,15 @@
 
 #include "argparser.h"
 
-#include "ops.h"
-#include "textlogger.h"
-
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
 #include <utility>
 
-/**
- * TODO
+/** ArgParser
+ * 
+ * @brief Constructor.
  */
 ym::ArgParser::ArgParser(void)
    : _args  {/*default*/},
@@ -24,6 +22,12 @@ ym::ArgParser::ArgParser(void)
 {
 }
 
+/** getInstancePtr
+ * 
+ * @brief Returns the single instance pointer.
+ * 
+ * @return ArgParser * -- Single instance pointer.
+ */
 auto ym::ArgParser::getInstancePtr(void) -> ArgParser *
 {
    static ArgParser instance;
@@ -31,8 +35,15 @@ auto ym::ArgParser::getInstancePtr(void) -> ArgParser *
    return &instance;
 }
 
-/**
- * TODO this should return an exception with all the errors
+/** parse
+ * 
+ * @brief Parses through the command line arguments and populates registered args.
+ * 
+ * @throws ArgParserError_ParseError -- If a parsing error occurs.
+ * 
+ * @param args_uref -- List of registerd arguments.
+ * @param Argc      -- Argument count  (as supplied from main()).
+ * @param Argv_Ptr  -- Argument vector (as supplied from main()).
  */
 void ym::ArgParser::parse(std::vector<Arg> && args_uref,
                           int const           Argc,
@@ -90,13 +101,23 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
       }
       else
       { // unexpected command line argument
-         ArgParserError_ParseError::check(false, "Argument '%s' was unexpected", (Argv_Ptr[i]));
+         ArgParserError_ParseError::check(false, "Argument '%s' was unexpected", Argv_Ptr[i]);
       }
    }
 }
 
-/**
- * TODO
+/** parse_Helper
+ * 
+ * @brief Sets the value depending on the type of argument.
+ * 
+ * @throws ArgParserError_ParseError -- If a parsing occurs.
+ * 
+ * @param arg_Ptr  -- Pointer to registered argument.
+ * @param idx      -- Current index of command line argument.
+ * @param Argc     -- Argument count  (as supplied from main()).
+ * @param Argv_Ptr -- Argument vector (as supplied from main()).
+ * 
+ * @return int32 -- Updated index of command line argument.
  */
 auto ym::ArgParser::parse_Helper(Arg       * const arg_Ptr,
                                  int32             idx,
