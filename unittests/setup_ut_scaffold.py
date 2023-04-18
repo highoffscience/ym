@@ -100,7 +100,7 @@ def gen_src_file(args):
       writeln(f" *                                                                        ")
       writeln(f" * @brief TODO.                                                           ")
       writeln(f" *                                                                        ")
-      writeln(f" * @return DataShuttle -- Important values acquired during run of test.   ")
+      writeln(f" * @returns DataShuttle -- Important values acquired during run of test.   ")
       writeln(f" */                                                                       ")
       writeln(f"auto ym::ut::TestSuite::name_of_test_case_here" \
               f"::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle         ")

@@ -56,7 +56,7 @@ ym::Random::Random(State_T const Seed)
  * 
  * @param State -- State.
  * 
- * @return bool -- True if input state is 0 everywhere, false otherwise.
+ * @returns bool -- True if input state is 0 everywhere, false otherwise.
  */
 bool ym::Random::isZero(State_T const State)
 {
@@ -111,7 +111,7 @@ inline void ym::Random::gen_helper(void)
  * 
  * @note xoshiro256+ - @ref <https://prng.di.unimi.it/>.
  *
- * @return Random number in range.
+ * @returns Random number in range.
  */
 template <>
 auto ym::Random::gen<ym::uint32>(void) -> uint32
@@ -131,7 +131,7 @@ auto ym::Random::gen<ym::uint32>(void) -> uint32
  * 
  * @note xoshiro256+ - @ref <https://prng.di.unimi.it/>.
  *
- * @return Random number in range.
+ * @returns Random number in range.
  */
 template <>
 auto ym::Random::gen<ym::uint64>(void) -> uint64
@@ -152,7 +152,7 @@ auto ym::Random::gen<ym::uint64>(void) -> uint64
  * 
  * @note xoshiro256+ - @ref <https://prng.di.unimi.it/>.
  *
- * @return Random number in range.
+ * @returns Random number in range.
  */
 template <>
 auto ym::Random::gen<ym::float32>(void) -> float32
@@ -182,7 +182,7 @@ auto ym::Random::gen<ym::float32>(void) -> float32
  * 
  * @note xoshiro256+ - @ref <https://prng.di.unimi.it/>.
  *
- * @return Random number in range.
+ * @returns Random number in range.
  */
 template <>
 auto ym::Random::gen<ym::float64>(void) -> float64

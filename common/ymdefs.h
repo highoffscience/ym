@@ -278,7 +278,7 @@ using uintptr = std::uintptr_t;
  *
  * @param Ptr -- Pointer value.
  *
- * @return uintptr -- Ptr as an appropriately sized uint.
+ * @returns uintptr -- Ptr as an appropriately sized uint.
  */
 template <typename T>
 requires(std::is_pointer_v<T>         && // is non-member function pointer or data pointer?
@@ -305,7 +305,7 @@ constexpr auto ymPtrToUint(T const Ptr)
  * 
  * @param  Value -- Enumeration.
  * 
- * @return auto -- Enumeration as represented by it's underlying type.
+ * @returns auto -- Enumeration as represented by it's underlying type.
  */
 template<typename T>
 constexpr auto ymToUnderlying(T const Value) noexcept
@@ -319,7 +319,7 @@ constexpr auto ymToUnderlying(T const Value) noexcept
  * 
  * @param S -- String to test.
  * 
- * @return bool -- True if string S is non-empty, false otherwise.
+ * @returns bool -- True if string S is non-empty, false otherwise.
  */
 constexpr bool ymIsStrNonEmpty(str const S)
 {
@@ -332,7 +332,7 @@ constexpr bool ymIsStrNonEmpty(str const S)
  * 
  * @param S -- String to test.
  * 
- * @return bool -- True if string S is null or empty, false otherwise.
+ * @returns bool -- True if string S is null or empty, false otherwise.
  */
 constexpr bool ymIsStrEmpty(str const S)
 {
@@ -350,7 +350,7 @@ constexpr bool ymIsStrEmpty(str const S)
  * @param UDL_          -- Name of User Defined Literal.
  * @param TypeToCastTo_ -- Type to cast to.
  * 
- * @return auto -- Input casted to TypeToCastTo_.
+ * @returns auto -- Input casted to TypeToCastTo_.
  */
 #define YM_LITERAL_DECL(UDL_, TypeToCastTo_)                                                                \
    constexpr auto operator"" _##UDL_(unsigned long long int    i) { return static_cast<TypeToCastTo_>(i); } \

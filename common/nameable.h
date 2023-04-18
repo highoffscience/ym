@@ -38,7 +38,7 @@ public:
     *
     *  @brief Returns the current name.
     * 
-    * @return auto -- Current name.
+    * @returns auto -- Current name.
     */
    inline auto getName(void) const { return _Name_ptr; }
 
@@ -75,7 +75,7 @@ public:
     *
     *  @brief Returns the name.
     * 
-    * @return auto -- Name.
+    * @returns auto -- Name.
     */
    constexpr auto getName(void) const { return _Name_Ptr; }
 

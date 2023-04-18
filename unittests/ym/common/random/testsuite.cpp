@@ -27,7 +27,7 @@ ym::ut::TestSuite::TestSuite(void)
  * 
  * @note Amount of zeros and ones should be about equal.
  *
- * @return DataShuttle -- Important values acquired during run of test case.
+ * @returns DataShuttle -- Important values acquired during run of test case.
  */
 auto ym::ut::TestSuite::ZerosAndOnes::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
@@ -54,7 +54,7 @@ auto ym::ut::TestSuite::ZerosAndOnes::run([[maybe_unused]] DataShuttle const & I
 //  * 
 //  * @note Amount of entries in each bin should be about equal.
 //  *
-//  * @return bool -- True if test passed, false otherwise.
+//  * @returns bool -- True if test passed, false otherwise.
 //  */
 // auto ym::ut::Random_UT::UniformBins_TC::run(void) -> std::unordered_map<std::string, double>
 // {
@@ -85,7 +85,7 @@ auto ym::ut::TestSuite::ZerosAndOnes::run([[maybe_unused]] DataShuttle const & I
 //  * 
 //  * @todo I want to use ym::MemMan, add dependency for that test to run first.
 //  *
-//  * @return bool -- True if test passed, false otherwise.
+//  * @returns bool -- True if test passed, false otherwise.
 //  */
 // auto ym::ut::Random_UT::BinFrequency_TC::run(void) -> std::unordered_map<std::string, double>
 // {

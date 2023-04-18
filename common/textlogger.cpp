@@ -55,7 +55,7 @@ ym::TextLogger::~TextLogger(void)
  *
  * @brief Returns if outfile is open and able to be written to.
  *
- * @return True if outfile is open and able to be written to, false otherwise.
+ * @returns True if outfile is open and able to be written to, false otherwise.
  */
 bool ym::TextLogger::isOpen(void) const
 {
@@ -90,7 +90,7 @@ auto ym::TextLogger::getGlobalInstance(void) -> TextLogger *
  *
  * @brief Opens and prepares to write to stdout.
  *
- * @return bool -- Whether the outfile was opened successfully, false otherwise.
+ * @returns bool -- Whether the outfile was opened successfully, false otherwise.
  */
 bool ym::TextLogger::openToStdout(void)
 {
@@ -104,7 +104,7 @@ bool ym::TextLogger::openToStdout(void)
  * @param Filename       -- Name of outfile to open.
  * @param TSFilenameMode -- Mode whether to append time stamps to filename.
  *
- * @return bool -- Whether the outfile was opened successfully, false otherwise.
+ * @returns bool -- Whether the outfile was opened successfully, false otherwise.
  */
 bool ym::TextLogger::open(
    #if defined(YM_PRINT_TO_SCREEN)
@@ -157,7 +157,7 @@ void ym::TextLogger::close(void)
  * 
  * @param Opened -- Whether or not the outfile was successfully opened.
  * 
- * @return bool -- Whether or not the outfile was successfully opened.
+ * @returns bool -- Whether or not the outfile was successfully opened.
  */
 bool ym::TextLogger::open_Helper(bool const Opened)
 {

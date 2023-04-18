@@ -29,7 +29,7 @@ ym::ut::TestSuite::TestSuite(void)
  *
  * @brief Tests the primitive casting functions.
  *
- * @return DataShuttle -- Important values acquired during run of test.
+ * @returns DataShuttle -- Important values acquired during run of test.
  */
 auto ym::ut::TestSuite::Casting::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
@@ -72,7 +72,7 @@ auto ym::ut::TestSuite::Casting::run([[maybe_unused]] DataShuttle const & InData
  *
  * @brief Tests the primitive casting functions error on invalid inputs.
  *
- * @return DataShuttle -- Important values acquired during run of test.
+ * @returns DataShuttle -- Important values acquired during run of test.
  */
 auto ym::ut::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {

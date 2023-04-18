@@ -37,7 +37,7 @@ namespace ym
  * @param Type_      -- Type to allocate.
  * @param NElements_ -- Number of T elements to allocate room for.
  *
- * @return Type_ * -- Pointer to newly allocated stack memory.
+ * @returns Type_ * -- Pointer to newly allocated stack memory.
  */
 #define YM_STACK_ALLOC(Type_, NElements_) \
    static_cast<Type_ *>(alloca(NElements_ * sizeof(Type_)));
@@ -112,7 +112,7 @@ private:
  * 
  * @param NElements -- Number of elements to allocate for.
  * 
- * @return T * -- Pointer to allocated memory.
+ * @returns T * -- Pointer to allocated memory.
  */
 template <typename T>
 inline T * MemIO::alloc_raw(uint64 const NElements)
@@ -140,7 +140,7 @@ inline void MemIO::dealloc_raw(T *    const data_Ptr,
  * 
  * @param NElements -- Number of elements to allocate for.
  * 
- * @return T * -- Smart pointer to allocated memory.
+ * @returns T * -- Smart pointer to allocated memory.
  */
 template <typename T>
 inline std::unique_ptr<T> MemIO::alloc_safe(uint64 const NElements)
@@ -177,7 +177,7 @@ inline std::unique_ptr<T> MemIO::alloc_safe(uint64 const NElements)
 //  *
 //  * @tparam Chunk_T -- Type the pool contains.
 //  * 
-//  * @return Pointer to block of raw memory equal to sizeof(Chunk_T).
+//  * @returns Pointer to block of raw memory equal to sizeof(Chunk_T).
 //  */
 // template <Chunkable_T Chunk_T>
 // Chunk_T * MemIO::Pool<Chunk_T>::alloc_raw(void)
@@ -208,7 +208,7 @@ inline std::unique_ptr<T> MemIO::alloc_safe(uint64 const NElements)
 //  * 
 //  * @tparam Chunk_T -- Type the pool contains.
 //  * 
-//  * @return Smart pointer to block of raw memory equal to sizeof(Chunk_T).
+//  * @returns Smart pointer to block of raw memory equal to sizeof(Chunk_T).
 //  */
 // template <Chunkable_T Chunk_T>
 // std::unique_ptr<Chunk_T> MemIO::Pool<Chunk_T>::alloc_safe(void)
@@ -239,7 +239,7 @@ inline std::unique_ptr<T> MemIO::alloc_safe(uint64 const NElements)
 //  * 
 //  * @param NChunksPerBlock -- Number of chunks (datum elements) per block of memory.
 //  *
-//  * @return Pool<Chunk_T> -- Pool object.
+//  * @returns Pool<Chunk_T> -- Pool object.
 //  */
 // template <Chunkable_T Chunk_T>
 // auto MemIO::getNewPool(uint64 const NChunksPerBlock) -> Pool<Chunk_T>

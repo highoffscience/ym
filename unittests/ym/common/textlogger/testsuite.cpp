@@ -23,7 +23,7 @@ ym::ut::TestSuite::TestSuite(void)
  *
  * @brief Opens and closes the text logger.
  *
- * @return DataShuttle -- Important values acquired during run of test.
+ * @returns DataShuttle -- Important values acquired during run of test.
  */
 auto ym::ut::TestSuite::OpenAndClose::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {

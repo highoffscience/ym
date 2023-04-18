@@ -22,7 +22,7 @@
 //  * @param NChunksPerBlock -- # of chunks to allocate per block.
 //  * @param ChunkSize_bytes -- Size of chunks in bytes.
 //  *
-//  * @return void * -- Pointer to beginning of block of memory.
+//  * @returns void * -- Pointer to beginning of block of memory.
 //  */
 // void * ym::MemIO::allocBlock(uint64 const NChunksPerBlock,
 //                              uint64 const ChunkSize_bytes)

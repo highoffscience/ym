@@ -28,7 +28,7 @@ ym::ut::TestSuiteBase::TestSuiteBase(std::string name)
  * @param Name   -- Name of test case to run.
  * @param InData -- Additional input data for test case.
  * 
- * @return DataShuttle -- Results of test case.
+ * @returns DataShuttle -- Results of test case.
  */
 auto ym::ut::TestSuiteBase::runTestCase(std::string const & Name,
                                         DataShuttle const & InData) -> DataShuttle

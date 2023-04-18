@@ -54,7 +54,7 @@ private:
  *
  * @tparam Timeable_T -- Unit of returned time will be represented in.
  *
- * @return Rep_T -- Elapsed time in specified units.
+ * @returns Rep_T -- Elapsed time in specified units.
  */
 template <Timeable Timeable_T>
 auto Timer::getElapsedTime(void) const -> Rep_T

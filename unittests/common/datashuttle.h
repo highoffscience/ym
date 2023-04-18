@@ -48,7 +48,7 @@ private:
  * 
  * @param Name -- Name of variable.
  * 
- * @return Value of named variable as type T.
+ * @returns Value of named variable as type T.
  */
 template <typename T>
 T DataShuttle::get(std::string const & Name)
@@ -66,7 +66,7 @@ T DataShuttle::get(std::string const & Name)
  * @param Name         -- Name of variable.
  * @param DefaultValue -- Value to return if named variable cannot be found.
  * 
- * @return Value of named variable as type T.
+ * @returns Value of named variable as type T.
  */
 template <typename T>
 T DataShuttle::get(std::string const & Name,

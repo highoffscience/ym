@@ -77,7 +77,7 @@ class TestSuiteBase(unittest.TestCase):
 
       @param test_case_name -- Name of test case to run.
 
-      @return DataShuttle -- Dictionary containing results of test case.
+      @returns DataShuttle -- Dictionary containing results of test case.
       """
 
       from cppyy.gbl import std

@@ -26,7 +26,7 @@ ym::ArgParser::ArgParser(void)
  * 
  * @brief Returns the single instance pointer.
  * 
- * @return ArgParser * -- Single instance pointer.
+ * @returns ArgParser * -- Single instance pointer.
  */
 auto ym::ArgParser::getInstancePtr(void) -> ArgParser *
 {
@@ -113,7 +113,7 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
  * @param Argc     -- Argument count  (as supplied from main()).
  * @param Argv_Ptr -- Argument vector (as supplied from main()).
  * 
- * @return int32 -- Updated index of command line argument.
+ * @returns int32 -- Updated index of command line argument.
  */
 auto ym::ArgParser::parse_Helper(Arg       * const arg_Ptr,
                                  int32             idx,
@@ -145,7 +145,7 @@ auto ym::ArgParser::parse_Helper(Arg       * const arg_Ptr,
  * 
  * @param Key -- Name of argument.
  * 
- * @return Arg * -- Found argument, or null if no argument found.
+ * @returns Arg * -- Found argument, or null if no argument found.
  */
 auto ym::ArgParser::get(str const Key) -> Arg const *
 {
@@ -162,7 +162,7 @@ auto ym::ArgParser::get(str const Key) -> Arg const *
  * 
  * @param Key -- Name of argument.
  * 
- * @return True if the argument has a valid value, false otherwise.
+ * @returns True if the argument has a valid value, false otherwise.
  */
 bool ym::ArgParser::isSet(str const Key)
 {
@@ -210,7 +210,7 @@ void ym::ArgParser::organizeAndValidateArgVector(void)
  * 
  * @param Key -- Name of argument.
  * 
- * @return Arg * -- Found argument, or null if no argument found.
+ * @returns Arg * -- Found argument, or null if no argument found.
  */
 auto ym::ArgParser::getArgPtrFromKey(str const Key) -> Arg *
 {
@@ -234,7 +234,7 @@ auto ym::ArgParser::getArgPtrFromKey(str const Key) -> Arg *
  * 
  * @param Prefix -- Prefix of argument.
  * 
- * @return Arg * -- Found argument, or null if no argument found.
+ * @returns Arg * -- Found argument, or null if no argument found.
  */
 auto ym::ArgParser::getArgPtrFromPrefix(str const Prefix) -> Arg *
 {
@@ -274,7 +274,7 @@ auto ym::ArgParser::getArgPtrFromPrefix(str const Prefix) -> Arg *
  * 
  * @param Abbr -- Abbreviation of argument.
  * 
- * @return Arg * -- Found argument, or null if no argument found.
+ * @returns Arg * -- Found argument, or null if no argument found.
  */
 auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> Arg *
 {
@@ -289,7 +289,7 @@ auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> Arg *
  * 
  * @param Abbr -- Abbreviation of argument.
  * 
- * @return uint32 -- Index of argument, or invalid if no argument found.
+ * @returns uint32 -- Index of argument, or invalid if no argument found.
  */
 auto ym::ArgParser::getAbbrIdx(char const Abbr) const -> uint32
 {
@@ -331,7 +331,7 @@ ym::ArgParser::Arg::Arg(str const Name)
  * 
  * @param Desc -- Description of argument.
  * 
- * @return Arg & -- *this.
+ * @returns Arg & -- *this.
  */
 auto ym::ArgParser::Arg::desc(str const Desc) -> Arg &
 {
@@ -348,13 +348,12 @@ auto ym::ArgParser::Arg::desc(str const Desc) -> Arg &
  * @brief Sets the default value for the argument. If no value is suppplied
  *        on the command line this value is the one assumed.
  * 
- * TODO break into multiple @throws declarations for each check statement
  * @throws ArgParserError_ArgError -- If the argument is a flag or
  *         is null or empty or has been previously set.
  * 
  * @param DefaultVal -- Default value of argument.
  * 
- * @return Arg & -- *this.
+ * @returns Arg & -- *this.
  */
 auto ym::ArgParser::Arg::val(str const DefaultVal) -> Arg &
 {
@@ -385,7 +384,7 @@ auto ym::ArgParser::Arg::val(str const DefaultVal) -> Arg &
  * 
  * @param Abbr -- Abbreviation of argument.
  * 
- * @return Arg & -- *this.
+ * @returns Arg & -- *this.
  */
 auto ym::ArgParser::Arg::abbr(char const Abbr) -> Arg &
 {
@@ -432,8 +431,13 @@ auto ym::ArgParser::Arg::flag(void) -> Arg &
    return *this;
 }
 
-/**
+/** setVal
  * 
+ * @brief Sets the argument's value.
+ * 
+ * @throws ArgParserError_ArgError -- If value is null.
+ * 
+ * @param Val -- Desired value.
  */
 void ym::ArgParser::Arg::setVal(str const Val)
 {
@@ -442,9 +446,14 @@ void ym::ArgParser::Arg::setVal(str const Val)
    _val = Val;
 }
 
-/**
- * TODO we can't check for isFlag here because that function relies on
- *      the val being set to true or false.
+/** enable
+ * 
+ * @brief Enables/disables the argument (forcing it to be a flag if not already).
+ * 
+ * @note We can't check for isFlag here because that function relies on
+ *       the value being set to true or false.
+ * 
+ * @param Enbl -- True if enabled state desired, false if disabled state desired.
  */
 void ym::ArgParser::Arg::enable(bool const Enbl)
 {

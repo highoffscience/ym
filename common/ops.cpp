@@ -17,7 +17,7 @@
  * 
  * @param S -- String to cast.
  * 
- * @return char -- String as char.
+ * @returns char -- String as char.
  */
 char ym::Ops::castToChar(str const S)
 {
@@ -39,7 +39,7 @@ char ym::Ops::castToChar(str const S)
  * @param S    -- String to cast.
  * @param Base -- Radix of int8.
  * 
- * @return int8 -- String as int8.
+ * @returns int8 -- String as int8.
  */
 template <>
 auto ym::Ops::castTo<ym::int8>(std::string const & S,
@@ -84,7 +84,7 @@ auto ym::Ops::castTo<ym::int8>(std::string const & S,
  * @param S    -- String to cast.
  * @param Base -- Radix of int16.
  * 
- * @return int16 -- String as int16.
+ * @returns int16 -- String as int16.
  */
 template <>
 auto ym::Ops::castTo<ym::int16>(std::string const & S,
@@ -129,7 +129,7 @@ auto ym::Ops::castTo<ym::int16>(std::string const & S,
  * @param S    -- String to cast.
  * @param Base -- Radix of int32.
  * 
- * @return int32 -- String as int32.
+ * @returns int32 -- String as int32.
  */
 template <>
 auto ym::Ops::castTo<ym::int32>(std::string const & S,
@@ -169,7 +169,7 @@ auto ym::Ops::castTo<ym::int32>(std::string const & S,
  * @param S    -- String to cast.
  * @param Base -- Radix of int64.
  * 
- * @return int64 -- String as int64.
+ * @returns int64 -- String as int64.
  */
 template <>
 auto ym::Ops::castTo<ym::int64>(std::string const & S,
@@ -209,7 +209,7 @@ auto ym::Ops::castTo<ym::int64>(std::string const & S,
  * @param S    -- String to cast.
  * @param Base -- Radix of uint8.
  * 
- * @return uint8 -- String as uint8.
+ * @returns uint8 -- String as uint8.
  */
 template <>
 auto ym::Ops::castTo<ym::uint8>(std::string const & S,
@@ -254,7 +254,7 @@ auto ym::Ops::castTo<ym::uint8>(std::string const & S,
  * @param S    -- String to cast.
  * @param Base -- Radix of uint16.
  * 
- * @return uint16 -- String as uint16.
+ * @returns uint16 -- String as uint16.
  */
 template <>
 auto ym::Ops::castTo<ym::uint16>(std::string const & S,
@@ -299,7 +299,7 @@ auto ym::Ops::castTo<ym::uint16>(std::string const & S,
  * @param S    -- String to cast.
  * @param Base -- Radix of uint32.
  * 
- * @return uint32 -- String as uint32.
+ * @returns uint32 -- String as uint32.
  */
 template <>
 auto ym::Ops::castTo<ym::uint32>(std::string const & S,
@@ -344,7 +344,7 @@ auto ym::Ops::castTo<ym::uint32>(std::string const & S,
  * @param S    -- String to cast.
  * @param Base -- Radix of uint64.
  * 
- * @return uint64 -- String as uint64.
+ * @returns uint64 -- String as uint64.
  */
 template <>
 auto ym::Ops::castTo<ym::uint64>(std::string const & S,
@@ -383,7 +383,7 @@ auto ym::Ops::castTo<ym::uint64>(std::string const & S,
  * 
  * @param S -- String to cast.
  * 
- * @return float32 -- String as float32.
+ * @returns float32 -- String as float32.
  */
 template <>
 auto ym::Ops::castTo<ym::float32>(std::string const & S) -> float32
@@ -421,7 +421,7 @@ auto ym::Ops::castTo<ym::float32>(std::string const & S) -> float32
  * 
  * @param S -- String to cast.
  * 
- * @return float64 -- String as float64.
+ * @returns float64 -- String as float64.
  */
 template <>
 auto ym::Ops::castTo<ym::float64>(std::string const & S) -> float64
@@ -459,7 +459,7 @@ auto ym::Ops::castTo<ym::float64>(std::string const & S) -> float64
  * 
  * @param S -- String to cast.
  * 
- * @return float80 -- String as float80.
+ * @returns float80 -- String as float80.
  */
 template <>
 auto ym::Ops::castTo<ym::float80>(std::string const & S) -> float80

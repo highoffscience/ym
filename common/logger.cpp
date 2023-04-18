@@ -26,7 +26,7 @@ ym::Logger::Logger(void)
  *
  * @brief Opens outfile to standard out.
  * 
- * @return bool -- Tru if the outfile was successfully opened, false otherwise.
+ * @returns bool -- Tru if the outfile was successfully opened, false otherwise.
  */
 bool ym::Logger::openOutfileToStdout(void)
 {
@@ -40,7 +40,7 @@ bool ym::Logger::openOutfileToStdout(void)
  *
  * @param Filename -- Name of file to open
  *
- * @return bool -- True if the file was opened, false otherwise
+ * @returns bool -- True if the file was opened, false otherwise
  */
 bool ym::Logger::openOutfile(str const Filename)
 {
@@ -59,7 +59,7 @@ bool ym::Logger::openOutfile(str const Filename)
  * @param Filename       -- Name of file to open.
  * @param TSFilenameMode -- Mode whether to append time stamps to filename.
  *
- * @return bool -- True if the file was opened, false otherwise
+ * @returns bool -- True if the file was opened, false otherwise
  */
 bool ym::Logger::openOutfile(str    const Filename,
                              TSFM_T const TSFilenameMode)
@@ -91,7 +91,7 @@ bool ym::Logger::openOutfile(str    const Filename,
  *
  * @param Filename -- Name of file.
  *
- * @return bool -- True if file was opened, false otherwise.
+ * @returns bool -- True if file was opened, false otherwise.
  */
 bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
 {

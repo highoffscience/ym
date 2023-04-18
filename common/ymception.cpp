@@ -81,7 +81,7 @@ std::string ym::Ymception::assertHandler(str                  const Name,
  *
  * @brief Returns the saved off message describing the exception.
  *
- * @return str -- The saved off message.
+ * @returns str -- The saved off message.
  */
 auto ym::Ymception::what(void) const noexcept -> str
 {

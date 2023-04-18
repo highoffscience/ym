@@ -46,7 +46,7 @@ struct VerboGroup
     *
     * @brief Convenience method to get the # of verbosity groups.
     *
-    * @return auto -- # of verbosity groups defined.
+    * @returns auto -- # of verbosity groups defined.
     */
    static constexpr auto getNGroups(void) { return ymToUnderlying(T::NGroups); }
 };
@@ -111,7 +111,7 @@ struct VerboGroupMask
     * 
     * @param VG -- The verbosity group mask
     * 
-    * @return auto -- Desired underlying type
+    * @returns auto -- Desired underlying type
     */
    static constexpr auto getGroup      (T const VG) { return ymToUnderlying    (VG) >> 8_u32;    }
    static constexpr auto getMask       (T const VG) { return ymToUnderlying    (VG) &  0xff_u32; }

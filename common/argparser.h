@@ -21,13 +21,24 @@ namespace ym
  *
  * @brief A parsing utility for use for command line arguments.
  * 
- * @note Singleton.
+ * TODO help menu
  * 
- * TODO explain reasoning why singleton is best vs other methods.
+ * @note Singleton. Reasons being:
+ *       1) Argparser has a static member so the Arg classes don't need
+ *          to store an explicit pointer to the outer class, making them 24 bytes
+ *          instead of 32 bytes.
+ *       2) It makes sense to only parse the command line arguments once,
+ *          since there is only one copy of them. This is a specialized
+ *          parser, others like json and xml require much different implementations.
+ *       3) Everyone has easy access to the instance, instead of relying on
+ *          passing the instance explicitly, which can get annoying.
  * 
- * TODO explain design (abbr packs, etc.)
- * 
- * TODO rename @return to @returns
+ * @note Example usages follow:
+ *       --input <value> // long hand arg with desired value
+ *       --assert        // long hand flag set to enable
+ *       -o <value>      // (output) short hand arg with desired value
+ *       -c              // (clean) short hand flag set to enable
+ *       -cb             // (clean; build) short hand (abbr pack) flags set to enable
  */
 class ArgParser
 {
@@ -128,7 +139,7 @@ private:
  * 
  * @param Name -- Name (key) of argument.
  * 
- * @return Arg -- Empty named argument.
+ * @returns Arg -- Empty named argument.
  */
 inline auto ym::ArgParser::arg(str const Name) const -> Arg
 {
@@ -143,7 +154,7 @@ inline auto ym::ArgParser::arg(str const Name) const -> Arg
  * 
  * @param Key -- Name of argument.
  * 
- * @return Arg * -- Found argument, or null if no argument found.
+ * @returns Arg * -- Found argument, or null if no argument found.
  */
 inline auto ym::ArgParser::operator[](str const Key) -> Arg const *
 {

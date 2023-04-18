@@ -27,7 +27,7 @@ ym::ut::TestSuite::TestSuite(void)
  *
  * @brief Tests if ArgParser can parse.
  *
- * @return DataShuttle -- Important values acquired during run of test.
+ * @returns DataShuttle -- Important values acquired during run of test.
  */
 auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
