@@ -22,6 +22,12 @@ namespace ym
  * @brief A parsing utility for use for command line arguments.
  * 
  * @note Singleton.
+ * 
+ * TODO explain reasoning why singleton is best vs other methods.
+ * 
+ * TODO explain design (abbr packs, etc.)
+ * 
+ * TODO rename @return to @returns
  */
 class ArgParser
 {
@@ -86,10 +92,10 @@ public:
               int const           Argc,
               str const * const   Argv_Ptr);
 
-   Arg       * getArgPtr (str const Key) const;
-   Arg const * operator[](str const Key) const;
+          Arg const * get       (str const Key);
+   inline Arg const * operator[](str const Key);
 
-   bool isSet(str const Key) const;
+   bool isSet(str const Key);
 
    YM_DECL_YMCEPT(ArgParserError)
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_ParseError )
@@ -97,15 +103,18 @@ public:
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_AccessError)
 
 private:
-   Arg * getArgPtrFromPrefix(str  const Key );
-   Arg * getArgPtrFromAbbr  (char const Abbr);
+   void organizeAndValidateArgVector(void);
+
+   Arg * getArgPtrFromKey   (str  const Key   );
+   Arg * getArgPtrFromPrefix(str  const Prefix);
+   Arg * getArgPtrFromAbbr  (char const Abbr  );
 
    uint32 getAbbrIdx(char const Abbr) const;
 
    int32 parse_Helper(Arg       * const arg_Ptr,
                       int32             idx,
                       int32       const Argc,
-                      str const * const Argv_Ptr);
+                      str const * const Argv_Ptr) const;
 
    std::vector<Arg>        _args;
    std::array<str, 62_u32> _abbrs; // stores the keys
@@ -124,6 +133,21 @@ private:
 inline auto ym::ArgParser::arg(str const Name) const -> Arg
 {
    return Arg(Name);
+}
+
+/** operator[]
+ * 
+ * @brief Returns the registered argument info associated with the given key.
+ * 
+ * @throws ArgParserError_AccessError -- If no argument with the given name found.
+ * 
+ * @param Key -- Name of argument.
+ * 
+ * @return Arg * -- Found argument, or null if no argument found.
+ */
+inline auto ym::ArgParser::operator[](str const Key) -> Arg const *
+{
+   return get(Key);
 }
 
 } // ym
