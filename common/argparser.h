@@ -21,8 +21,6 @@ namespace ym
  *
  * @brief A parsing utility for use for command line arguments.
  * 
- * TODO help menu
- * 
  * @note Singleton. Reasons being:
  *       1) Argparser has a static member so the Arg classes don't need
  *          to store an explicit pointer to the outer class, making them 24 bytes

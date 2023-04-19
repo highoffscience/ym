@@ -6,6 +6,9 @@
 
 #include "argparser.h"
 
+// TODO
+#include "textlogger.h"
+
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
@@ -51,6 +54,9 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
 {
    _args = std::move(args_uref);
 
+   ymLog(VG::ArgParser, "-> Args size = %lu", _args.size());
+   ymLog(VG::ArgParser, "-> Args capa = %lu", _args.capacity());
+
    organizeAndValidateArgVector();
 
    for (auto i = 1_i32; i < Argc; ++i)
@@ -67,6 +73,24 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
             ArgParserError_ParseError::check(arg_Ptr, "Arg '%s' not registered", name);
 
             i = parse_Helper(arg_Ptr, i, Argc, Argv_Ptr);
+
+
+            // TODO
+            auto * const arg_Ptr = getArgPtrFromPrefix(name);
+            if (arg_Ptr)
+            {
+               i = parse_Helper(arg_Ptr, i, Argc, Argv_Ptr);
+            }
+            // TODO disallow help as an argument name
+            else if (std::strcmp(name, "help")) // must be full name - no prefix allowed
+            {
+               // TODO
+               // displayHelpMenu()
+            }
+            else
+            {
+               ArgParserError_ParseError::check(false, "Arg '%s' not registered", name);
+            }
          }
          else
          { // shorthand arg found
