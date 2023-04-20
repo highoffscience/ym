@@ -114,6 +114,8 @@ public:
 private:
    void organizeAndValidateArgVector(void);
 
+   void displayHelpMenu(void) const;
+
    Arg * getArgPtrFromKey   (str  const Key   );
    Arg * getArgPtrFromPrefix(str  const Prefix);
    Arg * getArgPtrFromAbbr  (char const Abbr  );

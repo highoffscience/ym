@@ -6,7 +6,6 @@
 
 #include "argparser.h"
 
-// TODO
 #include "textlogger.h"
 
 #include <algorithm>
@@ -69,27 +68,16 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
          { // longhand arg found
             name += 2_u32;
 
-            auto * const arg_Ptr = getArgPtrFromPrefix(name);
-            ArgParserError_ParseError::check(arg_Ptr, "Arg '%s' not registered", name);
-
-            i = parse_Helper(arg_Ptr, i, Argc, Argv_Ptr);
-
-
-            // TODO
-            auto * const arg_Ptr = getArgPtrFromPrefix(name);
-            if (arg_Ptr)
-            {
-               i = parse_Helper(arg_Ptr, i, Argc, Argv_Ptr);
-            }
-            // TODO disallow help as an argument name
-            else if (std::strcmp(name, "help")) // must be full name - no prefix allowed
-            {
-               // TODO
-               // displayHelpMenu()
+            if (std::strcmp(name, "help") == 0_i32) // must be full name - no prefix allowed
+            { // help menu requested
+               displayHelpMenu();
             }
             else
-            {
-               ArgParserError_ParseError::check(false, "Arg '%s' not registered", name);
+            { // standard arg
+               auto * const arg_Ptr = getArgPtrFromPrefix(name);
+               ArgParserError_ParseError::check(arg_Ptr, "Arg '%s' not registered", name);
+
+               i = parse_Helper(arg_Ptr, i, Argc, Argv_Ptr);
             }
          }
          else
@@ -102,19 +90,27 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
             for (auto j = 0_u32; j < NAbbrs; ++j)
             { // go through all abbrs in pack
 
-               auto   const Abbr    = name[j];
-               auto * const arg_Ptr = getArgPtrFromAbbr(Abbr);
-               ArgParserError_ParseError::check(arg_Ptr, "Abbr '%c' not registered", Abbr);
+               auto const Abbr = name[j];
 
-               if (NAbbrs == 1_u32)
-               { // only 1 abbr - might have value
-                  i = parse_Helper(arg_Ptr, i, Argc, Argv_Ptr);
-                  break;
+               if (Abbr == 'h')
+               { // help menu requested
+                  displayHelpMenu();
                }
                else
-               { // abbr found
-                  ArgParserError_ParseError::check(arg_Ptr->isFlag(), "Arg '%s' not a flag", arg_Ptr->getName());
-                  arg_Ptr->enable(true);
+               { // standard arg
+                  auto * const arg_Ptr = getArgPtrFromAbbr(Abbr);
+                  ArgParserError_ParseError::check(arg_Ptr, "Abbr '%c' not registered", Abbr);
+
+                  if (NAbbrs == 1_u32)
+                  { // only 1 abbr - might have value
+                     i = parse_Helper(arg_Ptr, i, Argc, Argv_Ptr);
+                     break;
+                  }
+                  else
+                  { // abbr found
+                     ArgParserError_ParseError::check(arg_Ptr->isFlag(), "Arg '%s' not a flag", arg_Ptr->getName());
+                     arg_Ptr->enable(true);
+                  }
                }
             }
          }
@@ -216,7 +212,18 @@ void ym::ArgParser::organizeAndValidateArgVector(void)
       ArgParserError_ParseError::check(
          std::strcmp(_args[i-1_u32].getName(), _args[i].getName()) != 0_i32,
          "Duplicate arg '%s'", _args[i].getName());
+
+      
    }
+}
+
+/** displayHelpMenu
+ * 
+ * TODO
+ */
+void ym::ArgParser::displayHelpMenu(void) const
+{
+
 }
 
 /** getArgPtrFromKey
@@ -344,6 +351,8 @@ ym::ArgParser::Arg::Arg(str const Name)
 {
    ArgParserError_ArgError::check(ymIsStrNonEmpty(getName()), "Name must be non-empty");
    ArgParserError_ArgError::check(std::isalnum(getName()[0_u32]), "Name '%s' is invalid", getName());
+   ArgParserError_ArgError::check(std::strcmp(getName(), "help") != 0_i32,
+      "Arg cannot be named the reserved word 'help'");
 }
 
 /** desc
@@ -412,6 +421,9 @@ auto ym::ArgParser::Arg::val(str const DefaultVal) -> Arg &
  */
 auto ym::ArgParser::Arg::abbr(char const Abbr) -> Arg &
 {
+   ArgParserError_ArgError::check(Abbr != 'h',
+      "Arg '%s' requesting reserved abbr 'h'", getName());
+
    auto * const ap_Ptr  = ArgParser::getInstancePtr();
    auto   const AbbrIdx = ap_Ptr->getAbbrIdx(Abbr);
 
