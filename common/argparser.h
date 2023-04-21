@@ -116,6 +116,8 @@ private:
 
    void displayHelpMenu(void) const;
 
+   char  getAbbrFromKey     (str  const Key   ) const;
+
    Arg * getArgPtrFromKey   (str  const Key   );
    Arg * getArgPtrFromPrefix(str  const Prefix);
    Arg * getArgPtrFromAbbr  (char const Abbr  );

@@ -223,7 +223,52 @@ void ym::ArgParser::organizeAndValidateArgVector(void)
  */
 void ym::ArgParser::displayHelpMenu(void) const
 {
+   for (auto const & Arg : _args)
+   {
+      ymLog(VG::ArgParser, "--%s <> %s", Arg.getName(), Arg.getDesc());
 
+      if (auto const TentativeAbbr = getAbbrFromKey(Arg.getName()); TentativeAbbr != '\0')
+      {
+         ymLog(VG::ArgParser, " (-%c)", TentativeAbbr);
+      }
+   }
+}
+
+char ym::ArgParser::getAbbrFromKey(str const Key) const
+{
+   auto i    = 0_u32;
+   auto abbr = '\0';
+
+   for (; i < 26_u32; ++i)
+   {
+      if (std::strcmp(Key, _abbrs[i]) == 0_i32)
+      {
+         // TODO
+         i = _abbrs.size();
+         break;
+      }
+   }
+
+   for (; i < 52_u32; ++i)
+   {
+      if (std::strcmp(Key, _abbrs[i]) == 0_i32)
+      {
+         // TODO
+         i = _abbrs.size();
+         break;
+      }
+   }
+
+   for (; i < 62_u32; ++i)
+   {
+      if (std::strcmp(Key, _abbrs[i]) == 0_i32)
+      {
+         // TODO
+         break;
+      }
+   }
+
+   return abbr;
 }
 
 /** getArgPtrFromKey
