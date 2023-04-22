@@ -53,9 +53,6 @@ void ym::ArgParser::parse(std::vector<Arg> && args_uref,
 {
    _args = std::move(args_uref);
 
-   ymLog(VG::ArgParser, "-> Args size = %lu", _args.size());
-   ymLog(VG::ArgParser, "-> Args capa = %lu", _args.capacity());
-
    organizeAndValidateArgVector();
 
    for (auto i = 1_i32; i < Argc; ++i)
@@ -223,28 +220,37 @@ void ym::ArgParser::organizeAndValidateArgVector(void)
  */
 void ym::ArgParser::displayHelpMenu(void) const
 {
-   for (auto const & Arg : _args)
-   {
-      ymLog(VG::ArgParser, "--%s <> %s", Arg.getName(), Arg.getDesc());
+   ymLog(VG::ArgParser, "ArgParser help menu:");
 
-      if (auto const TentativeAbbr = getAbbrFromKey(Arg.getName()); TentativeAbbr != '\0')
-      {
-         ymLog(VG::ArgParser, " (-%c)", TentativeAbbr);
+   for (auto const & Arg : _args)
+   { // go through all registered arguments
+
+      if (auto const Abbr = getAbbrFromKey(Arg.getName()); Abbr != '\0')
+      { // this arg has an abbreviation
+         ymLog(VG::ArgParser, " --%s (-%c) : %s", Arg.getName(), Abbr, Arg.getDesc());
+      }
+      else
+      { // arg has no abbreviation
+         ymLog(VG::ArgParser, " --%s : %s", Arg.getName(), Arg.getDesc());
       }
    }
 }
 
+/** getAbbrFromKey
+ * 
+ * TODO
+ */
 char ym::ArgParser::getAbbrFromKey(str const Key) const
 {
    auto i    = 0_i32;
    auto abbr = '\0';
 
    for (; i < 26_i32; ++i)
-   {
+   { // go through abbrs in range ['A' - 'Z']
       if (_abbrs[i])
-      {
+      { // registered abbr found
          if (std::strcmp(Key, _abbrs[i]) == 0_i32)
-         {
+         { // abbr registered for this key found
             abbr = static_cast<char>(i + 'A');
             i = _abbrs.size();
             break;
@@ -253,11 +259,11 @@ char ym::ArgParser::getAbbrFromKey(str const Key) const
    }
 
    for (; i < 52_i32; ++i)
-   {
+   { // go through abbrs in range ['a' - 'z']
       if (_abbrs[i])
-      {
+      { // registered abbr found
          if (std::strcmp(Key, _abbrs[i]) == 0_i32)
-         {
+         { // abbr registered for this key found
             abbr = static_cast<char>(i - 26_i32 + 'a');
             i = _abbrs.size();
             break;
@@ -266,11 +272,11 @@ char ym::ArgParser::getAbbrFromKey(str const Key) const
    }
 
    for (; i < 62_i32; ++i)
-   {
+   { // go through abbrs in range ['0' - '9']
       if (_abbrs[i])
-      {
+      { // registered abbr found
          if (std::strcmp(Key, _abbrs[i]) == 0_i32)
-         {
+         { // abbr registered for this key found
             abbr = static_cast<char>(i - 52_i32 + '0');
             break;
          }

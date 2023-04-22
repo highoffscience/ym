@@ -40,7 +40,8 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
       "--output", "data.csv",
       "-cb",
       "-k", "Torchic1234",
-      "--in-denial"
+      "--in-denial",
+      "--help"
    };
    auto const Argc = static_cast<int32>(YM_ARRAY_SIZE(Argv));
    
