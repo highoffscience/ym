@@ -236,35 +236,44 @@ void ym::ArgParser::displayHelpMenu(void) const
 
 char ym::ArgParser::getAbbrFromKey(str const Key) const
 {
-   auto i    = 0_u32;
+   auto i    = 0_i32;
    auto abbr = '\0';
 
-   for (; i < 26_u32; ++i)
+   for (; i < 26_i32; ++i)
    {
-      if (std::strcmp(Key, _abbrs[i]) == 0_i32)
+      if (_abbrs[i])
       {
-         // TODO
-         i = _abbrs.size();
-         break;
+         if (std::strcmp(Key, _abbrs[i]) == 0_i32)
+         {
+            abbr = static_cast<char>(i + 'A');
+            i = _abbrs.size();
+            break;
+         }
       }
    }
 
-   for (; i < 52_u32; ++i)
+   for (; i < 52_i32; ++i)
    {
-      if (std::strcmp(Key, _abbrs[i]) == 0_i32)
+      if (_abbrs[i])
       {
-         // TODO
-         i = _abbrs.size();
-         break;
+         if (std::strcmp(Key, _abbrs[i]) == 0_i32)
+         {
+            abbr = static_cast<char>(i - 26_i32 + 'a');
+            i = _abbrs.size();
+            break;
+         }
       }
    }
 
-   for (; i < 62_u32; ++i)
+   for (; i < 62_i32; ++i)
    {
-      if (std::strcmp(Key, _abbrs[i]) == 0_i32)
+      if (_abbrs[i])
       {
-         // TODO
-         break;
+         if (std::strcmp(Key, _abbrs[i]) == 0_i32)
+         {
+            abbr = static_cast<char>(i - 52_i32 + '0');
+            break;
+         }
       }
    }
 
