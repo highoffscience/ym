@@ -41,7 +41,7 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
       "-cb",
       "-k", "Torchic1234",
       "--in-denial",
-      "--help"
+      "-h"
    };
    auto const Argc = static_cast<int32>(YM_ARRAY_SIZE(Argv));
    

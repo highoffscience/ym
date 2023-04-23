@@ -81,6 +81,15 @@ public:
    void enable (VG const VG);
    void disable(VG const VG);
 
+   // TODO create pushEnable() and popEnable(). so it behaves like
+   // wasEnabled = isEnabled()
+   // enable()
+   // do stuff...
+   // if (!wasEnabled) then
+   //    disable()
+   // it would be cool if pushEnable() returned a smart pointer or something so when the
+   //    invoking function goes out of scope popEnable() is called automatically.
+
    template <Loggable... Args_T>
    inline void printf(VG     const    VG,
                       str    const    Format,

@@ -6,6 +6,7 @@
 
 #include "argparser.h"
 
+#include "memio.h"
 #include "textlogger.h"
 
 #include <algorithm>
@@ -209,36 +210,64 @@ void ym::ArgParser::organizeAndValidateArgVector(void)
       ArgParserError_ParseError::check(
          std::strcmp(_args[i-1_u32].getName(), _args[i].getName()) != 0_i32,
          "Duplicate arg '%s'", _args[i].getName());
-
-      
    }
 }
 
 /** displayHelpMenu
  * 
- * TODO
+ * @brief Prints the help menu.
  */
 void ym::ArgParser::displayHelpMenu(void) const
 {
+   // TODO pushEnable()
+   // TextLogger::getGlobalInstance()->enable(VG::ArgParser);
+
+   auto maxKeyLen = 0_u32;
+
+   for (auto const & Arg : _args)
+   { // go through all registered arguments
+      if (auto const KeyLen = std::strlen(Arg.getName()); KeyLen > maxKeyLen)
+      { // update max key length
+         maxKeyLen = KeyLen;
+      }
+   }
+
+   auto * const spaces_Ptr = YM_STACK_ALLOC(char, maxKeyLen + 1_u32);
+   for (auto i = 0_u32; i < maxKeyLen; ++i)
+   { // init all elements to spaces
+      spaces_Ptr[i] = ' ';
+   }
+   spaces_Ptr[maxKeyLen] = '\0';
+
    ymLog(VG::ArgParser, "ArgParser help menu:");
 
    for (auto const & Arg : _args)
    { // go through all registered arguments
 
+      auto const KeyLen = std::strlen(Arg.getName());
+      ymLog(VG::ArgParser, " --%s%s : %s", Arg.getName(), spaces_Ptr + KeyLen, Arg.getDesc());
+
       if (auto const Abbr = getAbbrFromKey(Arg.getName()); Abbr != '\0')
       { // this arg has an abbreviation
-         ymLog(VG::ArgParser, " --%s (-%c) : %s", Arg.getName(), Abbr, Arg.getDesc());
-      }
-      else
-      { // arg has no abbreviation
-         ymLog(VG::ArgParser, " --%s : %s", Arg.getName(), Arg.getDesc());
+         ymLog(VG::ArgParser, "   (-%c)", Abbr);
       }
    }
 }
 
 /** getAbbrFromKey
  * 
- * TODO
+ * @brief Get key's abbreviation.
+ * 
+ * @note This method would become trivial if we simply explicitly stored the
+ *       abbreviation but that would require more space and the time penalty
+ *       incurred here is only when the user is requesting help - which is
+ *       not the most time sensitive problem.
+ * 
+ * @ref ym::ArgParser::getAbbrIdx(...)
+ * 
+ * @param Key -- Name of argument.
+ * 
+ * @returns char -- Key's abbreviation, or null terminator if none.
  */
 char ym::ArgParser::getAbbrFromKey(str const Key) const
 {
@@ -377,6 +406,8 @@ auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> Arg *
 /** getArgPtrPtrFromAbbr
  * 
  * @brief Founds index of argument associated with the given abbreviation.
+ * 
+ * @ref ym::ArgParser::getAbbrFromKey(...)
  * 
  * @param Abbr -- Abbreviation of argument.
  * 
