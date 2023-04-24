@@ -78,17 +78,29 @@ public:
    static constexpr auto getBufferSize_bytes    (void) { return _s_BufferSize_bytes;     }
    static constexpr auto getTimeStampSize_bytes (void) { return _s_TimeStampSize_bytes;  }
 
-   void enable (VG const VG);
-   void disable(VG const VG);
+   /** ScopedEnable
+    * 
+    * @brief Allows managed temporary enabling of a verbosity group.
+    */
+   class ScopedEnable
+   {
+   public:
+      explicit ScopedEnable(TextLogger * const logger_Ptr,
+                            VG           const VG);
+      ~ScopedEnable(void);
 
-   // TODO create pushEnable() and popEnable(). so it behaves like
-   // wasEnabled = isEnabled()
-   // enable()
-   // do stuff...
-   // if (!wasEnabled) then
-   //    disable()
-   // it would be cool if pushEnable() returned a smart pointer or something so when the
-   //    invoking function goes out of scope popEnable() is called automatically.
+      void popEnable(void) const;
+
+   private:
+      TextLogger * const _logger_Ptr;
+      VG           const _VG;
+      bool         const _WasEnabled;
+   };
+
+   bool enable (VG const VG);
+   bool disable(VG const VG);
+
+   ScopedEnable pushEnable(VG const VG);
 
    template <Loggable... Args_T>
    inline void printf(VG     const    VG,

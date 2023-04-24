@@ -219,8 +219,7 @@ void ym::ArgParser::organizeAndValidateArgVector(void)
  */
 void ym::ArgParser::displayHelpMenu(void) const
 {
-   // TODO pushEnable()
-   // TextLogger::getGlobalInstance()->enable(VG::ArgParser);
+   auto const SC = TextLogger::getGlobalInstance()->pushEnable(VG::ArgParser);
 
    auto maxKeyLen = 0_u32;
 

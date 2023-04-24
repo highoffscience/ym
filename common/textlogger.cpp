@@ -191,12 +191,14 @@ void ym::TextLogger::close_Helper(str          msg,
  * @brief Enables specified verbosity group.
  *
  * @param VG -- Verbosity group to enable.
+ * 
+ * @returns bool -- If previously enabled before this call.
  */
-void ym::TextLogger::enable(VG const VG)
+bool ym::TextLogger::enable(VG const VG)
 {
    using VGM = VerboGroupMask;
 
-   _vGroups[VGM::getGroup(VG)] |= VGM::getMask_asByte(VG);
+   return _vGroups[VGM::getGroup(VG)].fetch_or(VGM::getMask_asByte(VG));
 }
 
 /** disable
@@ -204,12 +206,23 @@ void ym::TextLogger::enable(VG const VG)
  * @brief Disables specified verbosity group.
  *
  * @param VG -- Verbosity group to disable.
+ * 
+ * @returns bool -- If previously enabled before this call.
  */
-void ym::TextLogger::disable(VG const VG)
+bool ym::TextLogger::disable(VG const VG)
 {
    using VGM = VerboGroupMask;
 
-   _vGroups[VGM::getGroup(VG)] &= ~VGM::getMask_asByte(VG);
+   return _vGroups[VGM::getGroup(VG)].fetch_and(~VGM::getMask_asByte(VG));
+}
+
+/** pushEnable
+ * 
+ * @brief TODO
+ */
+auto ym::TextLogger::pushEnable(VG const VG) -> ScopedEnable
+{
+   return ScopedEnable(this, VG);
 }
 
 /** printf_Handler
@@ -417,4 +430,45 @@ void ym::TextLogger::populateFormattedTime(char * const write_Ptr) const
    write_Ptr[32_u32] = '\0';
 
    static_assert(getTimeStampSize_bytes() == 33_u32, "Time stamp buffer is incorrect size");
+}
+
+/** ScopedEnable
+ * 
+ * @brief Constructor.
+ * 
+ * TODO
+ * 
+ * @param logger_Ptr 
+ * @param VG 
+ * @param WasEnabled 
+ */
+ym::TextLogger::ScopedEnable::ScopedEnable(TextLogger * const logger_Ptr,
+                                           VG           const VG)
+   : _logger_Ptr {logger_Ptr            },
+     _VG         {VG                    },
+     _WasEnabled {logger_Ptr->enable(VG)}
+{
+}
+
+/** ~ScopedEnable
+ * 
+ * @brief Destructor.
+ * 
+ * TODO
+ */
+ym::TextLogger::ScopedEnable::~ScopedEnable(void)
+{
+   popEnable();
+}
+
+/** popEnable
+ * 
+ * @brief TODO
+ */
+void ym::TextLogger::ScopedEnable::popEnable(void) const
+{
+   if (!_WasEnabled)
+   { // disable
+      _logger_Ptr->disable(_VG);
+   }
 }
