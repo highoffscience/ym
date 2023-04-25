@@ -17,6 +17,7 @@
 #include <atomic>
 #include <bit>
 #include <cstdarg>
+#include <exception>
 #include <mutex>
 #include <semaphore>
 #include <thread>
@@ -32,6 +33,13 @@ template <Loggable... Args_T>
 inline void ymLog(VG     const    VG,
                   str    const    Format,
                   Args_T const... Args);
+
+// TODO implement
+
+inline void ymLogEnable (VG const VG);
+inline void ymLogDisable(VG const VG);
+
+inline class ScopedEnable ymLogPushEnable(VG const VG);
 
 /* -------------------------------------------------------------------------- */
 
@@ -61,6 +69,15 @@ public:
    YM_NO_COPY  (TextLogger)
    YM_NO_ASSIGN(TextLogger)
 
+   /** TextLoggerError_GlobalFailureToOpen
+    * 
+    * @brief TODO
+    */
+   class TextLoggerError_GlobalFailureToOpen
+   {
+
+   };
+
    // YM_DECL_YMCEPT(TextLoggerError)
    // YM_DECL_YMCEPT(TextLoggerError, TextLoggerError_GlobalFailureToOpen)
 
@@ -81,6 +98,14 @@ public:
    /** ScopedEnable
     * 
     * @brief Allows managed temporary enabling of a verbosity group.
+    * 
+    * @note Uses RAII to storing/restoring enabling verbosity groups.
+    * 
+    * @note The return value from @ref TextLogger::pushEnable will need to be explicitly
+    *       stored, ie.
+    *       auto const SC = ymLogPushEnable(VG);
+    *       even if SC is not used, since the destructor has side effects. Simply calling
+    *       pushEnable will result in the ScopedEnable structure being deleted immediately.
     */
    class ScopedEnable
    {

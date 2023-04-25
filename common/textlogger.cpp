@@ -67,6 +67,9 @@ bool ym::TextLogger::isOpen(void) const
  * @brief Gets the global text logger instance.
  *
  * @note Used as the global logger for the program. Not expected to close until the end.
+ * 
+ * @note Ymception uses the global log to record errors, so if this function fails we cannot
+ *       throw. Best we can do is report to stderr and throw std::exception.
  */
 auto ym::TextLogger::getGlobalInstance(void) -> TextLogger *
 {
@@ -218,7 +221,9 @@ bool ym::TextLogger::disable(VG const VG)
 
 /** pushEnable
  * 
- * @brief TODO
+ * @brief Enables given verbosity group only in the current scope.
+ * 
+ * @param VG -- Verbosity group.
  */
 auto ym::TextLogger::pushEnable(VG const VG) -> ScopedEnable
 {
@@ -436,11 +441,10 @@ void ym::TextLogger::populateFormattedTime(char * const write_Ptr) const
  * 
  * @brief Constructor.
  * 
- * TODO
+ * @note Enables upon construction.
  * 
- * @param logger_Ptr 
- * @param VG 
- * @param WasEnabled 
+ * @param logger_Ptr -- Logger instance to enable VG for.
+ * @param VG         -- Verbosity group.
  */
 ym::TextLogger::ScopedEnable::ScopedEnable(TextLogger * const logger_Ptr,
                                            VG           const VG)
@@ -454,7 +458,7 @@ ym::TextLogger::ScopedEnable::ScopedEnable(TextLogger * const logger_Ptr,
  * 
  * @brief Destructor.
  * 
- * TODO
+ * @note Disables upon exit.
  */
 ym::TextLogger::ScopedEnable::~ScopedEnable(void)
 {
@@ -463,7 +467,7 @@ ym::TextLogger::ScopedEnable::~ScopedEnable(void)
 
 /** popEnable
  * 
- * @brief TODO
+ * @brief Restores the enable state of the stored VG.
  */
 void ym::TextLogger::ScopedEnable::popEnable(void) const
 {
