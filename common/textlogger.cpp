@@ -62,7 +62,7 @@ bool ym::TextLogger::isOpen(void) const
    return _writerMode.load(std::memory_order_relaxed) == WriterMode_T::Open;
 }
 
-/** getGlobalInstance
+/** getGlobalInstancePtr
  *
  * @brief Gets the global text logger instance.
  *
@@ -71,8 +71,27 @@ bool ym::TextLogger::isOpen(void) const
  * @note Ymception uses the global log to record errors, so if this function fails we cannot
  *       throw. Best we can do is report to stderr and throw std::exception.
  */
-auto ym::TextLogger::getGlobalInstance(void) -> TextLogger *
+auto ym::TextLogger::getGlobalInstancePtr(void) -> TextLogger *
 {
+   static TextLogger * instance_ptr = nullptr;
+
+   if (instance_ptr == nullptr)
+   {
+      instance_ptr = new TextLogger(TimeStampMode_T::RecordTimeStamp);
+
+      // TODO assert not null
+
+      auto const Opened = instance_ptr->open("global.txt", TimeStampFilenameMode_T::Append);
+
+      // TODO assert opened
+   }
+
+   return instance_ptr; // guaranteed not null
+
+
+
+
+
    static TextLogger s_instance(TimeStampMode_T::RecordTimeStamp);
 
    if (!s_instance.isOpen())

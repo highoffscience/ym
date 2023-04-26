@@ -10,12 +10,24 @@
 #include <array>
 #include <cstdarg>
 #include <cstdio>
+#include <utility>
 
 #define YM_DISABLE_STACKTRACE
 
 #if !defined(YM_DISABLE_STACKTRACE)
    #include <boost/stacktrace.hpp>
 #endif // YM_DISABLE_STACKTRACE
+
+/** Ymception
+ *
+ * @brief Constructor.
+ *
+ * @param msg_uref -- Message string.
+ */
+ym::Ymception::Ymception(std::string && msg_uref)
+   : _Msg {std::move(msg_uref)}
+{
+}
 
 /** assertHandler
  *
@@ -75,6 +87,20 @@ std::string ym::Ymception::assertHandler(str                  const Name,
 #endif // YM_DISABLE_STACKTRACE
 
    return std::string(buffer.data());
+}
+
+/** assertHandler
+ *
+ * @brief Assert has failed. Print diagnostic information and throw.
+ * 
+ * @todo std::stacktrace implementation instead of boost.
+ */
+std::string ym::Ymception::assertHandler(str                  const Name,
+                                         std::source_location const SrcLoc,
+                                         str                  const Format,
+                                         /*variadic*/               ...)
+{
+   // TODO implement
 }
 
 /** what

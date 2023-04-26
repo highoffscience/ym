@@ -69,19 +69,11 @@ public:
    YM_NO_COPY  (TextLogger)
    YM_NO_ASSIGN(TextLogger)
 
-   /** TextLoggerError_GlobalFailureToOpen
-    * 
-    * @brief TODO
-    */
-   class TextLoggerError_GlobalFailureToOpen
-   {
+   YM_DECL_STDERR_YMCEPT(TextLoggerError)
+   YM_DECL_STDERR_YMCEPT(TextLoggerError, TextLoggerError_GlobalFailureToOpen)
 
-   };
-
-   // YM_DECL_YMCEPT(TextLoggerError)
-   // YM_DECL_YMCEPT(TextLoggerError, TextLoggerError_GlobalFailureToOpen)
-
-   static TextLogger * getGlobalInstance(void);
+   static TextLogger * getGlobalInstancePtr      (void);
+   static TextLogger * getGlobalStdErrInstancePtr(void);
 
    bool isOpen(void) const;
 
