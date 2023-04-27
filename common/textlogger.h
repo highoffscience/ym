@@ -221,7 +221,7 @@ inline void ymLog(VG     const    VG,
                   str    const    Format,
                   Args_T const... Args)
 {
-   TextLogger::getGlobalInstance()->printf(VG, Format, Args...);
+   TextLogger::getGlobalInstancePtr()->printf(VG, Format, Args...);
 }
 
 } // ym
