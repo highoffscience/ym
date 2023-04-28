@@ -12,6 +12,15 @@
 #include <ctime>
 #include <memory>
 
+// TODO maybe the logger should have a modifiable mode such as
+// enum RedirectMode_T : uint32
+// {
+//    ToLog,
+//    ToStdErr,
+//    ToStdOut,
+//    ToLogAndStdErr
+//    ToLogAndStdOut
+// };
 #define YM_PRINT_TO_SCREEN // redirects output to stdout
 
 /** TextLogger
@@ -75,37 +84,26 @@ auto ym::TextLogger::getGlobalInstancePtr(void) -> TextLogger *
 {
    static TextLogger * instance_ptr = nullptr;
 
-   if (instance_ptr == nullptr)
+   if (!instance_ptr)
    {
       instance_ptr = new TextLogger(TimeStampMode_T::RecordTimeStamp);
 
-      // TODO assert not null
+      TextLoggerError_GlobalFailureToOpen::check(instance_ptr,
+         "Global instance failed to be created");
 
       auto const Opened = instance_ptr->open("global.txt", TimeStampFilenameMode_T::Append);
 
-      // TODO assert opened
+      if (!Opened)
+      {
+         delete instance_ptr;
+         instance_ptr = nullptr;
+
+         TextLoggerError_GlobalFailureToOpen::check(false,
+            "Global instance failed to open");
+      }
    }
 
    return instance_ptr; // guaranteed not null
-
-
-
-
-
-   static TextLogger s_instance(TimeStampMode_T::RecordTimeStamp);
-
-   if (!s_instance.isOpen())
-   {
-      auto const Opened = s_instance.open("global.txt", TimeStampFilenameMode_T::Append);
-
-      (void)Opened;
-      // TODO
-      // creates infinite recursion
-      // ymAssert<TextLoggerError_GlobalFailureToOpen>(Opened,
-      //    "Global text logger instance failed to open");
-   }
-
-   return &s_instance;
 }
 
 /** openToStdout

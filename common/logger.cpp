@@ -18,7 +18,14 @@
  * @note _outfile_uptr is set to null to serve as a flag that the logger is uninitialized.
  */
 ym::Logger::Logger(void)
-   : _outfile_uptr {nullptr, [](std::FILE * const file_Ptr) { if (file_Ptr != stdout) { std::fclose(file_Ptr); } }}
+   : _outfile_uptr {nullptr,
+      [](std::FILE * const file_Ptr) {
+         if (file_Ptr != stdout &&
+             file_Ptr != stderr) {
+            std::fclose(file_Ptr);
+         }
+      }
+   }
 {
 }
 
