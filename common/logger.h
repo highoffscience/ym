@@ -34,6 +34,7 @@ public:
    YM_NO_COPY  (Logger)
    YM_NO_ASSIGN(Logger)
 
+   // TODO
    // YM_DECL_YMCEPT(LoggerError)
    // YM_DECL_YMCEPT(LoggerError, LoggerError_UnexpectedFilenameSize)
 

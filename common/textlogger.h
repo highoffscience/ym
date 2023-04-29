@@ -73,10 +73,26 @@ public:
       ToStdOut,
       ToLogAndStdErr,
       ToLogAndStdOut
-   }; // TODO finish implementing - get rid of logger::openoutfiletostdout()
+   };
+
+   struct InitInfo
+   {
+      explicit inline InitInfo(void)
+         : timeStampMode {TimeStampMode_T::RecordTimeStamp},
+           redirectMode  {RedirectMode_T::ToLog}
+      { }
+
+      str             filename;
+      TSFM_T          tsFilenameMode;
+      TimeStampMode_T timeStampMode;
+      RedirectMode_T  redirectMode
+   };
 
    explicit TextLogger(void);
+   // TODO maybe this stuff should be params in open()?
    explicit TextLogger(TimeStampMode_T const TimeStampMode);
+   explicit TextLogger(TimeStampMode_T const TimeStampMode,
+                       RedirectMode_T  const RedirectMode);
    ~TextLogger(void);
 
    YM_NO_COPY  (TextLogger)
@@ -199,6 +215,7 @@ private:
    uint32                    _readPos;
    std::atomic<WriterMode_T> _writerMode;
    TimeStampMode_T const     _TimeStampMode;
+   RedirectMode_T  const     _RedirectMode;
 };
 
 /** printf

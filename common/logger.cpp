@@ -83,6 +83,9 @@ bool ym::Logger::openOutfile(str    const Filename,
          }
          else
          { // do not append file stamp (default fallthrough)
+
+            // TODO don't open file that already exists
+            
             _outfile_uptr.reset(std::fopen(Filename, "w"));
             opened = static_cast<bool>(_outfile_uptr);
          }

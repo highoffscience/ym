@@ -12,17 +12,6 @@
 #include <ctime>
 #include <memory>
 
-// TODO maybe the logger should have a modifiable mode such as
-// enum RedirectMode_T : uint32
-// {
-//    ToLog,
-//    ToStdErr,
-//    ToStdOut,
-//    ToLogAndStdErr
-//    ToLogAndStdOut
-// };
-#define YM_PRINT_TO_SCREEN // redirects output to stdout
-
 /** TextLogger
  *
  * @brief Constructor.
