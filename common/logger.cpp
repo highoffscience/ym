@@ -68,14 +68,14 @@ bool ym::Logger::openOutfile(str const Filename)
  *
  * @returns bool -- True if the file was opened, false otherwise
  */
-bool ym::Logger::openOutfile(str    const Filename,
-                             TSFM_T const TSFilenameMode)
+bool ym::Logger::openOutfile(str       const Filename,
+                             TSFMode_T const TSFilenameMode)
 {
    auto opened = false; // until told otherwise
 
    if (!isOutfileOpened())
    { // file not opened
-      if (Filename && *Filename != '\0')
+      if (ymIsStrNonEmpty(Filename))
       { // valid filename specified
          if (TSFilenameMode == TimeStampFilenameMode_T::Append)
          { // append file stamp

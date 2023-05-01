@@ -34,22 +34,18 @@ public:
    YM_NO_COPY  (Logger)
    YM_NO_ASSIGN(Logger)
 
-   // TODO
-   // YM_DECL_YMCEPT(LoggerError)
-   // YM_DECL_YMCEPT(LoggerError, LoggerError_UnexpectedFilenameSize)
+   YM_DECL_YMCEPT(LoggerError)
+   YM_DECL_YMCEPT(LoggerError, LoggerError_UnexpectedFilenameSize)
 
-   /** TimeStampFilenameMode_T
+   /** FilenameMode_T
     *
-    * @brief Mode to determine appending or not a timestamp to the filename.
+    * @brief Mode to determine how to mangle the filename.
     */
-   enum class TimeStampFilenameMode_T : uint32
+   enum class FilenameMode_T : uint32
    {
-      Append,
-      DoNotAppend
+      KeepOriginal,
+      AppendTimeStamp
    };
-
-   /// @brief Convience alias.
-   using TSFM_T = TimeStampFilenameMode_T;
 
 protected:
    explicit Logger(void);
@@ -65,9 +61,9 @@ protected:
    // virtual calls.
 
    bool openOutfileToStdout(void);
-   bool openOutfile(str    const Filename);
-   bool openOutfile(str    const Filename,
-                    TSFM_T const TSFilenameMode);
+   bool openOutfile(str       const Filename);
+   bool openOutfile(str       const Filename,
+                    TSFMode_T const TSFilenameMode);
 
    void closeOutfile(void);
 

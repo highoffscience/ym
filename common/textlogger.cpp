@@ -15,17 +15,13 @@
 /** TextLogger
  *
  * @brief Constructor.
+ * 
+ * TODO add params and assert
  */
-ym::TextLogger::TextLogger(void)
-   : TextLogger(TextLogger::TimeStampMode_T::RecordTimeStamp)
-{
-}
-
-/** TextLogger
- *
- * @brief Constructor.
- */
-ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
+ym::TextLogger::TextLogger(str            const Filename,
+                           FilenameMode_T const FilenameMode,
+                           PrintMode_T    const PrintMode,
+                           RedirectMode_T const RedirectMode)
    : _buffer         {'\0'                     },
      _vGroups        {/*default*/              },
      _writer         {/*default*/              },
@@ -36,7 +32,22 @@ ym::TextLogger::TextLogger(TimeStampMode_T const TimeStampMode)
      _writePos       {0_u32                    },
      _readPos        {0_u32                    },
      _writerMode     {WriterMode_T::Closed     },
-     _TimeStampMode  {TimeStampMode            }
+     _FilenameMode   {FilenameMode             },
+     _PrintMode      {PrintMode                },
+     _RedirectMode   {RedirectMode             }
+{
+}
+
+/** TextLogger
+ *
+ * @brief Constructor.
+ * 
+ * TODO add params and assert
+ */
+ym::TextLogger::TextLogger(FilenameMode_T const FilenameMode,
+                           PrintMode_T    const PrintLineMode,
+                           RedirectMode_T const RedirectMode)
+   : TextLogger("", FilenameMode, PrintLineMode, RedirectMode)
 {
 }
 
@@ -117,11 +128,11 @@ bool ym::TextLogger::openToStdout(void)
  */
 bool ym::TextLogger::open(
    #if defined(YM_PRINT_TO_SCREEN)
-      [[maybe_unused]] str    const Filename,
-      [[maybe_unused]] TSFM_T const TSFilenameMode
+      [[maybe_unused]] str       const Filename,
+      [[maybe_unused]] TSFMode_T const TSFilenameMode
    #else
-      str    const Filename,
-      TSFM_T const TSFilenameMode
+      str       const Filename,
+      TSFMode_T const TSFilenameMode
    #endif // YM_PRINT_TO_SCREEN
 )
 {

@@ -71,6 +71,8 @@ std::string ym::Ymception::assertHandler(
 
    auto const IsGlobalLogOk = std::strcmp(Name, "TextLoggerError_GlobalFailureToOpen") != 0;
 
+   // TODO
+
    ymLog(VG::Ymception_Assert, "Assert failed!");
    ymLog(VG::Ymception_Assert, "%s!", buffer.data());
 

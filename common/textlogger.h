@@ -18,6 +18,7 @@
 #include <bit>
 #include <cstdarg>
 #include <exception>
+#include <limit>
 #include <mutex>
 #include <semaphore>
 #include <thread>
@@ -52,14 +53,14 @@ inline class ScopedEnable ymLogPushEnable(VG const VG);
 class TextLogger : public Logger
 {
 public:
-   /** TimeStampMode_T
+   /** PrintMode_T
     *
-    * @brief Flag to indicate whether to time stamp the logged line or not.
+    * @brief Mode to determine how to mangle the printable message.
     */
-   enum class TimeStampMode_T : uint32
+   enum class PrintMode_T : uint32
    {
-      RecordTimeStamp,
-      NoRecordTimeStamp
+      KeepOriginal,
+      AppendTimeStamp
    };
 
    /** RedirectMode_T
@@ -75,24 +76,13 @@ public:
       ToLogAndStdOut
    };
 
-   struct InitInfo
-   {
-      explicit inline InitInfo(void)
-         : timeStampMode {TimeStampMode_T::RecordTimeStamp},
-           redirectMode  {RedirectMode_T::ToLog}
-      { }
-
-      str             filename;
-      TSFM_T          tsFilenameMode;
-      TimeStampMode_T timeStampMode;
-      RedirectMode_T  redirectMode
-   };
-
-   explicit TextLogger(void);
-   // TODO maybe this stuff should be params in open()?
-   explicit TextLogger(TimeStampMode_T const TimeStampMode);
-   explicit TextLogger(TimeStampMode_T const TimeStampMode,
-                       RedirectMode_T  const RedirectMode);
+   explicit TextLogger(str            const Filename,
+                       FilenameMode_T const FilenameMode,
+                       PrintMode_T    const PrintMode,
+                       RedirectMode_T const RedirectMode);
+   explicit TextLogger(FilenameMode_T const FilenameMode,
+                       PrintMode_T    const PrintMode,
+                       RedirectMode_T const RedirectMode);
    ~TextLogger(void);
 
    YM_NO_COPY  (TextLogger)
@@ -106,9 +96,7 @@ public:
 
    bool isOpen(void) const;
 
-   bool openToStdout(void);
-   bool open(str    const Filename,
-             TSFM_T const TSFilenameMode = TimeStampFilenameMode_T::Append);
+   bool open (void);
    void close(void);
 
    static constexpr auto getMaxMessageSize_bytes(void) { return _s_MaxMessageSize_bytes; }
@@ -181,6 +169,10 @@ private:
    static_assert(_s_MaxNMessagesInBuffer <= (sizeof(uint64) * 8_u64),
                  "Max atomic bitfield size is 64 bits");
 
+   // this value is used to initialize semaphore, which takes std::ptrdiff_t (long)
+   static_assert(_s_MaxNMessagesInBuffer <= static_cast<uint32>(std::numeric_limits<int32>::max()),
+                 "Max atomic bitfield size is 64 bits");
+
    static_assert(_s_MaxMessageSize_bytes > _s_TimeStampSize_bytes,
                  "No room for time stamp plus newline");
 
@@ -214,8 +206,9 @@ private:
    std::atomic<uint32>       _writePos;
    uint32                    _readPos;
    std::atomic<WriterMode_T> _writerMode;
-   TimeStampMode_T const     _TimeStampMode;
-   RedirectMode_T  const     _RedirectMode;
+   FilenameMode_T const      _FilenameMode;
+   PrintMode_T    const      _PrintMode;
+   RedirectMode_T const      _RedirectMode;
 };
 
 /** printf
