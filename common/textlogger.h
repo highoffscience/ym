@@ -17,8 +17,6 @@
 #include <atomic>
 #include <bit>
 #include <cstdarg>
-#include <exception>
-#include <limit>
 #include <mutex>
 #include <semaphore>
 #include <thread>
@@ -76,10 +74,6 @@ public:
       ToLogAndStdOut
    };
 
-   explicit TextLogger(str            const Filename,
-                       FilenameMode_T const FilenameMode,
-                       PrintMode_T    const PrintMode,
-                       RedirectMode_T const RedirectMode);
    explicit TextLogger(FilenameMode_T const FilenameMode,
                        PrintMode_T    const PrintMode,
                        RedirectMode_T const RedirectMode);
@@ -96,6 +90,7 @@ public:
 
    bool isOpen(void) const;
 
+   bool open (str const Filename);
    bool open (void);
    void close(void);
 
@@ -167,10 +162,6 @@ private:
                  "_s_MaxNMessagesInBuffer needs to be power of 2");
 
    static_assert(_s_MaxNMessagesInBuffer <= (sizeof(uint64) * 8_u64),
-                 "Max atomic bitfield size is 64 bits");
-
-   // this value is used to initialize semaphore, which takes std::ptrdiff_t (long)
-   static_assert(_s_MaxNMessagesInBuffer <= static_cast<uint32>(std::numeric_limits<int32>::max()),
                  "Max atomic bitfield size is 64 bits");
 
    static_assert(_s_MaxMessageSize_bytes > _s_TimeStampSize_bytes,

@@ -16,39 +16,28 @@
  *
  * @brief Constructor.
  * 
- * TODO add params and assert
- */
-ym::TextLogger::TextLogger(str            const Filename,
-                           FilenameMode_T const FilenameMode,
-                           PrintMode_T    const PrintMode,
-                           RedirectMode_T const RedirectMode)
-   : _buffer         {'\0'                     },
-     _vGroups        {/*default*/              },
-     _writer         {/*default*/              },
-     _timer          {/*default*/              },
-     _readReadySlots {0_u64                    },
-     _availableSem   {getMaxNMessagesInBuffer()},
-     _messagesSem    {0_i32                    },
-     _writePos       {0_u32                    },
-     _readPos        {0_u32                    },
-     _writerMode     {WriterMode_T::Closed     },
-     _FilenameMode   {FilenameMode             },
-     _PrintMode      {PrintMode                },
-     _RedirectMode   {RedirectMode             }
-{
-}
-
-/** TextLogger
- *
- * @brief Constructor.
- * 
- * TODO add params and assert
+ * TODO add params
  */
 ym::TextLogger::TextLogger(FilenameMode_T const FilenameMode,
-                           PrintMode_T    const PrintLineMode,
+                           PrintMode_T    const PrintMode,
                            RedirectMode_T const RedirectMode)
-   : TextLogger("", FilenameMode, PrintLineMode, RedirectMode)
+   : _buffer         {'\0'                        },
+     _vGroups        {/*default*/                 },
+     _writer         {/*default*/                 },
+     _timer          {/*default*/                 },
+     _readReadySlots {0_u64                       },
+     _availableSem   {static_cast<std::ptrdiff_t>(
+                      getMaxNMessagesInBuffer()  )},
+     _messagesSem    {0_i32                       },
+     _writePos       {0_u32                       },
+     _readPos        {0_u32                       },
+     _writerMode     {WriterMode_T::Closed        },
+     _FilenameMode   {FilenameMode                },
+     _PrintMode      {PrintMode                   },
+     _RedirectMode   {RedirectMode                }
 {
+   static_assert(sizeof(std::ptrdiff_t) > sizeof(getMaxNMessagesInBuffer()),
+      "Potential overflow of signed value");
 }
 
 /** ~TextLogger
@@ -349,7 +338,7 @@ void ym::TextLogger::writeMessagesToFile(void)
          _messagesSem.acquire(); // _readReadySlots has been updated
          nMsgs++;
       }
-      while ( !( (1_u64 << _readPos) & _readReadySlots.load(std::memory_order_acquire)) );
+      while ( !( (1_u64 << _readPos) & _readReadySlots.load(std::memory_order_acquire) ) );
 
       while (nMsgs > 0_u32)
       { // write pending messages
