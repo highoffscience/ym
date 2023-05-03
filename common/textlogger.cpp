@@ -18,9 +18,7 @@
  * 
  * TODO add params
  */
-ym::TextLogger::TextLogger(FilenameMode_T const FilenameMode,
-                           PrintMode_T    const PrintMode,
-                           RedirectMode_T const RedirectMode)
+ym::TextLogger::TextLogger(void)
    : _buffer         {'\0'                        },
      _vGroups        {/*default*/                 },
      _writer         {/*default*/                 },
@@ -32,9 +30,9 @@ ym::TextLogger::TextLogger(FilenameMode_T const FilenameMode,
      _writePos       {0_u32                       },
      _readPos        {0_u32                       },
      _writerMode     {WriterMode_T::Closed        },
-     _FilenameMode   {FilenameMode                },
-     _PrintMode      {PrintMode                   },
-     _RedirectMode   {RedirectMode                }
+     _filenameMode   {FilenameMode_T::KeepOriginal},
+     _printMode      {PrintMode_T::KeepOriginal   },
+     _redirectMode   {RedirectMode_T::ToStdOut    }
 {
    static_assert(sizeof(std::ptrdiff_t) > sizeof(getMaxNMessagesInBuffer()),
       "Potential overflow of signed value");
@@ -104,6 +102,74 @@ auto ym::TextLogger::getGlobalInstancePtr(void) -> TextLogger *
 bool ym::TextLogger::openToStdout(void)
 {
    return open_Helper(openOutfileToStdout());
+}
+
+/** open
+ *
+ * @brief Opens and prepares the logger to be written to.
+ *
+ * @param Filename       -- Name of outfile to open.
+ * @param TSFilenameMode -- Mode whether to append time stamps to filename.
+ * 
+ * TODO params
+ *
+ * @returns bool -- Whether the outfile was opened successfully, false otherwise.
+ */
+bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
+                          PrintMode_T    const PrintMode,
+                          RedirectMode_T const RedirectMode)
+{
+   TextLoggerError_FailureToOpen::check(
+      RedirectMode == RedirectMode_T::ToStdOut ||
+      RedirectMode == RedirectMode_T::ToStdErr,
+      "Redirect mode %u must specify a filename", ymToUnderlying(RedirectMode)
+   );
+
+   return open(FilenameMode, PrintMode, RedirectMode, "");
+}
+
+/** open
+ *
+ * @brief Opens and prepares the logger to be written to.
+ *
+ * @param Filename       -- Name of outfile to open.
+ * @param TSFilenameMode -- Mode whether to append time stamps to filename.
+ * 
+ * TODO params
+ *
+ * @returns bool -- Whether the outfile was opened successfully, false otherwise.
+ */
+bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
+                          PrintMode_T    const PrintMode,
+                          RedirectMode_T const RedirectMode,
+                          str            const Filename)
+{
+   _filenameMode = FilenameMode;
+   _printMode    = PrintMode;
+
+   switch (RedirectMode)
+   {
+      case RedirectMode_T::ToStdOut:
+      {
+         TextLoggerError_FailureToOpen::check()
+      }
+   }
+
+   if (RedirectMode == RedirectMode_T::ToStdOut)
+   {
+
+   }
+   else if (RedirectMode == RedirectMode_T::ToStdErr)
+
+   TextLoggerError_FailureToOpen::check(
+      RedirectMode == RedirectMode_T::ToLog ||
+      RedirectMode == RedirectMode_T::ToLogAndStdOut,
+      RedirectMode == RedirectMode_T::ToLogAndStdErr,
+      "Redirect mode %u must specify a filename", ymToUnderlying(RedirectMode)
+   );
+
+   _filenameMode = FilenameMode;
+   _printMode    = PrintMode;
 }
 
 /** open
@@ -207,7 +273,7 @@ bool ym::TextLogger::enable(VG const VG)
 {
    using VGM = VerboGroupMask;
 
-   return _vGroups[VGM::getGroup(VG)].fetch_or(VGM::getMask_asByte(VG));
+   return _vGroups[VGM::getGroup(VG)].fetch_or(VGM::getMask_asByte(VG), std::memory_order_relaxed);
 }
 
 /** disable
@@ -222,7 +288,7 @@ bool ym::TextLogger::disable(VG const VG)
 {
    using VGM = VerboGroupMask;
 
-   return _vGroups[VGM::getGroup(VG)].fetch_and(~VGM::getMask_asByte(VG));
+   return _vGroups[VGM::getGroup(VG)].fetch_and(~VGM::getMask_asByte(VG), std::memory_order_relaxed);
 }
 
 /** pushEnable
@@ -356,6 +422,16 @@ void ym::TextLogger::writeMessagesToFile(void)
             populateFormattedTime(timeStampBuffer);
 
             nCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), "%s: %s\n", timeStampBuffer, Read_Ptr);
+
+            if (getRedirectMode() == RedirectMode_T::ToLogAndStdOut)
+            {
+               (void)std::fprintf(stdout, "%s: %s\n", timeStampBuffer, Read_Ptr);
+            }
+            else if (getRedirectMode() == RedirectMode_T::ToLogAndStdErr)
+            {
+               // TODO do I need stderr?
+               (void)std::fprintf(stderr, "%s: %s\n", timeStampBuffer, Read_Ptr);
+            }
          }
          else
          { // print message plain

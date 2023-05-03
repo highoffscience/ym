@@ -67,16 +67,14 @@ public:
     */
    enum class RedirectMode_T : uint32
    {
-      ToLog,
-      ToStdErr,
       ToStdOut,
-      ToLogAndStdErr,
-      ToLogAndStdOut
+      ToStdErr,
+      ToLog,
+      ToLogAndStdOut,
+      ToLogAndStdErr
    };
 
-   explicit TextLogger(FilenameMode_T const FilenameMode,
-                       PrintMode_T    const PrintMode,
-                       RedirectMode_T const RedirectMode);
+   explicit TextLogger(void);
    ~TextLogger(void);
 
    YM_NO_COPY  (TextLogger)
@@ -84,15 +82,25 @@ public:
 
    YM_DECL_YMCEPT(TextLoggerError)
    YM_DECL_YMCEPT(TextLoggerError, TextLoggerError_GlobalFailureToOpen)
+   YM_DECL_YMCEPT(TextLoggerError, TextLoggerError_FailureToOpen)
 
    static TextLogger * getGlobalInstancePtr      (void);
    static TextLogger * getGlobalStdErrInstancePtr(void);
 
    bool isOpen(void) const;
 
-   bool open (str const Filename);
-   bool open (void);
+   bool open(FilenameMode_T const FilenameMode,
+             PrintMode_T    const PrintMode,
+             RedirectMode_T const RedirectMode);
+   bool open(FilenameMode_T const FilenameMode,
+             PrintMode_T    const PrintMode,
+             RedirectMode_T const RedirectMode,
+             str            const Filename);
    void close(void);
+
+   inline auto getFilenameMode(void) const { return _filenameMode; }
+   inline auto getPrintMode   (void) const { return _printMode;    }
+   inline auto getRedirectMode(void) const { return _redirectMode; }
 
    static constexpr auto getMaxMessageSize_bytes(void) { return _s_MaxMessageSize_bytes; }
    static constexpr auto getMaxNMessagesInBuffer(void) { return _s_MaxNMessagesInBuffer; }
@@ -197,9 +205,9 @@ private:
    std::atomic<uint32>       _writePos;
    uint32                    _readPos;
    std::atomic<WriterMode_T> _writerMode;
-   FilenameMode_T const      _FilenameMode;
-   PrintMode_T    const      _PrintMode;
-   RedirectMode_T const      _RedirectMode;
+   FilenameMode_T            _filenameMode;
+   PrintMode_T               _printMode;
+   RedirectMode_T            _redirectMode;
 };
 
 /** printf
