@@ -11,8 +11,6 @@
  * @note Macros used for a particular purpose start with "YM_SPECIAL_".
  */
 
-// TODO rename file ymdefs.h
-
 #pragma once
 
 #include <cstdint>

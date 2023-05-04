@@ -58,7 +58,7 @@ public:
    enum class PrintMode_T : uint32
    {
       KeepOriginal,
-      AppendTimeStamp
+      PrependTimeStamp
    };
 
    /** RedirectMode_T
