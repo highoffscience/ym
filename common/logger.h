@@ -35,7 +35,7 @@ public:
    YM_NO_ASSIGN(Logger)
 
    YM_DECL_YMCEPT(LoggerError)
-   YM_DECL_YMCEPT(LoggerError, LoggerError_UnexpectedFilenameSize)
+   YM_DECL_YMCEPT(LoggerError, LoggerError_FailureToOpen)
 
    /** FilenameMode_T
     *
@@ -60,10 +60,14 @@ protected:
    // classes to implement these functions without the overhead of
    // virtual calls.
 
-   bool openOutfileToStdout(void);
-   bool openOutfile(str       const Filename);
-   bool openOutfile(str       const Filename,
-                    TSFMode_T const TSFilenameMode);
+   bool openOutfile(str            const Filename,
+                    FilenameMode_T const FilenameMode = FilenameMode_T::AppendTimeStamp);
+
+   // TODO
+   // str const stdout_str_tag = "";
+   // str const stderr_str_tag = "";
+   bool openOutfile(std::FILE *    const file_Ptr,
+                    FilenameMode_T const FilenameMode = FilenameMode_T::AppendTimeStamp);
 
    void closeOutfile(void);
 

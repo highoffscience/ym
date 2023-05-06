@@ -116,6 +116,8 @@ bool ym::TextLogger::openToStdout(void)
  * @param PrintMode    -- Mode to determine how to mangle the printable message.
  * @param RedirectMode -- Specifies what streams to pipe the output to.
  *
+ * TODO throws
+ * 
  * @returns bool -- Whether the outfile was opened successfully, false otherwise.
  */
 bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
@@ -140,6 +142,8 @@ bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
  * @param RedirectMode -- Specifies what streams to pipe the output to.
  * @param Filename     -- Name of file to open.
  *
+ * TODO throws
+ * 
  * @returns bool -- Whether the outfile was opened successfully, false otherwise.
  */
 bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
@@ -156,6 +160,13 @@ bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
       {
          TextLoggerError_FailureToOpen::check(ymIsStrEmpty(Filename),
             "File '%s' attempted to open with StdOut only option", Filename);
+         break;
+      }
+
+      case RedirectMode_T::ToStdErr:
+      {
+         TextLoggerError_FailureToOpen::check(ymIsStrEmpty(Filename),
+            "File '%s' attempted to open with StdErr only option", Filename);
          break;
       }
    }

@@ -10,6 +10,7 @@
 
 #include <cstring>
 #include <ctime>
+#include <filesystem>
 
 /** Logger
  *
@@ -29,31 +30,6 @@ ym::Logger::Logger(void)
 {
 }
 
-/** openOutfileToStdout
- *
- * @brief Opens outfile to standard out.
- * 
- * @returns bool -- Tru if the outfile was successfully opened, false otherwise.
- */
-bool ym::Logger::openOutfileToStdout(void)
-{
-   _outfile_uptr.reset(stdout);
-   return static_cast<bool>(_outfile_uptr);
-}
-
-/** openOutfile
- *
- * @brief Attempts to open a write-file.
- *
- * @param Filename -- Name of file to open
- *
- * @returns bool -- True if the file was opened, false otherwise
- */
-bool ym::Logger::openOutfile(str const Filename)
-{
-   return openOutfile(Filename, TimeStampFilenameMode_T::Append);
-}
-
 /** openOutfile
  *
  * @brief Attempts to open a write-file.
@@ -62,14 +38,16 @@ bool ym::Logger::openOutfile(str const Filename)
  *       derived classes handling the file operations.
  *
  * @note The conditional assures the logger is only associated with one file.
+ * 
+ * TODO throws
  *
- * @param Filename       -- Name of file to open.
- * @param TSFilenameMode -- Mode whether to append time stamps to filename.
+ * @param Filename     -- Name of file to open.
+ * @param FilenameMode -- Mode whether to append time stamps to filename.
  *
  * @returns bool -- True if the file was opened, false otherwise
  */
-bool ym::Logger::openOutfile(str       const Filename,
-                             TSFMode_T const TSFilenameMode)
+bool ym::Logger::openOutfile(str            const Filename,
+                             FilenameMode_T const FilenameMode)
 {
    auto opened = false; // until told otherwise
 
@@ -77,18 +55,29 @@ bool ym::Logger::openOutfile(str       const Filename,
    { // file not opened
       if (ymIsStrNonEmpty(Filename))
       { // valid filename specified
-         if (TSFilenameMode == TimeStampFilenameMode_T::Append)
+         if (FilenameMode == FilenameMode_T::AppendTimeStamp)
          { // append file stamp
             opened = openOutfile_appendTimeStamp(Filename);
          }
          else
          { // do not append file stamp (default fallthrough)
 
-            // TODO don't open file that already exists
+            // TODO exists() may throw
+
+            LoggerError_FailureToOpen::check(!std::filesystem::exists(Filename),
+               "File (or directory) '%s' already exists", Filename);
             
             _outfile_uptr.reset(std::fopen(Filename, "w"));
             opened = static_cast<bool>(_outfile_uptr);
          }
+      }
+      else if (Filename == _s_StdOutStrTag)
+      {
+
+      }
+      else if (Filename == _s_StdErrStrTag)
+      {
+         
       }
    }
 
@@ -100,6 +89,8 @@ bool ym::Logger::openOutfile(str       const Filename,
  * @brief Attempts to open the file with the current time appended to the file name.
  *
  * @param Filename -- Name of file.
+ * 
+ * TODO use filesystem helpers
  *
  * @returns bool -- True if file was opened, false otherwise.
  */
@@ -131,7 +122,7 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
                 Filename + StemSize_bytes,
                 FilenameSize_bytes - StemSize_bytes + 1ul); // include null terminator
 
-   return openOutfile(tsFilename_Ptr, TimeStampFilenameMode_T::DoNotAppend);
+   return openOutfile(tsFilename_Ptr, FilenameMode_T::KeepOriginal);
 }
 
 /** closeOutfile
