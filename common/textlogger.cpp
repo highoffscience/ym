@@ -27,7 +27,8 @@ ym::TextLogger::TextLogger(void)
      _messagesSem    {0_i32                       },
      _writePos       {0_u32                       },
      _readPos        {0_u32                       },
-     _writerMode     {WriterMode_T::Closed        }
+     _writerMode     {WriterMode_T::Closed        },
+     _printMode      {PrintMode_T::KeepOriginal   }
 {
    static_assert(sizeof(std::ptrdiff_t) > sizeof(getMaxNMessagesInBuffer()),
       "Potential overflow of signed value");
@@ -64,25 +65,38 @@ auto ym::TextLogger::getGlobalInstancePtr(void) -> TextLogger *
    static TextLogger * instance_ptr = nullptr;
 
    if (!instance_ptr)
-   {
+   { // file not already opened - open it
       instance_ptr = new TextLogger();
 
       TextLoggerError_GlobalFailureToOpen::check(instance_ptr,
          "Global instance failed to be created");
 
-      auto const Opened =
-         instance_ptr->open(
-            FilenameMode_T::AppendTimeStamp,
-            PrintMode_T::PrependTimeStamp,
-         #if defined(YM_DBG)
-            RedirectMode_T::ToLogAndStdOut,
-         #else
-            RedirectMode_T::ToLog,
-         #endif // YM_DBG
-            "global.txt");
+      auto opened = false; // until told otherwise
 
-      if (!Opened)
-      {
+      try
+      { // attempt to open the file
+         opened = instance_ptr->open(
+            #if defined(YM_DBG)
+               PrintMode_T::PrependTimeStamp,
+               RedirectMode_T::ToStdOut
+            #else
+               FilenameMode_T::AppendTimeStamp,
+               PrintMode_T::PrependTimeStamp,
+               RedirectMode_T::ToLog,
+               "global.txt"
+            #endif // YM_DBG
+         );
+      }
+      catch (std::exception const & E)
+      { // clean up memory before rethrowing
+         delete instance_ptr;
+         instance_ptr = nullptr;
+
+         throw E;
+      }
+
+      if (!opened)
+      { // something went wrong - clean up memory
          delete instance_ptr;
          instance_ptr = nullptr;
 
@@ -94,22 +108,10 @@ auto ym::TextLogger::getGlobalInstancePtr(void) -> TextLogger *
    return instance_ptr; // guaranteed not null
 }
 
-/** openToStdout
- *
- * @brief Opens and prepares to write to stdout.
- *
- * @returns bool -- Whether the outfile was opened successfully, false otherwise.
- */
-bool ym::TextLogger::openToStdout(void)
-{
-   return open_Helper(openOutfileToStdout());
-}
-
 /** open
  *
  * @brief Opens and prepares the logger to be written to.
- *
- * @param FilenameMode -- Mode to determine how to mangle the filename.
+ * 
  * @param PrintMode    -- Mode to determine how to mangle the printable message.
  * @param RedirectMode -- Specifies what streams to pipe the output to.
  *
@@ -117,8 +119,7 @@ bool ym::TextLogger::openToStdout(void)
  * 
  * @returns bool -- Whether the outfile was opened successfully, false otherwise.
  */
-bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
-                          PrintMode_T    const PrintMode,
+bool ym::TextLogger::open(PrintMode_T    const PrintMode,
                           RedirectMode_T const RedirectMode)
 {
    TextLoggerError_FailureToOpen::check(
@@ -127,7 +128,7 @@ bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
       "Redirect mode %u must specify a filename", ymToUnderlying(RedirectMode)
    );
 
-   return open(FilenameMode, PrintMode, RedirectMode, "");
+   return open(FilenameMode_T::KeepOriginal, PrintMode, RedirectMode, "");
 }
 
 /** open
@@ -148,6 +149,8 @@ bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
                           RedirectMode_T const RedirectMode,
                           str            const Filename)
 {
+   _printMode = PrintMode;
+
    auto opened = false; // until told otherwise
 
    switch (RedirectMode)
@@ -176,53 +179,13 @@ bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
          break;
       }
 
-      case RedirectMode_T::ToLogAndStdOut:
-      {
-         // TODO
-         break;
-      }
-
-      case RedirectMode_T::ToLogAndStdErr:
-      {
-         // TODO
-         break;
-      }
-
       default:
       {
          TextLoggerError_FailureToOpen::check(false,
-            "Un-account for redirect mode (%lu)", ymToUnderlying(RedirectMode));
+            "Un-account for redirect mode %u", ymToUnderlying(RedirectMode));
          break;
       }
    }
-}
-
-/** open
- *
- * @brief Opens and prepares the logger to be written to.
- *
- * @param Filename       -- Name of outfile to open.
- * @param TSFilenameMode -- Mode whether to append time stamps to filename.
- *
- * @returns bool -- Whether the outfile was opened successfully, false otherwise.
- */
-bool ym::TextLogger::open(
-   #if defined(YM_PRINT_TO_SCREEN)
-      [[maybe_unused]] str       const Filename,
-      [[maybe_unused]] TSFMode_T const TSFilenameMode
-   #else
-      str       const Filename,
-      TSFMode_T const TSFilenameMode
-   #endif // YM_PRINT_TO_SCREEN
-)
-{
-   auto opened = false;
-
-#if defined(YM_PRINT_TO_SCREEN)
-   opened = openToStdout();
-#else
-   opened = open_Helper(openOutfile(Filename, TSFilenameMode));
-#endif // YM_PRINT_TO_SCREEN
 
    return opened;
 }

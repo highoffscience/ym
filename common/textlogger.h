@@ -69,9 +69,7 @@ public:
    {
       ToStdOut,
       ToStdErr,
-      ToLog,
-      ToLogAndStdOut,
-      ToLogAndStdErr
+      ToLog
    };
 
    explicit TextLogger(void);
@@ -89,8 +87,7 @@ public:
 
    bool isOpen(void) const;
 
-   bool open(FilenameMode_T const FilenameMode,
-             PrintMode_T    const PrintMode,
+   bool open(PrintMode_T    const PrintMode,
              RedirectMode_T const RedirectMode);
    bool open(FilenameMode_T const FilenameMode,
              PrintMode_T    const PrintMode,
@@ -201,6 +198,7 @@ private:
    std::atomic<uint32>       _writePos;
    uint32                    _readPos;
    std::atomic<WriterMode_T> _writerMode;
+   PrintMode_T               _printMode;
 };
 
 /** printf
