@@ -98,10 +98,6 @@ public:
              str            const Filename);
    void close(void);
 
-   inline auto getFilenameMode(void) const { return _filenameMode; }
-   inline auto getPrintMode   (void) const { return _printMode;    }
-   inline auto getRedirectMode(void) const { return _redirectMode; }
-
    static constexpr auto getMaxMessageSize_bytes(void) { return _s_MaxMessageSize_bytes; }
    static constexpr auto getMaxNMessagesInBuffer(void) { return _s_MaxNMessagesInBuffer; }
    static constexpr auto getBufferSize_bytes    (void) { return _s_BufferSize_bytes;     }
@@ -205,9 +201,6 @@ private:
    std::atomic<uint32>       _writePos;
    uint32                    _readPos;
    std::atomic<WriterMode_T> _writerMode;
-   FilenameMode_T            _filenameMode;
-   PrintMode_T               _printMode;
-   RedirectMode_T            _redirectMode;
 };
 
 /** printf

@@ -27,10 +27,7 @@ ym::TextLogger::TextLogger(void)
      _messagesSem    {0_i32                       },
      _writePos       {0_u32                       },
      _readPos        {0_u32                       },
-     _writerMode     {WriterMode_T::Closed        },
-     _filenameMode   {FilenameMode_T::KeepOriginal},
-     _printMode      {PrintMode_T::KeepOriginal   },
-     _redirectMode   {RedirectMode_T::ToStdOut    }
+     _writerMode     {WriterMode_T::Closed        }
 {
    static_assert(sizeof(std::ptrdiff_t) > sizeof(getMaxNMessagesInBuffer()),
       "Potential overflow of signed value");
@@ -151,8 +148,7 @@ bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
                           RedirectMode_T const RedirectMode,
                           str            const Filename)
 {
-   _filenameMode = FilenameMode;
-   _printMode    = PrintMode;
+   auto opened = false; // until told otherwise
 
    switch (RedirectMode)
    {
@@ -160,6 +156,7 @@ bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
       {
          TextLoggerError_FailureToOpen::check(ymIsStrEmpty(Filename),
             "File '%s' attempted to open with StdOut only option", Filename);
+         opened = open_Helper(openOutfile(stdout));
          break;
       }
 
@@ -167,25 +164,37 @@ bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
       {
          TextLoggerError_FailureToOpen::check(ymIsStrEmpty(Filename),
             "File '%s' attempted to open with StdErr only option", Filename);
+         opened = open_Helper(openOutfile(stderr));
+         break;
+      }
+
+      case RedirectMode_T::ToLog:
+      {
+         TextLoggerError_FailureToOpen::check(ymIsStrNonEmpty(Filename),
+            "Attempted to open empty file");
+         opened = open_Helper(openOutfile(Filename, FilenameMode));
+         break;
+      }
+
+      case RedirectMode_T::ToLogAndStdOut:
+      {
+         // TODO
+         break;
+      }
+
+      case RedirectMode_T::ToLogAndStdErr:
+      {
+         // TODO
+         break;
+      }
+
+      default:
+      {
+         TextLoggerError_FailureToOpen::check(false,
+            "Un-account for redirect mode (%lu)", ymToUnderlying(RedirectMode));
          break;
       }
    }
-
-   if (RedirectMode == RedirectMode_T::ToStdOut)
-   {
-
-   }
-   else if (RedirectMode == RedirectMode_T::ToStdErr)
-
-   TextLoggerError_FailureToOpen::check(
-      RedirectMode == RedirectMode_T::ToLog ||
-      RedirectMode == RedirectMode_T::ToLogAndStdOut,
-      RedirectMode == RedirectMode_T::ToLogAndStdErr,
-      "Redirect mode %u must specify a filename", ymToUnderlying(RedirectMode)
-   );
-
-   _filenameMode = FilenameMode;
-   _printMode    = PrintMode;
 }
 
 /** open

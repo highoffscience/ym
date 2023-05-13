@@ -62,12 +62,7 @@ protected:
 
    bool openOutfile(str            const Filename,
                     FilenameMode_T const FilenameMode = FilenameMode_T::AppendTimeStamp);
-
-   // TODO
-   // str const stdout_str_tag = "";
-   // str const stderr_str_tag = "";
-   bool openOutfile(std::FILE *    const file_Ptr,
-                    FilenameMode_T const FilenameMode = FilenameMode_T::AppendTimeStamp);
+   bool openOutfile(std::FILE *    const file_Ptr);
 
    void closeOutfile(void);
 

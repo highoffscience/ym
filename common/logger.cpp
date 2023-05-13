@@ -71,18 +71,30 @@ bool ym::Logger::openOutfile(str            const Filename,
             opened = static_cast<bool>(_outfile_uptr);
          }
       }
-      else if (Filename == _s_StdOutStrTag)
-      {
-
-      }
-      else if (Filename == _s_StdErrStrTag)
-      {
-         
-      }
    }
 
    return opened;
-}  
+}
+
+
+/** openOutfile
+ *
+ * TODO
+ */
+bool ym::Logger::openOutfile(std::FILE * const file_Ptr)
+{
+   auto opened = false; // until told otherwise
+
+   if (!isOutfileOpened())
+   { // file not opened
+      LoggerError_FailureToOpen::check(!file_Ptr, "File ptr is not valid");
+
+      _outfile_uptr.reset(file_Ptr);
+      opened = static_cast<bool>(_outfile_uptr);
+   }
+
+   return opened;
+}
 
 /** openOutfile_appendTimeStamp
  *
