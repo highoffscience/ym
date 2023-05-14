@@ -12,6 +12,8 @@
 #include <ctime>
 #include <filesystem>
 
+// TODO should I create user defined literal for size_t and ptr math?
+
 /** Logger
  *
  * @brief Constructor.
@@ -35,20 +37,25 @@ ym::Logger::Logger(void)
  * @brief Attempts to open a write-file.
  *
  * @note We open the file here instead of the constructor to allow flexibility with
- *       derived classes handling the file operations.
+ *       derived classes handling the file operations. Also it's awkward to code
+ *       constructors that throw.
  *
  * @note The conditional assures the logger is only associated with one file.
  * 
- * TODO throws
+ * @throws LoggerError_FailureToOpen -- If the file already exists.
+ * @throws LoggerError_FailureToOpen -- If a utility function fails.
  *
  * @param Filename     -- Name of file to open.
  * @param FilenameMode -- Mode whether to append time stamps to filename.
  *
- * @returns bool -- True if the file was opened, false otherwise
+ * @returns bool -- True if the file was opened, false otherwise.
  */
 bool ym::Logger::openOutfile(str            const Filename,
                              FilenameMode_T const FilenameMode)
 {
+   // don't rely on isOutfileOpened(), since we want to return if the file
+   // was opened, which is a no if the file already exists, but isOutfileOpened()
+   // would return true - not the behaviour we desire
    auto opened = false; // until told otherwise
 
    if (!isOutfileOpened())
@@ -61,14 +68,23 @@ bool ym::Logger::openOutfile(str            const Filename,
          }
          else
          { // do not append file stamp (default fallthrough)
-
-            // TODO exists() may throw
-
-            LoggerError_FailureToOpen::check(!std::filesystem::exists(Filename),
-               "File (or directory) '%s' already exists", Filename);
+            try
+            { // to catch utility failures
+               LoggerError_FailureToOpen::check(!std::filesystem::exists(Filename),
+                  "File (or directory) %s already exists", Filename);
+            }
+            catch (Ymception const & E)
+            { // re-throw
+               throw E;
+            }
+            catch (...)
+            { // utility failure
+               LoggerError_FailureToOpen::check(false,
+                  "Filesystem error when attempting to open %s", Filename);
+            }
             
             _outfile_uptr.reset(std::fopen(Filename, "w"));
-            opened = static_cast<bool>(_outfile_uptr);
+            opened = isOutfileOpened();
          }
       }
    }
@@ -76,13 +92,27 @@ bool ym::Logger::openOutfile(str            const Filename,
    return opened;
 }
 
-
 /** openOutfile
+ * 
+ * @brief Attempts to open a write-file from an existing stream.
  *
- * TODO
+ * @note We open the file here instead of the constructor to allow flexibility with
+ *       derived classes handling the file operations. Also it's awkward to code
+ *       constructors that throw.
+ *
+ * @note The conditional assures the logger is only associated with one file.
+ * 
+ * @throws LoggerError_FailureToOpen -- If the file already exists.
+ *
+ * @param file_Ptr -- Existing file stream.
+ *
+ * @returns bool -- True if the file was opened, false otherwise.
  */
 bool ym::Logger::openOutfile(std::FILE * const file_Ptr)
 {
+   // don't rely on isOutfileOpened(), since we want to return if the file
+   // was opened, which is a no if the file already exists, but isOutfileOpened()
+   // would return true - not the behaviour we desire
    auto opened = false; // until told otherwise
 
    if (!isOutfileOpened())
@@ -90,7 +120,7 @@ bool ym::Logger::openOutfile(std::FILE * const file_Ptr)
       LoggerError_FailureToOpen::check(!file_Ptr, "File ptr is not valid");
 
       _outfile_uptr.reset(file_Ptr);
-      opened = static_cast<bool>(_outfile_uptr);
+      opened = isOutfileOpened();
    }
 
    return opened;
@@ -99,10 +129,12 @@ bool ym::Logger::openOutfile(std::FILE * const file_Ptr)
 /** openOutfile_appendTimeStamp
  *
  * @brief Attempts to open the file with the current time appended to the file name.
- *
- * @param Filename -- Name of file.
  * 
- * TODO use filesystem helpers
+ * @note Possibly use @ref <https://en.cppreference.com/w/cpp/filesystem/path>.
+ * 
+ * @throws LoggerError_FailureToOpen -- If the filename size is unexpectedly large.
+ * 
+ * @param Filename -- Name of file.
  *
  * @returns bool -- True if file was opened, false otherwise.
  */
@@ -113,15 +145,14 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
    auto const StemSize_bytes     = (Extension) ? (Extension - Filename) // Extension >= Filename
                                                :  FilenameSize_bytes;
 
-   // constexpr auto MaxFilenameSize_bytes = 256_u64;
-   // ymAssert_Helper<LoggerError_UnexpectedFilenameSize>(FilenameSize_bytes < MaxFilenameSize_bytes,
-   //    "Filename size is too big - not technically a hard error but unexpected. "
-   //    "Got {} bytes, max {} bytes", FilenameSize_bytes, MaxFilenameSize_bytes);
+   constexpr auto MaxFilenameSize_bytes = 256_u64;
+   LoggerError_FailureToOpen::check(FilenameSize_bytes < MaxFilenameSize_bytes,
+      "Filename size is too big - not technically a hard error but unexpected. "
+      "Got %lu bytes, max %lu bytes", FilenameSize_bytes, MaxFilenameSize_bytes);
 
    auto const TSFilenameSize_bytes =
       FilenameSize_bytes + s_DefaultTS.length() + 1_u64; // include null terminator
    auto * const tsFilename_Ptr = YM_STACK_ALLOC(char, TSFilenameSize_bytes);
-   //auto * const tsFilename_Ptr = static_cast<char *>(alloca(TSFilenameSize_bytes * sizeof(char)));
 
    // write stem
    std::strncpy(tsFilename_Ptr, Filename, StemSize_bytes);
