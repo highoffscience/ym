@@ -286,8 +286,13 @@ constexpr auto ymPtrToUint(T const Ptr)
    return reinterpret_cast<uintptr>(Ptr);
 }
 
-/**
- * TODO
+/** YM_ARRAY_SIZE
+ * 
+ * @brief Computes the size of a C-style array.
+ * 
+ * @note Evaluates number of elements at compile time.
+ * 
+ * @param Array_ -- C_style array.
  */
 #define YM_ARRAY_SIZE(Array_) (sizeof(Array_) / sizeof(*Array_))
 

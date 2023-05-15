@@ -33,12 +33,16 @@ inline void ymLog(VG     const    VG,
                   str    const    Format,
                   Args_T const... Args);
 
-// TODO implement
+template <Loggable... Args_T>
+inline void ymLogToStdErr(VG     const    VG,
+                          str    const    Format,
+                          Args_T const... Args);
 
-inline void ymLogEnable (VG const VG);
-inline void ymLogDisable(VG const VG);
+inline bool ymLogEnable (VG const VG);
+inline bool ymLogDisable(VG const VG);
 
-inline class ScopedEnable ymLogPushEnable(VG const VG);
+// implemented below - ScopedEnable isn't yet defined
+// inline class ScopedEnable ymLogPushEnable(VG const VG);
 
 /* -------------------------------------------------------------------------- */
 
@@ -82,8 +86,7 @@ public:
    YM_DECL_YMCEPT(TextLoggerError, TextLoggerError_GlobalFailureToOpen)
    YM_DECL_YMCEPT(TextLoggerError, TextLoggerError_FailureToOpen)
 
-   static TextLogger * getGlobalInstancePtr      (void);
-   static TextLogger * getGlobalStdErrInstancePtr(void);
+   static TextLogger * getGlobalInstancePtr(void);
 
    bool isOpen(void) const;
 
@@ -235,6 +238,61 @@ inline void ymLog(VG     const    VG,
                   Args_T const... Args)
 {
    TextLogger::getGlobalInstancePtr()->printf(VG, Format, Args...);
+}
+
+/** ymLogToStdErr
+ *
+ * @brief Print to stderr. Usually as a last ditch effort to record something.
+ *
+ * @tparam Args_T -- Argument types.
+ *
+ * @param Format -- Format string.
+ * @param Args   -- Arguments.
+ */
+template <Loggable... Args_T>
+inline void ymLogToStdErr(str    const    Format,
+                          Args_T const... Args)
+{
+   std::fprintf(stderr, Format, Args...);
+}
+
+/** ymLogEnable
+ * 
+ * @brief Enables specified verbosity group for the global logger.
+ *
+ * @param VG -- Verbosity group to enable.
+ * 
+ * @returns bool -- If previously enabled before this call.
+ */
+inline bool ymLogEnable(VG const VG)
+{
+   return TextLogger::getGlobalInstancePtr()->enable(VG);
+}
+
+/** ymLogDisable
+ * 
+ * @brief Disables specified verbosity group for the global logger.
+ *
+ * @param VG -- Verbosity group to disable.
+ * 
+ * @returns bool -- If previously enabled before this call.
+ */
+inline bool ymLogDisable(VG const VG)
+{
+   return TextLogger::getGlobalInstancePtr()->disable(VG);
+}
+
+/** ymLogPushEnable
+ * 
+ * @brief Enables given verbosity group only in the current scope for the global logger.
+ * 
+ * @param VG -- Verbosity group.
+ * 
+ * @returns ScopedEnable -- RAII mechanism that only keeps the enable VG while in scope.
+ */
+inline TextLogger::ScopedEnable ymLogPushEnable(VG const VG)
+{
+   return TextLogger::getGlobalInstancePtr()->pushEnable(VG);
 }
 
 } // ym

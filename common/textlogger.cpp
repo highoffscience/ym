@@ -284,6 +284,8 @@ bool ym::TextLogger::disable(VG const VG)
  * @brief Enables given verbosity group only in the current scope.
  * 
  * @param VG -- Verbosity group.
+ * 
+ * @returns ScopedEnable -- RAII mechanism that only keeps the enable VG while in scope.
  */
 auto ym::TextLogger::pushEnable(VG const VG) -> ScopedEnable
 {

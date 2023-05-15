@@ -12,8 +12,6 @@
 #include <ctime>
 #include <filesystem>
 
-// TODO should I create user defined literal for size_t and ptr math?
-
 /** Logger
  *
  * @brief Constructor.
