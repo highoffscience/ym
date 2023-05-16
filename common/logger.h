@@ -80,8 +80,7 @@ private:
 
 /** printfInternalError
  *
- * @brief If something goes wrong in the logger then printing to stderr is our
- *        only choice.
+ * @brief If something goes wrong in the logger then printing to stderr is our only choice.
  *
  * @tparam Args_T -- Argument types.
  *

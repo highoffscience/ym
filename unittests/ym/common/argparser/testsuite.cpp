@@ -31,7 +31,7 @@ ym::ut::TestSuite::TestSuite(void)
  */
 auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SC = TextLogger::getGlobalInstance()->pushEnable(VG::UnitTest_ArgParser);
+   auto const SC = ymLogPushEnable(VG::UnitTest_ArgParser);
 
    str  const Argv[] = {"testsuite",
       "--input",  "settings.json",

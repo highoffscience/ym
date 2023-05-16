@@ -48,7 +48,7 @@ inline bool ymLogDisable(VG const VG);
 
 /** TextLogger
  *
- * @brief Logs text to the given outfile - similary to std::printf.
+ * @brief Logs text to the given outfile - similary to std::fprintf.
  *
  * @note Uses the multi-producer/single-consumer model.
  */
@@ -243,7 +243,7 @@ inline void ymLog(VG     const    VG,
 /** ymLogToStdErr
  *
  * @brief Print to stderr. Usually as a last ditch effort to record something.
- *
+ * 
  * @tparam Args_T -- Argument types.
  *
  * @param Format -- Format string.
