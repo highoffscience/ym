@@ -69,29 +69,36 @@ std::string ym::Ymception::assertHandler(
 
    va_end(args);
 
+   // need to check if the global log is the one that threw
    auto const IsGlobalLogOk = std::strcmp(Name, "TextLoggerError_GlobalFailureToOpen") != 0;
 
-   // TODO
-
-   ymLog(VG::Ymception_Assert, "Assert failed!");
-   ymLog(VG::Ymception_Assert, "%s!", buffer.data());
-
-#if !defined(YM_DISABLE_STACKTRACE)
-   ymLog(VGM_T::Ymception_Assert, "Stack dump follows...");
-
-   { // split and print stack dump
-      auto const StackDumpStr = boost::stacktrace::to_string(boost::stacktrace::stacktrace());
-
-      for (auto startPos = StackDumpStr.find_first_not_of('\n', 0);
-           startPos != std::string::npos;
-           /*empty*/)
-      { // print each line of the stack dump separately
-         auto const EndPos = StackDumpStr.find_first_of('\n', startPos);
-         ymLog(VGM_T::Ymception_Assert, StackDumpStr.substr(startPos, EndPos - startPos).c_str());
-         startPos = StackDumpStr.find_first_not_of('\n', EndPos);
-      }
+   if (!IsGlobalLogOk)
+   { // only option is to log to the error stream
+      ymLogToStdErr("Assert failed!");
+      ymLogToStdErr("%s!", buffer.data());
    }
-#endif // YM_DISABLE_STACKTRACE
+   else
+   { // log the error
+      ymLog(VG::Ymception_Assert, "Assert failed!");
+      ymLog(VG::Ymception_Assert, "%s!", buffer.data());
+
+   #if !defined(YM_DISABLE_STACKTRACE)
+      ymLog(VGM_T::Ymception_Assert, "Stack dump follows...");
+
+      { // split and print stack dump
+         auto const StackDumpStr = boost::stacktrace::to_string(boost::stacktrace::stacktrace());
+
+         for (auto startPos = StackDumpStr.find_first_not_of('\n', 0);
+            startPos != std::string::npos;
+            /*empty*/)
+         { // print each line of the stack dump separately
+            auto const EndPos = StackDumpStr.find_first_of('\n', startPos);
+            ymLog(VGM_T::Ymception_Assert, StackDumpStr.substr(startPos, EndPos - startPos).c_str());
+            startPos = StackDumpStr.find_first_not_of('\n', EndPos);
+         }
+      }
+   #endif // YM_DISABLE_STACKTRACE
+   }
 
    return std::string(buffer.data());
 }

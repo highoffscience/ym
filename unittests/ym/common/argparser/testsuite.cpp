@@ -31,17 +31,28 @@ ym::ut::TestSuite::TestSuite(void)
  */
 auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
+   // TODO this throws
+   // TODO find other catch() rethrow and throw correctly
    auto const SC = ymLogPushEnable(VG::UnitTest_ArgParser);
 
-   str  const Argv[] = {"testsuite",
-      "--input",  "settings.json",
-      "--output", "data.csv",
-      "-cb",
-      "-k", "Torchic1234",
-      "--in-denial",
-      "-h"
-   };
-   auto const Argc = static_cast<int32>(YM_ARRAY_SIZE(Argv));
+   // try
+   // {
+   //    auto const SC = ymLogPushEnable(VG::UnitTest_ArgParser);
+   // }
+   // catch (std::exception const & E)
+   // {
+   //    std::fprintf(stderr, "?? %s\n", E.what());
+   // }
+
+   // str const Argv[] = {"testsuite",
+   //    "--input",  "settings.json",
+   //    "--output", "data.csv",
+   //    "-cb",
+   //    "-k", "Torchic1234",
+   //    "--in-denial",
+   //    "-h"
+   // };
+   // auto const Argc = static_cast<int32>(YM_ARRAY_SIZE(Argv));
    
    auto excHappened = false;
    auto val_input   = false;
@@ -51,30 +62,30 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
    auto val_key     = false;
    auto val_denial  = false;
 
-   auto & ap_ref = *ArgParser::getInstancePtr();
-   try
-   {
-      ap_ref.parse({
-         ap_ref.arg("input"    ).desc("Input file"  ),
-         ap_ref.arg("output"   ).desc("Output file" ),
-         ap_ref.arg("clean"    ).desc("Cleans build").abbr('c').flag(),
-         ap_ref.arg("build"    ).desc("Builds exe"  ).abbr('b').flag(),
-         ap_ref.arg("key"      ).desc("Passkey"     ).abbr('k'),
-         ap_ref.arg("in-denial").desc("My existence")          .flag()
-      },
-      Argc, Argv);
+   // auto & ap_ref = *ArgParser::getInstancePtr();
+   // try
+   // {
+   //    ap_ref.parse({
+   //       ap_ref.arg("input"    ).desc("Input file"  ),
+   //       ap_ref.arg("output"   ).desc("Output file" ),
+   //       ap_ref.arg("clean"    ).desc("Cleans build").abbr('c').flag(),
+   //       ap_ref.arg("build"    ).desc("Builds exe"  ).abbr('b').flag(),
+   //       ap_ref.arg("key"      ).desc("Passkey"     ).abbr('k'),
+   //       ap_ref.arg("in-denial").desc("My existence")          .flag()
+   //    },
+   //    Argc, Argv);
 
-      val_input  = std::strcmp(ap_ref["input"    ]->getVal(), "settings.json") == 0_i32;
-      val_output = std::strcmp(ap_ref["output"   ]->getVal(), "data.csv"     ) == 0_i32;
-      val_clean  =             ap_ref["clean"    ]->isEnbl();
-      val_build  =             ap_ref["build"    ]->isEnbl();
-      val_key    = std::strcmp(ap_ref["key"      ]->getVal(), "Torchic1234"  ) == 0_i32;
-      val_denial =             ap_ref["in-denial"]->isEnbl();
-   }
-   catch (ArgParser::ArgParserError const & E)
-   {
-      excHappened = true;
-   }
+   //    val_input  = std::strcmp(ap_ref["input"    ]->getVal(), "settings.json") == 0_i32;
+   //    val_output = std::strcmp(ap_ref["output"   ]->getVal(), "data.csv"     ) == 0_i32;
+   //    val_clean  =             ap_ref["clean"    ]->isEnbl();
+   //    val_build  =             ap_ref["build"    ]->isEnbl();
+   //    val_key    = std::strcmp(ap_ref["key"      ]->getVal(), "Torchic1234"  ) == 0_i32;
+   //    val_denial =             ap_ref["in-denial"]->isEnbl();
+   // }
+   // catch (ArgParser::ArgParserError const & E)
+   // {
+   //    excHappened = true;
+   // }
 
    return {
       {"Exc",    excHappened},

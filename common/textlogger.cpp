@@ -92,7 +92,7 @@ auto ym::TextLogger::getGlobalInstancePtr(void) -> TextLogger *
          delete instance_ptr;
          instance_ptr = nullptr;
 
-         throw E;
+         throw;
       }
 
       if (!opened)
@@ -115,7 +115,7 @@ auto ym::TextLogger::getGlobalInstancePtr(void) -> TextLogger *
  * @param PrintMode    -- Mode to determine how to mangle the printable message.
  * @param RedirectMode -- Specifies what streams to pipe the output to.
  *
- * TODO throws
+ * @throws TextLoggerError_FailureToOpen -- If redirect mode doesn't point to a static stream.
  * 
  * @returns bool -- Whether the outfile was opened successfully, false otherwise.
  */
@@ -140,7 +140,9 @@ bool ym::TextLogger::open(PrintMode_T    const PrintMode,
  * @param RedirectMode -- Specifies what streams to pipe the output to.
  * @param Filename     -- Name of file to open.
  *
- * TODO throws
+ * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdOut mode is requested.
+ * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdErr mode is requested.
+ * @throws TextLoggerError_FailureToOpen -- If filename is not specified but ToLog mode is requested.
  * 
  * @returns bool -- Whether the outfile was opened successfully, false otherwise.
  */
@@ -405,34 +407,16 @@ void ym::TextLogger::writeMessagesToFile(void)
 
          auto nCharsWrittenInTheory = -1_i32; // default to error value
 
-         if (getPrintMode() == PrintMode_T::PrependTimeStamp)
+         if (_printMode == PrintMode_T::PrependTimeStamp)
          { // print message with time stamp
             char timeStampBuffer[getTimeStampSize_bytes()] = {'\0'};
             populateFormattedTime(timeStampBuffer);
 
             nCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), "%s: %s\n", timeStampBuffer, Read_Ptr);
-
-            if (getRedirectMode() == RedirectMode_T::ToLogAndStdOut)
-            { // additionally log to standard out
-               (void)std::fprintf(stdout, "%s: %s\n", timeStampBuffer, Read_Ptr);
-            }
-            else if (getRedirectMode() == RedirectMode_T::ToLogAndStdErr)
-            { // additionally log to standard error
-               (void)std::fprintf(stderr, "%s: %s\n", timeStampBuffer, Read_Ptr);
-            }
          }
          else
          { // print message plain
             nCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), "%s", Read_Ptr);
-
-            if (getRedirectMode() == RedirectMode_T::ToLogAndStdOut)
-            { // additionally log to standard out
-               (void)std::fprintf(stdout, "%s", Read_Ptr);
-            }
-            else if (getRedirectMode() == RedirectMode_T::ToLogAndStdErr)
-            { // additionally log to standard error
-               (void)std::fprintf(stderr, "%s", Read_Ptr);
-            }
          }
 
          if (nCharsWrittenInTheory < 0_i32)

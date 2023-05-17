@@ -93,7 +93,7 @@ class TestSuiteBase(unittest.TestCase):
       try:
          results = ts.runTestCase(test_case_name)
       except Exception as exc:
-         saved_exc = exc
+         saved_exc = exc # TODO this only captures copy of base class, not derived class
       except: # catch non-std based exceptions (not guaranteed to have what())
          self.assertTrue(False, f"Unhandled exception in test case {test_case_name}")
 

@@ -73,7 +73,7 @@ bool ym::Logger::openOutfile(str            const Filename,
             }
             catch (Ymception const & E)
             { // re-throw
-               throw E;
+               throw;
             }
             catch (...)
             { // utility failure

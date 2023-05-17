@@ -34,8 +34,7 @@ inline void ymLog(VG     const    VG,
                   Args_T const... Args);
 
 template <Loggable... Args_T>
-inline void ymLogToStdErr(VG     const    VG,
-                          str    const    Format,
+inline void ymLogToStdErr(str    const    Format,
                           Args_T const... Args);
 
 inline bool ymLogEnable (VG const VG);
