@@ -42,6 +42,7 @@ public:
    DataShuttle runTestCase(std::string const & Name,
                            DataShuttle const & InData = {});
 
+   YM_UT_DEFN_UTCEPTION(TSBError_TestCaseFailure )
    YM_UT_DEFN_UTCEPTION(TSBError_TestCaseNotFound)
 
 private:

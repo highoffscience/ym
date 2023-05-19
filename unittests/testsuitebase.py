@@ -89,11 +89,11 @@ class TestSuiteBase(unittest.TestCase):
 
       ts = ym.ut.TestSuite()
       results = None
-      saved_exc = TempExc()
+      saved_exc = TempExc() # TempExc is so the format string can be parsed (parsed does not mean executed)
       try:
          results = ts.runTestCase(test_case_name)
       except Exception as exc:
-         saved_exc = exc # TODO this only captures copy of base class, not derived class
+         saved_exc = exc
       except: # catch non-std based exceptions (not guaranteed to have what())
          self.assertTrue(False, f"Unhandled exception in test case {test_case_name}")
 
