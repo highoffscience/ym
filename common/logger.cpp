@@ -23,7 +23,7 @@ ym::Logger::Logger(void)
       [](std::FILE * const file_Ptr) {
          if (file_Ptr != stdout &&
              file_Ptr != stderr) {
-            std::fclose(file_Ptr);
+            (void)std::fclose(file_Ptr);
          }
       }
    }
@@ -115,7 +115,7 @@ bool ym::Logger::openOutfile(std::FILE * const file_Ptr)
 
    if (!isOutfileOpened())
    { // file not opened
-      LoggerError_FailureToOpen::check(!file_Ptr, "File ptr is not valid");
+      LoggerError_FailureToOpen::check(file_Ptr, "File ptr is not valid");
 
       _outfile_uptr.reset(file_Ptr);
       opened = isOutfileOpened();

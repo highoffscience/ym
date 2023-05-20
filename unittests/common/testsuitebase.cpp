@@ -25,7 +25,8 @@ ym::ut::TestSuiteBase::TestSuiteBase(std::string name)
  *
  * @brief Runs specified test case.
  * 
- * @throws TODO
+ * @throws TSBError_TestCaseFailure  -- If there is an unhandled test case exception.
+ * @throws TSBError_TestCaseNotFound -- If requested test case is not found.
  * 
  * @param Name   -- Name of test case to run.
  * @param InData -- Additional input data for test case.

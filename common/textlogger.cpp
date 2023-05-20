@@ -57,6 +57,8 @@ bool ym::TextLogger::isOpen(void) const
 /** getGlobalInstancePtr
  *
  * @brief Gets the global text logger instance.
+ * 
+ * @throws TODO
  *
  * @note Used as the global logger for the program. Not expected to close until the end.
  */

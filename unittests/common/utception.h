@@ -35,6 +35,10 @@ namespace ym::ut
 /** Utception
  * 
  * @brief Base class for unittest exceptions.
+ * 
+ * @note cppyy knows how to parse Utception classes but not Ymception classes. As such
+ *       any potential escapes of Ymception needs to be caught and re-thrown as a
+ *       Utception.
  */
 class Utception : public std::exception
 {

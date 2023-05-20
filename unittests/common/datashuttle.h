@@ -44,6 +44,9 @@ private:
  * 
  * @brief Returns value of named variable.
  * 
+ * @throws std::out_of_range -- If variable doesn't exist.
+ * @throws std::bad_any_cast -- If casting variable to desired type fails.
+ * 
  * @tparam T -- Type to cast named variable to.
  * 
  * @param Name -- Name of variable.
@@ -61,6 +64,8 @@ T DataShuttle::get(std::string const & Name)
  * @brief Returns value of named variable. If the variable doesn't exists return the
  *        specified default value.
  * 
+ * @throws std::bad_any_cast -- If casting variable to desired type fails.
+ * 
  * @tparam T -- Type to cast named variable to.
  * 
  * @param Name         -- Name of variable.
@@ -75,11 +80,11 @@ T DataShuttle::get(std::string const & Name,
    auto val = DefaultValue;
 
    try
-   {
+   { // try to retrieve and cast variable
       val = get<T>(Name);
    }
    catch(std::out_of_range const & E)
-   {
+   { // variable not found
       // do nothing - val already set to default
    }
 

@@ -285,6 +285,8 @@ inline bool ymLogDisable(VG const VG)
  * 
  * @brief Enables given verbosity group only in the current scope for the global logger.
  * 
+ * @throws TODO
+ * 
  * @param VG -- Verbosity group.
  * 
  * @returns ScopedEnable -- RAII mechanism that only keeps the enable VG while in scope.
