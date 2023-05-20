@@ -41,7 +41,7 @@ ym::Logger::Logger(void)
  * @note The conditional assures the logger is only associated with one file.
  * 
  * @throws LoggerError_FailureToOpen -- If the file already exists.
- * @throws LoggerError_FailureToOpen -- If a utility function fails.
+ * @throws LoggerError_FailureToOpen -- If filesystem utility function fails.
  *
  * @param Filename     -- Name of file to open.
  * @param FilenameMode -- Mode whether to append time stamps to filename.
@@ -145,7 +145,7 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
 
    constexpr auto MaxFilenameSize_bytes = 256_u64;
    LoggerError_FailureToOpen::check(FilenameSize_bytes < MaxFilenameSize_bytes,
-      "Filename size is too big - not technically a hard error but unexpected. "
+      "Filename size is too big - not technically a hard error but too unexpected. "
       "Got %lu bytes, max %lu bytes", FilenameSize_bytes, MaxFilenameSize_bytes);
 
    auto const TSFilenameSize_bytes =
