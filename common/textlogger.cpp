@@ -59,6 +59,7 @@ bool ym::TextLogger::isOpen(void) const
  * @brief Gets the global text logger instance.
  * 
  * @throws TextLoggerError_GlobalFailureToOpen -- If TextLogger instance fails to be instantiated.
+ * // TODO
  *
  * @note Used as the global logger for the program. Not expected to close until the end.
  */
@@ -94,7 +95,8 @@ auto ym::TextLogger::getGlobalInstancePtr(void) -> TextLogger *
          delete instance_ptr;
          instance_ptr = nullptr;
 
-         throw;
+         TextLoggerError_GlobalFailureToOpen::check(false,
+            "Error in opening global file (%s)", E.what());
       }
 
       if (!opened)
@@ -137,6 +139,8 @@ bool ym::TextLogger::open(PrintMode_T    const PrintMode,
  *
  * @brief Opens and prepares the logger to be written to.
  *
+ * @throws LoggerError_FailureToOpen -- If the file already exists.
+ * 
  * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdOut mode is requested.
  * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdErr mode is requested.
  * @throws TextLoggerError_FailureToOpen -- If filename is not specified but ToLog mode is requested.
@@ -344,13 +348,13 @@ void ym::TextLogger::printf_Producer(str const    Format,
                                      std::va_list args)
 {
    try
-   {
+   { // try to acquire
       _availableSem.acquire();
    }
    catch (std::exception const & E)
-   {
+   { // post what went wrong and throw
       TextLoggerError_ProducerConsumerError::check(false,
-         "Avail sem acquire failed (%s)", E.what());
+         "Avail sem failed to acquire (%s)", E.what());
    }
    
    // _writePos doesn't need to wrap (power of 2), so just incrementing until it rolls over is ok
@@ -384,7 +388,15 @@ void ym::TextLogger::printf_Producer(str const    Format,
 
    _readReadySlots.fetch_or(1_u64 << WritePos, std::memory_order_release);
 
-   _messagesSem.release();
+   try
+   { // try to release
+      _messagesSem.release();
+   }
+   catch (std::exception const & E)
+   { // post what went wrong and throw
+      TextLoggerError_ProducerConsumerError::check(false,
+         "Msgs sem failed to release (%s)", E.what());
+   }
 }
 
 /** writeMessagesToFile
