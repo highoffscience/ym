@@ -84,6 +84,7 @@ public:
    YM_DECL_YMCEPT(TextLoggerError)
    YM_DECL_YMCEPT(TextLoggerError, TextLoggerError_GlobalFailureToOpen)
    YM_DECL_YMCEPT(TextLoggerError, TextLoggerError_FailureToOpen)
+   YM_DECL_YMCEPT(TextLoggerError, TextLoggerError_ProducerConsumerError)
 
    static TextLogger * getGlobalInstancePtr(void);
 

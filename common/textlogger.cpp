@@ -58,7 +58,7 @@ bool ym::TextLogger::isOpen(void) const
  *
  * @brief Gets the global text logger instance.
  * 
- * @throws TODO
+ * @throws TextLoggerError_GlobalFailureToOpen -- If TextLogger instance fails to be instantiated.
  *
  * @note Used as the global logger for the program. Not expected to close until the end.
  */
@@ -114,10 +114,10 @@ auto ym::TextLogger::getGlobalInstancePtr(void) -> TextLogger *
  *
  * @brief Opens and prepares the logger to be written to.
  * 
+ * @throws TextLoggerError_FailureToOpen -- If redirect mode doesn't point to a static stream.
+ * 
  * @param PrintMode    -- Mode to determine how to mangle the printable message.
  * @param RedirectMode -- Specifies what streams to pipe the output to.
- *
- * @throws TextLoggerError_FailureToOpen -- If redirect mode doesn't point to a static stream.
  * 
  * @returns bool -- Whether the outfile was opened successfully, false otherwise.
  */
@@ -137,14 +137,15 @@ bool ym::TextLogger::open(PrintMode_T    const PrintMode,
  *
  * @brief Opens and prepares the logger to be written to.
  *
+ * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdOut mode is requested.
+ * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdErr mode is requested.
+ * @throws TextLoggerError_FailureToOpen -- If filename is not specified but ToLog mode is requested.
+ * @throws TextLoggerError_FailureToOpen -- If RedirectMode is invalid.
+ * 
  * @param FilenameMode -- Mode to determine how to mangle the filename.
  * @param PrintMode    -- Mode to determine how to mangle the printable message.
  * @param RedirectMode -- Specifies what streams to pipe the output to.
  * @param Filename     -- Name of file to open.
- *
- * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdOut mode is requested.
- * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdErr mode is requested.
- * @throws TextLoggerError_FailureToOpen -- If filename is not specified but ToLog mode is requested.
  * 
  * @returns bool -- Whether the outfile was opened successfully, false otherwise.
  */
@@ -186,7 +187,7 @@ bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
       default:
       {
          TextLoggerError_FailureToOpen::check(false,
-            "Un-account for redirect mode %u", ymToUnderlying(RedirectMode));
+            "Unaccounted for redirect mode %u", ymToUnderlying(RedirectMode));
          break;
       }
    }
@@ -333,14 +334,25 @@ void ym::TextLogger::printf_Handler(VG    const  VG,
  *
  * @note The system call to get the timestamp is usually optimized at runtime.
  *
+ * @throws TextLoggerError_ProducerConsumerError -- If _availableSem fails to acquire.
+ * @throws TextLoggerError_ProducerConsumerError -- If _messagesSem fails to release.
+ * 
  * @param Format -- Format string.
  * @param args   -- Arguments.
  */
 void ym::TextLogger::printf_Producer(str const    Format,
                                      std::va_list args)
 {
-   _availableSem.acquire();
-
+   try
+   {
+      _availableSem.acquire();
+   }
+   catch (std::exception const & E)
+   {
+      TextLoggerError_ProducerConsumerError::check(false,
+         "Avail sem acquire failed (%s)", E.what());
+   }
+   
    // _writePos doesn't need to wrap (power of 2), so just incrementing until it rolls over is ok
    auto   const WritePos  = _writePos.fetch_add(1_u32, std::memory_order_relaxed) % getMaxNMessagesInBuffer();
    auto * const write_Ptr = _buffer + (WritePos * getMaxMessageSize_bytes());

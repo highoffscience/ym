@@ -75,10 +75,10 @@ bool ym::Logger::openOutfile(str            const Filename,
             { // re-throw
                throw;
             }
-            catch (...)
-            { // utility failure
+            catch (std::exception const & E)
+            { // filesystem utility failure
                LoggerError_FailureToOpen::check(false,
-                  "Filesystem error when attempting to open %s", Filename);
+                  "Filesystem error when attempting to open %s (%s)", Filename, E.what());
             }
             
             _outfile_uptr.reset(std::fopen(Filename, "w"));
