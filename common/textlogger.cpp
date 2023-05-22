@@ -59,7 +59,8 @@ bool ym::TextLogger::isOpen(void) const
  * @brief Gets the global text logger instance.
  * 
  * @throws TextLoggerError_GlobalFailureToOpen -- If TextLogger instance fails to be instantiated.
- * // TODO
+ * @throws TextLoggerError_GlobalFailureToOpen -- If attempting to open throws.
+ * @throws TextLoggerError_GlobalFailureToOpen -- If attempting to open is unsuccessful.
  *
  * @note Used as the global logger for the program. Not expected to close until the end.
  */
@@ -117,6 +118,12 @@ auto ym::TextLogger::getGlobalInstancePtr(void) -> TextLogger *
  * @brief Opens and prepares the logger to be written to.
  * 
  * @throws TextLoggerError_FailureToOpen -- If redirect mode doesn't point to a static stream.
+ * @throws LoggerError_FailureToOpen     -- If the file already exists.
+ * 
+ * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdOut mode is requested.
+ * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdErr mode is requested.
+ * @throws TextLoggerError_FailureToOpen -- If filename is not specified but ToLog mode is requested.
+ * @throws TextLoggerError_FailureToOpen -- If RedirectMode is invalid.
  * 
  * @param PrintMode    -- Mode to determine how to mangle the printable message.
  * @param RedirectMode -- Specifies what streams to pipe the output to.
@@ -139,7 +146,7 @@ bool ym::TextLogger::open(PrintMode_T    const PrintMode,
  *
  * @brief Opens and prepares the logger to be written to.
  *
- * @throws LoggerError_FailureToOpen -- If the file already exists.
+ * @throws LoggerError_FailureToOpen -- If openOutfile() fails.
  * 
  * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdOut mode is requested.
  * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdErr mode is requested.
@@ -202,6 +209,8 @@ bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
 /** close
  *
  * @brief Closes the outfile and shuts the logger down.
+ * 
+ * @throws TextLoggerError_ProducerConsumerError -- If close_Helper() fails.
  */
 void ym::TextLogger::close(void)
 {
@@ -245,6 +254,8 @@ bool ym::TextLogger::open_Helper(bool const Opened)
 /** close_Helper
  * 
  * @brief Wrapper (helper) function to call printf_Producer().
+ * 
+ * @throws TextLoggerError_ProducerConsumerError -- If printf_Producer() fails.
  * 
  * @param msg -- Message to print.
  * @param ... -- Arguments.
@@ -307,6 +318,8 @@ auto ym::TextLogger::pushEnable(VG const VG) -> ScopedEnable
  *
  * @note printf_Producer is not marked noexcept because terminate should not be called.
  *
+ * @throws TextLoggerError_ProducerConsumerError -- If printf_Producer() if fails.
+ * 
  * @param VG     -- Verbosity group.
  * @param Format -- Format string.
  * @param ...    -- Arguments.
@@ -408,6 +421,9 @@ void ym::TextLogger::printf_Producer(str const    Format,
  * @note There's also full-blown defense sections where your ally has to stop and inject a
  *       a virus into three separate pillars while endless waves of enemies try to kill them
  *       because obviously they don't want those pillars to have viruses injected into them.
+ * 
+ * @throws TextLoggerError_ProducerConsumerError -- If _messagesSem fails to acquire.
+ * @throws TextLoggerError_ProducerConsumerError -- If _availableSem fails to release.
  */
 void ym::TextLogger::writeMessagesToFile(void)
 {
@@ -419,7 +435,16 @@ void ym::TextLogger::writeMessagesToFile(void)
       auto nMsgs = 0_u32;
       do
       { // wait until the next message is ready
-         _messagesSem.acquire(); // _readReadySlots has been updated
+         try
+         { // try to acquire
+            _messagesSem.acquire(); // _readReadySlots has been updated
+         }
+         catch (std::exception const & E)
+         { // post what went wrong and throw
+            TextLoggerError_ProducerConsumerError::check(false,
+               "Msgs sem failed to acquire (%s)", E.what());
+         }
+
          nMsgs++;
       }
       while ( !( (1_u64 << _readPos) & _readReadySlots.load(std::memory_order_acquire) ) );
@@ -457,7 +482,15 @@ void ym::TextLogger::writeMessagesToFile(void)
 
          nMsgs--;
 
-         _availableSem.release();
+         try
+         { // try to release
+            _availableSem.release();
+         }
+         catch (std::exception const & E)
+         { // post what went wrong and throw
+            TextLoggerError_ProducerConsumerError::check(false,
+               "Avail sem failed to release (%s)", E.what());
+         }
       }
 
       if (_writerMode.load(std::memory_order_relaxed) == WriterMode_T::Closing)
