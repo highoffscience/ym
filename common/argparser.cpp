@@ -33,9 +33,18 @@ ym::ArgParser::ArgParser(void)
  */
 auto ym::ArgParser::getInstancePtr(void) -> ArgParser *
 {
-   static ArgParser instance;
+   static ArgParser * instance_ptr = nullptr; // TODO this should be member variable
+                                              // so we can delete it
 
-   return &instance;
+   if (!instance_ptr)
+   {
+      instance_ptr = new ArgParser();
+
+      ArgParserError_CreationError::check(instance_ptr,
+         "Global instance failed to be created");
+   }
+
+   return instance_ptr; // guaranteed not null
 }
 
 /** parse

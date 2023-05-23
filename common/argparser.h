@@ -107,9 +107,10 @@ public:
    bool isSet(str const Key);
 
    YM_DECL_YMCEPT(ArgParserError)
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ParseError )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ArgError   )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_AccessError)
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_CreationError)
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ParseError   )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ArgError     )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_AccessError  )
 
 private:
    void organizeAndValidateArgVector(void);
