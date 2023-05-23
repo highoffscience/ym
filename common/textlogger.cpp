@@ -66,8 +66,7 @@ bool ym::TextLogger::isOpen(void) const
  */
 auto ym::TextLogger::getGlobalInstancePtr(void) -> TextLogger *
 {
-   static TextLogger * instance_ptr = nullptr; // TODO this should be member variable
-                                               // so we can delete it
+   static TextLogger * instance_ptr = nullptr;
 
    if (!instance_ptr)
    { // file not already opened - open it
