@@ -12,6 +12,7 @@ include(utcommon.cmake)
 
 set(RelativeFilePaths
    ym/common/argparser
+   ym/common/memio
    ym/common/ops
    ym/common/random
    ym/common/textlogger

@@ -36,6 +36,7 @@ struct VerboGroup
       General,
       Logger,
       UnitTest_ArgParser,
+      UnitTest_MemIO,
       UnitTest_Ops,
       Ymception,
 
@@ -96,6 +97,7 @@ struct VerboGroupMask
       Logger_Detail      = YM_FMT_MSK(Logger,    0b0000'0010),
 
       UnitTest_ArgParser = YM_FMT_GRP(UnitTest_ArgParser    ),
+      UnitTest_MemIO     = YM_FMT_GRP(UnitTest_MemIO        ),
       UnitTest_Ops       = YM_FMT_GRP(UnitTest_Ops          ),
 
       Ymception          = YM_FMT_GRP(Ymception             ),

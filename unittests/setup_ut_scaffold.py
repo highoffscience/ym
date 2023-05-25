@@ -78,7 +78,7 @@ def gen_src_file(args):
       writeln(f" * @author  Forrest Jablonski                                             ")
       writeln(f" */                                                                       ")
       writeln(f"                                                                          ")
-      writeln(f"#include \"ym.h\"                                                         ")
+      writeln(f"#include \"ymdefs.h\"                                                     ")
       writeln(f"#include \"testsuite.h\"                                                  ")
       writeln(f"                                                                          ")
       writeln(f"#include \"{args.filename}.h\"                                            ")

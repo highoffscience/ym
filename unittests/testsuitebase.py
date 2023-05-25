@@ -98,6 +98,8 @@ class TestSuiteBase(unittest.TestCase):
          self.assertTrue(False, f"Unhandled exception in test case {test_case_name}")
 
       self.assertTrue(type(saved_exc) is TempExc, f"Unhandled exception in test case {test_case_name} - {saved_exc.what()}")
+      
+      # results will also eval to None if the dictionary is empty
       self.assertTrue(results, "Results is None")
 
       return results

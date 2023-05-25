@@ -23,7 +23,7 @@ public:
    explicit TestSuite(void);
    virtual ~TestSuite(void) = default;
 
-   // YM_UT_TESTCASE(name_of_test_case_here)
+   YM_UT_TESTCASE(StackAlloc)
 };
 
 } // ym::ut

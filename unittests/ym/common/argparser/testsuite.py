@@ -74,9 +74,9 @@ class TestSuite(testsuitebase.TestSuiteBase):
       exc = results.get[bool]("Exc")
       self.assertFalse(exc, "Unexpected exception happened")
 
-      # for arg in expectedArgs:
-      #    val = results.get[bool](arg)
-      #    self.assertTrue(val, f"{arg} arg failed to parse")
+      for arg in expectedArgs:
+         val = results.get[bool](arg)
+         self.assertTrue(val, f"{arg} arg failed to parse")
 
 # kick-off
 if __name__ == "__main__":

@@ -57,7 +57,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       pass
 
-   def test_ _name_of_test_case_here(self):
+   def test_StackAlloc(self):
       """
       @brief Analyzes results from test case.
 
@@ -67,7 +67,13 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
-      results = self.run_test_case("name_of_test_case_here")
+      results = self.run_test_case("StackAlloc")
+
+      val = results.get[bool]("FirstElementOK")
+      self.assertTrue(val, f"First element corrupted")
+
+      val = results.get[bool]("BlockByteOK")
+      self.assertTrue(val, f"Block bytes corrupted")
 
 # kick-off
 if __name__ == "__main__":
