@@ -33,6 +33,8 @@ ym::ut::TestSuite::TestSuite(void)
  */
 auto ym::ut::TestSuite::Casting::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
+   auto const SE = ymLogPushEnable(VG::UnitTest_Ops);
+
    auto const Val_char    = Ops::castToChar   ("A"                      ) == 'A';
 
    auto const Val_int8    = Ops::castTo<int8 >("-128"                   ) == std::numeric_limits<int8  >::min();
@@ -76,6 +78,8 @@ auto ym::ut::TestSuite::Casting::run([[maybe_unused]] DataShuttle const & InData
  */
 auto ym::ut::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
+   auto const SE = ymLogPushEnable(VG::UnitTest_Ops);
+
    auto badCast_char = false; // until told otherwise
    try
    {
@@ -83,7 +87,7 @@ auto ym::ut::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InD
       (void)Ops::castToChar("7");
       (void)Ops::castToChar("it");
    }
-   catch (Ops::OpsError_BadCastToChar const & E)
+   catch (Ops::OpsError_BadCast const & E)
    {
       badCast_char = true;
    }
@@ -95,7 +99,7 @@ auto ym::ut::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InD
       (void)Ops::castTo<int8>("-");
       (void)Ops::castTo<int8>("-129");
    }
-   catch (Ops::OpsError_BadCastToInt8 const & E)
+   catch (Ops::OpsError_BadCast const & E)
    {
       badCast_int8 = true;
    }
@@ -107,7 +111,7 @@ auto ym::ut::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InD
       (void)Ops::castTo<int16>("-");
       (void)Ops::castTo<int16>("-32769");
    }
-   catch (Ops::OpsError_BadCastToInt16 const & E)
+   catch (Ops::OpsError_BadCast const & E)
    {
       badCast_int16 = true;
    }
@@ -119,7 +123,7 @@ auto ym::ut::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InD
       (void)Ops::castTo<int32>("-");
       (void)Ops::castTo<int32>("-2147483649");
    }
-   catch (Ops::OpsError_BadCastToInt32 const & E)
+   catch (Ops::OpsError_BadCast const & E)
    {
       badCast_int32 = true;
    }
@@ -131,7 +135,7 @@ auto ym::ut::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InD
       (void)Ops::castTo<int64>("-");
       (void)Ops::castTo<int64>("-9223372036854775809");
    }
-   catch (Ops::OpsError_BadCastToInt64 const & E)
+   catch (Ops::OpsError_BadCast const & E)
    {
       badCast_int64 = true;
    }
@@ -143,7 +147,7 @@ auto ym::ut::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InD
       (void)Ops::castTo<uint8>("+");
       (void)Ops::castTo<uint8>("+256");
    }
-   catch (Ops::OpsError_BadCastToUInt8 const & E)
+   catch (Ops::OpsError_BadCast const & E)
    {
       badCast_uint8 = true;
    }
@@ -155,7 +159,7 @@ auto ym::ut::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InD
       (void)Ops::castTo<uint16>("+");
       (void)Ops::castTo<uint16>("+65536");
    }
-   catch (Ops::OpsError_BadCastToUInt16 const & E)
+   catch (Ops::OpsError_BadCast const & E)
    {
       badCast_uint16 = true;
    }
@@ -167,7 +171,7 @@ auto ym::ut::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InD
       (void)Ops::castTo<uint32>("+");
       (void)Ops::castTo<uint32>("+4294967296");
    }
-   catch (Ops::OpsError_BadCastToUInt32 const & E)
+   catch (Ops::OpsError_BadCast const & E)
    {
       badCast_uint32 = true;
    }
@@ -179,7 +183,7 @@ auto ym::ut::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InD
       (void)Ops::castTo<uint64>("+");
       (void)Ops::castTo<uint64>("+18446744073709551616");
    }
-   catch (Ops::OpsError_BadCastToUInt64 const & E)
+   catch (Ops::OpsError_BadCast const & E)
    {
       badCast_uint64 = true;
    }
@@ -191,7 +195,7 @@ auto ym::ut::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InD
       (void)Ops::castTo<float32>(".");
       (void)Ops::castTo<float32>("+1.175e-38");
    }
-   catch (Ops::OpsError_BadCastToFlt32 const & E)
+   catch (Ops::OpsError_BadCast const & E)
    {
       badCast_flt32 = true;
    }
@@ -203,7 +207,7 @@ auto ym::ut::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InD
       (void)Ops::castTo<float64>(".");
       (void)Ops::castTo<float64>("+2.225e-308");
    }
-   catch (Ops::OpsError_BadCastToFlt64 const & E)
+   catch (Ops::OpsError_BadCast const & E)
    {
       badCast_flt64 = true;
    }
@@ -215,7 +219,7 @@ auto ym::ut::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InD
       (void)Ops::castTo<float80>(".");
       (void)Ops::castTo<float80>("+3.362e-4932");
    }
-   catch (Ops::OpsError_BadCastToFlt80 const & E)
+   catch (Ops::OpsError_BadCast const & E)
    {
       badCast_flt80 = true;
    }

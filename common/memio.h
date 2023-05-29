@@ -71,7 +71,7 @@ public:
                                   uint64 const NElements);
 
    template <typename T>
-   static inline std::unique_ptr<T> alloc_safe(uint64 const NElements);
+   static inline std::unique_ptr<T, decltype(&dealloc_raw<T>)> alloc_safe(uint64 const NElements);
 
    // TODO
    // /** Pool
@@ -117,6 +117,11 @@ private:
 template <typename T>
 inline T * MemIO::alloc_raw(uint64 const NElements)
 {
+   // TODO I think just using new (for alloc_raw(void)) or new[]
+   // (defaults __STDCPP_DEFAULT_NEW_ALIGNMENT__) is sufficient
+   // OR
+   // figure out a way to easily add custom deleter for alloc_safe
+
    std::allocator<T> a;
    return a.allocate(NElements);
 }
@@ -143,15 +148,20 @@ inline void MemIO::dealloc_raw(T *    const data_Ptr,
  * @returns T * -- Smart pointer to allocated memory.
  */
 template <typename T>
-inline std::unique_ptr<T> MemIO::alloc_safe(uint64 const NElements)
+inline auto MemIO::alloc_safe([[maybe_unused]] uint64 const NElements) ->
+   std::unique_ptr<T, decltype(&dealloc_raw<T>)>
 {
    auto deleter = [NElements](T * const datum_Ptr) {
       dealloc_raw<T>(datum_Ptr, NElements);
    };
 
+   // TODO
    return
-      std::unique_ptr<T[], decltype(deleter)>(
-         alloc_raw<T>(NElements), &deleter);
+      std::unique_ptr<T[], decltype(&dealloc_raw<T>)>(
+         alloc_raw<T>(NElements), &dealloc_raw<T>);
+
+   // return
+   //    std::unique_ptr(alloc_raw<T>(NElements), &dealloc_raw<T>);
 }
 
 // /** Pool

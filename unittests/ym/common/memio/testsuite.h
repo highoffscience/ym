@@ -24,6 +24,7 @@ public:
    virtual ~TestSuite(void) = default;
 
    YM_UT_TESTCASE(StackAlloc)
+   YM_UT_TESTCASE(HeapAlloc )
 };
 
 } // ym::ut

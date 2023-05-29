@@ -21,7 +21,7 @@
  */
 char ym::Ops::castToChar(str const S)
 {
-   OpsError_BadCastToChar::check(S && S[0_u32] && !S[1_u32], "String '%s' not a valid char", S);
+   OpsError_BadCast::check(S && S[0_u32] && !S[1_u32], "String '%s' not a valid char", S);
    return S[0_u32];
 }
 
@@ -34,7 +34,9 @@ char ym::Ops::castToChar(str const S)
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
- * @throws OpsError_BadCastToInt8 -- If string is not a valid int8.
+ * @throws OpsError_BadCast -- If string is not a valid int32.
+ * @throws OpsError_BadCast -- If string is not in range of int32.
+ * @throws OpsError_BadCast -- If string is not in range of int8.
  * 
  * @param S    -- String to cast.
  * @param Base -- Radix of int8.
@@ -55,14 +57,14 @@ auto ym::Ops::castTo<ym::int8>(std::string const & S,
    }
    catch (std::invalid_argument const & E)
    {
-      OpsError_BadCastToInt8::check(false, "String '%s' invalid int32 (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' invalid int32 (%s)", S.c_str(), E.what());
    }
    catch (std::out_of_range const & E)
    {
-      OpsError_BadCastToInt8::check(false, "String '%s' out of int32 range (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' out of int32 range (%s)", S.c_str(), E.what());
    }
 
-   OpsError_BadCastToInt8::check(
+   OpsError_BadCast::check(
       val_int32 >= static_cast<int32>(std::numeric_limits<int8>::min()) &&
       val_int32 <= static_cast<int32>(std::numeric_limits<int8>::max()),
       "String '%s' out of int8 range", S.c_str());
@@ -79,7 +81,9 @@ auto ym::Ops::castTo<ym::int8>(std::string const & S,
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
- * @throws OpsError_BadCastToInt16 -- If string is not a valid int16.
+ * @throws OpsError_BadCast -- If string is not a valid int32.
+ * @throws OpsError_BadCast -- If string is not in range of int32.
+ * @throws OpsError_BadCast -- If string is not in range of int16.
  * 
  * @param S    -- String to cast.
  * @param Base -- Radix of int16.
@@ -100,14 +104,14 @@ auto ym::Ops::castTo<ym::int16>(std::string const & S,
    }
    catch (std::invalid_argument const & E)
    {
-      OpsError_BadCastToInt16::check(false, "String '%s' invalid int32 (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' invalid int32 (%s)", S.c_str(), E.what());
    }
    catch (std::out_of_range const & E)
    {
-      OpsError_BadCastToInt16::check(false, "String '%s' out of int32 range (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' out of int32 range (%s)", S.c_str(), E.what());
    }
 
-   OpsError_BadCastToInt16::check(
+   OpsError_BadCast::check(
       val_int32 >= static_cast<int32>(std::numeric_limits<int16>::min()) &&
       val_int32 <= static_cast<int32>(std::numeric_limits<int16>::max()),
       "String '%s' out of int16 range", S.c_str());
@@ -124,7 +128,8 @@ auto ym::Ops::castTo<ym::int16>(std::string const & S,
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
- * @throws OpsError_BadCastToInt32 -- If string is not a valid int32.
+ * @throws OpsError_BadCast -- If string is not a valid int32.
+ * @throws OpsError_BadCast -- If string is not in range of int32.
  * 
  * @param S    -- String to cast.
  * @param Base -- Radix of int32.
@@ -145,11 +150,11 @@ auto ym::Ops::castTo<ym::int32>(std::string const & S,
    }
    catch (std::invalid_argument const & E)
    {
-      OpsError_BadCastToInt32::check(false, "String '%s' invalid int32 (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' invalid int32 (%s)", S.c_str(), E.what());
    }
    catch (std::out_of_range const & E)
    {
-      OpsError_BadCastToInt32::check(false, "String '%s' out of int32 range (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' out of int32 range (%s)", S.c_str(), E.what());
    }
 
    return val_int32;
@@ -164,7 +169,8 @@ auto ym::Ops::castTo<ym::int32>(std::string const & S,
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
- * @throws OpsError_BadCastToInt64 -- If string is not a valid int64.
+ * @throws OpsError_BadCast -- If string is not a valid int64.
+ * @throws OpsError_BadCast -- If string is not in range of int64.
  * 
  * @param S    -- String to cast.
  * @param Base -- Radix of int64.
@@ -185,11 +191,11 @@ auto ym::Ops::castTo<ym::int64>(std::string const & S,
    }
    catch (std::invalid_argument const & E)
    {
-      OpsError_BadCastToInt64::check(false, "String '%s' invalid int64 (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' invalid int64 (%s)", S.c_str(), E.what());
    }
    catch (std::out_of_range const & E)
    {
-      OpsError_BadCastToInt64::check(false, "String '%s' out of int64 range (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' out of int64 range (%s)", S.c_str(), E.what());
    }
 
    return val_int64;
@@ -204,7 +210,9 @@ auto ym::Ops::castTo<ym::int64>(std::string const & S,
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
- * @throws OpsError_BadCastToInt8 -- If string is not a valid uint8.
+ * @throws OpsError_BadCast -- If string is not a valid uint64.
+ * @throws OpsError_BadCast -- If string is not in range of int64.
+ * @throws OpsError_BadCast -- If string is not in range of uint8.
  * 
  * @param S    -- String to cast.
  * @param Base -- Radix of uint8.
@@ -225,14 +233,14 @@ auto ym::Ops::castTo<ym::uint8>(std::string const & S,
    }
    catch (std::invalid_argument const & E)
    {
-      OpsError_BadCastToUInt8::check(false, "String '%s' invalid uint64 (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' invalid uint64 (%s)", S.c_str(), E.what());
    }
    catch (std::out_of_range const & E)
    {
-      OpsError_BadCastToUInt8::check(false, "String '%s' out of uint64 range (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' out of uint64 range (%s)", S.c_str(), E.what());
    }
 
-   OpsError_BadCastToUInt8::check(
+   OpsError_BadCast::check(
       val_uint64 >= static_cast<uint64>(std::numeric_limits<uint8>::min()) &&
       val_uint64 <= static_cast<uint64>(std::numeric_limits<uint8>::max()),
       "String '%s' out of uint8 range", S.c_str());
@@ -249,7 +257,9 @@ auto ym::Ops::castTo<ym::uint8>(std::string const & S,
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
- * @throws OpsError_BadCastToInt16 -- If string is not a valid uint16.
+ * @throws OpsError_BadCast -- If string is not a valid uint64.
+ * @throws OpsError_BadCast -- If string is not in range of int64.
+ * @throws OpsError_BadCast -- If string is not in range of uint16.
  * 
  * @param S    -- String to cast.
  * @param Base -- Radix of uint16.
@@ -270,14 +280,14 @@ auto ym::Ops::castTo<ym::uint16>(std::string const & S,
    }
    catch (std::invalid_argument const & E)
    {
-      OpsError_BadCastToUInt16::check(false, "String '%s' invalid uint64 (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' invalid uint64 (%s)", S.c_str(), E.what());
    }
    catch (std::out_of_range const & E)
    {
-      OpsError_BadCastToUInt16::check(false, "String '%s' out of uint64 range (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' out of uint64 range (%s)", S.c_str(), E.what());
    }
 
-   OpsError_BadCastToUInt16::check(
+   OpsError_BadCast::check(
       val_uint64 >= static_cast<uint64>(std::numeric_limits<uint16>::min()) &&
       val_uint64 <= static_cast<uint64>(std::numeric_limits<uint16>::max()),
       "String '%s' out of uint16 range", S.c_str());
@@ -294,7 +304,9 @@ auto ym::Ops::castTo<ym::uint16>(std::string const & S,
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
- * @throws OpsError_BadCastToInt32 -- If string is not a valid uint32.
+ * @throws OpsError_BadCast -- If string is not a valid uint64.
+ * @throws OpsError_BadCast -- If string is not in range of int64.
+ * @throws OpsError_BadCast -- If string is not in range of uint32.
  * 
  * @param S    -- String to cast.
  * @param Base -- Radix of uint32.
@@ -315,14 +327,14 @@ auto ym::Ops::castTo<ym::uint32>(std::string const & S,
    }
    catch (std::invalid_argument const & E)
    {
-      OpsError_BadCastToUInt32::check(false, "String '%s' invalid uint64 (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' invalid uint64 (%s)", S.c_str(), E.what());
    }
    catch (std::out_of_range const & E)
    {
-      OpsError_BadCastToUInt32::check(false, "String '%s' out of uint64 range (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' out of uint64 range (%s)", S.c_str(), E.what());
    }
 
-   OpsError_BadCastToUInt8::check(
+   OpsError_BadCast::check(
       val_uint64 >= static_cast<uint64>(std::numeric_limits<uint32>::min()) &&
       val_uint64 <= static_cast<uint64>(std::numeric_limits<uint32>::max()),
       "String '%s' out of uint32 range", S.c_str());
@@ -339,7 +351,8 @@ auto ym::Ops::castTo<ym::uint32>(std::string const & S,
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
- * @throws OpsError_BadCastToInt64 -- If string is not a valid uint64.
+ * @throws OpsError_BadCast -- If string is not a valid uint64.
+ * @throws OpsError_BadCast -- If string is not in range of int64.
  * 
  * @param S    -- String to cast.
  * @param Base -- Radix of uint64.
@@ -360,11 +373,11 @@ auto ym::Ops::castTo<ym::uint64>(std::string const & S,
    }
    catch (std::invalid_argument const & E)
    {
-      OpsError_BadCastToUInt64::check(false, "String '%s' invalid uint64 (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' invalid uint64 (%s)", S.c_str(), E.what());
    }
    catch (std::out_of_range const & E)
    {
-      OpsError_BadCastToUInt64::check(false, "String '%s' out of uint64 range (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' out of uint64 range (%s)", S.c_str(), E.what());
    }
 
    return val_uint64;
@@ -379,7 +392,8 @@ auto ym::Ops::castTo<ym::uint64>(std::string const & S,
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
- * @throws OpsError_BadCastToFlt32 -- If string is not a valid float32.
+ * @throws OpsError_BadCast -- If string is not a valid float32.
+ * @throws OpsError_BadCast -- If string is not in range of float32.
  * 
  * @param S -- String to cast.
  * 
@@ -398,11 +412,11 @@ auto ym::Ops::castTo<ym::float32>(std::string const & S) -> float32
    }
    catch (std::invalid_argument const & E)
    {
-      OpsError_BadCastToFlt32::check(false, "String '%s' invalid float32 (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' invalid float32 (%s)", S.c_str(), E.what());
    }
    catch (std::out_of_range const & E)
    {
-      OpsError_BadCastToFlt32::check(false, "String '%s' out of float32 range (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' out of float32 range (%s)", S.c_str(), E.what());
    }
 
    return val_float32;
@@ -417,7 +431,8 @@ auto ym::Ops::castTo<ym::float32>(std::string const & S) -> float32
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
- * @throws OpsError_BadCastToFlt64 -- If string is not a valid float64.
+ * @throws OpsError_BadCast -- If string is not a valid float64.
+ * @throws OpsError_BadCast -- If string is not in range of float64.
  * 
  * @param S -- String to cast.
  * 
@@ -436,11 +451,11 @@ auto ym::Ops::castTo<ym::float64>(std::string const & S) -> float64
    }
    catch (std::invalid_argument const & E)
    {
-      OpsError_BadCastToFlt64::check(false, "String '%s' invalid float64 (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' invalid float64 (%s)", S.c_str(), E.what());
    }
    catch (std::out_of_range const & E)
    {
-      OpsError_BadCastToFlt64::check(false, "String '%s' out of float64 range (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' out of float64 range (%s)", S.c_str(), E.what());
    }
 
    return val_float64;
@@ -455,7 +470,8 @@ auto ym::Ops::castTo<ym::float64>(std::string const & S) -> float64
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
- * @throws OpsError_BadCastToFlt80 -- If string is not a valid float80.
+ * @throws OpsError_BadCast -- If string is not a valid float80.
+ * @throws OpsError_BadCast -- If string is not in range of float80.
  * 
  * @param S -- String to cast.
  * 
@@ -474,11 +490,11 @@ auto ym::Ops::castTo<ym::float80>(std::string const & S) -> float80
    }
    catch (std::invalid_argument const & E)
    {
-      OpsError_BadCastToFlt80::check(false, "String '%s' invalid float80 (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' invalid float80 (%s)", S.c_str(), E.what());
    }
    catch (std::out_of_range const & E)
    {
-      OpsError_BadCastToFlt80::check(false, "String '%s' out of float80 range (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' out of float80 range (%s)", S.c_str(), E.what());
    }
 
    return val_float80;

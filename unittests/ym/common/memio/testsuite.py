@@ -75,6 +75,18 @@ class TestSuite(testsuitebase.TestSuiteBase):
       val = results.get[bool]("BlockByteOK")
       self.assertTrue(val, f"Block bytes corrupted")
 
+   def test_HeapAlloc(self):
+      """
+      @brief Analyzes results from test case.
+
+      @param results -- Results from test case.
+      """
+
+      from cppyy.gbl import std
+      from cppyy.gbl import ym
+
+      results = self.run_test_case("HeapAlloc")
+
 # kick-off
 if __name__ == "__main__":
    if os.path.basename(os.getcwd()) != "memio":

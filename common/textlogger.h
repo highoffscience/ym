@@ -111,8 +111,8 @@ public:
     * 
     * @note The return value from @ref TextLogger::pushEnable will need to be explicitly
     *       stored, ie.
-    *       auto const SC = ymLogPushEnable(VG);
-    *       even if SC is not used, since the destructor has side effects. Simply calling
+    *       auto const SE = ymLogPushEnable(VG);
+    *       even if SE is not used, since the destructor has side effects. Simply calling
     *       pushEnable will result in the ScopedEnable structure being deleted immediately.
     */
    class ScopedEnable

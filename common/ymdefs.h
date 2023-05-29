@@ -298,22 +298,29 @@ constexpr auto ymPtrToUint(T const Ptr)
 
 // ----------------------------------------------------------------------------
 
-/** ymToUnderlying
+/** ymCastToBytes
  * 
- * @brief Convert an object of enumeration type to its underlying type.
+ * @brief Casts given pointer to byte pointer.
  * 
- * @note Copy-pasted from <utility>. Only available in c++23 so we re-define it here.
+ * @note According to @ref <https://en.cppreference.com/w/cpp/language/object>, any object can be
+ *       inspected assuming an underlying representation of bytes.
  * 
- * @tparam T -- Enumeration type.
+ * @tparam T -- Type of pointer.
  * 
- * @param  Value -- Enumeration.
+ * @param Data_Ptr -- Pointer to object(s).
  * 
- * @returns auto -- Enumeration as represented by it's underlying type.
+ * @returns uint8 const * -- Pointer to object(s) represented as an array of bytes.
  */
 template<typename T>
-constexpr auto ymToUnderlying(T const Value) noexcept
+constexpr uint8 const * ymCastToBytes(T const * const Data_Ptr) noexcept
 {
-   return static_cast<std::underlying_type_t<T>>(Value);
+   // a simple reinterpret cast will not suffice
+   return
+      static_cast<uint8 const *>(
+         static_cast<void const *>(
+            Data_Ptr
+         )
+      );
 }
 
 /** ymIsStrNonEmpty

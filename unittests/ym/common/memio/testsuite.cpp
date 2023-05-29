@@ -20,6 +20,7 @@ ym::ut::TestSuite::TestSuite(void)
    : TestSuiteBase("MemIO")
 {
    addTestCase<StackAlloc>();
+   addTestCase<HeapAlloc >();
 }
 
 /** run
@@ -30,7 +31,7 @@ ym::ut::TestSuite::TestSuite(void)
  */
 auto ym::ut::TestSuite::StackAlloc::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SC = ymLogPushEnable(VG::UnitTest_MemIO);
+   auto const SE = ymLogPushEnable(VG::UnitTest_MemIO);
 
    auto const Block0 = 0xCAFEBABE_u32;
 
@@ -59,5 +60,23 @@ auto ym::ut::TestSuite::StackAlloc::run([[maybe_unused]] DataShuttle const & InD
    return {
       {"FirstElementOK", FirstElementOK},
       {"BlockByteOK",    BlockByteOK   }
+   };
+}
+
+/** run
+ *
+ * @brief TODO.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::ut::TestSuite::HeapAlloc::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VG::UnitTest_MemIO);
+
+   auto data_uptr = MemIO::alloc_safe<uint32>(10_u64);
+   ymLog(VG::UnitTest_MemIO, "data_uptr %p", data_uptr.get());
+
+   return {
+      {"dummy", true}
    };
 }

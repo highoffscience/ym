@@ -37,20 +37,7 @@ public:
                    uint32      const   Base = 10_u32) = delete;
 
    YM_DECL_YMCEPT(OpsError)
-
-   YM_DECL_YMCEPT(OpsError,         OpsError_BadCast         )
-   YM_DECL_YMCEPT(OpsError_BadCast, OpsError_BadCastToChar   )
-   YM_DECL_YMCEPT(OpsError_BadCast, OpsError_BadCastToInt8   )
-   YM_DECL_YMCEPT(OpsError_BadCast, OpsError_BadCastToInt16  )
-   YM_DECL_YMCEPT(OpsError_BadCast, OpsError_BadCastToInt32  )
-   YM_DECL_YMCEPT(OpsError_BadCast, OpsError_BadCastToInt64  )
-   YM_DECL_YMCEPT(OpsError_BadCast, OpsError_BadCastToUInt8  )
-   YM_DECL_YMCEPT(OpsError_BadCast, OpsError_BadCastToUInt16 )
-   YM_DECL_YMCEPT(OpsError_BadCast, OpsError_BadCastToUInt32 )
-   YM_DECL_YMCEPT(OpsError_BadCast, OpsError_BadCastToUInt64 )
-   YM_DECL_YMCEPT(OpsError_BadCast, OpsError_BadCastToFlt32  )
-   YM_DECL_YMCEPT(OpsError_BadCast, OpsError_BadCastToFlt64  )
-   YM_DECL_YMCEPT(OpsError_BadCast, OpsError_BadCastToFlt80  )
+   YM_DECL_YMCEPT(OpsError, OpsError_BadCast)
 };
 
 template <> int8    Ops::castTo<int8>   (std::string const & S, uint32 const Base);

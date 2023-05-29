@@ -227,7 +227,7 @@ void ym::ArgParser::organizeAndValidateArgVector(void)
  */
 void ym::ArgParser::displayHelpMenu(void) const
 {
-   auto const SC = ymLogPushEnable(VG::ArgParser);
+   auto const SE = ymLogPushEnable(VG::ArgParser);
 
    auto maxKeyLen = 0_u32;
 

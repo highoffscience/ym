@@ -11,6 +11,7 @@
 #include <cstring>
 #include <ctime>
 #include <memory>
+#include <utility>
 
 /** TextLogger
  *
@@ -136,7 +137,7 @@ bool ym::TextLogger::open(PrintMode_T    const PrintMode,
    TextLoggerError_FailureToOpen::check(
       RedirectMode == RedirectMode_T::ToStdOut ||
       RedirectMode == RedirectMode_T::ToStdErr,
-      "Redirect mode %u must specify a filename", ymToUnderlying(RedirectMode)
+      "Redirect mode %u must specify a filename", std::to_underlying(RedirectMode)
    );
 
    return open(FilenameMode_T::KeepOriginal, PrintMode, RedirectMode, "");
@@ -198,7 +199,7 @@ bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
       default:
       {
          TextLoggerError_FailureToOpen::check(false,
-            "Unaccounted for redirect mode %u", ymToUnderlying(RedirectMode));
+            "Unaccounted for redirect mode %u", std::to_underlying(RedirectMode));
          break;
       }
    }

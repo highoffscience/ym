@@ -105,7 +105,7 @@ def gen_src_file(args):
       writeln(f"auto ym::ut::TestSuite::name_of_test_case_here" \
               f"::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle         ")
       writeln(f"{{                                                                        ")
-      writeln(f"   auto const SC = ymLogPushEnable(VG::UnitTest_{args.SUT_name});         ")
+      writeln(f"   auto const SE = ymLogPushEnable(VG::UnitTest_{args.SUT_name});         ")
       writeln(f"                                                                          ")
       writeln(f"   return {{}};                                                           ")
       writeln(f"}}                                                                        ")
