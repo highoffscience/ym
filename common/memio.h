@@ -64,14 +64,14 @@ public:
    YM_DECL_YMCEPT(MemIOError, MemIOError_PoolError)
 
    template <typename T>
-   static inline T * alloc_raw(uint64 const NElements);
+   static inline T * alloc_raw(uint64 const NElements = 1_u64);
 
    template <typename T>
    static inline void dealloc_raw(T *    const data_Ptr,
-                                  uint64 const NElements);
+                                  uint64 const NElements); // no default intentional
 
    template <typename T>
-   static inline std::unique_ptr<T, decltype(&dealloc_raw<T>)> alloc_safe(uint64 const NElements);
+   static inline auto alloc_safe(uint64 const NElements);
 
    // TODO
    // /** Pool
@@ -108,26 +108,28 @@ private:
  * 
  * @brief Allocates raw chunk of memory.
  * 
- * @tparam T -- Type of data to allocate for.
+ * @tparam T -- Type of data to allocate.
  * 
- * @param NElements -- Number of elements to allocate for.
+ * @param NElements -- Number of elements to allocate.
  * 
  * @returns T * -- Pointer to allocated memory.
  */
 template <typename T>
 inline T * MemIO::alloc_raw(uint64 const NElements)
 {
-   // TODO I think just using new (for alloc_raw(void)) or new[]
-   // (defaults __STDCPP_DEFAULT_NEW_ALIGNMENT__) is sufficient
-   // OR
-   // figure out a way to easily add custom deleter for alloc_safe
-
    std::allocator<T> a;
    return a.allocate(NElements);
 }
 
-/**
- * TODO
+/** dealloc_raw
+ * 
+ * @brief Deallocates chunk of memory previously allocated by alloc_raw().
+ * 
+ * @note NElements must be the same as used in the call to alloc_raw().
+ * 
+ * @tparam T -- Type of data to deallocate.
+ * 
+ * @param NElements -- Number of elements to deallocate.
  */
 template <typename T>
 inline void MemIO::dealloc_raw(T *    const data_Ptr,
@@ -141,27 +143,20 @@ inline void MemIO::dealloc_raw(T *    const data_Ptr,
  * 
  * @brief Allocates raw chunk of memory wrapped in a smart pointer.
  * 
- * @tparam T -- Type of data to allocate for.
+ * @tparam T -- Type of data to allocate.
  * 
- * @param NElements -- Number of elements to allocate for.
+ * @param NElements -- Number of elements to allocate.
  * 
- * @returns T * -- Smart pointer to allocated memory.
+ * @returns std::unique_ptr -- Smart pointer to allocated memory.
  */
 template <typename T>
-inline auto MemIO::alloc_safe([[maybe_unused]] uint64 const NElements) ->
-   std::unique_ptr<T, decltype(&dealloc_raw<T>)>
+inline auto MemIO::alloc_safe([[maybe_unused]] uint64 const NElements)
 {
    auto deleter = [NElements](T * const datum_Ptr) {
       dealloc_raw<T>(datum_Ptr, NElements);
    };
 
-   // TODO
-   return
-      std::unique_ptr<T[], decltype(&dealloc_raw<T>)>(
-         alloc_raw<T>(NElements), &dealloc_raw<T>);
-
-   // return
-   //    std::unique_ptr(alloc_raw<T>(NElements), &dealloc_raw<T>);
+   return std::unique_ptr<T, decltype(deleter)>(alloc_raw<T>(NElements), deleter);
 }
 
 // /** Pool
