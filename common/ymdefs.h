@@ -254,10 +254,10 @@ using float128 = std::conditional_t<std::numeric_limits<long double>::digits == 
 /// @brief Convenience alias.
 using uintptr = std::uintptr_t;
 
-/** ymPtrToUint
- *
- * @brief Casts non-member pointer to an appropriately sized uint.
- *
+/** PtrToUint_T
+ * 
+ * @brief Allow type punning. Casts non-member pointer to an appropriately sized uint.
+ * 
  * @ref <https://en.cppreference.com/w/cpp/types/integer>.
  *
  * @note It is important to make sure the size of the pointer is the exact size of the
@@ -271,20 +271,18 @@ using uintptr = std::uintptr_t;
  *       pointers because they usually occupy 16 bytes. If necessary a convenience
  *       casting method similar to this one can be made and placed in the experimental
  *       block but there is no need and usually cleaner solutions exist.
- *
+ * 
+ * @note Const qualification is wrapped into the type T.
+ * 
  * @tparam T -- Pointer type.
- *
- * @param Ptr -- Pointer value.
- *
- * @returns uintptr -- Ptr as an appropriately sized uint.
  */
 template <typename T>
-requires(std::is_pointer_v<T>         && // is non-member function pointer or data pointer?
-         sizeof(uintptr) >= sizeof(T))   // can pointer fit into uint?
-constexpr auto ymPtrToUint(T const Ptr)
+requires(std::is_pointer_v<T *>) // T (const) * is not non-member function pointer nor data pointer
+union PtrToUint_T
 {
-   return reinterpret_cast<uintptr>(Ptr);
-}
+   T *     ptr;
+   uintptr uint;
+};
 
 /** YM_ARRAY_SIZE
  * 

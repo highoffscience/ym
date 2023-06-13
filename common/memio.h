@@ -12,8 +12,9 @@
 
 #include <alloca.h>
 #include <cstdint>
+#include <forward_list>
 #include <memory>
-#include <new>
+#include <vector>
 
 namespace ym
 {
@@ -73,35 +74,39 @@ public:
    template <typename T>
    static inline auto alloc_safe(uint64 const NElements);
 
-   // TODO
-   // /** Pool
-   //  *
-   //  * @brief Class that manages a particular pool of memory.
-   //  */
-   // template <Chunkable_T Chunk_T>
-   // class Pool
-   // {
-   // public:
-   //    explicit Pool(uint64 const NChunksPerBlock);
+   /** Pool
+    *
+    * @brief Class that manages a particular pool of memory.
+    */
+   template <Chunkable_T Chunk_T>
+   class Pool
+   {
+   public:
+      explicit Pool(uint64 const NChunksPerBlock = 1024_u64);
+      ~Pool(void);
 
-   //    Chunk_T *                alloc_raw (void);
-   //    std::unique_ptr<Chunk_T> alloc_safe(void);
+      void reserve(void);
 
-   //    void dealloc(Chunk_T * const datum_Ptr);
+      Chunk_T *                alloc_raw (void);
+      std::unique_ptr<Chunk_T> alloc_safe(void);
 
-   // private:
-   //    Chunk_T *       _activeBlock_ptr;
-   //    Chunk_T *       _sentinel_ptr;
-   //    Chunk_T *       _nextFreeChunk_ptr;
-   //    Chunk_T * const _originalBlock_Ptr; // must be last
-   // };
+      void dealloc(Chunk_T * const datum_Ptr);
 
-   // template <Chunkable_T Chunk_T>
-   // static Pool<Chunk_T> getNewPool(uint64 const NChunksPerBlock);
+   private:
+      std::forward_list<std::vector<Chunk_T>> _blocks;
+
+      Chunk_T * _activeBlock_ptr;
+      Chunk_T * _sentinel_ptr;
+      Chunk_T * _nextFreeChunk_ptr;
+      Chunk_T * _originalBlock_ptr;
+   };
+
+   template <Chunkable_T Chunk_T>
+   static Pool<Chunk_T> getNewPool(uint64 const NChunksPerBlock);
 
 private:
-   // static void * allocBlock(uint64 const NChunksPerBlock,
-   //                          uint64 const ChunkSize_bytes);
+   static void * allocBlock(uint64 const NChunksPerBlock,
+                            uint64 const ChunkSize_bytes);
 };
 
 /** alloc_raw
@@ -150,7 +155,7 @@ inline void MemIO::dealloc_raw(T *    const data_Ptr,
  * @returns std::unique_ptr -- Smart pointer to allocated memory.
  */
 template <typename T>
-inline auto MemIO::alloc_safe([[maybe_unused]] uint64 const NElements)
+inline auto MemIO::alloc_safe([[maybe_unused]] uint64 const NElements) // -> std::unique_ptr
 {
    auto deleter = [NElements](T * const datum_Ptr) {
       dealloc_raw<T>(datum_Ptr, NElements);
@@ -159,53 +164,107 @@ inline auto MemIO::alloc_safe([[maybe_unused]] uint64 const NElements)
    return std::unique_ptr<T, decltype(deleter)>(alloc_raw<T>(NElements), deleter);
 }
 
-// /** Pool
-//  *
-//  * @brief Constructor.
-//  *
-//  * @tparam Chunk_T -- Type the pool contains.
-//  *
-//  * @param NChunksPerBlock -- Chunks (datum elements) per block of memory.
-//  */
-// template <Chunkable_T Chunk_T>
-// MemIO::Pool<Chunk_T>::Pool(uint64 const NChunksPerBlock)
-//    : _activeBlock_ptr   {nullptr                           },
-//      _sentinel_ptr      {_activeBlock_ptr + NChunksPerBlock},
-//      _nextFreeChunk_ptr {_sentinel_ptr                     }, // forces allocation
-//      _originalBlock_Ptr {alloc_raw<Chunk_T>()              }
-// {
-// }
+/** Pool
+ *
+ * @brief Constructor.
+ *
+ * @tparam Chunk_T -- Type the pool contains.
+ *
+ * @param NChunksPerBlock -- Chunks (datum elements) per block of memory.
+ */
+template <Chunkable_T Chunk_T>
+MemIO::Pool<Chunk_T>::Pool(uint64 const NChunksPerBlock)
+   : _activeBlock_ptr   {nullptr},
+     _sentinel_ptr      {nullptr},
+     _nextFreeChunk_ptr {nullptr},
+     _originalBlock_Ptr {nullptr}
+{
+   // PtrToUint_T block{_activeBlock_ptr};
+   // block.uint += NChunksPerBlock;
 
-// /** alloc
-//  *
-//  * @brief Returns a pointer to a block of raw memory equal to sizeof(Chunk_T).
-//  *
-//  * @tparam Chunk_T -- Type the pool contains.
-//  * 
-//  * @returns Pointer to block of raw memory equal to sizeof(Chunk_T).
-//  */
-// template <Chunkable_T Chunk_T>
-// Chunk_T * MemIO::Pool<Chunk_T>::alloc_raw(void)
-// {
-//    if (_nextFreeChunk_ptr == _sentinel_ptr)
-//    { // current pool is exhausted - create another one
-//       auto const NChunksPerBlock = _sentinel_ptr - _activeBlock_ptr;
+   // _sentinel_ptr      = block.ptr;
+   // _nextFreeChunk_ptr = _sentinel_ptr; // forces allocation
+}
 
-//       _activeBlock_ptr   = allocBlock(NChunksPerBlock, sizeof(Chunk_T));
-//       _sentinel_ptr      = _activeBlock_ptr + NChunksPerBlock;
-//       _nextFreeChunk_ptr = _activeBlock_ptr;
-//    }
+/**
+ * TODO
+ */
+template <Chunkable_T Chunk_T>
+MemIO::Pool<Chunk_T>::~Pool(void)
+{
 
-//    union
-//    {
-//       Chunk_T *   ptr;
-//       Chunk_T * * ptrptr;
-//    } data{_nextFreeChunk_ptr};
+}
 
-//    _nextFreeChunk_ptr = *data.ptrptr;
+/** reserve
+ *
+ * TODO
+ */
+template <Chunkable_T Chunk_T>
+void MemIO::Pool<Chunk_T>::reserve(void)
+{
+   if (!_nextFreeChunk_ptr)
+   { // current block is exhausted - create another one
+      _blocks.emplace_front();
+      // TODO check the currently placed vector is size 0
+      _blocks.front().reserve(NChunksPerBlock);
+      initBlock(_blocks.front());
+      _nextFreeChunk_ptr = _blocks.front().data();
 
-//    return data.ptr;
-// }
+      MemIOError_PoolError::check(_sentinel_ptr >= _activeBlock_ptr,
+         "Sentinel and active block pointers don't make sense - programmer error");
+      // if _activeBlock_ptr is nullptr then _sentinel_ptr will have the value of NChunksPerBlock
+      auto const NChunksPerBlock = _sentinel_ptr - _activeBlock_ptr;
+
+      _activeBlock_ptr   = allocBlock(NChunksPerBlock, sizeof(Chunk_T));
+      _sentinel_ptr      = _activeBlock_ptr + NChunksPerBlock;
+      _nextFreeChunk_ptr = _activeBlock_ptr;
+
+      if (!_originalBlock_ptr)
+      { // first block - record start
+         _originalBlock_ptr = _activeBlock_ptr;
+      }
+   }
+}
+
+/** alloc
+ *
+ * @brief Returns a pointer to a block of raw memory equal to sizeof(Chunk_T).
+ *
+ * @tparam Chunk_T -- Type the pool contains.
+ * 
+ * @returns Pointer to block of raw memory equal to sizeof(Chunk_T).
+ */
+template <Chunkable_T Chunk_T>
+Chunk_T * MemIO::Pool<Chunk_T>::alloc_raw(void)
+{
+   // TODO check if _nextFreeChunk_ptr points to null.
+   // TODO use std::forward_list to contain a list of blocks.
+   // TODO Blocks should be a class that handles assigning the chunk pointers. They should be implemented as arrays
+   //      so all the dynamic allocation happens within list.
+
+   if (_nextFreeChunk_ptr == _sentinel_ptr)
+   { // current pool is exhausted - create another one
+
+      // if _activeBlock_ptr is nullptr then _sentinel_ptr will have the value of NChunksPerBlock
+      // TODO maybe put these in PtrToUint_T unions
+      auto const NChunksPerBlock = _sentinel_ptr - _activeBlock_ptr;
+
+
+      _activeBlock_ptr   = allocBlock(NChunksPerBlock, sizeof(Chunk_T));
+      _sentinel_ptr      = _activeBlock_ptr + NChunksPerBlock;
+      _nextFreeChunk_ptr = _activeBlock_ptr;
+   }
+
+   union
+   {
+      Chunk_T *   ptr;
+      Chunk_T * * ptrptr;
+   } data{_nextFreeChunk_ptr};
+
+   _nextFreeChunk_ptr = *data.ptrptr;
+
+   return data.ptr;
+}
 
 // /** alloc_safe
 //  *
