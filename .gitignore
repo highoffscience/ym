@@ -1,0 +1,40 @@
+##
+# @file    .gitignore
+# @version 1.0.0
+# @author  Forrest Jablonski
+#
+
+# vs specific
+.vscode/
+
+# build (cmake) specific
+build/
+
+# tmp files
+*.o
+*.out
+*.Po
+*.po
+*.Plo
+*.plo
+*.lo
+
+tmp/
+
+# tmp python files
+*pyc
+__pycache__/
+
+# tmp jupyter files
+.ipynb_checkpoints/
+
+# TODO
+data.txt
+*.csv
+
+# libraries
+*.so
+*.a
+
+# python virtual environment
+venv/
