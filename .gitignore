@@ -28,9 +28,9 @@ __pycache__/
 # tmp jupyter files
 .ipynb_checkpoints/
 
-# TODO
-data.txt
-*.csv
+# unittest test generated files
+data*.txt
+data*.csv
 
 # libraries
 *.so

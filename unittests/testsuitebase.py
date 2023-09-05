@@ -4,7 +4,10 @@
 # @author  Forrest Jablonski
 #
 
+# TODO replace os.path with pathlib
+
 import os
+import pathlib
 import subprocess as sp
 import sys
 import unittest
@@ -32,15 +35,17 @@ class TestSuiteBase(unittest.TestCase):
       @param SUT_name -- Name of SUT.
       """
 
-      cls.filepath = filepath
-      cls.filename = filename
-      cls.SUT_name = SUT_name
+      cls.filepath    = filepath
+      cls.filename    = filename
+      cls.SUT_name    = SUT_name
 
-      cls.ut_rootpath = os.path.dirname(os.path.abspath(__file__))
-      cls.rootpath    = os.path.join(cls.ut_rootpath, "../../")
+      is_ym_repo      = pathlib.Path(filepath).parts[0] == "ym"
 
-      cls.SUTpath    = os.path.join(cls.rootpath,    cls.filepath)
-      cls.ut_SUTpath = os.path.join(cls.ut_rootpath, cls.filepath, cls.filename)
+      cls.ut_rootpath = os.path.dirname(os.path.abspath(__file__)) 
+      cls.rootpath    = os.path.join(cls.ut_rootpath, "../../" if is_ym_repo else "../../../")
+
+      cls.SUTpath     = os.path.join(cls.rootpath,    cls.filepath)
+      cls.ut_SUTpath  = os.path.join(cls.ut_rootpath, cls.filepath, cls.filename)
 
       cls.configCppyy()
 
