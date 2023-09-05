@@ -44,6 +44,8 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
       "-h"
    };
    auto const Argc = static_cast<int32>(YM_ARRAY_SIZE(Argv));
+
+   ymLog(VG::UnitTest_ArgParser, "--> argc %d", Argc);
    
    auto excHappened = false;
    auto val_input   = false;

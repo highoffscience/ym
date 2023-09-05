@@ -429,6 +429,11 @@ auto ym::ArgParser::getAbbrIdx(char const Abbr) const -> uint32
       _abbrs.size());
 }
 
+// ---------------------------------- Arg ----------------------------------
+
+ym::str ym::ArgParser::Arg::_s_TrueFlag  = "1";
+ym::str ym::ArgParser::Arg::_s_FalseFlag = "0";
+
 /** Arg
  * 
  * @brief Constructor.

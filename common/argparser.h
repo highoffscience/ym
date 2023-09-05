@@ -71,8 +71,12 @@ private:
       Arg & flag(void                 ); // defaults to false
 
    private:
-      static constexpr str _s_TrueFlag  = "1";
-      static constexpr str _s_FalseFlag = "0";
+      // These cannot be made constexpr - we need a const storage location for these
+      // variables since we do direct pointer comparisons. The compiler may optimize
+      // away storage locations for constexpr, breaking our use cases.
+      // static volatile constexpr is also allowed but appears to messy.
+      static str _s_TrueFlag;
+      static str _s_FalseFlag;
 
       void setVal(str  const Val );
       void enable(bool const Enbl);
