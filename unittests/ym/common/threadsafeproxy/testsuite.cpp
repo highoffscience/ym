@@ -37,7 +37,7 @@ auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle 
    A a{._i = 9};
 
    ThreadSafeProxy tsp(&a);
-   tm->_i = 7;
+   tsp->_i = 7;
 
    return {
       {"i", a._i}

@@ -98,23 +98,26 @@ struct VerboGroupMask
    #define YM_FMT_MSK2(Group_, Mask_) ((std::to_underlying(VerboGroup::T::Group_) << 8_u32) | Mask_##_u32)
    #define YM_FMT_MSK1(Group_       ) YM_FMT_MSK2(Group_, 0xff)
 
-      Debug             = YM_FMT_MSK(Debug                   ),
-      Error             = YM_FMT_MSK(Error                   ),
-      General           = YM_FMT_MSK(General                 ),
+   #define YM_MAKE_MSK_AND_UNIT_MSK(Name_)            Name_ = YM_FMT_MSK(           Name_), \
+                                           UnitTest_##Name_ = YM_FMT_MSK(UnitTest_##Name_)
 
-      ArgParser         = YM_FMT_MSK(ArgParser               ), UnitTest_ArgParser       = YM_FMT_MSK(UnitTest_ArgParser      ),
-      DataLogger        = YM_FMT_MSK(DataLogger              ), UnitTest_DataLogger      = YM_FMT_MSK(UnitTest_DataLogger     ),
-      FileIO            = YM_FMT_MSK(FileIO                  ), UnitTest_FileIO          = YM_FMT_MSK(UnitTest_FileIO         ),
-      TextLogger        = YM_FMT_MSK(TextLogger              ), UnitTest_TextLogger      = YM_FMT_MSK(UnitTest_TextLogger     ),
-      TextLogger_Basic  = YM_FMT_MSK(TextLogger, 0b0000'0001 ),
-      TextLogger_Detail = YM_FMT_MSK(TextLogger, 0b0000'0010 ),
-      ThreadSafeProxy   = YM_FMT_MSK(ThreadSafeProxy         ), UnitTest_ThreadSafeProxy = YM_FMT_MSK(UnitTest_ThreadSafeProxy),
-      MemIO             = YM_FMT_MSK(MemIO                   ), UnitTest_MemIO           = YM_FMT_MSK(UnitTest_MemIO          ),
-      Ops               = YM_FMT_MSK(Ops                     ), UnitTest_Ops             = YM_FMT_MSK(UnitTest_Ops            ),
-      PRNG              = YM_FMT_MSK(PRNG                    ), UnitTest_PRNG            = YM_FMT_MSK(UnitTest_PRNG           ),
-      Timer             = YM_FMT_MSK(Timer                   ), UnitTest_Timer           = YM_FMT_MSK(UnitTest_Timer          ),
-      Ymception         = YM_FMT_MSK(Ymception               ), UnitTest_Ymception       = YM_FMT_MSK(UnitTest_Ymception      ),
-      Ymception_Assert  = YM_FMT_MSK(Ymception,  0b0000'0001 )
+      Debug   = YM_FMT_MSK(Debug  ),
+      Error   = YM_FMT_MSK(Error  ),
+      General = YM_FMT_MSK(General),
+
+      YM_MAKE_MSK_AND_UNIT_MSK(ArgParser      ),
+      YM_MAKE_MSK_AND_UNIT_MSK(DataLogger     ),
+      YM_MAKE_MSK_AND_UNIT_MSK(FileIO         ),
+      YM_MAKE_MSK_AND_UNIT_MSK(TextLogger     ),
+         TextLogger_Basic  = YM_FMT_MSK(TextLogger, 0b0000'0001),
+         TextLogger_Detail = YM_FMT_MSK(TextLogger, 0b0000'0010),
+      YM_MAKE_MSK_AND_UNIT_MSK(ThreadSafeProxy),
+      YM_MAKE_MSK_AND_UNIT_MSK(MemIO          ),
+      YM_MAKE_MSK_AND_UNIT_MSK(Ops            ),
+      YM_MAKE_MSK_AND_UNIT_MSK(PRNG           ),
+      YM_MAKE_MSK_AND_UNIT_MSK(Timer          ),
+      YM_MAKE_MSK_AND_UNIT_MSK(Ymception      ),
+         Ymception_Assert = YM_FMT_MSK(Ymception, 0b0000'0001),
 
    // don't pollute namespace
    #undef YM_FMT_MSK1
