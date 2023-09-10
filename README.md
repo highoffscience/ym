@@ -4,7 +4,7 @@ Framework is still in progress.
 Install instructions
 
 To update subtree (cppyy and fmt) run
-git subtree pull --prefix <cppyy|fmt> <git-url> master --squash
+git subtree pull --prefix <cppyy|fmt> <git-url> <branch-name> --squash
 
 url-ym    = "https://github.com/highoffscience/ym.git" on branch "main"
 url-cppyy = "https://github.com/wlav/cppyy.git"        on branch "master"
