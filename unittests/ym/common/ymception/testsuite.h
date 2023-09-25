@@ -24,6 +24,7 @@ public:
    virtual ~TestSuite(void) = default;
 
    YM_UT_TESTCASE(InteractiveInspection)
+   YM_UT_TESTCASE(What                 )
 };
 
 } // ym::ut

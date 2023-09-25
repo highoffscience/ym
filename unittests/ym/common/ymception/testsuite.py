@@ -56,7 +56,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       pass
 
-   def test_ _name_of_test_case_here(self):
+   def test_InteractiveInspection(self):
       """
       @brief Analyzes results from test case.
 
@@ -67,6 +67,20 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym
 
       results = self.run_test_case("InteractiveInspection")
+
+   def test_What(self):
+      """
+      @brief Analyzes results from test case.
+
+      @param results -- Results from test case.
+      """
+
+      from cppyy.gbl import std
+      from cppyy.gbl import ym
+
+      results = self.run_test_case("What")
+   
+      self.assertTrue(results.get[bool]("GAM"), f"Msg not formatted as unexpected")
 
 # kick-off
 if __name__ == "__main__":

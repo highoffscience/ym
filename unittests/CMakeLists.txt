@@ -38,3 +38,4 @@ ym_common_subbuild(prng           ) # ym-common-prng
 ym_common_subbuild(textlogger     ) # ym-common-textlogger
 ym_common_subbuild(threadsafeproxy) # ym-common-threadsafeproxy
 ym_common_subbuild(timer          ) # ym-common-timer
+ym_common_subbuild(ymception      ) # ym-common-ymception

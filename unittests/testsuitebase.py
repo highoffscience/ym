@@ -4,8 +4,6 @@
 # @author  Forrest Jablonski
 #
 
-# TODO replace os.path with pathlib
-
 import os
 import pathlib
 import subprocess as sp
@@ -97,7 +95,7 @@ class TestSuiteBase(unittest.TestCase):
 
       return results
    
-   def runCmd(cmd: str, cwd: str=".", per_line_action_func=None):
+   def runCmd(cmd: str, cwd: str=".", per_line_action_func=None, quiet=False):
       """
       @brief Runs command and optionally runs an action function on every line of the output.
 
@@ -112,7 +110,8 @@ class TestSuiteBase(unittest.TestCase):
                per_line_action_func(line)
          else:
             output, _ = p.communicate()
-         print(f"Command '{cmd}' exited with code {p.poll()}")
+         if not quiet:
+            print(f"Command '{cmd}' exited with code {p.poll()}")
       return output
 
 # kick-off
