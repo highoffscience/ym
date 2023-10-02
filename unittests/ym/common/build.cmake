@@ -25,7 +25,28 @@ target_sources(${Target} PRIVATE
 set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${UtLibDir})
 
+set(CompileFlags
+   -Werror
+   -Wall
+   -Wextra
+   -Wno-format-security
+   -DYM_UT_DBG
+   -DYM_COMMON_UT_DBG
+   -DYM_PRINT_TO_SCREEN)
+
+if (DEFINED ENV{YM_COV})
+   set(CovFlags -fprofile-instr-generate -fcoverage-mapping)
+   set(CompileFlags ${CompileFlags} ${CovFlags})
+   target_link_options(${Target} PRIVATE ${CovFlags})
+   unset(CovFlags)
+else()
+   set(CompileFlags ${CompileFlags} -O2)
+endif()
+
 target_compile_options(${Target} PRIVATE ${CompileFlags})
+
+unset(CompileFlags)
+unset(Target      )
 
 ## ym_common_subbuild
 #
@@ -54,7 +75,9 @@ function(ym_common_subbuild NameOfUtSubDir)
    set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${UtLibDir})
 
    string(TOUPPER -DYM_COMMON_UT_DBG_${NameOfUtSubDir} DbgFlags)
-   set(DbgFlags ${DbgFlags} -DYM_COMMON_UT_DBG)
 
    target_compile_options(${Target} PRIVATE ${CompileFlags} ${DbgFlags})
+
+   unset(UtDirOfTarget)
+   unset(Target       )
 endfunction()

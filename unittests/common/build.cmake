@@ -23,4 +23,16 @@ target_include_directories(${Target} PRIVATE ${RootDir}/ym/fmt/include/)
 set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${UtLibDir})
 
+set(CompileFlags
+   -Werror
+   -Wall
+   -Wextra
+   -Wno-format-security
+   -O2
+   -DYM_UT_DBG
+   -DYM_PRINT_TO_SCREEN)
+
 target_compile_options(${Target} PRIVATE ${CompileFlags} -DFMT_HEADER_ONLY)
+
+unset(CompileFlags)
+unset(Target      )

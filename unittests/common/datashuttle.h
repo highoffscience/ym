@@ -32,6 +32,7 @@ public:
 
    inline auto * operator -> (void) { return &_data; }
 
+   // TODO can these be const?
    template <typename T> T get(std::string const & Name);
    template <typename T> T get(std::string const & Name,
                                T           const   DefaultValue);

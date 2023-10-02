@@ -25,6 +25,15 @@ ym::ut::TestSuite::TestSuite(void)
    addTestCase<What                 >();
 }
 
+// TODO
+int main(void)
+{
+   ym::ut::TestSuite ts;
+   auto results = ts.runTestCase("What");
+   std::printf(":) %d\n", results.get<bool>("GAM"));
+   return 0;
+}
+
 /** run
  *
  * @brief TODO.
@@ -67,7 +76,7 @@ auto ym::ut::TestSuite::What::run([[maybe_unused]] DataShuttle const & InData) -
    catch (std::exception const & E)
    {
       str const ExpectedMsg =
-         "Ym_UT_Ymcept_What_Error \"/home/forrest/code/ym/unittests/ym/common/ymception/testsuite.cpp:65\": Go! Torchic!";
+         "Ym_UT_Ymcept_What_Error \"/home/forrest/code/ym/unittests/ym/common/ymception/testsuite.cpp:74\": Go! Torchic!";
       generatedAppropriateMsg = std::strcmp(E.what(), ExpectedMsg) == 0;
    }
 
