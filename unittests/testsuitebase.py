@@ -6,9 +6,11 @@
 
 import os
 import pathlib
-import subprocess as sp
 import sys
 import unittest
+
+sys.path.append("../")
+import ympyutils as ympy
 
 try:
    import cppyy
@@ -45,7 +47,22 @@ class TestSuiteBase(unittest.TestCase):
       cls.SUTpath     = os.path.join(cls.rootpath,    cls.filepath)
       cls.ut_SUTpath  = os.path.join(cls.ut_rootpath, cls.filepath, cls.filename)
 
+      if cls.isCovMode():
+         # needs to be set before loading instrumented library
+         os.environ["LLVM_PROFILE_FILE"] = f"./covbuild/profiles/{cls.filename}.profraw"
+
       cls.configCppyy()
+
+   @classmethod
+   def tearDownBaseClass(cls):
+      """
+      @brief Acting destructor.
+      """
+      if cls.isCovMode():
+         # TODO below occurs when all unittests have generated their .profraw files
+         # $ llvm-profdata merge default.profraw -o default.profdata
+         # $ llvm-cov show <desired-obj-file> -instr-profile=stringops.profdata
+         pass
 
    @classmethod
    def configCppyy(cls):
@@ -95,24 +112,14 @@ class TestSuiteBase(unittest.TestCase):
 
       return results
    
-   def runCmd(cmd: str, cwd: str=".", per_line_action_func=None, quiet=False):
+   @classmethod
+   def isCovMode(cls):
       """
-      @brief Runs command and optionally runs an action function on every line of the output.
+      @brief Determines if coverage mode is enabled.
 
-      @param cmd                  -- Command to run.
-      @param cwd                  -- Directory to run command in.
-      @param per_line_action_func -- Action function to run on every line of output.
+      @returns bool -- True if coverage mode is enabled, false otherwise.
       """
-      output = None
-      with sp.Popen(cmd.split(), stdout=sp.PIPE, stderr=sp.STDOUT, text=True, cwd=cwd) as p:
-         if per_line_action_func:
-            for line in iter(p.stdout.readline, ""):
-               per_line_action_func(line)
-         else:
-            output, _ = p.communicate()
-         if not quiet:
-            print(f"Command '{cmd}' exited with code {p.poll()}")
-      return output
+      return "YM_COV" in os.environ
 
 # kick-off
 if __name__ == "__main__":

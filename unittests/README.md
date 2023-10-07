@@ -31,10 +31,14 @@ $ python -m unittest ym.common.textlogger.testsuite.TestSuite.test_OpenAndClose
 Test suites can also be run in the directory, eg...
 $ python testsuite.py
 
+<https://clang.llvm.org/docs/SourceBasedCodeCoverage.html>
+
 To prepare testing for coverage do the following:
 $ rm -rf covbuild/*
 $ . ./set_cov_env.sh
-Run the desired unit test
+Run the desired unit test, eg (TODO below instructions need work)
+   $ LLVM_PROFILE_FILE="<filename>.profraw"
+   $ python -m unittest ...
 $ llvm-profdata merge default.profraw -o default.profdata
 $ llvm-cov show <desired-obj-file> -instr-profile=stringops.profdata
 

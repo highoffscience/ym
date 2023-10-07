@@ -175,7 +175,7 @@ def gen_runner_file(args):
       writeln(f"      \"\"\"                                                        ")
       writeln(f"      @brief Acting destructor.                                     ")
       writeln(f"      \"\"\"                                                        ")
-      writeln(f"      pass                                                          ")
+      writeln(f"      super().tearDownBaseClass()                                   ")
       writeln(f"                                                                    ")
       writeln(f"   def setUp(self):                                                 ")
       writeln(f"      \"\"\"                                                        ")
