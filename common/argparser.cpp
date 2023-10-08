@@ -29,6 +29,8 @@ ym::ArgParser::ArgParser(void)
  * 
  * @brief Returns the single instance pointer.
  * 
+ * @throws ArgParserError_CreationError -- Instance fails to be created.
+ * 
  * @returns ArgParser * -- Single instance pointer.
  */
 auto ym::ArgParser::getInstancePtr(void) -> ArgParser *
@@ -431,9 +433,6 @@ auto ym::ArgParser::getAbbrIdx(char const Abbr) const -> uint32
 
 // ---------------------------------- Arg ----------------------------------
 
-ym::str ym::ArgParser::Arg::_s_TrueFlag  = "1";
-ym::str ym::ArgParser::Arg::_s_FalseFlag = "0";
-
 /** Arg
  * 
  * @brief Constructor.
@@ -456,6 +455,7 @@ ym::ArgParser::Arg::Arg(str const Name)
    ArgParserError_ArgError::check(std::isalnum(getName()[0_u32]), "Name '%s' is invalid", getName());
    ArgParserError_ArgError::check(std::strcmp(getName(), "help") != 0_i32,
       "Arg cannot be named the reserved word 'help'");
+   ArgParserError_ArgError::check(std::strchr(getName(), ' ') == nullptr, "Name '%s' cannot contain a space", getName());
 }
 
 /** desc
@@ -580,7 +580,7 @@ auto ym::ArgParser::Arg::flag(void) -> Arg &
  */
 void ym::ArgParser::Arg::setVal(str const Val)
 {
-   ArgParserError_ArgError::check(Val, "Arg '%s' cannot have value of null", getName());
+   ArgParserError_ArgError::check(Val, "Arg '%s' cannot be null", getName());
 
    _val = Val;
 }
@@ -592,9 +592,21 @@ void ym::ArgParser::Arg::setVal(str const Val)
  * @note We can't check for isFlag here because that function relies on
  *       the value being set to true or false.
  * 
+ * @note The flags cannot be made constexpr - we need a const storage location for these
+ *       variables since we do direct pointer comparisons. The compiler may optimize
+ *       away storage locations for constexpr, breaking our use cases.
+ *       static volatile constexpr is also allowed but appears to messy.
+ *       c-style strings can be optimized such that any "0" or "1" can have the same
+ *       pointer values, making "0" and "1" as integers interpreted as flags! My
+ *       unittest doesn't catch this latter error because argparser is first compiled
+ *       into a library, where optimization of combining string literals cannot
+ *       occur - this is not true though when argparser is compiled into another
+ *       source file. We can still get around with not having an explicit flag variable
+ *       by using the _name and _desc variables.
+ * 
  * @param Enbl -- True if enabled state desired, false if disabled state desired.
  */
 void ym::ArgParser::Arg::enable(bool const Enbl)
 {
-   setVal(Enbl ? _s_TrueFlag : _s_FalseFlag);
+   setVal(Enbl ? _name : _desc);
 }

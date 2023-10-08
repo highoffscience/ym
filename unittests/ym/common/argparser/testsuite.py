@@ -77,6 +77,27 @@ class TestSuite(testsuitebase.TestSuiteBase):
          val = results.get[bool](arg)
          self.assertTrue(val, f"{arg} arg failed to parse")
 
+   def test_FlagIntegrity(self):
+      """
+      @brief Analyzes results from test case.
+
+      @param results -- Results from test case.
+      """
+
+      from cppyy.gbl import std
+      from cppyy.gbl import ym
+
+      results = self.run_test_case("FlagIntegrity")
+
+      expectedArgs = ["Verbose", "Width"]
+
+      exc = results.get[bool]("Exc")
+      self.assertFalse(exc, "Unexpected exception happened")
+
+      for arg in expectedArgs:
+         val = results.get[bool](arg)
+         self.assertTrue(val, f"{arg} arg failed to parse")
+
 # kick-off
 if __name__ == "__main__":
    if os.path.basename(os.getcwd()) != "argparser":

@@ -32,6 +32,7 @@ Test suites can also be run in the directory, eg...
 $ python testsuite.py
 
 <https://clang.llvm.org/docs/SourceBasedCodeCoverage.html>
+<https://llvm.org/docs/CommandGuide/llvm-cov.html>
 
 To prepare testing for coverage do the following:
 $ rm -rf covbuild/*

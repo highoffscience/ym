@@ -17,7 +17,7 @@ def runCmd(cmd: str, cwd: str=".", per_line_action_func=None, quiet=False):
    @returns str -- Output of command (if no action function defined).
    """
    output = None
-   with sp.Popen(cmd.split(), shell=True, stdout=sp.PIPE, stderr=sp.STDOUT, text=True, cwd=cwd) as p:
+   with sp.Popen(cmd.split(), stdout=sp.PIPE, stderr=sp.STDOUT, text=True, cwd=cwd) as p:
       if per_line_action_func:
          for line in iter(p.stdout.readline, ""):
             per_line_action_func(line)

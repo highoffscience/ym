@@ -20,7 +20,8 @@
 ym::ut::TestSuite::TestSuite(void)
    : TestSuiteBase("ArgParser")
 {
-   addTestCase<BasicParse>();
+   addTestCase<BasicParse   >();
+   addTestCase<FlagIntegrity>();
 }
 
 /** run
@@ -40,12 +41,9 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
       "--output", "data.csv",
       "-cb",
       "-k", "Torchic1234",
-      "--in-denial",
-      "-h"
+      "--in-denial"
    };
    auto const Argc = static_cast<int32>(YM_ARRAY_SIZE(Argv));
-
-   ymLog(VG::UnitTest_ArgParser, "--> argc %d", Argc);
    
    auto excHappened = false;
    auto val_input   = false;
@@ -77,6 +75,7 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
    }
    catch (ArgParser::ArgParserError const & E)
    {
+      ymLog(VG::UnitTest_ArgParser, "--> %s", E.what());
       excHappened = true;
    }
 
@@ -88,5 +87,52 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
       {"Build",  val_build  },
       {"Key",    val_key    },
       {"Denial", val_denial }
+   };
+}
+
+/** run
+ *
+ * @brief Tests if ArgParser can parse.
+ * 
+ * @throws TODO
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::ut::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VG::UnitTest_ArgParser);
+
+   str const Argv[] = {"testsuite",
+      "--verbose",
+      "--width",   "1"
+   };
+   auto const Argc = static_cast<int32>(YM_ARRAY_SIZE(Argv));
+   
+   auto excHappened = false;
+   auto val_verbose = false;
+   auto val_width   = false;
+
+   auto & ap_ref = *ArgParser::getInstancePtr();
+   try
+   {
+      ap_ref.parse({
+         ap_ref.arg("width"  ).desc("Width"    ),
+         ap_ref.arg("verbose").desc("Verbosity").flag()
+      },
+      Argc, Argv);
+
+      val_verbose = ap_ref["verbose"]->isFlag();
+      val_width   = ap_ref["width"  ]->isFlag() == false;
+   }
+   catch (ArgParser::ArgParserError const & E)
+   {
+      ymLog(VG::UnitTest_ArgParser, "--> %s", E.what());
+      excHappened = true;
+   }
+
+   return {
+      {"Exc",     excHappened},
+      {"Verbose", val_verbose},
+      {"Width",   val_width  }
    };
 }

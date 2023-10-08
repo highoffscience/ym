@@ -23,7 +23,8 @@ public:
    explicit TestSuite(void);
    virtual ~TestSuite(void) = default;
 
-   YM_UT_TESTCASE(BasicParse)
+   YM_UT_TESTCASE(BasicParse   )
+   YM_UT_TESTCASE(FlagIntegrity)
 };
 
 } // ym::ut
