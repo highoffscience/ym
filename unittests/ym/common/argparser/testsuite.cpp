@@ -104,7 +104,7 @@ auto ym::ut::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const & 
 
    str const Argv[] = {"testsuite",
       "--verbose",
-      "--width",   "1"
+      "--width", "1"
    };
    auto const Argc = static_cast<int32>(YM_ARRAY_SIZE(Argv));
    

@@ -61,9 +61,8 @@ private:
       inline auto getDesc(void) const { return _desc; }
       inline auto getVal (void) const { return _val;  }
 
-      inline auto isFlag (void) const { return (getVal() == _name) ||
-                                               (getVal() == _desc); }
-      inline auto isEnbl (void) const { return  getVal() == _name;  }
+      inline auto isFlag (void) const { return _flag; }
+      inline auto isEnbl (void) const { return _enbl; }
 
       Arg & desc(str  const Desc      );
       Arg & val (str  const DefaultVal);
@@ -75,9 +74,11 @@ private:
       void enable(bool const Enbl);
 
       // no consts - see static assert below
-      str _name; // arg name (used as the key)
-      str _desc; // description
-      str _val;  // value
+      str  _name; // arg name (used as the key)
+      str  _desc; // description
+      str  _val;  // value
+      bool _flag; // flag
+      bool _enbl; // enabled
    };
 
    // copyable to load Arg params into vector

@@ -447,15 +447,19 @@ auto ym::ArgParser::getAbbrIdx(char const Abbr) const -> uint32
  * @param Name -- Name of argument.
  */
 ym::ArgParser::Arg::Arg(str const Name)
-   : _name {Name},
-     _desc {""  },
-     _val  {""  }
+   : _name {Name },
+     _desc {""   },
+     _val  {""   },
+     _flag {false},
+     _enbl {false}
 {
    ArgParserError_ArgError::check(ymIsStrNonEmpty(getName()), "Name must be non-empty");
    ArgParserError_ArgError::check(std::isalnum(getName()[0_u32]), "Name '%s' is invalid", getName());
-   ArgParserError_ArgError::check(std::strcmp(getName(), "help") != 0_i32,
-      "Arg cannot be named the reserved word 'help'");
-   ArgParserError_ArgError::check(std::strchr(getName(), ' ') == nullptr, "Name '%s' cannot contain a space", getName());
+   ArgParserError_ArgError::check(std::strcmp(getName(), "help") != 0_i32, "Arg cannot be named the reserved word 'help'");
+   ArgParserError_ArgError::check(std::strchr(getName(), ' ' ) == nullptr, "Name '%s' cannot contain a space",           getName());
+   ArgParserError_ArgError::check(std::strchr(getName(), '\r') == nullptr, "Name '%s' cannot contain a carriage return", getName());
+   ArgParserError_ArgError::check(std::strchr(getName(), '\n') == nullptr, "Name '%s' cannot contain a newline",         getName());
+   ArgParserError_ArgError::check(std::strchr(getName(), '\t') == nullptr, "Name '%s' cannot contain a tab",             getName());
 }
 
 /** desc
@@ -601,12 +605,11 @@ void ym::ArgParser::Arg::setVal(str const Val)
  *       unittest doesn't catch this latter error because argparser is first compiled
  *       into a library, where optimization of combining string literals cannot
  *       occur - this is not true though when argparser is compiled into another
- *       source file. We can still get around with not having an explicit flag variable
- *       by using the _name and _desc variables.
+ *       source file. Also, volatile doesn't help.
  * 
  * @param Enbl -- True if enabled state desired, false if disabled state desired.
  */
 void ym::ArgParser::Arg::enable(bool const Enbl)
 {
-   setVal(Enbl ? _name : _desc);
+   setVal(Enbl ? "1" : "0");
 }
