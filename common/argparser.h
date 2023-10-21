@@ -37,6 +37,8 @@ namespace ym
  *       -o <value>      // (output) short hand arg with desired value
  *       -c              // (clean) short hand flag set to enable
  *       -cb             // (clean; build) short hand (abbr pack) flags set to enable
+ * 
+ * TODO segfaults if unregistered abbr I think
  */
 class ArgParser
 {

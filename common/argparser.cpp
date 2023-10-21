@@ -343,7 +343,7 @@ char ym::ArgParser::getAbbrFromKey(str const Key) const
  */
 auto ym::ArgParser::getArgPtrFromKey(str const Key) -> Arg *
 {
-   return
+   return (!Key) ? nullptr :
       static_cast<Arg *>(
          std::bsearch(Key, _args.data(), _args.size(), sizeof(Arg),
             // use of int (not int32) for legacy portability
@@ -569,6 +569,7 @@ auto ym::ArgParser::Arg::flag(void) -> Arg &
    ArgParserError_ArgError::check(ymIsStrEmpty(getVal()),
       "Arg '%s' has val '%s' but requested to be a flag", getName(), getVal());
 
+   _flag = true;
    enable(false);
 
    return *this;
@@ -611,5 +612,6 @@ void ym::ArgParser::Arg::setVal(str const Val)
  */
 void ym::ArgParser::Arg::enable(bool const Enbl)
 {
+   _enbl = Enbl;
    setVal(Enbl ? "1" : "0");
 }
