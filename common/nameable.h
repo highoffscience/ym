@@ -8,19 +8,28 @@
 
 #include "ymdefs.h"
 
+#include <string>
+#include <utility>
+
 namespace ym
 {
 
 /*
- * Available variants
+ * Available variants:
+ *
+ * class Nameable_NV
+ * class PermaNameable_NV
  */
-class Nameable_NV;
-class PermaNameable_NV;
 
 /** Nameable_NV
  * 
  * @brief Provides a mutably named object.
+ * 
+ * @note NV = Non-Virtual
+ * 
+ * @tparam String_T -- String-like class.
  */
+template <typename String_T = std::string>
 class Nameable_NV
 {
 public:
@@ -28,36 +37,41 @@ public:
     * 
     * @brief Constructor.
     * 
-    * @param Name_Ptr -- Initial name.
+    * @param name -- Initial name.
     */
-   explicit inline Nameable_NV(str const Name_Ptr)
-      : _Name_ptr {Name_Ptr}
+   explicit inline Nameable_NV(String_T name)
+      : _name {std::move(name)}
    { }
 
    /** getName
     *
-    *  @brief Returns the current name.
+    * @brief Returns the current name.
     * 
-    * @returns auto -- Current name.
+    * @returns auto const & -- Current name.
     */
-   inline auto getName(void) const { return _Name_ptr; }
+   inline auto const & getName(void) const { return _name; }
 
    /** setName
     * 
     * @brief Sets the current name.
     * 
-    * @param Name_Ptr -- Desired name.
+    * @param name -- Desired name.
     */
-   inline void setName(str const Name_Ptr) { _Name_ptr = Name_Ptr; }
+   inline void setName(String_T name) { _name = std::move(name); }
 
 private:
-   str /* non-const */ _Name_ptr;
+   String_T _name;
 };
 
 /** PermaNameable_NV
  * 
  * @brief Provides a permanently named object.
+ * 
+ * @note NV = Non-Virtual
+ * 
+ * @tparam String_T -- String-like class.
  */
+template <typename String_T = std::string>
 class PermaNameable_NV
 {
 public:
@@ -65,22 +79,22 @@ public:
     * 
     * @brief Constructor.
     * 
-    * @param Name_Ptr -- Name.
+    * @param name -- Initial name.
     */
-   explicit constexpr PermaNameable_NV(str const Name_Ptr)
-      : _Name_Ptr {Name_Ptr}
+   explicit inline PermaNameable_NV(String_T name)
+      : _Name {std::move(name)}
    { }
 
    /** getName
     *
-    *  @brief Returns the name.
+    *  @brief Returns the current name.
     * 
-    * @returns auto -- Name.
+    * @returns auto const & -- Current name.
     */
-   constexpr auto getName(void) const { return _Name_Ptr; }
+   inline auto const & getName(void) const { return _Name; }
 
 private:
-   str const _Name_Ptr;
+   String_T const _Name;
 };
 
 } // ym
