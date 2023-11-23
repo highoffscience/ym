@@ -51,7 +51,7 @@ namespace ym
  * @tparam T -- Type that is chunkable.
  */
 template <typename T>
-concept Chunkable_T = (sizeof(T) >= sizeof(uintptr));
+concept Chunkable_T = sizeof(T) >= sizeof(uintptr);
 
 /** MemIO
  *
@@ -111,6 +111,8 @@ public:
  * @brief Allocates raw chunk of memory.
  * 
  * @note Take a couple teaspoons of cement and harden the hell up.
+ * 
+ * @throws Whatever ymLog() throws.
  * 
  * @tparam T -- Type of data to allocate.
  * 
@@ -182,6 +184,8 @@ auto MemIO::alloc_smart(uint64 const NElements) // -> std::unique_ptr
  *
  * @brief Creates and returns a new memory pool.
  *
+ * @throws Whatever ymLog() throws.
+ * 
  * @tparam Chunk_T -- Type the pool contains.
  * 
  * @param nChunksPerBlock -- Number of chunks (datum elements) per block of memory.
@@ -239,6 +243,8 @@ MemIO::Pool<Chunk_T>::~Pool(void)
  *
  * @brief Returns a pointer to a block of raw memory equal to sizeof(Chunk_T).
  *
+ * @throws Whatever emplace_front() throws.
+ * 
  * @tparam Chunk_T -- Type the pool contains.
  * 
  * @returns Pointer to block of raw memory equal to sizeof(Chunk_T).

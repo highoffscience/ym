@@ -28,12 +28,12 @@ namespace ym
  * Convenience functions.
  * -------------------------------------------------------------------------- */
 
-template <Loggable... Args_T>
+template <Loggable_T... Args_T>
 inline void ymLog(VG     const    VG,
                   str    const    Format,
                   Args_T const... Args);
 
-template <Loggable... Args_T>
+template <Loggable_T... Args_T>
 inline void ymLogToStdErr(str    const    Format,
                           Args_T const... Args);
 
@@ -86,7 +86,8 @@ public:
    YM_DECL_YMCEPT(TextLoggerError, TextLoggerError_FailureToOpen)
    YM_DECL_YMCEPT(TextLoggerError, TextLoggerError_ProducerConsumerError)
 
-   static TextLogger * getGlobalInstancePtr(void);
+   static TextLogger * getGlobalInstance(void);
+   static void destroyGlobalInstance(void);
 
    bool isOpen(void) const;
 
@@ -135,7 +136,7 @@ public:
 
    ScopedEnable pushEnable(VG const VG);
 
-   template <Loggable... Args_T>
+   template <Loggable_T... Args_T>
    inline void printf(VG     const    VG,
                       str    const    Format,
                       Args_T const... Args);
@@ -191,6 +192,8 @@ private:
    using MsgSemaphore_T = std::counting_semaphore<_s_MaxNMessagesInBuffer>;
    using VGroups_T      = std::array<std::atomic<uint8>, VerboGroup::getNGroups()>;
 
+   static TextLogger *       s_globalInstance_ptr;
+
    char                      _buffer[_s_BufferSize_bytes];
    VGroups_T                 _vGroups;
    std::thread               _writer;
@@ -214,7 +217,7 @@ private:
  * @param Format -- Format string.
  * @param Args   -- Arguments.
  */
-template <Loggable... Args_T>
+template <Loggable_T... Args_T>
 inline void TextLogger::printf(VG     const    VG,
                                str    const    Format,
                                Args_T const... Args)
@@ -232,12 +235,12 @@ inline void TextLogger::printf(VG     const    VG,
  * @param Format -- Format string.
  * @param Args   -- Arguments.
  */
-template <Loggable... Args_T>
+template <Loggable_T... Args_T>
 inline void ymLog(VG     const    VG,
                   str    const    Format,
                   Args_T const... Args)
 {
-   TextLogger::getGlobalInstancePtr()->printf(VG, Format, Args...);
+   TextLogger::getGlobalInstance()->printf(VG, Format, Args...);
 }
 
 /** ymLogToStdErr
@@ -249,7 +252,7 @@ inline void ymLog(VG     const    VG,
  * @param Format -- Format string.
  * @param Args   -- Arguments.
  */
-template <Loggable... Args_T>
+template <Loggable_T... Args_T>
 inline void ymLogToStdErr(str    const    Format,
                           Args_T const... Args)
 {
@@ -266,7 +269,7 @@ inline void ymLogToStdErr(str    const    Format,
  */
 inline bool ymLogEnable(VG const VG)
 {
-   return TextLogger::getGlobalInstancePtr()->enable(VG);
+   return TextLogger::getGlobalInstance()->enable(VG);
 }
 
 /** ymLogDisable
@@ -279,14 +282,14 @@ inline bool ymLogEnable(VG const VG)
  */
 inline bool ymLogDisable(VG const VG)
 {
-   return TextLogger::getGlobalInstancePtr()->disable(VG);
+   return TextLogger::getGlobalInstance()->disable(VG);
 }
 
 /** ymLogPushEnable
  * 
  * @brief Enables given verbosity group only in the current scope for the global logger.
  * 
- * @throws TODO
+ * @throws TextLoggerError_GlobalFailureToOpen -- If global logger instance failed to create.
  * 
  * @param VG -- Verbosity group.
  * 
@@ -294,7 +297,7 @@ inline bool ymLogDisable(VG const VG)
  */
 inline TextLogger::ScopedEnable ymLogPushEnable(VG const VG)
 {
-   return TextLogger::getGlobalInstancePtr()->pushEnable(VG);
+   return TextLogger::getGlobalInstance()->pushEnable(VG);
 }
 
 } // ym

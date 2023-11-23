@@ -37,8 +37,6 @@ namespace ym
  *       -o <value>      // (output) short hand arg with desired value
  *       -c              // (clean) short hand flag set to enable
  *       -cb             // (clean; build) short hand (abbr pack) flags set to enable
- * 
- * TODO segfaults if unregistered abbr I think
  */
 class ArgParser
 {
@@ -94,6 +92,9 @@ public:
    YM_NO_ASSIGN(ArgParser)
 
    static ArgParser * getInstancePtr(void);
+   static void destroyInstance(void);
+
+   static inline bool isValidChar(char const Char);
 
    inline Arg arg(str const Name) const;
 
@@ -113,6 +114,8 @@ public:
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_AccessError  )
 
 private:
+   static ArgParser * s_instance_ptr;
+
    void organizeAndValidateArgVector(void);
 
    void displayHelpMenu(void) const;
@@ -123,15 +126,16 @@ private:
    Arg * getArgPtrFromPrefix(str  const Prefix);
    Arg * getArgPtrFromAbbr  (char const Abbr  );
 
-   uint32 getAbbrIdx(char const Abbr) const;
-
    int32 parse_Helper(Arg       * const arg_Ptr,
                       int32             idx,
                       int32       const Argc,
                       str const * const Argv_Ptr) const;
 
-   std::vector<Arg>        _args;
-   std::array<str, 62_u32> _abbrs; // stores the keys
+   // full range of valid keys
+   static constexpr auto s_NKeys = static_cast<uint32>('~' - '!') + 1_u32;
+
+   std::vector<Arg>         _args;
+   std::array<str, s_NKeys> _abbrs; // stores the keys
 };
 
 /** arg
@@ -147,6 +151,21 @@ private:
 inline auto ym::ArgParser::arg(str const Name) const -> Arg
 {
    return Arg(Name);
+}
+
+/** isValidChar
+ * 
+ * @brief Determines if valid processing character.
+ * 
+ * @note All valid characters may be shorthand arguments.
+ * 
+ * @param Char -- Character to be judged.
+ * 
+ * @returns bool -- True if character is valid, false otherwise.
+ */
+inline bool ym::ArgParser::isValidChar(char const Char)
+{
+   return Char >= '!' && Char <= '~';
 }
 
 /** operator[]

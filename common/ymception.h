@@ -30,7 +30,18 @@
  * 
  * @note check() instead of assert() to avoid name clashes (like boost's #define assert).
  * 
- * @ref <https://en.cppreference.com/w/cpp/language/class_template_argument_deduction>
+ * @note If memory, like in embedded systems becomes tight, and you have something
+ *       like the following:
+ *       YM_DECL_YMCEPT(ClassError)
+ *       YM_DECL_YMCEPT(ClassError, ClassError_Error1)
+ *       YM_DECL_YMCEPT(ClassError, ClassError_Error2)
+ * 
+ *       You can instead write:
+ *       YM_DECL_YMCEPT(ClassError)
+ *       #define ClassError_Error1 ClassError
+ *       #define ClassError_Error2 ClassError
+ * 
+ * @ref <https://en.cppreference.com/w/cpp/language/class_template_argument_deduction>.
  *
  * @param BaseYmception_    -- Name of base class.
  * @param DerivedYmception_ -- Name of custom Ymception class.
@@ -49,7 +60,7 @@
                                                                                     \
       virtual ~DerivedYmception_(void) = default;                                   \
                                                                                     \
-      template <Loggable... Args_T>                                                 \
+      template <Loggable_T... Args_T>                                               \
       struct check                                                                  \
       {                                                                             \
          explicit check(                                                            \
@@ -85,15 +96,6 @@
 
 namespace ym
 {
-
-/** Ymceptable
- *
- * @brief Represents a Ymception class.
- *
- * @tparam T -- Type that is or is derived from Ymception.
- */
-template <typename T>
-concept Ymceptable = std::is_base_of_v<class Ymception, T>;
 
 /** Ymception
  *

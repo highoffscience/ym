@@ -20,7 +20,7 @@ namespace ym
  * @tparam T -- Data type.
  */
 template <typename T>
-concept Timeable = requires(T)
+concept Timeable_T = requires(T)
 {
    T::num;
    T::den;
@@ -41,7 +41,7 @@ public:
 
    void reset(void);
 
-   template <Timeable Timeable_T = std::nano>
+   template <Timeable_T Timeable = std::nano>
    Rep_T getElapsedTime(void) const;
 
 private:
@@ -52,17 +52,17 @@ private:
  *
  * @brief Returns the elapsed time.
  *
- * @tparam Timeable_T -- Unit of returned time will be represented in.
+ * @tparam Timeable -- Unit of returned time will be represented in.
  *
  * @returns Rep_T -- Elapsed time in specified units.
  */
-template <Timeable Timeable_T>
+template <Timeable_T Timeable>
 auto Timer::getElapsedTime(void) const -> Rep_T
 {
    return
       std::chrono::duration_cast<
          std::chrono::duration<
-            Rep_T, Timeable_T
+            Rep_T, Timeable
          >
       >(Clock_T::now() - _startTime).count();
 }

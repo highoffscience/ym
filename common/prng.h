@@ -15,17 +15,17 @@
 namespace ym
 {
 
-/** Randomable
+/** Randomable_T
  * 
  * @brief Supported types the PRNG is able to generate.
  * 
  * @tparam T -- Data type.
  */
 template <typename T>
-concept Randomable = std::is_same_v<T, uint32 > ||
-                     std::is_same_v<T, uint64 > ||
-                     std::is_same_v<T, float32> ||
-                     std::is_same_v<T, float64>;
+concept Randomable_T = std::is_same_v<T, uint32 > ||
+                       std::is_same_v<T, uint64 > ||
+                       std::is_same_v<T, float32> ||
+                       std::is_same_v<T, float64>;
 
 /** Random
  * 
@@ -51,8 +51,8 @@ public:
    inline auto getSeed (void) const { return _seed;  }
    inline auto getState(void) const { return _state; }
 
-   template <Randomable Randomable_T>
-   Randomable_T gen(void);
+   template <Randomable_T Randomable>
+   Randomable gen(void);
 
    void jump(uint32 const NJumps = 1_u32);
 

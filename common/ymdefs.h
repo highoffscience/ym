@@ -151,6 +151,12 @@ static_assert(YM_IS_CLANG_ID +
  */
 #define YM_IMPLICIT
 
+/** YM_VIRTUAL
+ * 
+ * @brief Used to make function definitions explicitly implicit.
+ */
+#define YM_VIRTUAL
+
 // ----------------------------------------------------------------------------
 
 namespace ym

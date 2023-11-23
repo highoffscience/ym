@@ -11,6 +11,8 @@
 /** DataLogger
  *
  * @brief Constructor.
+ * 
+ * @param MaxNDataEntries -- Maximum number of data entries (only most recent ones kept).
  */
 ym::DataLogger::DataLogger(uint64 const MaxNDataEntries)
    : _columnEntries     {/*default*/    },

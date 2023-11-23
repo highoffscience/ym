@@ -2,29 +2,25 @@
  * @author Forrest Jablonski
  */
 
-#include "battery.h"
-#include "stepper.h"
-
-#include <atomic>
-#include <bitset>
-#include <cstdio>
-#include <fstream>
 #include <iostream>
-#include <memory>
-#include <new>
-#include <semaphore>
+#include <vector>
+#include <type_traits>
 
-int main(void)
-{
-   sizeof(std::bitset<4096>);
+template <typename... Types>
+struct Type_register{};
 
-   std::cout << std::endl;
+template <typename Queried_type>
+constexpr int type_id(Type_register<>) { return -1; }
 
-   std::cout << StepperCmd  << std::endl;
-   std::cout << StepperOpto << std::endl;
+template <typename Queried_type, typename Type, typename... Types>
+constexpr int type_id(Type_register<Type, Types...>) {
+    if constexpr (std::is_same_v<Type, Queried_type>) return 0;
+    else return 1 + type_id<Queried_type>(Type_register<Types...>());
+}
 
-   std::cout << BatteryGauge   << std::endl;
-   std::cout << BatteryCharger << std::endl;
-
-   return 0;
+int main() {
+   Type_register<int, float, char, std::vector<int>, int&> registered_types;
+   constexpr auto test1 = type_id<float>(registered_types);
+   constexpr auto test2 = type_id<int>(registered_types);
+   constexpr auto SS = sizeof(registered_types);
 }

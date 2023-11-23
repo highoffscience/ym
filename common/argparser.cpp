@@ -15,6 +15,8 @@
 #include <cstring>
 #include <utility>
 
+ym::ArgParser * ym::ArgParser::s_instance_ptr = nullptr;
+
 /** ArgParser
  * 
  * @brief Constructor.
@@ -35,17 +37,28 @@ ym::ArgParser::ArgParser(void)
  */
 auto ym::ArgParser::getInstancePtr(void) -> ArgParser *
 {
-   static ArgParser * instance_ptr = nullptr;
-
-   if (!instance_ptr)
+   if (!s_instance_ptr)
    { // first time through - create instance
-      instance_ptr = new ArgParser();
+      s_instance_ptr = new ArgParser();
 
-      ArgParserError_CreationError::check(instance_ptr,
+      ArgParserError_CreationError::check(s_instance_ptr,
          "Global instance failed to be created");
    }
 
-   return instance_ptr; // guaranteed not null
+   return s_instance_ptr; // guaranteed not null
+}
+
+/** destroyInstance
+ * 
+ * @brief Destroys instance, if there is one.
+ */
+void ym::ArgParser::destroyInstance(void)
+{
+   if (s_instance_ptr)
+   { // instance has been created
+      delete s_instance_ptr;
+      s_instance_ptr = nullptr;
+   }
 }
 
 /** parse
@@ -272,50 +285,21 @@ void ym::ArgParser::displayHelpMenu(void) const
  *       incurred here is only when the user is requesting help - which is
  *       not the most time sensitive problem.
  * 
- * @ref ym::ArgParser::getAbbrIdx(...)
- * 
  * @param Key -- Name of argument.
  * 
  * @returns char -- Key's abbreviation, or null terminator if none.
  */
 char ym::ArgParser::getAbbrFromKey(str const Key) const
 {
-   auto i    = 0_i32;
    auto abbr = '\0';
 
-   for (; i < 26_i32; ++i)
-   { // go through abbrs in range ['A' - 'Z']
+   for (auto i = 0_u32; i < _abbrs.size(); ++i)
+   { // search through candidate abbrs
       if (_abbrs[i])
       { // registered abbr found
-         if (std::strcmp(Key, _abbrs[i]) == 0_i32)
+         if (std::strcmp(Key, _abbrs[i]) == 0)
          { // abbr registered for this key found
-            abbr = static_cast<char>(i + 'A');
-            i = _abbrs.size();
-            break;
-         }
-      }
-   }
-
-   for (; i < 52_i32; ++i)
-   { // go through abbrs in range ['a' - 'z']
-      if (_abbrs[i])
-      { // registered abbr found
-         if (std::strcmp(Key, _abbrs[i]) == 0_i32)
-         { // abbr registered for this key found
-            abbr = static_cast<char>(i - 26_i32 + 'a');
-            i = _abbrs.size();
-            break;
-         }
-      }
-   }
-
-   for (; i < 62_i32; ++i)
-   { // go through abbrs in range ['0' - '9']
-      if (_abbrs[i])
-      { // registered abbr found
-         if (std::strcmp(Key, _abbrs[i]) == 0_i32)
-         { // abbr registered for this key found
-            abbr = static_cast<char>(i - 52_i32 + '0');
+            abbr = static_cast<char>(i + '!'); // '!' is first legal abbr
             break;
          }
       }
@@ -407,28 +391,7 @@ auto ym::ArgParser::getArgPtrFromPrefix(str const Prefix) -> Arg *
  */
 auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> Arg *
 {
-   auto const AbbrIdx = getAbbrIdx(Abbr);
-
-   return (AbbrIdx < _abbrs.size()) ? getArgPtrFromKey(_abbrs[AbbrIdx]) : nullptr;
-}
-
-/** getArgPtrPtrFromAbbr
- * 
- * @brief Founds index of argument associated with the given abbreviation.
- * 
- * @ref ym::ArgParser::getAbbrFromKey(...)
- * 
- * @param Abbr -- Abbreviation of argument.
- * 
- * @returns uint32 -- Index of argument, or invalid if no argument found.
- */
-auto ym::ArgParser::getAbbrIdx(char const Abbr) const -> uint32
-{
-   return static_cast<uint32>(
-      (Abbr >= 'A' && Abbr <= 'Z') ? (Abbr - 'A'         ) :
-      (Abbr >= 'a' && Abbr <= 'z') ? (Abbr - 'a' + 26_i32) :
-      (Abbr >= '0' && Abbr <= '9') ? (Abbr - '0' + 52_i32) :
-      _abbrs.size());
+   return isValidChar(Abbr) ? getArgPtrFromKey(_abbrs[Abbr - '!']) : nullptr;
 }
 
 // ---------------------------------- Arg ----------------------------------
@@ -454,12 +417,14 @@ ym::ArgParser::Arg::Arg(str const Name)
      _enbl {false}
 {
    ArgParserError_ArgError::check(ymIsStrNonEmpty(getName()), "Name must be non-empty");
-   ArgParserError_ArgError::check(std::isalnum(getName()[0_u32]), "Name '%s' is invalid", getName());
    ArgParserError_ArgError::check(std::strcmp(getName(), "help") != 0_i32, "Arg cannot be named the reserved word 'help'");
-   ArgParserError_ArgError::check(std::strchr(getName(), ' ' ) == nullptr, "Name '%s' cannot contain a space",           getName());
-   ArgParserError_ArgError::check(std::strchr(getName(), '\r') == nullptr, "Name '%s' cannot contain a carriage return", getName());
-   ArgParserError_ArgError::check(std::strchr(getName(), '\n') == nullptr, "Name '%s' cannot contain a newline",         getName());
-   ArgParserError_ArgError::check(std::strchr(getName(), '\t') == nullptr, "Name '%s' cannot contain a tab",             getName());
+
+   // dereference here is safe, we just checked that above
+   for (auto currChar = getName(); *currChar != '\0'; ++currChar)
+   { // go through all chars in proposed name
+      ArgParserError_ArgError::check(ArgParser::isValidChar(*currChar),
+         "Name '%s' cannot contain '%c'", getName(), *currChar);
+   }
 }
 
 /** desc
@@ -531,13 +496,12 @@ auto ym::ArgParser::Arg::abbr(char const Abbr) -> Arg &
    ArgParserError_ArgError::check(Abbr != 'h',
       "Arg '%s' requesting reserved abbr 'h'", getName());
 
-   auto * const ap_Ptr  = ArgParser::getInstancePtr();
-   auto   const AbbrIdx = ap_Ptr->getAbbrIdx(Abbr);
+   auto * const ap_Ptr = ArgParser::getInstancePtr();
 
-   ArgParserError_ArgError::check(AbbrIdx < ap_Ptr->_abbrs.size(),
+   ArgParserError_ArgError::check(ap_Ptr->isValidChar(Abbr),
       "Illegal abbr '%c' found for arg '%s'", Abbr, getName());
 
-   auto * & abbr_ptr_ref = ap_Ptr->_abbrs[AbbrIdx];
+   auto * & abbr_ptr_ref = ap_Ptr->_abbrs[Abbr - '!'];
 
    ArgParserError_ArgError::check(!abbr_ptr_ref,
       "Arg '%s' wants abbr '%c' but it's already used by arg '%s'",

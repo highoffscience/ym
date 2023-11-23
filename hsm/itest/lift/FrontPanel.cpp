@@ -20,6 +20,18 @@ ym::hsm::itest::lift::FrontPanel::FrontPanel(int32 const FloorNumber, Elevator &
      _FloorRequest {FloorNumber},
      _el_ref       {el_ref     } 
 {
+   // FloorRequest::getInstancePtr()->subscribe(this);
+   // void subscribe(Hsm * h) {
+   //    _subscribers.emplace_back(h);
+   //    h->addSubscription(this);
+   // }
+   // void addSubscription(Topic * t) {
+   //    _subscriptions.emplace_back(t);
+   // }
+   // or
+   // ~FrontPanel() {
+   //    FloorRequest::getInstancePtr()->unsubscribe(this);
+   // }
 }
 
 /**
@@ -70,6 +82,16 @@ void ym::hsm::itest::lift::FrontPanel::sm_None(Event const & E)
       {
          _FloorRequest.setButtonPressed(Button_T::None);
          publish(_el_ref, _FloorRequest);
+         // TODO
+         // this publish command can just be _elevator_Ptr->dispatch(_FloorRequest)
+         // publish(_FloorRequest)
+         //    there can be a topic that has an implicit constructor to take all associated
+         //    messages like
+         //       ElevatorComponentTopic(FloorRequest);
+         //    ElevatorComponentTopic
+         // publish<ElevatorComponentTopic>(_FloorRequest)
+         // 
+         // FloorRequest::getInstancePtr()->publish(_FloorRequest);
          break;
       }
 

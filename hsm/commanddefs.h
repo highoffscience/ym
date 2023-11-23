@@ -1,12 +1,14 @@
 /**
- * @author Forrest Jablonski
+ * @file    commanddefs.h
+ * @version 1.0.0
+ * @author  Forrest Jablonski
  */
 
 #pragma once
 
-#include "Standard.h"
+#include "signal.h"
 
-#include "Signal.h"
+#include "../common/ymdefs.h"
 
 /**
  *

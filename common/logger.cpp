@@ -40,6 +40,8 @@ ym::Logger::Logger(void)
  *
  * @note The conditional assures the logger is only associated with one file.
  * 
+ * @throws Whatever openOutfile_appendTimeStamp() throws.
+ * 
  * @throws LoggerError_FailureToOpen -- If the file already exists.
  * @throws LoggerError_FailureToOpen -- If filesystem utility function fails.
  *
@@ -129,6 +131,8 @@ bool ym::Logger::openOutfile(std::FILE * const file_Ptr)
  * @brief Attempts to open the file with the current time appended to the file name.
  * 
  * @note Possibly use @ref <https://en.cppreference.com/w/cpp/filesystem/path>.
+ * 
+ * @throws Whatever openOutfile() throws.
  * 
  * @throws LoggerError_FailureToOpen -- If the filename size is unexpectedly large.
  * 

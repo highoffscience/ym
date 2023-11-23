@@ -34,6 +34,8 @@ ym::Ymception::Ymception(std::string && msg_uref)
  *
  * @brief Assert has failed. Print diagnostic information and throw.
  * 
+ * @throws Whatever ymLog() throws.
+ * 
  * @todo std::stacktrace implementation instead of boost.
  */
 std::string ym::Ymception::assertHandler(

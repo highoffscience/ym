@@ -25,7 +25,7 @@ namespace ym
  * 
  * @note Implemented as a circular buffer. Stores the last X data entries.
  * 
- * @note *Not* multi-thread safe.
+ * @note *Not* thread-safe.
  */
 class DataLogger : public Logger
 {
@@ -92,13 +92,13 @@ private:
     * 
     * @note This class does *not* own any of the pointers it has.
     */
-   struct ColumnEntry : public Nameable_NV
+   struct ColumnEntry : public PermaNameable_NV<str>
    {
-      template <typename T>
       explicit inline ColumnEntry(str                const Name,
                                   uint8            * const dataEntries_Ptr,
-                                  T          const * const Read_Ptr,
-                                  IStringify const * const Stringify_Ptr);
+                                  void       const * const Read_Ptr,
+                                  IStringify const * const Stringify_Ptr,
+                                  uint64             const DataSize_bytes);
 
       uint8            * const _dataEntries_Ptr;
       void       const * const _Read_Ptr;
@@ -129,8 +129,8 @@ bool DataLogger::addEntry(str         const Name,
    auto * const dataEntries_Ptr = MemIO::alloc<uint8>(getMaxNDataEntries() * sizeof(T));
 
    if (dataEntries_Ptr)
-   {
-      _columnEntries.emplace_back(Name, dataEntries_Ptr, Read_Ptr, new Stringify<T>());
+   { // memory allocation for this bucket successful
+      _columnEntries.emplace_back(Name, dataEntries_Ptr, Read_Ptr, new Stringify<T>(), sizeof(T));
    }
 
    return dataEntries_Ptr != nullptr;
@@ -150,7 +150,7 @@ bool DataLogger::addEntry(str         const Name,
  * @returns std::string -- Stringified data.
  */
 template <typename T>
-std::string DataLogger::Stringify<T>::toStr(void const * const DataEntry_Ptr) const
+YM_VIRTUAL std::string DataLogger::Stringify<T>::toStr(void const * const DataEntry_Ptr) const
 {
    return std::to_string(*static_cast<T const *>(DataEntry_Ptr));
 }
@@ -158,19 +158,25 @@ std::string DataLogger::Stringify<T>::toStr(void const * const DataEntry_Ptr) co
 /** ColumnEntry
  * 
  * @brief Constructor.
+ * 
+ * @param Name            -- Name of entry.
+ * @param dataEntries_Ptr -- Pointer to recorded data entries.
+ * @param Read_Ptr        -- Pointer to variable to read from.
+ * @param Stringify_Ptr   -- Function to stringify this data.
+ * @param DataSize_bytes  -- Size of one data entry (size of variable).
  */
-template <typename T>
 inline DataLogger::ColumnEntry::ColumnEntry(
    str                const Name,
    uint8            * const dataEntries_Ptr,
-   T          const * const Read_Ptr,
-   IStringify const * const Stringify_Ptr)
+   void       const * const Read_Ptr,
+   IStringify const * const Stringify_Ptr,
+   uint64             const DataSize_bytes)
 
-   : Nameable_NV(Name),
+   : PermaNameable_NV(Name),
      _dataEntries_Ptr {dataEntries_Ptr},
      _Read_Ptr        {Read_Ptr       },
      _Stringify_Ptr   {Stringify_Ptr  },
-     _DataSize_bytes  {sizeof(T)      }
+     _DataSize_bytes  {DataSize_bytes }
 {
 }
 

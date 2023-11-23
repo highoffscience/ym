@@ -13,7 +13,7 @@
 namespace ym
 {
 
-/** Loggable
+/** Loggable_T
  *
  * @brief Represents a supported loggable data type.
  *
@@ -22,7 +22,7 @@ namespace ym
  * @tparam T -- Type that is loggable.
  */
 template <typename T>
-concept Loggable = std::is_fundamental_v<T> ||
-                   std::is_pointer_v    <T> ;
+concept Loggable_T = std::is_fundamental_v<T> ||
+                     std::is_pointer_v    <T> ;
 
 } // ym

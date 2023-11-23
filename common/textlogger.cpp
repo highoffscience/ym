@@ -13,6 +13,8 @@
 #include <memory>
 #include <utility>
 
+ym::TextLogger * ym::TextLogger::s_globalInstance_ptr = nullptr;
+
 /** TextLogger
  *
  * @brief Constructor.
@@ -55,7 +57,7 @@ bool ym::TextLogger::isOpen(void) const
    return _writerMode.load(std::memory_order_relaxed) == WriterMode_T::Open;
 }
 
-/** getGlobalInstancePtr
+/** getGlobalInstance
  *
  * @brief Gets the global text logger instance.
  * 
@@ -65,22 +67,20 @@ bool ym::TextLogger::isOpen(void) const
  *
  * @note Used as the global logger for the program. Not expected to close until the end.
  */
-auto ym::TextLogger::getGlobalInstancePtr(void) -> TextLogger *
+auto ym::TextLogger::getGlobalInstance(void) -> TextLogger *
 {
-   static TextLogger * instance_ptr = nullptr;
-
-   if (!instance_ptr)
+   if (!s_globalInstance_ptr)
    { // file not already opened - open it
-      instance_ptr = new TextLogger();
+      s_globalInstance_ptr = new TextLogger();
 
-      TextLoggerError_GlobalFailureToOpen::check(instance_ptr,
+      TextLoggerError_GlobalFailureToOpen::check(s_globalInstance_ptr,
          "Global instance failed to be created");
 
       auto opened = false; // until told otherwise
 
       try
       { // attempt to open the file
-         opened = instance_ptr->open(
+         opened = s_globalInstance_ptr->open(
             #if defined(YM_PRINT_TO_SCREEN)
                PrintMode_T::PrependTimeStamp,
                RedirectMode_T::ToStdOut
@@ -94,8 +94,8 @@ auto ym::TextLogger::getGlobalInstancePtr(void) -> TextLogger *
       }
       catch (std::exception const & E)
       { // clean up memory before rethrowing
-         delete instance_ptr;
-         instance_ptr = nullptr;
+         delete s_globalInstance_ptr;
+         s_globalInstance_ptr = nullptr;
 
          TextLoggerError_GlobalFailureToOpen::check(false,
             "Error in opening global file (%s)", E.what());
@@ -103,28 +103,35 @@ auto ym::TextLogger::getGlobalInstancePtr(void) -> TextLogger *
 
       if (!opened)
       { // something went wrong - clean up memory
-         delete instance_ptr;
-         instance_ptr = nullptr;
+         delete s_globalInstance_ptr;
+         s_globalInstance_ptr = nullptr;
 
          TextLoggerError_GlobalFailureToOpen::check(false,
             "Global instance failed to open");
       }
    }
 
-   return instance_ptr; // guaranteed not null
+   return s_globalInstance_ptr; // guaranteed not null
+}
+
+/** destroyGlobalInstance
+ * 
+ * @brief Deletes the global instance.
+ */
+void ym::TextLogger::destroyGlobalInstance(void)
+{
+   if (s_globalInstance_ptr)
+   { // instance active - destroy it
+      delete s_globalInstance_ptr;
+      s_globalInstance_ptr = nullptr;
+   }
 }
 
 /** open
  *
  * @brief Opens and prepares the logger to be written to.
  * 
- * @throws TextLoggerError_FailureToOpen -- If redirect mode doesn't point to a static stream.
- * @throws LoggerError_FailureToOpen     -- If the file already exists.
- * 
- * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdOut mode is requested.
- * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdErr mode is requested.
- * @throws TextLoggerError_FailureToOpen -- If filename is not specified but ToLog mode is requested.
- * @throws TextLoggerError_FailureToOpen -- If RedirectMode is invalid.
+ * @throws Whatever open() throws.
  * 
  * @param PrintMode    -- Mode to determine how to mangle the printable message.
  * @param RedirectMode -- Specifies what streams to pipe the output to.
@@ -134,12 +141,6 @@ auto ym::TextLogger::getGlobalInstancePtr(void) -> TextLogger *
 bool ym::TextLogger::open(PrintMode_T    const PrintMode,
                           RedirectMode_T const RedirectMode)
 {
-   TextLoggerError_FailureToOpen::check(
-      RedirectMode == RedirectMode_T::ToStdOut ||
-      RedirectMode == RedirectMode_T::ToStdErr,
-      "Redirect mode %u must specify a filename", std::to_underlying(RedirectMode)
-   );
-
    return open(FilenameMode_T::KeepOriginal, PrintMode, RedirectMode, "");
 }
 
@@ -147,7 +148,7 @@ bool ym::TextLogger::open(PrintMode_T    const PrintMode,
  *
  * @brief Opens and prepares the logger to be written to.
  *
- * @throws LoggerError_FailureToOpen -- If openOutfile() fails.
+ * @throws Whatever openOutfile() throws.
  * 
  * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdOut mode is requested.
  * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdErr mode is requested.
@@ -211,7 +212,7 @@ bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
  *
  * @brief Closes the outfile and shuts the logger down.
  * 
- * @throws TextLoggerError_ProducerConsumerError -- If close_Helper() fails.
+ * @throws Whatever close_Helper() throws.
  */
 void ym::TextLogger::close(void)
 {
@@ -256,7 +257,7 @@ bool ym::TextLogger::open_Helper(bool const Opened)
  * 
  * @brief Wrapper (helper) function to call printf_Producer().
  * 
- * @throws TextLoggerError_ProducerConsumerError -- If printf_Producer() fails.
+ * @throws Whatever printf_Producer() throws.
  * 
  * @param msg -- Message to print.
  * @param ... -- Arguments.
@@ -319,7 +320,7 @@ auto ym::TextLogger::pushEnable(VG const VG) -> ScopedEnable
  *
  * @note printf_Producer is not marked noexcept because terminate should not be called.
  *
- * @throws TextLoggerError_ProducerConsumerError -- If printf_Producer() if fails.
+ * @throws Whatever printf_Producer() throws.
  * 
  * @param VG     -- Verbosity group.
  * @param Format -- Format string.

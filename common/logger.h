@@ -50,7 +50,7 @@ public:
 protected:
    explicit Logger(void);
 
-   template <Loggable... Args_T>
+   template <Loggable_T... Args_T>
    inline void printfInternalError(str    const    Format,
                                    Args_T const... Args);
 
@@ -88,7 +88,7 @@ private:
  * @param Format -- Format string.
  * @param Args   -- Arguments.
  */
-template <Loggable... Args_T>
+template <Loggable_T... Args_T>
 inline void Logger::printfInternalError(str    const    Format,
                                         Args_T const... Args)
 {

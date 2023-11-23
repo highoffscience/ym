@@ -41,3 +41,6 @@ data*.csv
 
 # python virtual environment
 venv/
+
+# sandbox
+sandbox/
