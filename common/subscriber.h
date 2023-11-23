@@ -15,7 +15,10 @@ namespace ym
 
 /** Subscriber
  * 
- * @brief TODO
+ * @brief Publisher/Subscriber pattern.
+ * 
+ * @note Use shared pointers as a way to communicate to the
+ *       publisher if the subscriber gets destroyed.
  */
 class Subscriber
 {

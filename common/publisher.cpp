@@ -20,7 +20,9 @@ ym::Publisher::Publisher(void)
 
 /** subscribe
  * 
- * @brief TODO
+ * @brief Adds subscriber to list.
+ * 
+ * @param sub_Ptr -- Subscriber to add.
  */
 void ym::Publisher::subscribe(Subscriber * const sub_Ptr)
 {
@@ -42,7 +44,9 @@ void ym::Publisher::subscribe(Subscriber * const sub_Ptr)
 
 /** publish
  * 
- * @brief TODO
+ * @brief Publish message to all registered subscribers.
+ * 
+ * @param Payload_Ptr -- Message to publish to subscribers.
  */
 void ym::Publisher::publish(void const * const Payload_Ptr)
 {

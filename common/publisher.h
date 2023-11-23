@@ -16,7 +16,10 @@ namespace ym
 
 /** Publisher
  * 
- * @brief TODO
+ * @brief Publisher/Subscriber pattern.
+ * 
+ * @note Weak pointers are non-owning references that check
+ *       if the object (in this case subscriber) is still active.
  */
 class Publisher
 {
