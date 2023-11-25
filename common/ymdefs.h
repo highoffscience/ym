@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <limits>
 #include <type_traits>
@@ -302,6 +303,22 @@ union PtrToUint_T
  * @param Array_ -- C_style array.
  */
 #define YM_ARRAY_SIZE(Array_) (sizeof(Array_) / sizeof(*Array_))
+
+// ----------------------------------------------------------------------------
+
+/**
+ * TODO
+ */
+template <std::size_t N>
+struct StringLiteral
+{
+   YM_IMPLICIT constexpr StringLiteral(const char (&str)[N])
+   {
+      std::copy_n(str, N, value);
+   }
+   
+   char value[N];
+};
 
 // ----------------------------------------------------------------------------
 

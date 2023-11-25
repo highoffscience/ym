@@ -1,14 +1,12 @@
 /**
- * @file    message.h
+ * @file    event.h
  * @version 1.0.0
  * @author  Forrest Jablonski
  */
 
-// TODO this class is now event
-
 #pragma once
 
-#include "signal.h"
+#include "eventid.h"
 
 #include "../common/nameable.h"
 #include "../common/ymception.h"
@@ -23,66 +21,57 @@ namespace ym::hsm
  * TODO
  */
 template <typename T>
-concept MessageConcept = requires(T)
+concept TaggedEvent_T = requires(T)
 {
-   std::is_base_of_v<class Message, T>;
+   std::is_base_of_v<class Event, T>;
 
-   T::getClassDomain(); // lives in TaggedMessage
+   T::getClassName(); // lives in TaggedEvent
+   T::getClassDomain();
    T::getClassSignal();
 };
 
 /**
  * Not meant to be used dynamically.
  */
-class Message : public PermaNameable_NV<str>
+class Event : public PermaNameable_NV<str>
 {
 protected:
-   explicit inline Message(str          const Name,
-                           SignalBase_T const Domain,
-                           SignalBase_T const Signal);
+   /// TODO
+   explicit constexpr Event(str       const Name,
+                            EventId_T const Id)
+      : PermaNameable_NV(Name),
+        _Id {Id}
+   { }
 
 public:
-   YM_DECL_YMCEPT(MessageError)
+   YM_DECL_YMCEPT(EventError)
 
-   inline auto getDomain(void) const { return _Domain; }
-   inline auto getSignal(void) const { return _Signal; }
+   constexpr auto getId(void) const { return _Id; }
 
-   inline operator SignalBase_T (void) const { return getSignal(); }
+   constexpr operator std::underlying_type_t<EventId_T> (void) const { return getId(); }
 
-   template <MessageConcept DerivedTarget_T>
+   template <TaggedEvent_T DerivedTarget_T>
    DerivedTarget_T const * castToPtr(void) const;
 
-   template <MessageConcept DerivedTarget_T>
-   bool castToPtr(DerivedTarget_T const * & Msg_ptr_ref) const;
+   template <TaggedEvent_T DerivedTarget_T>
+   bool castToPtr(DerivedTarget_T const * & E_ptr_ref) const;
 
 private:
-   SignalBase_T const _Domain;
-   SignalBase_T const _Signal;
-
-   template <MessageConcept DerivedTarget_T>
+   template <TaggedEvent_T DerivedTarget_T>
    inline bool isCompatibleMsg(void) const;
-};
 
-/**
- * Constructor.
- */
-inline Message::Message(str          const Name_Ptr,
-                        SignalBase_T const Domain,
-                        SignalBase_T const Signal)
-   : PermaNameable_NV(Name_Ptr),
-     _Domain {Domain},
-     _Signal {Signal}
-{
-}
+   EventId_T const _Id;
+};
 
 /**
  * Functionally a dynamic down cast.
  */
-template <MessageConcept DerivedTarget_T>
-DerivedTarget_T const * Message::castToPtr(void) const
+template <TaggedEvent_T DerivedTarget_T>
+DerivedTarget_T const * Event::castToPtr(void) const
 {
-   MessageError(isCompatibleMsg<DerivedTarget_T>(),
-      "Casting to an incompatible message! Instance name = %s.\n"
+   // TODO
+   EventError(isCompatibleMsg<DerivedTarget_T>(),
+      "Casting to an incompatible event! Instance name = %s.\n"
       "  Instance domain = %02lu, Instance signal = %02lu.\n"
       "  Target   domain = %02lu. Target   signal = %02lu.",
       getName(),
@@ -95,12 +84,12 @@ DerivedTarget_T const * Message::castToPtr(void) const
 /**
  * Functionally a dynamic down cast.
  */
-template <MessageConcept DerivedTarget_T>
-bool Message::castToPtr(DerivedTarget_T const * & Msg_ptr_ref) const
+template <TaggedEvent_T DerivedTarget_T>
+bool Event::castToPtr(DerivedTarget_T const * & E_ptr_ref) const
 {
-   Msg_ptr_ref = isCompatibleMsg<DerivedTarget_T>()         ?
-                 static_cast<DerivedTarget_T const *>(this) :
-                 nullptr;
+   E_ptr_ref = isCompatibleMsg<DerivedTarget_T>()         ?
+               static_cast<DerivedTarget_T const *>(this) :
+               nullptr;
 
    return Msg_ptr_ref != nullptr;
 }
@@ -108,11 +97,10 @@ bool Message::castToPtr(DerivedTarget_T const * & Msg_ptr_ref) const
 /**
  * Returns true if this message is an instance of DerivedTarget_T, false otherwise.
  */
-template <MessageConcept DerivedTarget_T>
-inline bool Message::isCompatibleMsg(void) const
+template <TaggedEvent_T DerivedTarget_T>
+inline bool Event::isCompatibleMsg(void) const
 {
-   return getDomain() == DerivedTarget_T::getClassDomain() &&
-          getSignal() == DerivedTarget_T::getClassSignal();
+   return getId() == DerivedTarget_T::getId();
 }
 
 } // ym::hsm

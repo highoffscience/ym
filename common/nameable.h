@@ -39,7 +39,7 @@ public:
     * 
     * @param name -- Initial name.
     */
-   explicit inline Nameable_NV(String_T name)
+   explicit constexpr Nameable_NV(String_T name)
       : _name {std::move(name)}
    { }
 
@@ -49,7 +49,7 @@ public:
     * 
     * @returns auto const & -- Current name.
     */
-   inline auto const & getName(void) const { return _name; }
+   constexpr auto const & getName(void) const { return _name; }
 
    /** setName
     * 
@@ -57,7 +57,7 @@ public:
     * 
     * @param name -- Desired name.
     */
-   inline void setName(String_T name) { _name = std::move(name); }
+   constexpr void setName(String_T name) { _name = std::move(name); }
 
 private:
    String_T _name;
@@ -81,7 +81,7 @@ public:
     * 
     * @param name -- Initial name.
     */
-   explicit inline PermaNameable_NV(String_T name)
+   explicit constexpr PermaNameable_NV(String_T name)
       : _Name {std::move(name)}
    { }
 
@@ -91,7 +91,7 @@ public:
     * 
     * @returns auto const & -- Current name.
     */
-   inline auto const & getName(void) const { return _Name; }
+   constexpr auto const & getName(void) const { return _Name; }
 
 private:
    String_T const _Name;
