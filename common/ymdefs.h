@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <limits>
 #include <type_traits>
@@ -27,57 +28,22 @@ static_assert(__cplusplus >= 202002L, "At least C++20 standard required");
 /**
  * @brief Helper macros for compiler detection.
  *
- * @note GNUC, CLANG, and MSVC are the only compilers tested.
- *
- * @note We define YM_IS_XXX_ID to verify compiler mutual exclusion. We don't
- *       want to define YM_IS_GNUC to have a value since it is now technically
- *       defined no matter the value so errors like
- *
- *          #define YM_IS_XXX 0
- *          #if defined(YM_IS_XXX)
- *             // this code executes!
- *          #endif
- *
- *        will be avoided.
+ * @note CLANG, GNUC, and MSVC are the only compilers tested.
  */
 
-#if defined(__clang__)
-   #define YM_IS_CLANG
-   #define YM_IS_CLANG_ID 1
+#if defined(__clang__) // must be before GNU test because clang also defines __GNUG__
+   #define YM_CLANG_DEFINED
+#elif defined(__GNUG__)
+   #define YM_GNU_DEFINED
+#elif defined(_MSC_VER)
+   #define YM_MSVC_DEFINED
 #else
-   #define YM_IS_CLANG_ID 0
-#endif // __clang__
-
-#if defined(__GNUG__)
-   #if !defined(YM_IS_CLANG) // clang defines __GNUG__ too
-      #define YM_IS_GNU
-      #define YM_IS_GNU_ID 1
-   #else
-      #define YM_IS_GNU_ID 0
-   #endif // !YM_IS_CLANG
-#endif // __GNUG__
-
-#if defined(_MSC_VER)
-   #define YM_IS_MSVC
-   #define YM_IS_MSVC_ID 1
-#else
-   #define YM_IS_MSVC_ID 0
-#endif // _MSC_VER
-
-// mutual exclusion test
-static_assert(YM_IS_CLANG_ID +
-              YM_IS_GNU_ID   +
-              YM_IS_MSVC_ID  == 1, 
-              "Multiple (or no) compilers detected");
-
-// don't pollute namespace
-#undef YM_IS_CLANG_ID
-#undef YM_IS_GNU_ID
-#undef YM_IS_MSVC_ID
+   #warning "Unknown compiler detected"
+#endif
 
 // ----------------------------------------------------------------------------
 
-#if defined(YM_IS_MSVC)
+#if defined(YM_MSVC_DEFINED)
 
    /**
     * @brief MSVC shenanigans.
@@ -89,25 +55,13 @@ static_assert(YM_IS_CLANG_ID +
    #pragma warning(error:    4062) // switch on all enum values
    #pragma warning(error:    4227) // reference of const should be pointer to const
 
-#endif // YM_IS_MSVC
+#endif // YM_MSVC_DEFINED
 
 // ----------------------------------------------------------------------------
 
 /*
  * Custom global defines and macros.
  */
-
-#if defined(YM_IS_MSVC)
-   #if defined(_DEBUG)
-      #if !defined(YM_UT_DBG)
-         static_assert(false, "Clashing intentions of debug levels detected")
-      #endif // !YM_UT_DBG
-   #endif // _DEBUG
-#endif // YM_IS_MSVC
-
-#if !defined(YM_EXPERIMENTAL)
-   // #define YM_EXPERIMENTAL
-#endif // !YM_EXPERIMENTAL
 
 /**
  * @brief Helper macros for the "the big five".
@@ -156,6 +110,22 @@ static_assert(YM_IS_CLANG_ID +
 namespace ym
 {
 
+/** ymIsDefined
+ * 
+ * @brief Determines if a data type is defined or not. Some compilers/standards do not
+ *        support all types so typedefs may be conditional. Void is used to indicate
+ *        that a type is not defined/supported.
+ * 
+ * @tparam T -- Data type.
+ * 
+ * @returns bool -- True if type is defined, false otherwise.
+ */
+template <typename T>
+constexpr auto ymIsDefined(void)
+{
+   return std::is_void_v<T>;
+}
+
 /**
  * @brief Helper macros to perform integrity/sanity checks on primitive typedefs.
  *
@@ -200,53 +170,56 @@ namespace ym
  *       are structured unorthodoxically so all supported compilers can parse it.
  */
 
-using str     = char const *   ;
-using uchar   = unsigned char  ;
+using str      = char const *   ;
+using uchar    = unsigned char  ;
 
-using int8    = signed char    ; YM_INT_INTEGRITY(int8   ,  7)
-using int16   = signed short   ; YM_INT_INTEGRITY(int16  , 15)
-using int32   = signed int     ; YM_INT_INTEGRITY(int32  , 31)
-using int64   = signed long    ; YM_INT_INTEGRITY(int64  , 63)
+using int8     = signed char    ; YM_INT_INTEGRITY(int8 ,  7)
+using int16    = signed short   ; YM_INT_INTEGRITY(int16, 15)
+using int32    = signed int     ; YM_INT_INTEGRITY(int32, 31)
+using int64    = signed long    ; YM_INT_INTEGRITY(int64, 63)
+using int128   =
+   #if defined(YM_GNU_DEFINED)
+      __int128_t
+   #elif defined(YM_CLANG_DEFINED)
+      __int128_t
+   #else
+      void
+   #endif
+   ; static_assert(!ymIsDefined<int128>() || (sizeof(int128) == 16ul), "int128 not of expected size");
 
-using uint8   = unsigned char  ; YM_UNT_INTEGRITY(uint8  ,  8)
-using uint16  = unsigned short ; YM_UNT_INTEGRITY(uint16 , 16)
-using uint32  = unsigned int   ; YM_UNT_INTEGRITY(uint32 , 32)
-using uint64  = unsigned long  ; YM_UNT_INTEGRITY(uint64 , 64)
+using uint8    = unsigned char  ; YM_UNT_INTEGRITY(uint8  ,  8)
+using uint16   = unsigned short ; YM_UNT_INTEGRITY(uint16 , 16)
+using uint32   = unsigned int   ; YM_UNT_INTEGRITY(uint32 , 32)
+using uint64   = unsigned long  ; YM_UNT_INTEGRITY(uint64 , 64)
+using uint128  =
+   #if defined(YM_GNU_DEFINED)
+      __uint128_t
+   #elif defined(YM_CLANG_DEFINED)
+      __uint128_t
+   #else
+      void
+   #endif
+   ; static_assert(!ymIsDefined<uint128>() || (sizeof(uint128) == 16ul), "uint128 not of expected size");
 
-using float32 = float          ; YM_FLT_INTEGRITY(float32, 24)
-using float64 = double         ; YM_FLT_INTEGRITY(float64, 53)
+using float32  = float          ; YM_FLT_INTEGRITY(float32, 24)
+using float64  = double         ; YM_FLT_INTEGRITY(float64, 53)
+using float80  =
+   std::conditional_t<std::numeric_limits<long double>::digits == 64,
+      long double,
+      void
+      >; static_assert(!ymIsDefined<float80>() || (sizeof(float80) == 16ul), "float80 not of expected size");
 
-using float80 = std::conditional_t<std::numeric_limits<long double>::digits == 64,
-                   long double,
-                   std::conditional_t<std::numeric_limits<long double>::digits == 113,
-                      void,
-                   #if defined(YM_IS_GNU)
-                      __float80
-                   #else
-                      void
-                   #endif // YM_IS_GNU
-                   >
-                >;
-   static_assert(sizeof(std::conditional_t<std::is_void_v<float80>,
-                           uint8[10], // float80 is not defined (ok)
-                           float80    // float80 is defined
-                        >) >= 10ul,
-                 "float80 doesn't have expected size (range)");
-
-using float128 = std::conditional_t<std::numeric_limits<long double>::digits == 113,
-                    long double,
-                 #if defined(YM_IS_GNU) || defined(YM_IS_CLANG)
-                    __float128
-                 #else
-                    void
-                 #endif // YM_IS_GNU || YM_IS_CLANG
-                 >;
-
-   static_assert(sizeof(std::conditional_t<std::is_void_v<float128>,
-                           uint8[16], // float128 is not defined (ok)
-                           float128   // float128 is defined
-                        >) >= 16ul,
-                 "float80 doesn't have expected size (range)");
+using float128 =
+   std::conditional_t<std::numeric_limits<long double>::digits == 113,
+      long double,
+   #if defined(YM_GNU_DEFINED)
+      __float128
+   #elif defined(YM_CLANG_DEFINED)
+      __float128
+   #else
+      void
+   #endif
+   >; static_assert(!ymIsDefined<float128>() || (sizeof(float128) == 16ul), "float128 not of expected size");
 
 // don't pollute namespace
 #undef YM_FLT_INTEGRITY
@@ -257,7 +230,7 @@ using float128 = std::conditional_t<std::numeric_limits<long double>::digits == 
 using uintptr = std::uintptr_t;
 static_assert(std::is_same_v<uintptr, uint64>, "Unexpected uintptr type");
 
-/** PtrToUint_T
+/** PtrToInt_T
  *
  * @brief Casts non-member pointer to an appropriately sized uint.
  *
@@ -279,7 +252,7 @@ static_assert(std::is_same_v<uintptr, uint64>, "Unexpected uintptr type");
  */
 template <typename T>
 requires(std::is_pointer_v<T *>)
-union PtrToUint_T
+union PtrToInt_T
 {
    T       * ptr_val;
    T     * * ptr_ptr_val;
@@ -299,6 +272,25 @@ union PtrToUint_T
 
 // ----------------------------------------------------------------------------
 
+/** StringLiteral
+ * 
+ * @brief Wrapper to trick compiler into accepting C-style strings as template arguments.
+ * 
+ * @tparam N -- # of characters (size of) of string literal.
+ */
+template <std::size_t N>
+struct StringLiteral
+{
+   YM_IMPLICIT constexpr StringLiteral(const char (&str)[N])
+   {
+      std::copy_n(str, N, value);
+   }
+   
+   char value[N];
+};
+
+// ----------------------------------------------------------------------------
+
 /** ymCastToBytes
  * 
  * @brief Casts given pointer to byte pointer.
@@ -306,22 +298,30 @@ union PtrToUint_T
  * @note According to @ref <https://en.cppreference.com/w/cpp/language/object>, any object can be
  *       inspected assuming an underlying representation of bytes.
  * 
- * @tparam T -- Type of pointer.
+ * @note A reinterpret_cast will not convert a pointer of arbitrary type to another, must cast
+ *       to void first. We can avoid an explicit cast to void by just accepting a void * since
+ *       pointers can be implicitely cast to void.
  * 
  * @param Data_Ptr -- Pointer to object(s).
  * 
  * @returns uint8 const * -- Pointer to object(s) represented as an array of bytes.
  */
-template<typename T>
-constexpr uint8 const * ymCastToBytes(T const * const Data_Ptr) noexcept
+constexpr auto const * ymCastToBytes(void const * const Data_Ptr) noexcept
 {
-   // a simple reinterpret cast will not suffice
-   return
-      static_cast<uint8 const *>(
-         static_cast<void const *>(
-            Data_Ptr
-         )
-      );
+   return static_cast<uint8 const *>(Data_Ptr);
+}
+
+/** ymCastToBytes
+ * 
+ * @brief Non-const version of above.
+ * 
+ * @param data_Ptr -- Pointer to object(s).
+ * 
+ * @returns uint8 * -- Pointer to object(s) represented as an array of bytes.
+ */
+constexpr auto * ymCastToBytes(void * const Data_Ptr) noexcept
+{
+   return static_cast<uint8 *>(Data_Ptr);
 }
 
 /** ymIsStrNonEmpty
@@ -384,6 +384,7 @@ YM_LITERAL_DECL(u64, uint64 )
 YM_LITERAL_DECL(f32, float32)
 YM_LITERAL_DECL(f64, float64)
 YM_LITERAL_DECL(f80, float80)
+// you're on your own initializing float128
 
 // don't pollute namespace
 #undef YM_LITERAL_DECL

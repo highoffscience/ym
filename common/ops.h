@@ -28,11 +28,11 @@ public:
    static char castToChar(str const S);
 
    template <typename T>
-   requires std::is_floating_point_v<T>
+   requires (std::is_floating_point_v<T>)
    static T castTo(std::string const & S) = delete;
 
    template <typename T>
-   requires std::is_integral_v<T>
+   requires (std::is_integral_v<T>)
    static T castTo(std::string const & S,
                    uint32      const   Base = 10_u32) = delete;
 

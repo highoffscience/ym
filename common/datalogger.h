@@ -92,7 +92,7 @@ private:
     * 
     * @note This class does *not* own any of the pointers it has.
     */
-   struct ColumnEntry : public Nameable_NV
+   struct ColumnEntry : public Nameable_NV<str>
    {
       template <typename T>
       explicit inline ColumnEntry(str                const Name,

@@ -253,7 +253,7 @@ Chunk_T * MemIO::Pool<Chunk_T>::alloc(void)
       _blocks.emplace_front(MemIO::alloc<Chunk_T>(getNChunksPerBlock()));
       _nextFreeChunk_ptr = _blocks.front();
 
-      PtrToUint_T<Chunk_T> curr{_nextFreeChunk_ptr};
+      PtrToInt_T<Chunk_T> curr{_nextFreeChunk_ptr};
       for (auto i = 0_u64; i < getNChunksPerBlock(); ++i)
       { // set "next" pointer for each chunk
          *curr.uint_ptr_val = curr.uint_val + sizeof(Chunk_T);

@@ -12,7 +12,7 @@ $ cmake ..
 $ cd ..
 $ cmake --build build/ [--target <suite-name>]
 $ eg...
-$ cmake --build build/ [--target ym.common.textlogger]
+$ cmake --build build/ [--target ym-common-textlogger]
 
 To add a new unittest suite:
 Use setup_ut_scaffold.py
