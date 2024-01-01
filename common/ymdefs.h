@@ -32,18 +32,18 @@ static_assert(__cplusplus >= 202002L, "At least C++20 standard required");
  */
 
 #if defined(__clang__) // must be before GNU test because clang also defines __GNUG__
-   #define YM_CLANG_DEFINED
+   #define YM_CLANG_COMPILER
 #elif defined(__GNUG__)
-   #define YM_GNU_DEFINED
+   #define YM_GNU_COMPILER
 #elif defined(_MSC_VER)
-   #define YM_MSVC_DEFINED
+   #define YM_MSVC_COMPILER
 #else
    #warning "Unknown compiler detected"
 #endif
 
 // ----------------------------------------------------------------------------
 
-#if defined(YM_MSVC_DEFINED)
+#if defined(YM_MSVC_COMPILER)
 
    /**
     * @brief MSVC shenanigans.
@@ -55,7 +55,7 @@ static_assert(__cplusplus >= 202002L, "At least C++20 standard required");
    #pragma warning(error:    4062) // switch on all enum values
    #pragma warning(error:    4227) // reference of const should be pointer to const
 
-#endif // YM_MSVC_DEFINED
+#endif // YM_MSVC_COMPILER
 
 // ----------------------------------------------------------------------------
 
@@ -110,59 +110,6 @@ static_assert(__cplusplus >= 202002L, "At least C++20 standard required");
 namespace ym
 {
 
-/** ymIsDefined
- * 
- * @brief Determines if a data type is defined or not. Some compilers/standards do not
- *        support all types so typedefs may be conditional. Void is used to indicate
- *        that a type is not defined/supported.
- * 
- * @tparam T -- Data type.
- * 
- * @returns bool -- True if type is defined, false otherwise.
- */
-template <typename T>
-constexpr auto ymIsDefined(void)
-{
-   return std::is_void_v<T>;
-}
-
-/**
- * @brief Helper macros to perform integrity/sanity checks on primitive typedefs.
- *
- * @note We use std::numeric_limits<>::digits to verify range instead of sizeof
- *       because type may include padding or reserved bits. For example, sizeof
- *       float80 is typically 16, and aligned as such, even though it is only a
- *       10 byte type. To avoid confusion on how big a type actually is and to
- *       uniquely express the types expected range, use std::numeric_limits<>::digits.
- *
- * @param Prim_T_        -- Data type to perform integrity checks on.
- * @param NMantissaBits_ -- Expected # of bits in mantissa.
- */
-
-// int = signed integer
-#define YM_INT_INTEGRITY(Prim_T_, NMantissaBits_)                        \
-   static_assert(std::numeric_limits<Prim_T_>::is_signed,                \
-                 #Prim_T_" not signed");                                 \
-                                                                         \
-   static_assert(std::numeric_limits<Prim_T_>::digits == NMantissaBits_, \
-                 #Prim_T_" doesn't have expected range");
-
-// unt = unsigned integer
-#define YM_UNT_INTEGRITY(Prim_T_, NMantissaBits_)                        \
-   static_assert(!std::numeric_limits<Prim_T_>::is_signed,               \
-                 #Prim_T_" is signed");                                  \
-                                                                         \
-   static_assert(std::numeric_limits<Prim_T_>::digits == NMantissaBits_, \
-                 #Prim_T_" doesn't have expected range");
-
-// flt = float
-#define YM_FLT_INTEGRITY(Prim_T_, NMantissaBits_)                        \
-   static_assert(std::is_floating_point_v<Prim_T_>,                      \
-                 #Prim_T_" not floating point");                         \
-                                                                         \
-   static_assert(std::numeric_limits<Prim_T_>::digits == NMantissaBits_, \
-                 #Prim_T_" doesn't have expected range");
-
 /**
  * @brief Primitive typedefs.
  * 
@@ -170,61 +117,36 @@ constexpr auto ymIsDefined(void)
  *       are structured unorthodoxically so all supported compilers can parse it.
  */
 
-using str      = char const *   ;
-using uchar    = unsigned char  ;
+using str    = char const *  ;
+using uchar  = unsigned char ;
 
-using int8     = signed char    ; YM_INT_INTEGRITY(int8 ,  7)
-using int16    = signed short   ; YM_INT_INTEGRITY(int16, 15)
-using int32    = signed int     ; YM_INT_INTEGRITY(int32, 31)
-using int64    = signed long    ; YM_INT_INTEGRITY(int64, 63)
-using int128   =
-   #if defined(YM_GNU_DEFINED)
-      __int128_t
-   #elif defined(YM_CLANG_DEFINED)
+using int8   = std::int8_t  ; static_assert(sizeof(int8 ) == 1u, "int8  not of expected size");
+using int16  = std::int16_t ; static_assert(sizeof(int16) == 2u, "int16 not of expected size");
+using int32  = std::int32_t ; static_assert(sizeof(int32) == 4u, "int32 not of expected size");
+using int64  = std::int64_t ; static_assert(sizeof(int64) == 8u, "int64 not of expected size");
+using int128 =
+   #if defined(YM_GNU_COMPILER) || defined(YM_CLANG_COMPILER)
       __int128_t
    #else
       void
    #endif
-   ; static_assert(!ymIsDefined<int128>() || (sizeof(int128) == 16ul), "int128 not of expected size");
+   ; static_assert(!std::is_void_v<int128> || sizeof(int128) == 16ul, "int128 not of expected size");
 
-using uint8    = unsigned char  ; YM_UNT_INTEGRITY(uint8  ,  8)
-using uint16   = unsigned short ; YM_UNT_INTEGRITY(uint16 , 16)
-using uint32   = unsigned int   ; YM_UNT_INTEGRITY(uint32 , 32)
-using uint64   = unsigned long  ; YM_UNT_INTEGRITY(uint64 , 64)
-using uint128  =
-   #if defined(YM_GNU_DEFINED)
-      __uint128_t
-   #elif defined(YM_CLANG_DEFINED)
+using uint8   = std::uint8_t  ; static_assert(sizeof(uint8 ) == 1u, "uint8  not of expected size");
+using uint16  = std::uint16_t ; static_assert(sizeof(uint16) == 2u, "uint16 not of expected size");
+using uint32  = std::uint32_t ; static_assert(sizeof(uint32) == 4u, "uint32 not of expected size");
+using uint64  = std::uint64_t ; static_assert(sizeof(uint64) == 8u, "uint64 not of expected size");
+using uint128 =
+   #if defined(YM_GNU_COMPILER) || defined(YM_CLANG_COMPILER)
       __uint128_t
    #else
       void
    #endif
-   ; static_assert(!ymIsDefined<uint128>() || (sizeof(uint128) == 16ul), "uint128 not of expected size");
+   ; static_assert(!std::is_void_v<uint128> || sizeof(uint128) == 16ul, "uint128 not of expected size");
 
-using float32  = float          ; YM_FLT_INTEGRITY(float32, 24)
-using float64  = double         ; YM_FLT_INTEGRITY(float64, 53)
-using float80  =
-   std::conditional_t<std::numeric_limits<long double>::digits == 64,
-      long double,
-      void
-      >; static_assert(!ymIsDefined<float80>() || (sizeof(float80) == 16ul), "float80 not of expected size");
-
-using float128 =
-   std::conditional_t<std::numeric_limits<long double>::digits == 113,
-      long double,
-   #if defined(YM_GNU_DEFINED)
-      __float128
-   #elif defined(YM_CLANG_DEFINED)
-      __float128
-   #else
-      void
-   #endif
-   >; static_assert(!ymIsDefined<float128>() || (sizeof(float128) == 16ul), "float128 not of expected size");
-
-// don't pollute namespace
-#undef YM_FLT_INTEGRITY
-#undef YM_UNT_INTEGRITY
-#undef YM_INT_INTEGRITY
+using float32  = float          ; static_assert(std::numeric_limits<float32 >::digits == 24, "float32  (mantissa) not of expected size");
+using float64  = double         ; static_assert(std::numeric_limits<float64 >::digits == 53, "float64  (mantissa) not of expected size");
+using floatext = long double    ; static_assert(std::numeric_limits<floatext>::digits >= 53, "floatext (mantissa) not of expected size");
 
 /// @brief Convenience alias.
 using uintptr = std::uintptr_t;
@@ -291,7 +213,7 @@ struct StringLiteral
 
 // ----------------------------------------------------------------------------
 
-/** ymCastToBytes
+/** castPtrTo
  * 
  * @brief Casts given pointer to byte pointer.
  * 
@@ -302,29 +224,35 @@ struct StringLiteral
  *       to void first. We can avoid an explicit cast to void by just accepting a void * since
  *       pointers can be implicitely cast to void.
  * 
+ * @tparam T -- Data type to cast to.
+ * 
  * @param Data_Ptr -- Pointer to object(s).
  * 
- * @returns uint8 const * -- Pointer to object(s) represented as an array of bytes.
+ * @returns T const * -- Pointer to object(s) represented as an array of T.
  */
-constexpr auto const * ymCastToBytes(void const * const Data_Ptr) noexcept
+template <typename T>
+constexpr auto const * castPtrTo(void const * const Data_Ptr) noexcept
 {
-   return static_cast<uint8 const *>(Data_Ptr);
+   return static_cast<T const *>(Data_Ptr);
 }
 
-/** ymCastToBytes
+/** castPtrTo
  * 
  * @brief Non-const version of above.
  * 
+ * @tparam T -- Data type to cast to.
+ * 
  * @param data_Ptr -- Pointer to object(s).
  * 
- * @returns uint8 * -- Pointer to object(s) represented as an array of bytes.
+ * @returns T * -- Pointer to object(s) represented as an array of T.
  */
-constexpr auto * ymCastToBytes(void * const Data_Ptr) noexcept
+template <typename T>
+constexpr auto * castPtrTo(void * const data_Ptr) noexcept
 {
-   return static_cast<uint8 *>(Data_Ptr);
+   return static_cast<T *>(data_Ptr);
 }
 
-/** ymIsStrNonEmpty
+/** isStrNonEmpty
  * 
  * @brief Convenience method to detect if a c-style string is non-empty.
  * 
@@ -332,12 +260,12 @@ constexpr auto * ymCastToBytes(void * const Data_Ptr) noexcept
  * 
  * @returns bool -- True if string S is non-empty, false otherwise.
  */
-constexpr bool ymIsStrNonEmpty(str const S)
+constexpr bool isStrNonEmpty(str const S)
 {
    return S && *S;
 }
 
-/** ymIsStrEmpty
+/** isStrEmpty
  * 
  * @brief Convenience method to detect if a c-style string is null or empty.
  * 
@@ -345,9 +273,9 @@ constexpr bool ymIsStrNonEmpty(str const S)
  * 
  * @returns bool -- True if string S is null or empty, false otherwise.
  */
-constexpr bool ymIsStrEmpty(str const S)
+constexpr bool isStrEmpty(str const S)
 {
-   return !ymIsStrNonEmpty(S);
+   return !isStrNonEmpty(S);
 }
 
 // ----------------------------------------------------------------------------
@@ -364,26 +292,26 @@ constexpr bool ymIsStrEmpty(str const S)
  * @returns auto -- Input casted to TypeToCastTo_.
  */
 #define YM_LITERAL_DECL(UDL_, TypeToCastTo_)                                                                \
-   constexpr auto operator"" _##UDL_(unsigned long long int    i) { return static_cast<TypeToCastTo_>(i); } \
+   constexpr auto operator"" _##UDL_(unsigned long long int    u) { return static_cast<TypeToCastTo_>(u); } \
    constexpr auto operator"" _##UDL_(              long double d) { return static_cast<TypeToCastTo_>(d); } \
                                                                                                             \
    static_assert(std::is_same_v<decltype(  0_##UDL_), TypeToCastTo_> &&                                     \
                  std::is_same_v<decltype(0.0_##UDL_), TypeToCastTo_>,                                       \
                  "User defined literal "#UDL_" failed to cast");
 
-YM_LITERAL_DECL(i8,  int8   )
-YM_LITERAL_DECL(i16, int16  )
-YM_LITERAL_DECL(i32, int32  )
-YM_LITERAL_DECL(i64, int64  )
+YM_LITERAL_DECL(i8,   int8    )
+YM_LITERAL_DECL(i16,  int16   )
+YM_LITERAL_DECL(i32,  int32   )
+YM_LITERAL_DECL(i64,  int64   )
 
-YM_LITERAL_DECL(u8,  uint8  )
-YM_LITERAL_DECL(u16, uint16 )
-YM_LITERAL_DECL(u32, uint32 )
-YM_LITERAL_DECL(u64, uint64 )
+YM_LITERAL_DECL(u8,   uint8   )
+YM_LITERAL_DECL(u16,  uint16  )
+YM_LITERAL_DECL(u32,  uint32  )
+YM_LITERAL_DECL(u64,  uint64  )
 
-YM_LITERAL_DECL(f32, float32)
-YM_LITERAL_DECL(f64, float64)
-YM_LITERAL_DECL(f80, float80)
+YM_LITERAL_DECL(f32,  float32 )
+YM_LITERAL_DECL(f64,  float64 )
+YM_LITERAL_DECL(fext, floatext)
 // you're on your own initializing float128
 
 // don't pollute namespace
