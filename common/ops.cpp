@@ -413,34 +413,34 @@ auto ym::Ops::castTo<ym::float64>(std::string const & S) -> float64
 
 /** castTo
  *
- * @brief Casts string to float80.
+ * @brief Casts string to floatext.
  * 
  * @note std::strtof doesn't flag an error if conversion is invalid.
  * 
  * @note Most strings will likely be small enough for small string
  *       optimization to take effect.
  * 
- * @throws OpsError_BadCast -- If string is not a valid or out of range float80.
+ * @throws OpsError_BadCast -- If string is not a valid or out of range floatext.
  * 
  * @param S -- String to cast.
  * 
- * @returns float80 -- String as float80.
+ * @returns floatext -- String as floatext.
  */
 template <>
-auto ym::Ops::castTo<ym::float80>(std::string const & S) -> float80
+auto ym::Ops::castTo<ym::floatext>(std::string const & S) -> floatext
 {
-   auto val_float80 = 0_f80;
+   auto val_floatext = 0_fext;
 
    try
    {
       auto const Val = std::stold(S, nullptr);
-      static_assert(std::is_same_v<decltype(Val), float80 const>, "Unexpected type");
-      val_float80 = Val;
+      static_assert(std::is_same_v<decltype(Val), floatext const>, "Unexpected type");
+      val_floatext = Val;
    }
    catch (std::exception const & E)
    {
-      OpsError_BadCast::check(false, "String '%s' invalid or out of range float80 (%s)", S.c_str(), E.what());
+      OpsError_BadCast::check(false, "String '%s' invalid or out of range floatext (%s)", S.c_str(), E.what());
    }
 
-   return val_float80;
+   return val_floatext;
 }

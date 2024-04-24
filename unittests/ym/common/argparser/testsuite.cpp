@@ -11,6 +11,7 @@
 #include "ops.h"
 #include "textlogger.h"
 
+#include <array>
 #include <cstring>
 
 /** TestSuite
@@ -44,7 +45,18 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
       "--in-denial"
    };
    auto const Argc = static_cast<int32>(YM_ARRAY_SIZE(Argv));
+
+   std::array argHandlers{
+      ArgParser::Arg("input"    ).desc("Input file"  ),
+      ArgParser::Arg("output"   ).desc("Output file" ),
+      ArgParser::Arg("clean"    ).desc("Cleans build").abbr('c').enbl(),
+      ArgParser::Arg("build"    ).desc("Builds exe"  ).abbr('b').enbl(),
+      ArgParser::Arg("key"      ).desc("Passkey"     ).abbr('k'),      
+      ArgParser::Arg("in-denial").desc("My existence")          .enbl()
+   };
    
+   ArgParser ap(Argc, Argv, argHandlers.data(), argHandlers.size());
+
    auto excHappened = false;
    auto val_input   = false;
    auto val_output  = false;
@@ -53,25 +65,16 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
    auto val_key     = false;
    auto val_denial  = false;
 
-   auto & ap_ref = *ArgParser::getInstancePtr();
    try
    {
-      ap_ref.parse({
-         ap_ref.arg("input"    ).desc("Input file"  ),
-         ap_ref.arg("output"   ).desc("Output file" ),
-         ap_ref.arg("clean"    ).desc("Cleans build").abbr('c').flag(),
-         ap_ref.arg("build"    ).desc("Builds exe"  ).abbr('b').flag(),
-         ap_ref.arg("key"      ).desc("Passkey"     ).abbr('k'),
-         ap_ref.arg("in-denial").desc("My existence")          .flag()
-      },
-      Argc, Argv);
+      ap.parse();
 
-      val_input  = std::strcmp(ap_ref["input"    ]->getVal(), "settings.json") == 0_i32;
-      val_output = std::strcmp(ap_ref["output"   ]->getVal(), "data.csv"     ) == 0_i32;
-      val_clean  =             ap_ref["clean"    ]->isEnbl();
-      val_build  =             ap_ref["build"    ]->isEnbl();
-      val_key    = std::strcmp(ap_ref["key"      ]->getVal(), "Torchic1234"  ) == 0_i32;
-      val_denial =             ap_ref["in-denial"]->isEnbl();
+      val_input  = std::strcmp(ap["input"    ]->getVal(), "settings.json") == 0_i32;
+      val_output = std::strcmp(ap["output"   ]->getVal(), "data.csv"     ) == 0_i32;
+      val_clean  =             ap["clean"    ]->isEnbl();
+      val_build  =             ap["build"    ]->isEnbl();
+      val_key    = std::strcmp(ap["key"      ]->getVal(), "Torchic1234"  ) == 0_i32;
+      val_denial =             ap["in-denial"]->isEnbl();
    }
    catch (ArgParser::ArgParserError const & E)
    {
@@ -107,22 +110,24 @@ auto ym::ut::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const & 
       "--width", "1"
    };
    auto const Argc = static_cast<int32>(YM_ARRAY_SIZE(Argv));
+
+   std::array argHandlers{
+      ArgParser::Arg("width"  ).desc("Width"    ),
+      ArgParser::Arg("verbose").desc("Verbosity").enbl()
+   };
+   
+   ArgParser ap(Argc, Argv, argHandlers.data(), argHandlers.size());
    
    auto excHappened = false;
    auto val_verbose = false;
    auto val_width   = false;
 
-   auto & ap_ref = *ArgParser::getInstancePtr();
    try
    {
-      ap_ref.parse({
-         ap_ref.arg("width"  ).desc("Width"    ),
-         ap_ref.arg("verbose").desc("Verbosity").flag()
-      },
-      Argc, Argv);
+      ap.parse();
 
-      val_verbose = ap_ref["verbose"]->isFlag();
-      val_width   = ap_ref["width"  ]->isFlag() == false;
+      val_verbose = ap["verbose"]->isFlag();
+      val_width   = ap["width"  ]->isFlag() == false;
    }
    catch (ArgParser::ArgParserError const & E)
    {

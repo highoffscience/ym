@@ -213,7 +213,7 @@ struct StringLiteral
 
 // ----------------------------------------------------------------------------
 
-/** castPtrTo
+/** ymCastPtrTo
  * 
  * @brief Casts given pointer to byte pointer.
  * 
@@ -231,12 +231,12 @@ struct StringLiteral
  * @returns T const * -- Pointer to object(s) represented as an array of T.
  */
 template <typename T>
-constexpr auto const * castPtrTo(void const * const Data_Ptr) noexcept
+constexpr auto const * ymCastPtrTo(void const * const Data_Ptr)
 {
    return static_cast<T const *>(Data_Ptr);
 }
 
-/** castPtrTo
+/** ymCastPtrTo
  * 
  * @brief Non-const version of above.
  * 
@@ -247,12 +247,12 @@ constexpr auto const * castPtrTo(void const * const Data_Ptr) noexcept
  * @returns T * -- Pointer to object(s) represented as an array of T.
  */
 template <typename T>
-constexpr auto * castPtrTo(void * const data_Ptr) noexcept
+constexpr auto * ymCastPtrTo(void * const data_Ptr)
 {
    return static_cast<T *>(data_Ptr);
 }
 
-/** isStrNonEmpty
+/** ymIsStrNonEmpty
  * 
  * @brief Convenience method to detect if a c-style string is non-empty.
  * 
@@ -260,12 +260,12 @@ constexpr auto * castPtrTo(void * const data_Ptr) noexcept
  * 
  * @returns bool -- True if string S is non-empty, false otherwise.
  */
-constexpr bool isStrNonEmpty(str const S)
+constexpr bool ymIsStrNonEmpty(str const S)
 {
    return S && *S;
 }
 
-/** isStrEmpty
+/** ymIsStrEmpty
  * 
  * @brief Convenience method to detect if a c-style string is null or empty.
  * 
@@ -273,9 +273,9 @@ constexpr bool isStrNonEmpty(str const S)
  * 
  * @returns bool -- True if string S is null or empty, false otherwise.
  */
-constexpr bool isStrEmpty(str const S)
+constexpr bool ymIsStrEmpty(str const S)
 {
-   return !isStrNonEmpty(S);
+   return !ymIsStrNonEmpty(S);
 }
 
 // ----------------------------------------------------------------------------

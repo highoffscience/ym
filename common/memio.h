@@ -17,6 +17,63 @@
 #include <forward_list>
 #include <memory>
 
+/* TODO custom stack based allocator for stl types
+
+#include <iostream>
+#include <string>
+
+char g_buf[100] = {'\0'};
+char * g_p = g_buf;
+
+template <typename T>
+struct CustomAlloc
+{
+    using value_type = T;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using propagate_on_container_move_assignment = std::true_type;
+    
+    constexpr CustomAlloc(void) = default;
+    constexpr ~CustomAlloc(void) = default;
+    
+    constexpr T * allocate(std::size_t n)
+    {
+        std::cout << "allocate " << n << std::endl;
+        auto * r = g_p;
+        g_p += n;
+        return r;
+    }
+    
+    constexpr void deallocate(T * p, std::size_t n)
+    {
+        (void)p;
+        std::cout << "deallocate " << n << std::endl;
+    }
+    
+    constexpr std::size_t max_size(void) const
+    {
+        std::cout << "max_size" << std::endl;
+        return 0u;
+    }
+};
+
+int main()
+{
+    using custom_string = std::basic_string<char, std::char_traits<char>, CustomAlloc<char>>;
+
+    custom_string s("go! torchic!"); // small string optimization
+    custom_string s2("go! torchic! gooooo!");
+    
+    std::cout << s2.c_str() << std::endl;
+    std::cout << g_buf << std::endl;
+    std::cout << (void*)s2.data() << std::endl;
+    std::cout << (void*)g_buf << std::endl;
+    std::cout << (void*)g_p << std::endl;
+
+    return 0;
+}
+*/
+
 namespace ym
 {
 

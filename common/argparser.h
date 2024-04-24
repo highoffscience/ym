@@ -11,8 +11,8 @@
 #include "ymception.h"
 
 #include <array>
+#include <initializer_list>
 #include <type_traits>
-#include <vector>
 
 namespace ym
 {
@@ -37,12 +37,10 @@ namespace ym
  *       -o <value>      // (output) short hand arg with desired value
  *       -c              // (clean) short hand flag set to enable
  *       -cb             // (clean; build) short hand (abbr pack) flags set to enable
- * 
- * TODO segfaults if unregistered abbr I think
  */
 class ArgParser
 {
-private:
+public:
    /** Arg
     * 
     * @brief Provides type info for each parsable argument.
@@ -51,34 +49,45 @@ private:
     *       For the opposite one can make "--no-..." argument.
     * 
     * @note Uses cascading.
+    * 
+    * @note The flags cannot be made constexpr - we need a const storage location for these
+    *       variables since we do direct pointer comparisons. The compiler may optimize
+    *       away storage locations for constexpr, breaking our use cases.
+    *       static volatile constexpr is also allowed but appears to messy.
+    *       c-style strings can be optimized such that any "0" or "1" can have the same
+    *       pointer values, making "0" and "1" as integers interpreted as flags! My
+    *       unittest doesn't catch this latter error because argparser is first compiled
+    *       into a library, where optimization of combining string literals cannot
+    *       occur - this is not true though when argparser is compiled into another
+    *       source file. Also, volatile doesn't help.
     */
    class Arg
    {
-   public:
       friend class ArgParser; // for setVal() and enable()
 
+   public:
       explicit Arg(str const Name);
 
       inline auto getName(void) const { return _name; }
       inline auto getDesc(void) const { return _desc; }
       inline auto getVal (void) const { return _val;  }
+      inline auto getAbbr(void) const { return _abbr; }
 
       inline auto isFlag (void) const { return _flag; }
       inline auto isEnbl (void) const { return _enbl; }
 
-      Arg & desc(str  const Desc      );
-      Arg & val (str  const DefaultVal);
-      Arg & abbr(char const Abbr      );
-      Arg & flag(void                 ); // defaults to false
+      inline Arg & desc  (str  const Desc       ) { _desc = Desc;       return *this; }
+      inline Arg & defval(str  const DefaultVal ) { _val  = DefaultVal; return *this; }
+      inline Arg & abbr  (char const Abbr       ) { _abbr = Abbr;       return *this; }
+      inline Arg & enbl  (bool const Enbl = true) { _flag = true;
+                                                    _enbl = Enbl;       return *this; }
 
    private:
-      void setVal(str  const Val );
-      void enable(bool const Enbl);
-
       // no consts - see static assert below
       str  _name; // arg name (used as the key)
       str  _desc; // description
       str  _val;  // value
+      char _abbr; // abbreviation
       bool _flag; // flag
       bool _enbl; // enabled
    };
@@ -87,81 +96,49 @@ private:
    // assignable for std::sort
    static_assert(std::is_copy_assignable_v<Arg>, "Arg needs to be copyable/assignable");
 
-   explicit ArgParser(void);
+   explicit ArgParser(int            const Argc,            // command line arg count
+                      str    const * const Argv_Ptr,        // command line args
+                      Arg          * const argHandlers_Ptr, // user-defined arg handlers
+                      uint32         const NArgHandlers);   // number of user-defined arg handlers
 
-public:
    YM_NO_COPY  (ArgParser)
    YM_NO_ASSIGN(ArgParser)
 
-   static ArgParser * getInstancePtr(void);
+   void parse(void);
 
-   inline Arg arg(str const Name) const;
-
-   void parse(std::vector<Arg> && args_uref,
-              int const           Argc,
-              str const * const   Argv_Ptr);
-
-          Arg const * get       (str const Key);
-   inline Arg const * operator[](str const Key);
-
-   bool isSet(str const Key);
+          Arg const * get       (str const Key) const;
+   inline Arg const * operator[](str const Key) const { return get(Key); }
 
    YM_DECL_YMCEPT(ArgParserError)
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_CreationError)
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ParseError   )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ArgError     )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_AccessError  )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ParseError )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ArgError   )
+   YM_DECL_YMCEPT(ArgParserError, ArgParserError_AccessError)
 
 private:
-   void organizeAndValidateArgVector(void);
+   static constexpr auto s_NValidChars = static_cast<uint32>('~' - '!' + 1u);
+   static constexpr auto getNValidChars(void) { return s_NValidChars; }
+
+   static constexpr auto isValidChar(char const Char) { return Char >= '!' && Char <= '~'; }
+   static constexpr auto getAbbrIdx (char const Abbr) { return Abbr - '!'; }
+
+   void organizeAndValidateArgHandlerVector(void);
 
    void displayHelpMenu(void) const;
 
-   char  getAbbrFromKey     (str  const Key   ) const;
-
-   Arg * getArgPtrFromKey   (str  const Key   );
+   Arg * getArgPtrFromKey   (str  const Key   ) const;
    Arg * getArgPtrFromPrefix(str  const Prefix);
    Arg * getArgPtrFromAbbr  (char const Abbr  );
 
-   uint32 getAbbrIdx(char const Abbr) const;
+   int32 parseArgSet(Arg   * const arg_Ptr,
+                     int32         idx) const;
 
-   int32 parse_Helper(Arg       * const arg_Ptr,
-                      int32             idx,
-                      int32       const Argc,
-                      str const * const Argv_Ptr) const;
+   using AbbrSet_T = std::array<Arg *, s_NValidChars>;
 
-   std::vector<Arg>        _args;
-   std::array<str, 62_u32> _abbrs; // stores the keys
+   AbbrSet_T               _abbrs;
+   int32     const         _Argc;
+   str       const * const _Argv_Ptr;
+   Arg             * const _argHandlers_Ptr;
+   uint32            const _NArgHandlers;
 };
-
-/** arg
- * 
- * @brief Creates a parsabble argument.
- * 
- * @note Class Arg is private so we need this method to create the argument.
- * 
- * @param Name -- Name (key) of argument.
- * 
- * @returns Arg -- Empty named argument.
- */
-inline auto ym::ArgParser::arg(str const Name) const -> Arg
-{
-   return Arg(Name);
-}
-
-/** operator[]
- * 
- * @brief Returns the registered argument info associated with the given key.
- * 
- * @throws ArgParserError_AccessError -- If no argument with the given name found.
- * 
- * @param Key -- Name of argument.
- * 
- * @returns Arg * -- Found argument, or null if no argument found.
- */
-inline auto ym::ArgParser::operator[](str const Key) -> Arg const *
-{
-   return get(Key);
-}
 
 } // ym
