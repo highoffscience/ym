@@ -21,22 +21,18 @@
  * 
  * @note ArgParser assumes ownership argHandlers.
  * 
- * @param Argc            -- Argument count  (as supplied from main()).
- * @param Argv_Ptr        -- Argument vector (as supplied from main()).
- * @param argHandlers_Ptr -- Array of argument handlers.
- * @param NArgHandlers    -- Number of argument handlers.
+ * @param Argc        -- Argument count  (as supplied from main()).
+ * @param Argv_Ptr    -- Argument vector (as supplied from main()).
+ * @param argHandlers -- Array of argument handlers.
  */
-ym::ArgParser::ArgParser(int            const Argc,
-                         str    const * const Argv_Ptr,
-                         Arg          * const argHandlers_Ptr,
-                         uint32         const NArgHandlers)
-   : _abbrs           { /* default */ },
-     _Argc            {Argc           },
-     _Argv_Ptr        {Argv_Ptr       },
-     _argHandlers_Ptr {argHandlers_Ptr},
-     _NArgHandlers    {NArgHandlers   }
+ym::ArgParser::ArgParser(int         const Argc,
+                         str const * const Argv_Ptr,
+                         std::span<Arg>    argHandlers)
+   : _abbrs       { /* default */ },
+     _Argc        {Argc           },
+     _Argv_Ptr    {Argv_Ptr       },
+     _argHandlers {argHandlers    }
 {
-   // TODO assert
 }
 
 /** parse
@@ -127,18 +123,18 @@ void ym::ArgParser::parse(void)
  * 
  * @returns int32 -- Updated index of command line argument.
  */
-auto ym::ArgParser::parseArgSet(Arg   * const arg_Ptr,
-                                int32         idx) const -> int32
+auto ym::ArgParser::parseArgSet(ArgIt_T argIt,
+                                int32   idx) const -> int32
 {
-   if (arg_Ptr->isFlag())
+   if (argIt->isFlag())
    { // enable argument - no explicit value
-      arg_Ptr->enbl(true);
+      argIt->enbl(true);
    }
    else
    { // value is next command line argument
       idx += 1_i32;
-      ArgParserError_ParseError::check(idx < _Argc, "No value for arg '%s'", arg_Ptr->getName());
-      arg_Ptr->defval(_Argv_Ptr[idx]);
+      ArgParserError_ParseError::check(idx < _Argc, "No value for arg '%s'", argIt->getName());
+      argIt->defval(_Argv_Ptr[idx]);
    }
 
    return idx;
@@ -159,6 +155,19 @@ auto ym::ArgParser::parseArgSet(Arg   * const arg_Ptr,
  */
 auto ym::ArgParser::get(str const Key) const -> Arg const *
 {
+   return (!Key) ? nullptr :
+      static_cast<Arg *>(
+         std::bsearch(Key, _argHandlers_Ptr, _NArgHandlers, sizeof(Arg),
+            // use of int (not int32) for legacy portability
+            [](void const * Lhs_ptr, void const * Rhs_ptr) -> int {
+               return std::strcmp(static_cast<str>(Lhs_ptr),
+                                  static_cast<Arg const *>(Rhs_ptr)->getName());
+            }
+         )
+      );
+
+   // TODO move body of getArgPtrFromKey() in here
+   // TODO return NoNull<Arg> - cleaner than raw ptr and span::iterator
    auto const * const Arg_Ptr = getArgPtrFromKey(Key);
    ArgParserError_AccessError::check(Arg_Ptr, "Key '%s' not found", Key);
    return Arg_Ptr;
@@ -181,36 +190,34 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
    // --- --- --- --- organize --- --- --- ---
 
    // searching algorithms require keys be sorted
-   std::sort(_argHandlers_Ptr, _argHandlers_Ptr + _NArgHandlers,
+   std::sort(_argHandlers.begin(), _argHandlers.end(),
       [](Arg const & Lhs, Arg const & Rhs) -> bool {
-         return std::strcmp(Lhs.getName(), Rhs.getName()) < 0_i32;
+         return std::strcmp(Lhs.getName(), Rhs.getName()) < 0;
       }
    );
 
    // --- --- --- --- validate --- --- --- ---
 
-   for (auto i = 0_u32; i < _NArgHandlers; ++i)
+   for (auto it = _argHandlers.begin(); it != _argHandlers.end(); ++it)
    { // go through all args
 
-      auto * const arg_Ptr = _argHandlers_Ptr + i;
-      auto   const Key     = arg_Ptr->getName();
-      auto   const Desc    = arg_Ptr->getDesc();
-      auto   const Val     = arg_Ptr->getVal ();
-      auto   const Abbr    = arg_Ptr->getAbbr();
+      auto const Key  = it->getName();
+      auto const Desc = it->getDesc();
+      auto const Val  = it->getVal ();
+      auto const Abbr = it->getAbbr();
 
       // --- --- detect duplicate keys --- ---
 
-      if (i > 0_u32)
+      if (it != _argHandlers.begin())
       { // compare current key to previous key
          ArgParserError_ParseError::check(
-            std::strcmp(_argHandlers_Ptr[i-1_u32].getName(), Key) != 0_i32,
-            "Duplicate key '%s'", Key);
+            std::strcmp(Key, (it - 1_u32)->getName()) != 0, "Duplicate key '%s'", Key);
       }
 
       // --- --- validate key name --- ---
 
       ArgParserError_ArgError::check(ymIsStrNonEmpty(Key), "Name must be non-empty");
-      ArgParserError_ArgError::check(std::strcmp(Key, "help") != 0_i32,
+      ArgParserError_ArgError::check(std::strcmp(Key, "help") != 0,
          "Arg cannot be named the reserved word 'help'");
 
       // dereference here is safe, we just checked that above
@@ -232,9 +239,9 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 
       ArgParserError_ParseError::check(isValidChar(Abbr),
          "Abbr 0x%x not valid for arg '%s'", Abbr, Key);
-      ArgParserError_ParseError::check(_abbrs[getAbbrIdx(Abbr)], "Abbr '%c' already occupied", Abbr);
+      ArgParserError_ParseError::check(_abbrs[getAbbrIdx(Abbr)] != , "Abbr '%c' already occupied", Abbr);
 
-      _abbrs[getAbbrIdx(Abbr)] = arg_Ptr;
+      _abbrs[getAbbrIdx(Abbr)] = it;
 
       // --- --- validate flag --- ---
 

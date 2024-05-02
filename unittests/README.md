@@ -22,6 +22,9 @@ Edit CMakeLists.txt
 
 If the SUT requires extra care to test make sure CMakeLists.txt exists in the directory
 
+Unittests require to be run in the venv
+$ . ./venv/bin/activate
+
 To run a unittest, eg...
 $ python -m unittest ym.common.textlogger.testsuite
 

@@ -11,7 +11,7 @@
 #include "ymception.h"
 
 #include <array>
-#include <initializer_list>
+#include <span>
 #include <type_traits>
 
 namespace ym
@@ -80,7 +80,9 @@ public:
       inline Arg & defval(str  const DefaultVal ) { _val  = DefaultVal; return *this; }
       inline Arg & abbr  (char const Abbr       ) { _abbr = Abbr;       return *this; }
       inline Arg & enbl  (bool const Enbl = true) { _flag = true;
-                                                    _enbl = Enbl;       return *this; }
+                                                    _enbl = Enbl;
+                                                    _val  = _enbl ? "1" : "0";
+                                                                        return *this; }
 
    private:
       // no consts - see static assert below
@@ -96,10 +98,9 @@ public:
    // assignable for std::sort
    static_assert(std::is_copy_assignable_v<Arg>, "Arg needs to be copyable/assignable");
 
-   explicit ArgParser(int            const Argc,            // command line arg count
-                      str    const * const Argv_Ptr,        // command line args
-                      Arg          * const argHandlers_Ptr, // user-defined arg handlers
-                      uint32         const NArgHandlers);   // number of user-defined arg handlers
+   explicit ArgParser(int         const Argc,         // command line arg count
+                      str const * const Argv_Ptr,     // command line args
+                      std::span<Arg>    argHandlers); // user-defined arg handlers
 
    YM_NO_COPY  (ArgParser)
    YM_NO_ASSIGN(ArgParser)
@@ -125,20 +126,20 @@ private:
 
    void displayHelpMenu(void) const;
 
-   Arg * getArgPtrFromKey   (str  const Key   ) const;
-   Arg * getArgPtrFromPrefix(str  const Prefix);
-   Arg * getArgPtrFromAbbr  (char const Abbr  );
+   using ArgIt_T   = std::span<Arg>::iterator;
+   using AbbrSet_T = std::array<ArgIt_T, s_NValidChars>;
 
-   int32 parseArgSet(Arg   * const arg_Ptr,
-                     int32         idx) const;
+   ArgIt_T getArgPtrFromKey   (str  const Key   ) const;
+   ArgIt_T getArgPtrFromPrefix(str  const Prefix);
+   ArgIt_T getArgPtrFromAbbr  (char const Abbr  );
 
-   using AbbrSet_T = std::array<Arg *, s_NValidChars>;
-
-   AbbrSet_T               _abbrs;
-   int32     const         _Argc;
-   str       const * const _Argv_Ptr;
-   Arg             * const _argHandlers_Ptr;
-   uint32            const _NArgHandlers;
+   int32 parseArgSet(ArgIt_T argIt,
+                     int32   idx) const;
+                     
+   AbbrSet_T           _abbrs;
+   int32 const         _Argc;
+   str   const * const _Argv_Ptr;
+   std::span<Arg>      _argHandlers;
 };
 
 } // ym

@@ -161,7 +161,57 @@ public:
 
    template <Chunkable_T Chunk_T>
    static Pool<Chunk_T> getNewPool(uint64 nChunksPerBlock = 256_u64);
+
+   /** Pool
+    *
+    * @brief Non-null pointer.
+    * 
+    * @tparam T -- Type of pointer.
+    * 
+    * @note Throwing in the constructor is preferable because you cannot swallow the
+    *       exception and use BoundedPtr in an unacceptable state.
+    */
+   template <typename T>
+   class BoundedPtr
+   {
+   public:
+      YM_IMPLICIT constexpr BoundedPtr(T * const t_Ptr)
+         : _t_ptr {t_Ptr}
+      {
+         // TODO assert non null
+      }
+
+      constexpr BoundedPtr              (std::nullptr_t) = delete;
+      constexpr BoundedPtr & operator = (std::nullptr_t) = delete;
+
+      constexpr BoundedPtr & operator = (T * const t_Ptr)
+      {
+         // TODO assert non null
+         _t_ptr = t_Ptr;
+         return *this;
+      }
+
+      constexpr T       * get        (void)       { return _t_ptr; }
+      constexpr T const * get        (void) const { return _t_ptr; }
+
+      constexpr T       & operator * (void)       { return *get(); }
+      constexpr T const & operator * (void) const { return *get(); }
+
+      constexpr T       * operator -> (void)       { return get(); }
+      constexpr T const * operator -> (void) const { return get(); }
+
+   private:
+      T * _t_ptr;
+   };
 };
+
+// TODO create ymcommon.h to accomodate classes that need ymception.h, etc.
+// template <typename T>
+// using bptr = BoundedPtr<T>;
+//
+// using str = bptr<char const>;
+//
+// TODO create user-defined literal for str
 
 /** alloc
  * 
