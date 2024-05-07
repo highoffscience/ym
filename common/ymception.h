@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "ymdefs.h"
+#include "primitivedefs.h"
 
 #include "loggable.h"
 
@@ -54,7 +54,7 @@
       {                                                                             \
          explicit check(                                                            \
             bool                 const    Condition,                                \
-            str                  const    Format,                                   \
+            rawstr               const    Format,                                   \
             Args_T               const... Args,                                     \
             std::source_location const    SrcLoc = std::source_location::current()) \
          {                                                                          \
@@ -71,7 +71,7 @@
                                                                                     \
       template <typename... Args_T>                                                 \
       check(bool   const    Condition,                                              \
-            str    const    Format,                                                 \
+            rawstr const    Format,                                                 \
             Args_T const... Args) -> check<Args_T...>;                              \
    };
 
@@ -107,13 +107,13 @@ public:
    explicit Ymception(std::string && msg_uref);
    virtual ~Ymception(void) = default;
 
-   virtual str what(void) const noexcept override;
+   virtual rawstr what(void) const noexcept override;
 
 protected:
    static std::string assertHandler(
-      str                  const Name,
+      rawstr               const Name,
       std::source_location const SrcLoc,
-      str                  const Format,
+      rawstr               const Format,
       /*variadic*/               ...);
 
 private:
