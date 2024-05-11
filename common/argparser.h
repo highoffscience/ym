@@ -63,8 +63,6 @@ public:
     */
    class Arg
    {
-      friend class ArgParser; // for setVal() and enable()
-
    public:
       explicit Arg(str const Name);
 
