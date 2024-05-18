@@ -21,16 +21,6 @@ namespace ym
  *
  * @brief A parsing utility for use for command line arguments.
  * 
- * @note Singleton. Reasons being:
- *       1) Argparser has a static member so the Arg classes don't need
- *          to store an explicit pointer to the outer class, making them 24 bytes
- *          instead of 32 bytes.
- *       2) It makes sense to only parse the command line arguments once,
- *          since there is only one copy of them. This is a specialized
- *          parser, others like json and xml require much different implementations.
- *       3) Everyone has easy access to the instance, instead of relying on
- *          passing the instance explicitly, which can get annoying.
- * 
  * @note Example usages follow:
  *       --input <value> // long hand arg with desired value
  *       --assert        // long hand flag set to enable
@@ -105,8 +95,10 @@ public:
 
    void parse(void);
 
-          Arg const * get       (str const Key) const;
-   inline Arg const * operator[](str const Key) const { return get(Key); }
+   using CArgIt = std::span<Arg>::const_iterator;
+
+          CArgIt get       (str const Key) const;
+   inline CArgIt operator[](str const Key) const { return get(Key); }
 
    YM_DECL_YMCEPT(ArgParserError)
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_ParseError )
@@ -120,24 +112,23 @@ private:
    static constexpr auto isValidChar(char const Char) { return Char >= '!' && Char <= '~'; }
    static constexpr auto getAbbrIdx (char const Abbr) { return Abbr - '!'; }
 
+   using ArgIt_T   = std::span<Arg>::iterator;
+   using AbbrSet_T = std::array<ArgIt_T, s_NValidChars>;
+
    void organizeAndValidateArgHandlerVector(void);
 
    void displayHelpMenu(void) const;
 
-   using ArgIt_T   = std::span<Arg>::iterator;
-   using AbbrSet_T = std::array<ArgIt_T, s_NValidChars>;
-
-   ArgIt_T getArgPtrFromKey   (str  const Key   ) const;
    ArgIt_T getArgPtrFromPrefix(str  const Prefix);
    ArgIt_T getArgPtrFromAbbr  (char const Abbr  );
 
    int32 parseArgSet(ArgIt_T argIt,
                      int32   idx) const;
                      
-   AbbrSet_T           _abbrs;
-   int32 const         _Argc;
-   str   const * const _Argv_Ptr;
-   std::span<Arg>      _argHandlers;
+   int32 const    _Argc;
+   str   const    _Argv;
+   std::span<Arg> _argHandlers;
+   AbbrSet_T      _abbrs;
 };
 
 } // ym

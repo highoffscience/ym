@@ -200,6 +200,7 @@ template <typename T, auto ActionIfNull = std::terminate>
 class BoundedPtr
 {
 public:
+   // TODO add std::source_location as default argument
    YM_IMPLICIT constexpr BoundedPtr(T * const t_Ptr)
       : _t_ptr {t_Ptr}
    {
@@ -234,6 +235,9 @@ using bptr = BoundedPtr<T>;
 
 /// @brief Convenience alias.
 using str = bptr<char const>;
+
+/// @brief Convenience alias.
+using mstr = bptr<char>;
 
 // ----------------------------------------------------------------------------
 
@@ -300,6 +304,47 @@ constexpr bool ymIsStrNonEmpty(rawstr const S)
 constexpr bool ymIsStrEmpty(rawstr const S)
 {
    return !ymIsStrNonEmpty(S);
+}
+
+/**
+ * TODO
+ * 
+ * @note T = typename std::iterator_traits<Iterator_T>::value_type not what we want.
+ * 
+ * TODO requires compare(T const & Value, std::iterator_traits<Iterator_T>::value_type);
+ */
+template <typename Iterator_T,
+          typename T,
+          typename Compare_T>
+constexpr auto ymBinarySearch(Iterator_T first,
+                              Iterator_T last,
+                              T const &  Value,
+                              Compare_T  compare)
+{
+   auto elemIt = last;
+
+   while (first != last)
+   { // while there are still elements unchecked
+   
+      auto const Mid = begin + (std::distance(first, last) / 2_u64);
+      auto const Cmp = compare(*Mid, Value);
+
+      if (Cmp < 0_i32)
+      { // *Mid < Value
+         last = Mid;
+      }
+      else if (Cmp > 0_i32)
+      { // *Mid > Value
+         first = Mid + 1_u64;
+      }
+      else
+      { // *Mid == Value
+         elemIt = Mid;
+         break;
+      }
+   }
+
+   return elemIt;
 }
 
 // ----------------------------------------------------------------------------

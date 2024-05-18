@@ -22,16 +22,16 @@
  * @note ArgParser assumes ownership argHandlers.
  * 
  * @param Argc        -- Argument count  (as supplied from main()).
- * @param Argv_Ptr    -- Argument vector (as supplied from main()).
+ * @param Argv        -- Argument vector (as supplied from main()).
  * @param argHandlers -- Array of argument handlers.
  */
-ym::ArgParser::ArgParser(int         const Argc,
-                         str const * const Argv_Ptr,
-                         std::span<Arg>    argHandlers)
-   : _abbrs       { /* default */ },
-     _Argc        {Argc           },
-     _Argv_Ptr    {Argv_Ptr       },
-     _argHandlers {argHandlers    }
+ym::ArgParser::ArgParser(int const      Argc,
+                         str const      Argv,
+                         std::span<Arg> argHandlers)
+   : _Argc        {Argc         },
+     _Argv        {Argv         },
+     _argHandlers {argHandlers  },
+     _abbrs       {/* default */}
 {
 }
 
@@ -113,13 +113,10 @@ void ym::ArgParser::parse(void)
  * 
  * @brief Sets the value depending on the type of argument.
  * 
- * @note Since this is a helper function, null checking of the param
- *       arg_Ptr has already been done.
- * 
  * @throws ArgParserError_ParseError -- If a parsing occurs.
  * 
- * @param arg_Ptr -- Pointer to argument.
- * @param idx     -- Current index of command line argument.
+ * @param argIt -- Pointer to argument.
+ * @param idx   -- Current index of command line argument.
  * 
  * @returns int32 -- Updated index of command line argument.
  */
@@ -153,32 +150,24 @@ auto ym::ArgParser::parseArgSet(ArgIt_T argIt,
  * 
  * @returns Arg * -- Found argument, or null if no argument found.
  */
-auto ym::ArgParser::get(str const Key) const -> Arg const *
+auto ym::ArgParser::get(str const Key) const -> ArgIt_T const
 {
-   return (!Key) ? nullptr :
-      static_cast<Arg *>(
-         std::bsearch(Key, _argHandlers_Ptr, _NArgHandlers, sizeof(Arg),
-            // use of int (not int32) for legacy portability
-            [](void const * Lhs_ptr, void const * Rhs_ptr) -> int {
-               return std::strcmp(static_cast<str>(Lhs_ptr),
-                                  static_cast<Arg const *>(Rhs_ptr)->getName());
-            }
-         )
-      );
+   auto const ArgIt = ymBinarySearch(_argHandlers.begin(), _argHandlers.end(), Key,
+      [](str const Key, ArgIt_T const & ArgIt) -> int32 {
+         return std::strcmp(Key, ArgIt->getName());
+      }
+   );
 
-   // TODO move body of getArgPtrFromKey() in here
-   // TODO return NoNull<Arg> - cleaner than raw ptr and span::iterator
-   auto const * const Arg_Ptr = getArgPtrFromKey(Key);
-   ArgParserError_AccessError::check(Arg_Ptr, "Key '%s' not found", Key);
-   return Arg_Ptr;
+   ArgParserError_AccessError::check(ArgIt != _argHandlers.end(), "Key '%s' not found", Key);
+
+   return ArgIt;
 }
 
 /** organizeAndValidateArgHandlerVector
  * 
  * @brief Sorts and checks for duplicate args.
  * 
- * @throws ArgParserError_ParseError -- If there is a duplicate argument
- *         (argument with the same name).
+ * @throws ArgParserError_ArgError -- If there is a duplicate argument (argument with the same name).
  * @throws ArgParserError_ArgError -- If name is null or empty or invalid.
  * @throws ArgParserError_ArgError -- If description is null or empty.
  * @throws ArgParserError_ArgError -- If the abbreviation is invalid or
@@ -210,7 +199,7 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 
       if (it != _argHandlers.begin())
       { // compare current key to previous key
-         ArgParserError_ParseError::check(
+         ArgParserError_ArgError::check(
             std::strcmp(Key, (it - 1_u32)->getName()) != 0, "Duplicate key '%s'", Key);
       }
 
@@ -276,64 +265,33 @@ void ym::ArgParser::displayHelpMenu(void) const
 
    auto maxKeyLen = 0_u32;
 
-   for (auto i = 0_u32; i < _NArgHandlers; ++i)
+   for (auto const & Arg : _argHandlers)
    { // go through all registered arguments
-      if (auto const KeyLen = std::strlen(_argHandlers_Ptr[i].getName()); KeyLen > maxKeyLen)
+      if (auto const KeyLen = std::strlen(Arg.getName()); KeyLen > maxKeyLen)
       { // update max key length
          maxKeyLen = KeyLen;
       }
    }
 
-   auto * const spaces_Ptr = YM_STACK_ALLOC(char, maxKeyLen + 1_u32);
+   auto spaces_bptr = bptr(YM_STACK_ALLOC(char, maxKeyLen + 1_u32));
    for (auto i = 0_u32; i < maxKeyLen; ++i)
    { // init all elements to spaces
-      spaces_Ptr[i] = ' ';
+      spaces_bptr[i] = ' ';
    }
-   spaces_Ptr[maxKeyLen] = '\0';
+   spaces_bptr[maxKeyLen] = '\0';
 
    ymLog(VG::ArgParser, "ArgParser help menu:");
 
-   for (auto i = 0_u32; i < _NArgHandlers; ++i)
+   for (auto const & Arg : _argHandlers)
    { // go through all registered arguments
-      auto const KeyLen = std::strlen(_argHandlers_Ptr[i].getName());
-      ymLog(VG::ArgParser, " --%s%s : %s", _argHandlers_Ptr[i].getName(), spaces_Ptr + KeyLen, _argHandlers_Ptr[i].getDesc());
+      auto const KeyLen = std::strlen(Arg.getName());
+      ymLog(VG::ArgParser, " --%s%s : %s", Arg.getName(), spaces_bptr + KeyLen, Arg.getDesc());
 
-      if (auto const Abbr = _argHandlers_Ptr[i].getAbbr(); isValidChar(Abbr))
+      if (auto const Abbr = Arg.getAbbr(); isValidChar(Abbr))
       { // this arg has an abbreviation
          ymLog(VG::ArgParser, "   (-%c)", Abbr);
       }
    }
-}
-
-/** getArgPtrFromKey
- * 
- * @brief Returns the registered argument info associated with the given key.
- * 
- * @note std::binary_search doesn't return a pointer to the found object, which is
- *       why we use std::bsearch.
- * 
- * @note This function calls non-const functions that don't modify but return
- *       non-const references so this function cannot be declared const.
- *       Technically we can because the compiler is fooled by the algorithm
- *       we use. The void * returned by std::bsearch can incorrectly cast
- *       to a non-const reference.
- * 
- * @param Key -- Name of argument.
- * 
- * @returns Arg * -- Found argument, or null if no argument found.
- */
-auto ym::ArgParser::getArgPtrFromKey(str const Key) const -> Arg *
-{
-   return (!Key) ? nullptr :
-      static_cast<Arg *>(
-         std::bsearch(Key, _argHandlers_Ptr, _NArgHandlers, sizeof(Arg),
-            // use of int (not int32) for legacy portability
-            [](void const * Lhs_ptr, void const * Rhs_ptr) -> int {
-               return std::strcmp(static_cast<str>(Lhs_ptr),
-                                  static_cast<Arg const *>(Rhs_ptr)->getName());
-            }
-         )
-      );
 }
 
 /** getArgPtrFromPrefix
@@ -348,6 +306,8 @@ auto ym::ArgParser::getArgPtrFromKey(str const Key) const -> Arg *
  */
 auto ym::ArgParser::getArgPtrFromPrefix(str const Prefix) -> Arg *
 {
+   // TODO use std::lower_bound to get beginning of search
+
    Arg *      arg_ptr   = nullptr;
    auto const PrefixLen = std::strlen(Prefix);
 
