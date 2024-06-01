@@ -85,7 +85,7 @@ bool ym::DataLogger::dump(str const Filename)
             std::fprintf(_outfile_uptr.get(), ",");
          }
          auto const & Entry = _columnEntries[j];
-         std::fprintf(_outfile_uptr.get(), "%s", Entry.getName());
+         std::fprintf(_outfile_uptr.get(), "%s", Entry.getName().get());
       }
       std::fprintf(_outfile_uptr.get(), "\n");
 

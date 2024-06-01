@@ -13,6 +13,7 @@
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
+#include <string_view>
 #include <utility>
 
 /** ArgParser
@@ -25,14 +26,18 @@
  * @param Argv        -- Argument vector (as supplied from main()).
  * @param argHandlers -- Array of argument handlers.
  */
-ym::ArgParser::ArgParser(int const      Argc,
-                         str const      Argv,
-                         std::span<Arg> argHandlers)
+ym::ArgParser::ArgParser(int const         Argc,
+                         str const * const Argv_Ptr,
+                         std::span<Arg>    argHandlers)
    : _Argc        {Argc         },
-     _Argv        {Argv         },
+     _Argv_Ptr    {Argv_Ptr     },
      _argHandlers {argHandlers  },
      _abbrs       {/* default */}
 {
+   for (auto & argIt_ref : _abbrs)
+   { // initialize iterators
+      argIt_ref = _argHandlers.end();
+   }
 }
 
 /** parse
@@ -47,7 +52,8 @@ void ym::ArgParser::parse(void)
 
    for (auto i = 1_i32; i < _Argc; ++i)
    { // go through all command line arguments
-      auto name = _Argv_Ptr[i];
+
+      auto name = _Argv_Ptr[i].get(); // ok manipulating raw pointer here - I think I know what I'm doing
 
       if (name[0_u32] == '-')
       { // arg found
@@ -55,16 +61,16 @@ void ym::ArgParser::parse(void)
          { // longhand arg found
             name += 2_u32;
 
-            if (std::strcmp(name, "help") == 0_i32) // must be full name - no prefix allowed
+            if (std::strcmp(name, "help") == 0) // must be full name - no prefix allowed
             { // help menu requested
                displayHelpMenu();
             }
             else
             { // standard arg
-               auto * const arg_Ptr = getArgPtrFromPrefix(name);
-               ArgParserError_ParseError::check(arg_Ptr, "Arg '%s' not registered", name);
+               auto const ArgIT = getArgPtrFromPrefix(name);
+               ArgParserError_ParseError::check(ArgIT != _argHandlers.end(), "Arg '%s' not registered", name);
 
-               i = parseArgSet(arg_Ptr, i);
+               i = parseArgSet(ArgIT, i);
             }
          }
          else
@@ -85,18 +91,18 @@ void ym::ArgParser::parse(void)
                }
                else
                { // standard arg
-                  auto * const arg_Ptr = getArgPtrFromAbbr(Abbr);
-                  ArgParserError_ParseError::check(arg_Ptr, "Abbr '%c' not registered", Abbr);
+                  auto argIT = getArgPtrFromAbbr(Abbr);
+                  ArgParserError_ParseError::check(argIT != _argHandlers.end(), "Abbr '%c' not registered", Abbr);
 
                   if (NAbbrs == 1_u32)
                   { // only 1 abbr - might have value
-                     i = parseArgSet(arg_Ptr, i);
+                     i = parseArgSet(argIT, i);
                      break;
                   }
                   else
                   { // abbr found
-                     ArgParserError_ParseError::check(arg_Ptr->isFlag(), "Arg '%s' not a flag", arg_Ptr->getName());
-                     arg_Ptr->enbl(true);
+                     ArgParserError_ParseError::check(argIT->isFlag(), "Arg '%s' not a flag", argIT->getName().get());
+                     argIT->enbl(true);
                   }
                }
             }
@@ -130,7 +136,7 @@ auto ym::ArgParser::parseArgSet(ArgIt_T argIt,
    else
    { // value is next command line argument
       idx += 1_i32;
-      ArgParserError_ParseError::check(idx < _Argc, "No value for arg '%s'", argIt->getName());
+      ArgParserError_ParseError::check(idx < _Argc, "No value for arg '%s'", argIt->getName().get());
       argIt->defval(_Argv_Ptr[idx]);
    }
 
@@ -142,52 +148,61 @@ auto ym::ArgParser::parseArgSet(ArgIt_T argIt,
  * @brief Returns the registered argument info associated with the given key.
  * 
  * @note std::binary_search doesn't return a pointer to the found object, which is
- *       why we use std::bsearch.
+ *       why we use a custom binary search function.
  * 
  * @throws ArgParserError_AccessError -- If no argument with the given name found.
  * 
  * @param Key -- Name of argument.
  * 
- * @returns Arg * -- Found argument, or null if no argument found.
+ * @returns ArgCIt_T -- Found argument.
  */
-auto ym::ArgParser::get(str const Key) const -> ArgIt_T const
+auto ym::ArgParser::get(str const Key) const -> ArgCIt_T
 {
-   auto const ArgIt = ymBinarySearch(_argHandlers.begin(), _argHandlers.end(), Key,
-      [](str const Key, ArgIt_T const & ArgIt) -> int32 {
-         return std::strcmp(Key, ArgIt->getName());
+   auto const ArgCIt = ymBinarySearch(_argHandlers.cbegin(), _argHandlers.cend(), Key,
+      [](str const Key, ArgCIt_T const & ArgCIt) -> int32 {
+         return std::strcmp(Key, ArgCIt->getName());
       }
    );
 
-   ArgParserError_AccessError::check(ArgIt != _argHandlers.end(), "Key '%s' not found", Key);
+   ArgParserError_AccessError::check(ArgCIt != _argHandlers.cend(), "Key '%s' not found", Key.get());
 
-   return ArgIt;
+   return ArgCIt;
 }
 
 /** organizeAndValidateArgHandlerVector
  * 
  * @brief Sorts and checks for duplicate args.
  * 
+ * @throws ArgParserError          -- If std::sort fails.
  * @throws ArgParserError_ArgError -- If there is a duplicate argument (argument with the same name).
  * @throws ArgParserError_ArgError -- If name is null or empty or invalid.
  * @throws ArgParserError_ArgError -- If description is null or empty.
  * @throws ArgParserError_ArgError -- If the abbreviation is invalid or
  *         has been previously set.
  * @throws ArgParserError_ArgError -- If flag has been set and value is invalid.
+ * @throws ArgParserError_ArgError -- If Enabled but not marked as a flag.
  */
 void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 {
    // --- --- --- --- organize --- --- --- ---
 
-   // searching algorithms require keys be sorted
-   std::sort(_argHandlers.begin(), _argHandlers.end(),
-      [](Arg const & Lhs, Arg const & Rhs) -> bool {
-         return std::strcmp(Lhs.getName(), Rhs.getName()) < 0;
-      }
-   );
+   try
+   { // std::sort may fail
+      // searching algorithms require keys be sorted
+      std::sort(_argHandlers.begin(), _argHandlers.end(),
+         [](Arg const & Lhs, Arg const & Rhs) -> bool {
+            return std::strcmp(Lhs.getName(), Rhs.getName()) < 0;
+         }
+      );
+   }
+   catch(std::exception const & E)
+   { // throw custom error
+      ArgParserError::check(false, "std::sort failed with msg '%s'", E.what());
+   }
 
    // --- --- --- --- validate --- --- --- ---
 
-   for (auto it = _argHandlers.begin(); it != _argHandlers.end(); ++it)
+   for (auto it = _argHandlers.begin(); it != _argHandlers.end(); it++)
    { // go through all args
 
       auto const Key  = it->getName();
@@ -200,7 +215,7 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
       if (it != _argHandlers.begin())
       { // compare current key to previous key
          ArgParserError_ArgError::check(
-            std::strcmp(Key, (it - 1_u32)->getName()) != 0, "Duplicate key '%s'", Key);
+            std::strcmp(Key, (it - 1_u32)->getName()) != 0, "Duplicate key '%s'", Key.get());
       }
 
       // --- --- validate key name --- ---
@@ -210,10 +225,10 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
          "Arg cannot be named the reserved word 'help'");
 
       // dereference here is safe, we just checked that above
-      for (auto currChar = Key; *currChar != '\0'; ++currChar)
+      for (auto currChar = Key.get(); *currChar != '\0'; ++currChar)
       { // go through all chars in proposed name
          ArgParserError_ArgError::check(isValidChar(*currChar),
-            "Name '%s' cannot contain '%c'", Key, *currChar);
+            "Name '%s' cannot contain '%c'", Key.get(), *currChar);
       }
 
       // --- --- validate description --- ---
@@ -226,31 +241,35 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 
       // --- --- validate abbreviation --- ---
 
-      ArgParserError_ParseError::check(isValidChar(Abbr),
-         "Abbr 0x%x not valid for arg '%s'", Abbr, Key);
-      ArgParserError_ParseError::check(_abbrs[getAbbrIdx(Abbr)] != , "Abbr '%c' already occupied", Abbr);
+      if (Abbr != '\0')
+      { // assigned abbr
+         ArgParserError_ParseError::check(isValidChar(Abbr),
+            "Abbr 0x%x not valid for arg '%s'", Abbr, Key.get());
+         ArgParserError_ParseError::check(_abbrs[getAbbrIdx(Abbr)] == _argHandlers.end(),
+            "Abbr '%c' already occupied", Abbr);
 
-      _abbrs[getAbbrIdx(Abbr)] = it;
+         _abbrs[getAbbrIdx(Abbr)] = it;
+      }
 
       // --- --- validate flag --- ---
 
-      if (arg_Ptr->isFlag())
+      if (it->isFlag())
       { // marked as flag
          ArgParserError_ArgError::check(std::strcmp(Val, "0") == 0 || std::strcmp(Val, "1") == 0,
-            "Arg '%s' is a flag - cannot have arbitrary value", Key);
+            "Arg '%s' is a flag - cannot have arbitrary value", Key.get());
       }
       else
       { // not a flag
-         ArgParserError_ArgError::check(!arg_Ptr->isEnbl(),
-            "Arg '%s' cannot be enabled and not marked as a flag", Key);
+         ArgParserError_ArgError::check(!it->isEnbl(),
+            "Arg '%s' cannot be enabled and not marked as a flag", Key.get());
       }
 
       // --- --- validate enable --- ---
 
-      if (arg_Ptr->isEnbl())
+      if (it->isEnbl())
       { // enabled - better be a flag
-         ArgParserError_ArgError::check(arg_Ptr->isFlag(),
-            "Arg '%s' is marked as enabled but is not a flag", Key);
+         ArgParserError_ArgError::check(it->isFlag(),
+            "Arg '%s' is marked as enabled but is not a flag", Key.get());
       }
    }
 }
@@ -285,7 +304,7 @@ void ym::ArgParser::displayHelpMenu(void) const
    for (auto const & Arg : _argHandlers)
    { // go through all registered arguments
       auto const KeyLen = std::strlen(Arg.getName());
-      ymLog(VG::ArgParser, " --%s%s : %s", Arg.getName(), spaces_bptr + KeyLen, Arg.getDesc());
+      ymLog(VG::ArgParser, " --%s%s : %s", Arg.getName().get(), spaces_bptr + KeyLen, Arg.getDesc().get());
 
       if (auto const Abbr = Arg.getAbbr(); isValidChar(Abbr))
       { // this arg has an abbreviation
@@ -299,43 +318,56 @@ void ym::ArgParser::displayHelpMenu(void) const
  * @brief Returns the registered argument info associated with the given prefix.
  * 
  * @throws ArgParserError_ParseError -- If prefix is ambiguous.
+ * @throws ArgParserError_ParseError -- If prefix is not found.
  * 
  * @param Prefix -- Prefix of argument.
  * 
- * @returns Arg * -- Found argument, or null if no argument found.
+ * @returns ArgIt_T -- Found argument.
  */
-auto ym::ArgParser::getArgPtrFromPrefix(str const Prefix) -> Arg *
+auto ym::ArgParser::getArgPtrFromPrefix(str const Prefix) -> ArgIt_T
 {
-   // TODO use std::lower_bound to get beginning of search
+   std::string_view const PrefixSV(Prefix);
 
-   Arg *      arg_ptr   = nullptr;
-   auto const PrefixLen = std::strlen(Prefix);
+   // returns first iterator where comp() evals to false
+   auto const LowerBoundArgIt = std::lower_bound(_argHandlers.begin(), _argHandlers.end(), PrefixSV,
+      // should return true if Arg is ordered before Prefix
+      [](Arg const & Arg, std::string_view const & PrefixSV) -> bool {
+         return std::strncmp(Arg.getName(), PrefixSV.data(), PrefixSV.size()) < 0;
+      }
+   );
 
-   for (auto i = 0_u32; i < _NArgHandlers; ++i)
+   auto searchedForArgIt = _argHandlers.end();
+
+   for (auto argIt = LowerBoundArgIt; argIt != _argHandlers.end(); argIt++)
    { // search through all stored args
-      auto const Cmp = std::strncmp(Prefix, _argHandlers_Ptr[i].getName(), PrefixLen);
 
-      if (Cmp == 0_i32)
+      auto const Cmp = std::strncmp(PrefixSV.data(), argIt->getName(), PrefixSV.size());
+
+      if (Cmp == 0)
       { // prefix found (whole prefix matched)
-         if (std::strlen(_argHandlers_Ptr[i].getName()) == PrefixLen)
+         if (std::strlen(argIt->getName()) == PrefixSV.size())
          { // entire key matched
-            arg_ptr = _argHandlers_Ptr + i;
+            searchedForArgIt = argIt;
             break;
          }
          else
          { // prefix matched but maybe others will match so continue search
            // if another match is found it will trigger the assert below
-            ArgParserError_ParseError::check(!arg_ptr, "Prefix '%s' is ambiguous", Prefix);
-            arg_ptr = _argHandlers_Ptr + i;
+            ArgParserError_ParseError::check(argIt == _argHandlers.end(),
+               "Prefix '%s' is ambiguous", PrefixSV.data());
+            searchedForArgIt = argIt;
          }
       }
-      else if (Cmp < 0_i32)
+      else if (Cmp < 0)
       { // not a match - end search
          break;
       }
    }
 
-   return arg_ptr;
+   ArgParserError_ParseError::check(searchedForArgIt != _argHandlers.end(),
+      "Prefix '%s' doesn't match any handlers", PrefixSV.data());
+
+   return searchedForArgIt;
 }
 
 /** getArgPtrFromAbbr
@@ -344,13 +376,18 @@ auto ym::ArgParser::getArgPtrFromPrefix(str const Prefix) -> Arg *
  * 
  * @param Abbr -- Abbreviation of argument.
  * 
- * @returns Arg * -- Found argument, or null if no argument found.
+ * @returns ArgIt_T -- Found argument.
  */
-auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> Arg *
+auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> ArgIt_T
 {
    ArgParserError_ParseError::check(isValidChar(Abbr), "Abbr 0x%x not valid", Abbr);
 
-   return _abbrs[getAbbrIdx(Abbr)];
+   auto const SearchedForArgIt = _abbrs[getAbbrIdx(Abbr)];
+
+   ArgParserError_ParseError::check(SearchedForArgIt != _argHandlers.end(),
+      "Abbr '%c' not registered", Abbr);
+
+   return SearchedForArgIt;
 }
 
 // ---------------------------------- Arg ----------------------------------

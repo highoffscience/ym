@@ -30,7 +30,7 @@ std::string ym::FileIO::createFileBuffer(str const Filename)
    if (std::ifstream infile(Filename); infile.is_open())
    { // file opened
       std::error_code ec;
-      auto const Size_bytes = std::filesystem::file_size(Filename, ec);
+      auto const Size_bytes = std::filesystem::file_size(Filename.get(), ec);
 
       if (ec)
       { // failed to get size - read file in like a peasant
@@ -46,7 +46,7 @@ std::string ym::FileIO::createFileBuffer(str const Filename)
    }
    else
    { // file failed to open
-      FileIOError::check(false, "File %s failed to open", Filename);
+      FileIOError::check(false, "File %s failed to open", Filename.get());
    }
 
    return buffer;

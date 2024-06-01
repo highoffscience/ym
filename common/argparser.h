@@ -95,10 +95,10 @@ public:
 
    void parse(void);
 
-   using CArgIt = std::span<Arg>::const_iterator;
+   using ArgCIt_T = std::span<Arg>::const_iterator;
 
-          CArgIt get       (str const Key) const;
-   inline CArgIt operator[](str const Key) const { return get(Key); }
+          ArgCIt_T get       (str const Key) const;
+   inline ArgCIt_T operator[](str const Key) const { return get(Key); }
 
    YM_DECL_YMCEPT(ArgParserError)
    YM_DECL_YMCEPT(ArgParserError, ArgParserError_ParseError )
@@ -125,10 +125,10 @@ private:
    int32 parseArgSet(ArgIt_T argIt,
                      int32   idx) const;
                      
-   int32 const    _Argc;
-   str   const    _Argv;
-   std::span<Arg> _argHandlers;
-   AbbrSet_T      _abbrs;
+   int32 const         _Argc;
+   str   const * const _Argv_Ptr;
+   std::span<Arg>      _argHandlers;
+   AbbrSet_T           _abbrs;
 };
 
 } // ym

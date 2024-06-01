@@ -175,7 +175,7 @@ bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
       case RedirectMode_T::ToStdOut:
       {
          TextLoggerError_FailureToOpen::check(ymIsStrEmpty(Filename),
-            "File '%s' attempted to open with StdOut only option", Filename);
+            "File '%s' attempted to open with StdOut only option", Filename.get());
          opened = open_Helper(openOutfile(stdout));
          break;
       }
@@ -183,7 +183,7 @@ bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
       case RedirectMode_T::ToStdErr:
       {
          TextLoggerError_FailureToOpen::check(ymIsStrEmpty(Filename),
-            "File '%s' attempted to open with StdErr only option", Filename);
+            "File '%s' attempted to open with StdErr only option", Filename.get());
          opened = open_Helper(openOutfile(stderr));
          break;
       }

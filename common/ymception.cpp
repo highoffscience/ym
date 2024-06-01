@@ -34,12 +34,14 @@ ym::Ymception::Ymception(std::string && msg_uref)
  *
  * @brief Assert has failed. Print diagnostic information and throw.
  * 
+ * TODO params and returns
+ * 
  * @todo std::stacktrace implementation instead of boost.
  */
 std::string ym::Ymception::assertHandler(
-   str                  const Name,
+   rawstr               const Name,
    std::source_location const SrcLoc,
-   str                  const Format,
+   rawstr               const Format,
    /*variadic*/               ...)
 {
    std::array<char, 1024_u64> buffer{'\0'};
@@ -107,9 +109,9 @@ std::string ym::Ymception::assertHandler(
  *
  * @brief Returns the saved off message describing the exception.
  *
- * @returns str -- The saved off message.
+ * @returns rawstr -- The saved off message.
  */
-auto ym::Ymception::what(void) const noexcept -> str
+auto ym::Ymception::what(void) const noexcept -> rawstr
 {
    return _Msg.c_str();
 }

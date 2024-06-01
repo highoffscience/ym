@@ -21,7 +21,7 @@
  */
 char ym::Ops::castToChar(str const S)
 {
-   OpsError_BadCast::check(S && S[0_u32] && !S[1_u32], "String '%s' not a valid char", S);
+   OpsError_BadCast::check(S && S[0_u32] && !S[1_u32], "String '%s' not a valid char", S.get());
    return S[0_u32];
 }
 

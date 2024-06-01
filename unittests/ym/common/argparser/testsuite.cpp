@@ -44,7 +44,7 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
       "-k", "Torchic1234",
       "--in-denial"
    };
-   auto const Argc = static_cast<int32>(YM_ARRAY_SIZE(Argv));
+   auto const Argc = static_cast<int32>(std::size(Argv));
 
    std::array argHandlers{
       ArgParser::Arg("input"    ).desc("Input file"  ),
@@ -55,7 +55,7 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
       ArgParser::Arg("in-denial").desc("My existence")          .enbl()
    };
    
-   ArgParser ap(Argc, Argv, argHandlers.data(), argHandlers.size());
+   ArgParser ap(Argc, Argv, argHandlers);
 
    auto excHappened = false;
    auto val_input   = false;
@@ -109,14 +109,14 @@ auto ym::ut::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const & 
       "--verbose",
       "--width", "1"
    };
-   auto const Argc = static_cast<int32>(YM_ARRAY_SIZE(Argv));
+   auto const Argc = static_cast<int32>(std::size(Argv));
 
    std::array argHandlers{
       ArgParser::Arg("width"  ).desc("Width"    ),
       ArgParser::Arg("verbose").desc("Verbosity").enbl()
    };
    
-   ArgParser ap(Argc, Argv, argHandlers.data(), argHandlers.size());
+   ArgParser ap(Argc, Argv, argHandlers);
    
    auto excHappened = false;
    auto val_verbose = false;

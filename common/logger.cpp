@@ -68,8 +68,8 @@ bool ym::Logger::openOutfile(str            const Filename,
          { // do not append file stamp (default fallthrough)
             try
             { // to catch utility failures
-               LoggerError_FailureToOpen::check(!std::filesystem::exists(Filename),
-                  "File (or directory) %s already exists", Filename);
+               LoggerError_FailureToOpen::check(!std::filesystem::exists(Filename.get()),
+                  "File (or directory) %s already exists", Filename.get());
             }
             catch (Ymception const & E)
             { // re-throw
@@ -78,7 +78,7 @@ bool ym::Logger::openOutfile(str            const Filename,
             catch (std::exception const & E)
             { // filesystem utility failure
                LoggerError_FailureToOpen::check(false,
-                  "Filesystem error when attempting to open %s (%s)", Filename, E.what());
+                  "Filesystem error when attempting to open %s (%s)", Filename.get(), E.what());
             }
             
             _outfile_uptr.reset(std::fopen(Filename, "w"));

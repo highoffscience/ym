@@ -309,9 +309,7 @@ constexpr bool ymIsStrEmpty(rawstr const S)
 /**
  * TODO
  * 
- * @note T = typename std::iterator_traits<Iterator_T>::value_type not what we want.
- * 
- * TODO requires compare(T const & Value, std::iterator_traits<Iterator_T>::value_type);
+ * @note TODO T = typename std::iterator_traits<Iterator_T>::value_type is specialized overload
  */
 template <typename Iterator_T,
           typename T,
@@ -326,19 +324,19 @@ constexpr auto ymBinarySearch(Iterator_T first,
    while (first != last)
    { // while there are still elements unchecked
    
-      auto const Mid = begin + (std::distance(first, last) / 2_u64);
-      auto const Cmp = compare(*Mid, Value);
+      auto const Mid = first + (std::distance(first, last) / 2);
+      auto const Cmp = compare(Value, Mid);
 
-      if (Cmp < 0_i32)
-      { // *Mid < Value
+      if (Cmp < 0)
+      { // Value < *Mid
          last = Mid;
       }
-      else if (Cmp > 0_i32)
-      { // *Mid > Value
-         first = Mid + 1_u64;
+      else if (Cmp > 0)
+      { // Value > *Mid
+         first = Mid + 1ull;
       }
       else
-      { // *Mid == Value
+      { // Value == *Mid
          elemIt = Mid;
          break;
       }
