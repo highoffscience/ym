@@ -23,10 +23,12 @@
  *
  * @brief Constructor.
  *
- * @param msg_uref -- Message string.
+ * @param msg -- Message string.
  */
-ym::Ymception::Ymception(std::string && msg_uref)
-   : _Msg {std::move(msg_uref)}
+ym::Ymception::Ymception(std::string  msg,
+                         uint32 const Tag)
+   : _Msg {std::move(msg)},
+     _Tag {Tag           }
 {
 }
 
@@ -56,7 +58,7 @@ std::string ym::Ymception::assertHandler(
                     SrcLoc.line());
 
    auto const Offset = 
-      (                    NCharsWritten  < 0_i32        ) ? 0_u32 : // snprintf encountered an error
+      (                    NCharsWritten  < 0            ) ? 0_u32 : // snprintf encountered an error
       (static_cast<uint32>(NCharsWritten) < buffer.size()) ? static_cast<uint32>(NCharsWritten) :
                                                              buffer.size();
 

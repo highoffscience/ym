@@ -100,13 +100,11 @@ public:
           ArgCIt_T get       (str const Key) const;
    inline ArgCIt_T operator[](str const Key) const { return get(Key); }
 
-   YM_DECL_YMCEPT(ArgParserError)
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ParseError )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_ArgError   )
-   YM_DECL_YMCEPT(ArgParserError, ArgParserError_AccessError)
+   YM_DECL_TAGGED_YMCEPT(ArgParserError,
+      ParseError, ArgError, AccessError)
 
 private:
-   static constexpr auto s_NValidChars = static_cast<uint32>('~' - '!' + 1u);
+   static constexpr auto s_NValidChars = static_cast<uint32>('~' - '!' + 1);
    static constexpr auto getNValidChars(void) { return s_NValidChars; }
 
    static constexpr auto isValidChar(char const Char) { return Char >= '!' && Char <= '~'; }

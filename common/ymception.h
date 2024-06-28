@@ -43,8 +43,8 @@
    class DerivedYmception_ : public BaseYmception_                                  \
    {                                                                                \
    public:                                                                          \
-      explicit inline DerivedYmception_(std::string && msg_uref)                    \
-         : BaseYmception_(std::move(msg_uref))                                      \
+      explicit inline DerivedYmception_(std::string msg)                            \
+         : BaseYmception_(std::move(msg))                                           \
       { }                                                                           \
                                                                                     \
       virtual ~DerivedYmception_(void) = default;                                   \
@@ -71,6 +71,58 @@
                                                                                     \
       template <typename... Args_T>                                                 \
       check(bool   const    Condition,                                              \
+            rawstr const    Format,                                                 \
+            Args_T const... Args) -> check<Args_T...>;                              \
+   };
+
+/** YM_DECL_TAGGED_YMCEPT
+ *
+ * @brief Convenience macro to declare empty custom Ymception classes.
+ * 
+ * @note check() instead of assert() to avoid name clashes (like boost's #define assert).
+ * 
+ * @ref <https://en.cppreference.com/w/cpp/language/class_template_argument_deduction>
+ *
+ * @param DerivedYmception_ -- Name of custom Ymception class.
+ * @param ...               -- List of enum fields.
+ */
+#define YM_DECL_TAGGED_YMCEPT(DerivedTaggedYmception_, ...)                         \
+   class DerivedTaggedYmception_ : public Ymception                                 \
+   {                                                                                \
+   public:                                                                          \
+      enum class Tag_T : uint32 { __VA_ARGS__ };                                    \
+                                                                                    \
+      explicit inline DerivedTaggedYmception_(std::string msg,                      \
+                                              Tag_T const Tag)                      \
+         : Ymception(std::move(msg), std::to_underlying(Tag))                       \
+      { }                                                                           \
+                                                                                    \
+      virtual ~DerivedTaggedYmception_(void) = default;                             \
+                                                                                    \
+      template <Loggable... Args_T>                                                 \
+      struct check                                                                  \
+      {                                                                             \
+         explicit check(                                                            \
+            Tag_T                const    Tag,                                      \
+            bool                 const    Condition,                                \
+            rawstr               const    Format,                                   \
+            Args_T               const... Args,                                     \
+            std::source_location const    SrcLoc = std::source_location::current()) \
+         {                                                                          \
+            if (!Condition)                                                         \
+            {                                                                       \
+               throw DerivedTaggedYmception_(                                       \
+                  assertHandler(#DerivedTaggedYmception_,                           \
+                                SrcLoc,                                             \
+                                Format,                                             \
+                                Args...), Tag);                                     \
+            }                                                                       \
+         }                                                                          \
+      };                                                                            \
+                                                                                    \
+      template <Loggable... Args_T>                                                 \
+      check(Tag_T  const    Tag,                                                    \
+            bool   const    Condition,                                              \
             rawstr const    Format,                                                 \
             Args_T const... Args) -> check<Args_T...>;                              \
    };
@@ -104,10 +156,13 @@ concept Ymceptable = std::is_base_of_v<class Ymception, T>;
 class Ymception : public std::exception
 {
 public:
-   explicit Ymception(std::string && msg_uref);
+   explicit Ymception(std::string  msg,
+                      uint32 const Tag = 0_u32);
    virtual ~Ymception(void) = default;
 
    virtual rawstr what(void) const noexcept override;
+
+   inline auto getTag(void) const { return _Tag; }
 
 protected:
    static std::string assertHandler(
@@ -118,6 +173,7 @@ protected:
 
 private:
    std::string const _Msg;
+   uint32      const _Tag;
 };
 
 } // ym
