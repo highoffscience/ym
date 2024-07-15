@@ -21,18 +21,10 @@ target_sources(${Target} PRIVATE
 target_include_directories(${Target} PRIVATE ${RootDir}/ym/fmt/include/)
 
 set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
-set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${UtLibDir})
+set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${UTLibDir})
 
-set(CompileFlags
-   -Werror
-   -Wall
-   -Wextra
+target_compile_options(${Target} PRIVATE
    -Wno-format-security
-   -O2
-   -DYM_UT_DBG
-   -DYM_PRINT_TO_SCREEN)
+   -O2)
 
-target_compile_options(${Target} PRIVATE ${CompileFlags} -DFMT_HEADER_ONLY)
-
-unset(CompileFlags)
-unset(Target      )
+unset(Target)

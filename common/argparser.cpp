@@ -303,7 +303,7 @@ void ym::ArgParser::displayHelpMenu(void) const
       }
    }
 
-   auto spaces_bptr = bptr(YM_STACK_ALLOC(char, maxKeyLen + 1_u32));
+   auto spaces_bptr = bptr<char>(YM_STACK_ALLOC(char, maxKeyLen + 1_u32));
    for (auto i = 0_u32; i < maxKeyLen; ++i)
    { // init all elements to spaces
       spaces_bptr[i] = ' ';

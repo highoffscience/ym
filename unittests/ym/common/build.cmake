@@ -23,22 +23,12 @@ target_sources(${Target} PRIVATE
 )
 
 set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
-set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${UtLibDir})
+set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${UTLibDir})
 
-set(CompileFlags
-   -Werror
-   -Wall
-   -Wextra
-   -Wno-format-security
-   -DYM_UT_DBG
-   -DYM_COMMON_UT_DBG
-   -DYM_PRINT_TO_SCREEN)
+set(CompileFlags -Wno-format-security)
 
-if (DEFINED ENV{YM_COV})
-   set(CovFlags -fprofile-instr-generate -fcoverage-mapping)
-   set(CompileFlags ${CompileFlags} ${CovFlags})
+if (YM_COV_ENABLED)
    target_link_options(${Target} PRIVATE ${CovFlags})
-   unset(CovFlags)
 else()
    set(CompileFlags ${CompileFlags} -O2)
 endif()
@@ -46,20 +36,20 @@ endif()
 target_compile_options(${Target} PRIVATE ${CompileFlags})
 
 unset(CompileFlags)
-unset(Target      )
+unset(Target)
 
 ## ym_common_subbuild
 #
-# @param NameOfUtSubDir -- Name of file (SUT, or Ut Dir) under test.
+# @param NameOfUTSubDir -- Name of file (SUT, or UT Dir) under test.
 #
-function(ym_common_subbuild NameOfUtSubDir)
-   set(Target        ym-common-${NameOfUtSubDir})
-   set(UtDirOfTarget ${CMAKE_SOURCE_DIR}/ym/common/${NameOfUtSubDir})
+function(ym_common_subbuild NameOfUTSubDir)
+   set(Target ym-common-${NameOfUTSubDir})
+   set(UTDirOfTarget ${CMAKE_SOURCE_DIR}/ym/common/${NameOfUTSubDir})
 
    add_library(${Target} SHARED)
 
    target_sources(${Target} PRIVATE
-      ${UtDirOfTarget}/testsuite.cpp
+      ${UTDirOfTarget}/testsuite.cpp
    )
 
    target_include_directories(${Target} PRIVATE
@@ -67,17 +57,19 @@ function(ym_common_subbuild NameOfUtSubDir)
       ${CMAKE_SOURCE_DIR}/common/
    )
 
-   target_link_directories(${Target} PRIVATE ${UtLibDir})
+   target_link_directories(${Target} PRIVATE ${UTLibDir})
    target_link_libraries(${Target} PRIVATE ut-common)
    target_link_libraries(${Target} PRIVATE ym-common)
 
    set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
-   set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${UtLibDir})
+   set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${UTLibDir})
 
-   string(TOUPPER -DYM_COMMON_UT_DBG_${NameOfUtSubDir} DbgFlags)
+   string(TOUPPER -DYM_COMMON_UT_DBG_${NameOfUTSubDir} DbgFlags)
 
-   target_compile_options(${Target} PRIVATE ${CompileFlags} ${DbgFlags})
+   set(CompileFlags ${DbgFlags} -Wno-format-security -O2)
 
-   unset(UtDirOfTarget)
-   unset(Target       )
+   if (YM_COV_ENABLED)
+   endif()
+
+   target_compile_options(${Target} PRIVATE ${CompileFlags})
 endfunction()

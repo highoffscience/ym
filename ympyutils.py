@@ -6,7 +6,10 @@
 
 import subprocess as sp
 
-def runCmd(cmd: str, cwd: str=".", per_line_action_func=None, quiet=False):
+def runCmd(cmd: str,
+           cwd: str             = ".",
+           per_line_action_func = None,
+           quiet                = False):
    """
    @brief Runs command and optionally runs an action function on every line of the output.
 
@@ -16,11 +19,12 @@ def runCmd(cmd: str, cwd: str=".", per_line_action_func=None, quiet=False):
 
    @returns str -- Output of command (if no action function defined).
    """
+   
    output = None
    with sp.Popen(cmd.split(), stdout=sp.PIPE, stderr=sp.STDOUT, text=True, cwd=cwd) as p:
       if per_line_action_func:
          for line in iter(p.stdout.readline, ""):
-            per_line_action_func(line)
+            per_line_action_func(line.strip())
       else:
          output, _ = p.communicate()
       if not quiet:

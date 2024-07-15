@@ -113,7 +113,7 @@ def gen_source_file(args):
       writeln(f"}}                                                                        ")
 
 def gen_runner_file(args):
-   """ gen_runner_file
+   """
    @brief Generates test suite runner skeleton file.
 
    @param args -- Supplied options.
@@ -210,8 +210,7 @@ def gen_runner_file(args):
       writeln(f"   unittest.main()                                                  ")
 
 def main():
-   """ main
-
+   """
    @brief Sets up the unittest scaffolding.
 
    @note For example...

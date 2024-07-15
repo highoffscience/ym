@@ -9,7 +9,7 @@ import pathlib
 import sys
 import unittest
 
-sys.path.append("../")
+sys.path.append("..")
 import ympyutils as ympy
 
 try:
@@ -39,17 +39,11 @@ class TestSuiteBase(unittest.TestCase):
       cls.filename    = filename
       cls.SUT_name    = SUT_name
 
-      is_ym_repo      = pathlib.Path(filepath).parts[0] == "ym"
-
-      cls.ut_rootpath = os.path.dirname(os.path.abspath(__file__)) 
-      cls.rootpath    = os.path.join(cls.ut_rootpath, "../../" if is_ym_repo else "../../../")
+      cls.ut_rootpath = os.path.dirname(os.path.abspath(__file__))
+      cls.rootpath    = os.path.join(cls.ut_rootpath, "../../")
 
       cls.SUTpath     = os.path.join(cls.rootpath,    cls.filepath)
       cls.ut_SUTpath  = os.path.join(cls.ut_rootpath, cls.filepath, cls.filename)
-
-      if cls.isCovMode():
-         # needs to be set before loading instrumented library
-         os.environ["LLVM_PROFILE_FILE"] = f"./covbuild/profiles/{cls.filename}.profraw"
 
       cls.configCppyy()
 
@@ -58,11 +52,7 @@ class TestSuiteBase(unittest.TestCase):
       """
       @brief Acting destructor.
       """
-      if cls.isCovMode():
-         # TODO below occurs when all unittests have generated their .profraw files
-         # $ llvm-profdata merge default.profraw -o default.profdata
-         # $ llvm-cov show <desired-obj-file> -instr-profile=stringops.profdata
-         pass
+      pass
 
    @classmethod
    def configCppyy(cls):
@@ -76,7 +66,8 @@ class TestSuiteBase(unittest.TestCase):
 
       cppyy.include(os.path.join(cls.ut_SUTpath, "testsuite.h"))
 
-      cppyy.add_library_path(os.path.join(cls.ut_rootpath, "build/customlibs/"))
+      build_path = "covbuild/" if os.environ.get("LLVM_PROFILE_FILE", default=None) else "build/"
+      cppyy.add_library_path(os.path.join(cls.ut_rootpath, build_path, "customlibs/"))
       cppyy.load_library(f"lib{os.path.join(cls.filepath, cls.filename).replace('/', '-')}")
 
    def run_test_case(self, test_case_name: str):
@@ -111,15 +102,6 @@ class TestSuiteBase(unittest.TestCase):
       self.assertTrue(results, "Results is None")
 
       return results
-   
-   @classmethod
-   def isCovMode(cls):
-      """
-      @brief Determines if coverage mode is enabled.
-
-      @returns bool -- True if coverage mode is enabled, false otherwise.
-      """
-      return "YM_COV" in os.environ
 
 # kick-off
 if __name__ == "__main__":

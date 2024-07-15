@@ -40,10 +40,14 @@ $ python testsuite.py
 To prepare testing for coverage do the following:
 $ rm -rf covbuild/*
 $ . ./set_cov_env.sh
+rebuild using cmake
 Run the desired unit test, eg (TODO below instructions need work)
    $ LLVM_PROFILE_FILE="<filename>.profraw"
    $ python -m unittest ...
 $ llvm-profdata merge default.profraw -o default.profdata
-$ llvm-cov show <desired-obj-file> -instr-profile=stringops.profdata
+$ llvm-cov show <desired-obj-file> -instr-profile=default.profdata -format=html > default-covprofile.html
+
+And below shows
+$ llvm-cov report <desired-obj-file> -instr-profile=default.profdata
 
 The desired obj file can be the .so or a .o that comprises the .so
