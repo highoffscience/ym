@@ -6,7 +6,7 @@
 
 cmake_minimum_required(VERSION 3.27)
 
-set(Target ut-common)
+set(Target ut.common)
 
 add_library(${Target} SHARED)
 

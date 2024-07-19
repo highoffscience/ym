@@ -6,21 +6,14 @@
 
 cmake_minimum_required(VERSION 3.27)
 
-set(Target ym-common)
+set(Target ym.common)
+set(SubBuilds argparser datalogger fileio memio ops prng textlogger threadsafeproxy timer ymception)
 
 add_library(${Target} SHARED)
 
-target_sources(${Target} PRIVATE
-   ${RootDir}/ym/common/argparser.cpp
-   ${RootDir}/ym/common/datalogger.cpp
-   ${RootDir}/ym/common/fileio.cpp
-   ${RootDir}/ym/common/logger.cpp
-   ${RootDir}/ym/common/ops.cpp
-   ${RootDir}/ym/common/prng.cpp
-   ${RootDir}/ym/common/textlogger.cpp
-   ${RootDir}/ym/common/timer.cpp
-   ${RootDir}/ym/common/ymception.cpp
-)
+list(TRANSFORM SubBuilds PREPEND ${RootDir}/ym/common/ OUTPUT_VARIABLE Sources)
+target_sources(${Target} PRIVATE ${Sources})
+unset(Sources)
 
 set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${UTLibDir})
@@ -36,33 +29,25 @@ endif()
 target_compile_options(${Target} PRIVATE ${CompileFlags})
 
 unset(CompileFlags)
-unset(Target)
 
-## ym_common_subbuild
-#
-# @param NameOfUTSubDir -- Name of file (SUT, or UT Dir) under test.
-#
-function(ym_common_subbuild NameOfUTSubDir)
-   set(Target ym-common-${NameOfUTSubDir})
-   set(UTDirOfTarget ${CMAKE_SOURCE_DIR}/ym/common/${NameOfUTSubDir})
+foreach(NameOfUTSubDir IN LISTS SubBuilds)
 
-   add_library(${Target} SHARED)
+   set(SubTarget ym.common.${NameOfUTSubDir})
 
-   target_sources(${Target} PRIVATE
-      ${UTDirOfTarget}/testsuite.cpp
-   )
+   add_library(${SubTarget} SHARED)
 
-   target_include_directories(${Target} PRIVATE
+   target_sources(${SubTarget} PRIVATE ${CMAKE_SOURCE_DIR}/ym/common/testsuite.cpp)
+
+   target_include_directories(${SubTarget} PRIVATE
       ${RootDir}/ym/common/
-      ${CMAKE_SOURCE_DIR}/common/
-   )
+      ${CMAKE_SOURCE_DIR}/common/)
 
-   target_link_directories(${Target} PRIVATE ${UTLibDir})
-   target_link_libraries(${Target} PRIVATE ut-common)
-   target_link_libraries(${Target} PRIVATE ym-common)
+   target_link_directories(${SubTarget} PRIVATE ${UTLibDir})
+   target_link_libraries(${SubTarget} PRIVATE ut-common)
+   target_link_libraries(${SubTarget} PRIVATE ym-common)
 
-   set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
-   set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${UTLibDir})
+   set_target_properties(${SubTarget} PROPERTIES VERSION ${PROJECT_VERSION})
+   set_target_properties(${SubTarget} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${UTLibDir})
 
    string(TOUPPER -DYM_COMMON_UT_DBG_${NameOfUTSubDir} DbgFlags)
 
@@ -71,5 +56,7 @@ function(ym_common_subbuild NameOfUTSubDir)
    if (YM_COV_ENABLED)
    endif()
 
-   target_compile_options(${Target} PRIVATE ${CompileFlags})
-endfunction()
+   target_compile_options(${SubTarget} PRIVATE ${CompileFlags})
+endforeach()
+
+unset(Target)

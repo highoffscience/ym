@@ -8,10 +8,9 @@
 
 import argparse
 import os
+import pathlib
 import shutil
 import sys
-
-from pathlib import Path
 
 sys.path.append("..")
 from ympyutils import *
@@ -31,7 +30,7 @@ def main():
    args = parser.parse_args()
 
    build_dir_str = "./covbuild/" if args.cov else "./build"
-   with Path(build_dir_str) as build_dir:
+   with pathlib.Path(build_dir_str) as build_dir:
       if args.reconfigure:
          if build_dir.exists() and build_dir.is_dir():
             shutil.rmtree(build_dir)
@@ -51,9 +50,11 @@ def main():
 
    if args.run:
       if args.target == "all":
-         pass
+         for root, dirs, files in os.walk("ym/"):
+            if "testsuite.py" in files:
+               runCmd(f"python -m unittest {args.target.replace("/", ".")}.testsuite", per_line_action_func=print)
       else:
-         runCmd(f"python -m unittest {args.target.replace('-', '.')}.testsuite", per_line_action_func=print)
+         runCmd(f"python -m unittest {args.target}.testsuite", per_line_action_func=print)
          if args.cov:
             root_filename = os.path.splitext(os.environ["LLVM_PROFILE_FILE"])[0]
             runCmd(f"llvm-profdata merge {root_filename}.profraw -o {root_filename}.profdata")

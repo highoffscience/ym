@@ -38,16 +38,5 @@ add_compile_options(
    -DYM_PRINT_TO_SCREEN
    -DFMT_HEADER_ONLY)
 
-include(common/build.cmake) # ut-common
-
-include(ym/common/build.cmake     ) # ym-common
-ym_common_subbuild(argparser      ) # ym-common-argparser
-ym_common_subbuild(datalogger     ) # ym-common-datalogger
-ym_common_subbuild(fileio         ) # ym-common-fileio
-ym_common_subbuild(memio          ) # ym-common-memio
-ym_common_subbuild(ops            ) # ym-common-ops
-ym_common_subbuild(prng           ) # ym-common-prng
-ym_common_subbuild(textlogger     ) # ym-common-textlogger
-ym_common_subbuild(threadsafeproxy) # ym-common-threadsafeproxy
-ym_common_subbuild(timer          ) # ym-common-timer
-ym_common_subbuild(ymception      ) # ym-common-ymception
+include(common/build.cmake)    # ut-common
+include(ym/common/build.cmake) # ym-common
