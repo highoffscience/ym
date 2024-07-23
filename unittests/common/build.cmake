@@ -6,25 +6,23 @@
 
 cmake_minimum_required(VERSION 3.27)
 
-set(Target ut.common)
+## ut.common
+#
+# @brief Defines target to build the unittest framework.
+#
+function(ut.common)
+   set(Target ${CMAKE_CURRENT_FUNCTION})
 
-add_library(${Target} SHARED)
+   add_library(${Target} SHARED)
 
-target_sources(${Target} PRIVATE
-   ${CMAKE_SOURCE_DIR}/common/datashuttle.cpp
-   ${CMAKE_SOURCE_DIR}/common/nameable.cpp
-   ${CMAKE_SOURCE_DIR}/common/testcase.cpp
-   ${CMAKE_SOURCE_DIR}/common/testsuitebase.cpp
-   ${CMAKE_SOURCE_DIR}/common/utception.cpp
-)
+   target_sources(${Target} PRIVATE
+      ${CMAKE_SOURCE_DIR}/common/datashuttle.cpp
+      ${CMAKE_SOURCE_DIR}/common/nameable.cpp
+      ${CMAKE_SOURCE_DIR}/common/testcase.cpp
+      ${CMAKE_SOURCE_DIR}/common/testsuitebase.cpp
+      ${CMAKE_SOURCE_DIR}/common/utception.cpp
+   )
 
-target_include_directories(${Target} PRIVATE ${RootDir}/ym/fmt/include/)
-
-set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
-set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${UTLibDir})
-
-target_compile_options(${Target} PRIVATE
-   -Wno-format-security
-   -O2)
-
-unset(Target)
+   set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
+   set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_UTLibDir})
+endfunction()
