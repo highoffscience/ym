@@ -95,7 +95,7 @@ public:
 
    void parse(void);
 
-   using ArgCIt_T = std::span<Arg>::iterator; // @todo clang doesn't support std::span<Arg>::const_iterator yet.
+   using ArgCIt_T = std::span<Arg>::const_iterator;
 
           ArgCIt_T get       (str const Key) const;
    inline ArgCIt_T operator[](str const Key) const { return get(Key); }

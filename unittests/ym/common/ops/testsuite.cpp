@@ -48,9 +48,9 @@ auto ym::ut::TestSuite::Casting::run([[maybe_unused]] DataShuttle const & InData
    auto const Val_uint32  = Ops::castTo<uint32 >("+4294967295"          ) == std::numeric_limits<uint32>::max();
    auto const Val_uint64  = Ops::castTo<uint64 >("+18446744073709551615") == std::numeric_limits<uint64>::max();
 
-   auto const Val_float32 = Ops::castTo<float32>("1.175e-37"            ) == 1.175e-37F;
-   auto const Val_float64 = Ops::castTo<float64>("2.225e-307"           ) == 2.225e-307;
-   auto const Val_float80 = Ops::castTo<float80>("3.362e-4931"          ) == 3.362e-4931L;
+   auto const Val_float32 = Ops::castTo<float32 >("1.175e-37"            ) == 1.175e-37F;
+   auto const Val_float64 = Ops::castTo<float64 >("2.225e-307"           ) == 2.225e-307;
+   auto const Val_float80 = Ops::castTo<floatext>("3.362e-4931"          ) == 3.362e-4931L;
 
    return {
       {"Val_char"   , Val_char   },
@@ -136,9 +136,9 @@ auto ym::ut::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InD
    try { (void)Ops::castTo<float64>("+2.225e-308"); } catch (Ops::OpsError_BadCast const & E) { badCasts_flt64[2] = true; }
 
    std::vector<bool> badCasts_flt80{false, false, false}; // until told otherwise
-   try { (void)Ops::castTo<float80>("");             } catch (Ops::OpsError_BadCast const & E) { badCasts_flt80[0] = true; }
-   try { (void)Ops::castTo<float80>(".");            } catch (Ops::OpsError_BadCast const & E) { badCasts_flt80[1] = true; }
-   try { (void)Ops::castTo<float80>("+3.362e-4932"); } catch (Ops::OpsError_BadCast const & E) { badCasts_flt80[2] = true; }
+   try { (void)Ops::castTo<floatext>("");             } catch (Ops::OpsError_BadCast const & E) { badCasts_flt80[0] = true; }
+   try { (void)Ops::castTo<floatext>(".");            } catch (Ops::OpsError_BadCast const & E) { badCasts_flt80[1] = true; }
+   try { (void)Ops::castTo<floatext>("+3.362e-4932"); } catch (Ops::OpsError_BadCast const & E) { badCasts_flt80[2] = true; }
 
    return {
       {"BadCasts_char",   badCasts_char  },

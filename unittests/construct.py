@@ -52,7 +52,7 @@ def main():
       if args.target == "all":
          for root, dirs, files in os.walk("ym/"):
             if "testsuite.py" in files:
-               runCmd(f"python -m unittest {args.target.replace("/", ".")}.testsuite", per_line_action_func=print)
+               runCmd(f"python -m unittest {args.target.replace('/', '.')}.testsuite", per_line_action_func=print)
       else:
          runCmd(f"python -m unittest {args.target}.testsuite", per_line_action_func=print)
          if args.cov:
