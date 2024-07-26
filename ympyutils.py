@@ -16,6 +16,7 @@ def runCmd(cmd: str,
    @param cmd                  -- Command to run.
    @param cwd                  -- Directory to run command in.
    @param per_line_action_func -- Action function to run on every line of output.
+   @param quiet                -- Whether or not to suppress the return code.
 
    @returns str -- Output of command (if no action function defined).
    """
