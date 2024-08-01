@@ -2,6 +2,9 @@
  * @file    ymception.h
  * @version 1.0.0
  * @author  Forrest Jablonski
+ * 
+ * TODO rename to YmError
+ * TODO In the tagged version put the tag param after Condition but before Format
  */
 
 #pragma once

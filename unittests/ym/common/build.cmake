@@ -11,10 +11,13 @@ cmake_minimum_required(VERSION 3.27)
 # @brief Defines target to build ym.common, ym.common_all, and all child unittests.
 #
 function(ym.common)
-   set(SubBuilds argparser datalogger fileio memio ops prng textlogger threadsafeproxy timer ymception)
+   set(SubBuilds argparser datalogger fileio memio ops rng textlogger threadsafeproxy timer ymception)
+   set(SrcFilesPath ${YM_ProjRootDir}/ym/common/)
    set(Target ${CMAKE_CURRENT_FUNCTION})
 
    add_library(${Target} SHARED)
+
+   target_sources(${Target} PRIVATE ${SrcFilesPath}/logger.cpp)
 
    set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
    set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_UTLibDir})
@@ -31,9 +34,8 @@ function(ym.common)
    add_dependencies(${TargetAll} ${Target})
 
    foreach(SubBuild IN LISTS SubBuilds)
-      set(SubBuildSrcPath ${YM_ProjRootDir}/ym/common/)
-      if(EXISTS ${SubBuildSrcPath}/${SubBuild}.cpp)
-         target_sources(${Target} PRIVATE ${SubBuildSrcPath}/${SubBuild}.cpp)
+      if(EXISTS                           ${SrcFilesPath}/${SubBuild}.cpp)
+         target_sources(${Target} PRIVATE ${SrcFilesPath}/${SubBuild}.cpp)
       endif()
 
       set(SubBuildUTPath ${CMAKE_SOURCE_DIR}/ym/common/${SubBuild}/)

@@ -8,16 +8,16 @@
 
 cmake_minimum_required(VERSION 3.27)
 
-## ym.common.prng_unittest
+## ym.common.rng_unittest
 #
-# @brief Defines target to build the prng unittest.
+# @brief Defines target to build the rng unittest.
 #
-function(ym.common.prng_unittest)
+function(ym.common.rng_unittest)
    set(Target ${CMAKE_CURRENT_FUNCTION})
 
    add_library(${Target} SHARED)
 
-   target_sources(${Target} PRIVATE ${CMAKE_SOURCE_DIR}/ym/common/prng/testsuite.cpp)
+   target_sources(${Target} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/testsuite.cpp)
 
    target_include_directories(${Target} PRIVATE
       ${YM_ProjRootDir}/ym/common/

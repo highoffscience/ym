@@ -37,8 +37,8 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
 
       super().setUpBaseClass(filepath="ym/common",
-                             filename="prng",
-                             SUT_name="PRNG")
+                             filename="rng",
+                             SUT_name="Rng")
 
    @classmethod
    def tearDownClass(cls):
@@ -100,8 +100,8 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
 # kick-off
 if __name__ == "__main__":
-   if os.path.basename(os.getcwd()) != "prng":
-      print("Needs to be run in the prng/ directory")
+   if os.path.basename(os.getcwd()) != "rng":
+      print("Needs to be run in the rng/ directory")
       sys.exit(1)
 
    unittest.main()

@@ -36,9 +36,9 @@ def main():
             shutil.rmtree(build_dir)
          build_dir.mkdir()
 
-      if args.reconfigure:
          cov_flag = "-DYM_COV_ENABLED=True" if args.cov else ""
          runCmd(f"cmake .. {cov_flag}", cwd=build_dir, per_line_action_func=print)
+
       runCmd(f"cmake --build . --target {args.target}", cwd=build_dir, per_line_action_func=print)
 
    # testsuitebase makes decision on this variable so always set it to desired state
@@ -50,11 +50,13 @@ def main():
 
    if args.run:
       if args.target == "all":
+         # this could be accomplished with unittest discovery, but less verbose this way
          for root, dirs, files in os.walk("ym/"):
             if "testsuite.py" in files:
-               runCmd(f"python -m unittest {args.target.replace('/', '.')}.testsuite", per_line_action_func=print)
+               runCmd(f"python -m unittest {root.replace('/', '.')}.testsuite", per_line_action_func=print)
       else:
-         runCmd(f"python -m unittest {args.target}.testsuite", per_line_action_func=print)
+         test_module_name = f"{args.target.replace('_unittest', '')}.testsuite"
+         runCmd(f"python -m unittest {test_module_name}", per_line_action_func=print)
          if args.cov:
             root_filename = os.path.splitext(os.environ["LLVM_PROFILE_FILE"])[0]
             runCmd(f"llvm-profdata merge {root_filename}.profraw -o {root_filename}.profdata")

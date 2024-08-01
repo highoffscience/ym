@@ -7,7 +7,7 @@
 #include "ymdefs.h"
 #include "testsuite.h"
 
-#include "prng.h"
+#include "rng.h"
 #include "textlogger.h"
 #include "ymception.h"
 
@@ -21,7 +21,7 @@
  * @brief Constructor.
  */
 ym::ut::TestSuite::TestSuite(void)
-   : TestSuiteBase("PRNG")
+   : TestSuiteBase("Rng")
 {
    addTestCase<ZerosAndOnes>();
    addTestCase<UniformBins >();
@@ -39,9 +39,9 @@ ym::ut::TestSuite::TestSuite(void)
  */
 auto ym::ut::TestSuite::ZerosAndOnes::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_PRNG);
+   auto const SE = ymLogPushEnable(VG::UnitTest_Rng);
 
-   ym::PRNG rand;
+   ym::Prng rand;
 
    std::vector<std::pair<uint64, uint64>> setBitVector;
 
@@ -72,9 +72,9 @@ auto ym::ut::TestSuite::ZerosAndOnes::run([[maybe_unused]] DataShuttle const & I
  */
 auto ym::ut::TestSuite::UniformBins::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_PRNG);
+   auto const SE = ymLogPushEnable(VG::UnitTest_Rng);
 
-   ym::PRNG rand;
+   ym::Prng rand;
 
    constexpr auto BitShiftAmount = 16_u64;
    static_assert(BitShiftAmount <= 32_u64, "Must contain at most uint32 # of bits");
