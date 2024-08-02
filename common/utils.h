@@ -8,7 +8,7 @@
 
 #include "ymdefs.h"
 
-#include "ymception.h"
+#include "ymerror.h"
 
 namespace ym
 {
@@ -39,7 +39,7 @@ public:
    constexpr T       * operator -> (void)       { return get(); }
    constexpr T const * operator -> (void) const { return get(); }
 
-   YM_DECL_YMCEPT(UtilError)
+   YM_DECL_YMERROR(UtilError)
 
 private:
    T * _t_ptr;

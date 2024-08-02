@@ -57,12 +57,13 @@ def main():
       else:
          test_module_name = f"{args.target.replace('_unittest', '')}.testsuite"
          runCmd(f"python -m unittest {test_module_name}", per_line_action_func=print)
-         if args.cov:
-            root_filename = os.path.splitext(os.environ["LLVM_PROFILE_FILE"])[0]
-            runCmd(f"llvm-profdata merge {root_filename}.profraw -o {root_filename}.profdata")
+         
+      if args.cov:
+         root_filename = os.path.splitext(os.environ["LLVM_PROFILE_FILE"])[0]
+         runCmd(f"llvm-profdata merge {root_filename}.profraw -o {root_filename}.profdata")
 
-            obj_file = f"./covbuild/customlibs/{args.object}"
-            runCmd(f"llvm-cov show {obj_file} -instr-profile={root_filename}.profdata -use-color -format=html -output-dir={root_filename}-covprofiles")
+         obj_file = f"./covbuild/customlibs/{args.object}"
+         runCmd(f"llvm-cov show {obj_file} -instr-profile={root_filename}.profdata -use-color -format=html -output-dir={root_filename}-covprofiles")
    
 # kick-off
 if __name__ == "__main__":

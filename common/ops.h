@@ -8,7 +8,7 @@
 
 #include "ymdefs.h"
 
-#include "ymception.h"
+#include "ymerror.h"
 
 #include <string>
 #include <type_traits>
@@ -36,8 +36,8 @@ public:
    static T castTo(std::string const & S,
                    uint32      const   Base = 10_u32) = delete;
 
-   YM_DECL_YMCEPT(OpsError)
-   YM_DECL_YMCEPT(OpsError, OpsError_BadCast)
+   YM_DECL_YMERROR(OpsError)
+   YM_DECL_YMERROR(OpsError, OpsError_BadCast)
 };
 
 template <> int8     Ops::castTo<int8>    (std::string const & S, uint32 const Base);

@@ -6,7 +6,7 @@
 
 #include "Standard.h"
 
-#include "Ymception.h"
+#include "Ymerror.h"
 
 namespace ym::hsm
 {

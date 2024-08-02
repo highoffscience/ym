@@ -48,7 +48,7 @@ auto ym::ut::TestSuiteBase::runTestCase(std::string const & Name,
          ds = (*It)->run(InData);
       }
       catch (std::exception const & E)
-      { // re-throw a class cppyy knows how to convert - cppyy doesn't know about the Ymception class
+      { // re-throw a class cppyy knows how to convert - cppyy doesn't know about the Ymerror class
          throw TSBError_TestCaseFailure(E.what());
       }
    }

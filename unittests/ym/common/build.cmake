@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 3.27)
 # @brief Defines target to build ym.common, ym.common_all, and all child unittests.
 #
 function(ym.common)
-   set(SubBuilds argparser datalogger fileio memio ops rng textlogger threadsafeproxy timer ymception)
+   set(SubBuilds argparser datalogger fileio memio ops rng textlogger threadsafeproxy timer ymerror)
    set(SrcFilesPath ${YM_ProjRootDir}/ym/common/)
    set(Target ${CMAKE_CURRENT_FUNCTION})
 

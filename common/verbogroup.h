@@ -46,7 +46,7 @@ struct VerboGroup
       Ops,             UnitTest_Ops,
       Rng,             UnitTest_Rng,
       Timer,           UnitTest_Timer,
-      Ymception,       UnitTest_Ymception,
+      Ymerror,       UnitTest_Ymerror,
       
       NGroups
    };
@@ -118,8 +118,8 @@ struct VerboGroupMask
          Rng_Prng = YM_FMT_MSK(Rng, 0b0000'0001),
          Rng_Trng = YM_FMT_MSK(Rng, 0b0000'0010),
       YM_MAKE_MSK_AND_UNIT_MSK(Timer          ),
-      YM_MAKE_MSK_AND_UNIT_MSK(Ymception      ),
-         Ymception_Assert = YM_FMT_MSK(Ymception, 0b0000'0001),
+      YM_MAKE_MSK_AND_UNIT_MSK(Ymerror      ),
+         Ymerror_Assert = YM_FMT_MSK(Ymerror, 0b0000'0001),
 
    // don't pollute namespace
    #undef YM_MAKE_MSK_AND_UNIT_MSK

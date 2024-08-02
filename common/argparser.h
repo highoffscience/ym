@@ -8,7 +8,7 @@
 
 #include "ymdefs.h"
 
-#include "ymception.h"
+#include "ymerror.h"
 
 #include <array>
 #include <span>
@@ -100,7 +100,7 @@ public:
           ArgCIt_T get       (str const Key) const;
    inline ArgCIt_T operator[](str const Key) const { return get(Key); }
 
-   YM_DECL_TAGGED_YMCEPT(ArgParserError,
+   YM_DECL_TAGGED_YMERROR(ArgParserError,
       ParseError, ArgError, AccessError)
 
 private:

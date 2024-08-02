@@ -15,7 +15,7 @@ namespace ym::ut
 
 /** TestSuite
  *
- * @brief Test suite for SUT Ymception.
+ * @brief Test suite for SUT Ymerror.
  */
 class TestSuite : public TestSuiteBase
 {

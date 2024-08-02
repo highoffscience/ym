@@ -11,7 +11,7 @@
 #include "logger.h"
 #include "timer.h"
 #include "verbogroup.h"
-#include "ymception.h"
+#include "ymerror.h"
 
 #include <array>
 #include <atomic>
@@ -81,10 +81,10 @@ public:
    YM_NO_COPY  (TextLogger)
    YM_NO_ASSIGN(TextLogger)
 
-   YM_DECL_YMCEPT(TextLoggerError)
-   YM_DECL_YMCEPT(TextLoggerError, TextLoggerError_GlobalFailureToOpen)
-   YM_DECL_YMCEPT(TextLoggerError, TextLoggerError_FailureToOpen)
-   YM_DECL_YMCEPT(TextLoggerError, TextLoggerError_ProducerConsumerError)
+   YM_DECL_YMERROR(TextLoggerError)
+   YM_DECL_YMERROR(TextLoggerError, TextLoggerError_GlobalFailureToOpen)
+   YM_DECL_YMERROR(TextLoggerError, TextLoggerError_FailureToOpen)
+   YM_DECL_YMERROR(TextLoggerError, TextLoggerError_ProducerConsumerError)
 
    static TextLogger * getGlobalInstancePtr(void);
 

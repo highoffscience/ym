@@ -9,7 +9,7 @@
 #include "signal.h"
 
 #include "../common/nameable.h"
-#include "../common/ymception.h"
+#include "../common/ymerror.h"
 #include "../common/ymdefs.h"
 
 #include <type_traits>
@@ -40,7 +40,7 @@ protected:
                            SignalBase_T const Signal);
 
 public:
-   YM_DECL_YMCEPT(MessageError)
+   YM_DECL_YMERROR(MessageError)
 
    inline auto getDomain(void) const { return _Domain; }
    inline auto getSignal(void) const { return _Signal; }

@@ -10,7 +10,7 @@
 #include "datalogger.h"
 
 #include "textlogger.h"
-#include "ymception.h"
+#include "ymerror.h"
 
 /** TestSuite
  *

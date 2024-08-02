@@ -71,7 +71,7 @@ bool ym::Logger::openOutfile(str            const Filename,
                LoggerError_FailureToOpen::check(!std::filesystem::exists(Filename.get()),
                   "File (or directory) %s already exists", Filename.get());
             }
-            catch (Ymception const & E)
+            catch (Ymerror const & E)
             { // re-throw
                throw;
             }

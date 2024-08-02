@@ -9,7 +9,7 @@
 
 #include "rng.h"
 #include "textlogger.h"
-#include "ymception.h"
+#include "ymerror.h"
 
 #include <algorithm>
 #include <bitset>

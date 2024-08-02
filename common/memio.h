@@ -9,7 +9,7 @@
 #include "ymdefs.h"
 
 #include "textlogger.h"
-#include "ymception.h"
+#include "ymerror.h"
 
 #include <alloca.h>
 #include <cstdint>
@@ -119,8 +119,8 @@ class MemIO
 public:
    YM_NO_DEFAULT(MemIO)
 
-   YM_DECL_YMCEPT(MemIOError)
-   YM_DECL_YMCEPT(MemIOError, MemIOError_PoolError)
+   YM_DECL_YMERROR(MemIOError)
+   YM_DECL_YMERROR(MemIOError, MemIOError_PoolError)
 
    template <typename T>
    static T * alloc(uint64 const NElements = 1_u64);
@@ -205,7 +205,7 @@ public:
    };
 };
 
-// TODO create ymcommon.h to accomodate classes that need ymception.h, etc.
+// TODO create ymcommon.h to accomodate classes that need ymerror.h, etc.
 // template <typename T>
 // using bptr = BoundedPtr<T>;
 //

@@ -11,7 +11,7 @@
 #include "logger.h"
 #include "memio.h"
 #include "nameable.h"
-#include "ymception.h"
+#include "ymerror.h"
 
 #include <string>
 #include <vector>
@@ -36,7 +36,7 @@ public:
    YM_NO_COPY  (DataLogger)
    YM_NO_ASSIGN(DataLogger)
 
-   YM_DECL_YMCEPT(DataLoggerError)
+   YM_DECL_YMERROR(DataLoggerError)
 
    inline auto getMaxNDataEntries(void) const { return _MaxNDataEntries; }
 

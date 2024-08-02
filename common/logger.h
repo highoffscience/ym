@@ -9,7 +9,7 @@
 #include "ymdefs.h"
 
 #include "loggable.h"
-#include "ymception.h"
+#include "ymerror.h"
 
 #include <cstdio>
 #include <memory>
@@ -34,8 +34,8 @@ public:
    YM_NO_COPY  (Logger)
    YM_NO_ASSIGN(Logger)
 
-   YM_DECL_YMCEPT(LoggerError)
-   YM_DECL_YMCEPT(LoggerError, LoggerError_FailureToOpen)
+   YM_DECL_YMERROR(LoggerError)
+   YM_DECL_YMERROR(LoggerError, LoggerError_FailureToOpen)
 
    /** FilenameMode_T
     *

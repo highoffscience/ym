@@ -8,7 +8,7 @@
 
 #include "ymdefs.h"
 
-#include "ymception.h"
+#include "ymerror.h"
 
 #include <string>
 
@@ -24,7 +24,7 @@ class FileIO
 public:
    YM_NO_DEFAULT(FileIO)
 
-   YM_DECL_YMCEPT(FileIOError)
+   YM_DECL_YMERROR(FileIOError)
 
    static std::string createFileBuffer(str const Filename);
 };

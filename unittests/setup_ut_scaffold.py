@@ -86,7 +86,7 @@ def gen_source_file(args):
       writeln(f"#include \"{args.filename}.h\"                                            ")
       writeln(f"                                                                          ")
       writeln(f"#include \"textlogger.h\"                                                 ")
-      writeln(f"#include \"ymception.h\"                                                  ")
+      writeln(f"#include \"ymerror.h\"                                                  ")
       writeln(f"                                                                          ")
       writeln(f"/** TestSuite                                                             ")
       writeln(f" *                                                                        ")

@@ -4,7 +4,7 @@
 
 #include "TopicSubscription.h"
 
-#include "Ymception.h"
+#include "Ymerror.h"
 
 #include "Hsm.h"
 #include "HsmSubscription.h"

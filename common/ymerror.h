@@ -1,10 +1,8 @@
 /**
- * @file    ymception.h
+ * @file    ymerror.h
  * @version 1.0.0
  * @author  Forrest Jablonski
  * 
- * TODO rename to YmError
- * TODO In the tagged version put the tag param after Condition but before Format
  */
 
 #pragma once
@@ -19,38 +17,38 @@
 #include <string>
 #include <type_traits>
 
-/** YM_DECL_YMCEPT
+/** YM_DECL_YMERROR
  * 
  * @brief Macro to facilitate macro overloading.
  * 
  * @param ... -- Args to pass to macro.
  */
-#define YM_DECL_YMCEPT(...) YM_MACRO_OVERLOAD(YM_DECL_YMCEPT, __VA_ARGS__)
+#define YM_DECL_YMERROR(...) YM_MACRO_OVERLOAD(YM_DECL_YMERROR, __VA_ARGS__)
 
-/** YM_DECL_YMCEPT2
+/** YM_DECL_YMERROR2
  *
- * @brief Convenience macro to declare empty custom Ymception classes.
+ * @brief Convenience macro to declare empty custom Ymerror classes.
  * 
  * @note check() instead of assert() to avoid name clashes (like boost's #define assert).
  * 
  * @ref <https://en.cppreference.com/w/cpp/language/class_template_argument_deduction>
  *
- * @param BaseYmception_    -- Name of base class.
- * @param DerivedYmception_ -- Name of custom Ymception class.
+ * @param BaseYmerror_    -- Name of base class.
+ * @param DerivedYmerror_ -- Name of custom Ymerror class.
  */
-#define YM_DECL_YMCEPT2(BaseYmception_, DerivedYmception_)                          \
+#define YM_DECL_YMERROR2(BaseYmerror_, DerivedYmerror_)                             \
                                                                                     \
-   static_assert(std::is_base_of_v<Ymception, BaseYmception_>,                      \
-      #BaseYmception_" must be of Ymception type");                                 \
+   static_assert(std::is_base_of_v<Ymerror, BaseYmerror_>,                          \
+      #BaseYmerror_" must be of Ymerror type");                                     \
                                                                                     \
-   class DerivedYmception_ : public BaseYmception_                                  \
+   class DerivedYmerror_ : public BaseYmerror_                                      \
    {                                                                                \
    public:                                                                          \
-      explicit inline DerivedYmception_(std::string msg)                            \
-         : BaseYmception_(std::move(msg))                                           \
+      explicit inline DerivedYmerror_(std::string msg)                              \
+         : BaseYmerror_(std::move(msg))                                             \
       { }                                                                           \
                                                                                     \
-      virtual ~DerivedYmception_(void) = default;                                   \
+      virtual ~DerivedYmerror_(void) = default;                                     \
                                                                                     \
       template <Loggable... Args_T>                                                 \
       struct check                                                                  \
@@ -63,8 +61,8 @@
          {                                                                          \
             if (!Condition)                                                         \
             {                                                                       \
-               throw DerivedYmception_(                                             \
-                  assertHandler(#DerivedYmception_,                                 \
+               throw DerivedYmerror_(                                               \
+                  assertHandler(#DerivedYmerror_,                                   \
                                 SrcLoc,                                             \
                                 Format,                                             \
                                 Args...));                                          \
@@ -78,29 +76,29 @@
             Args_T const... Args) -> check<Args_T...>;                              \
    };
 
-/** YM_DECL_TAGGED_YMCEPT
+/** YM_DECL_TAGGED_YMERROR
  *
- * @brief Convenience macro to declare empty custom Ymception classes.
+ * @brief Convenience macro to declare empty custom Ymerror classes.
  * 
  * @note check() instead of assert() to avoid name clashes (like boost's #define assert).
  * 
  * @ref <https://en.cppreference.com/w/cpp/language/class_template_argument_deduction>
  *
- * @param DerivedYmception_ -- Name of custom Ymception class.
- * @param ...               -- List of enum fields.
+ * @param DerivedYmerror_ -- Name of custom Ymerror class.
+ * @param ...             -- List of enum fields.
  */
-#define YM_DECL_TAGGED_YMCEPT(DerivedTaggedYmception_, ...)                         \
-   class DerivedTaggedYmception_ : public Ymception                                 \
+#define YM_DECL_TAGGED_YMERROR(DerivedTaggedYmerror_, ...)                          \
+   class DerivedTaggedYmerror_ : public Ymerror                                     \
    {                                                                                \
    public:                                                                          \
-      enum class Tag_T : uint32 { __VA_ARGS__ };                                    \
+      enum Tag_T : uint32 { __VA_ARGS__ };                                          \
                                                                                     \
-      explicit inline DerivedTaggedYmception_(std::string msg,                      \
-                                              Tag_T const Tag)                      \
-         : Ymception(std::move(msg), std::to_underlying(Tag))                       \
+      explicit inline DerivedTaggedYmerror_(std::string msg,                        \
+                                            Tag_T const Tag)                        \
+         : Ymerror(std::move(msg), std::to_underlying(Tag))                         \
       { }                                                                           \
                                                                                     \
-      virtual ~DerivedTaggedYmception_(void) = default;                             \
+      virtual ~DerivedTaggedYmerror_(void) = default;                               \
                                                                                     \
       template <Loggable... Args_T>                                                 \
       struct check                                                                  \
@@ -114,8 +112,8 @@
          {                                                                          \
             if (!Condition)                                                         \
             {                                                                       \
-               throw DerivedTaggedYmception_(                                       \
-                  assertHandler(#DerivedTaggedYmception_,                           \
+               throw DerivedTaggedYmerror_(                                         \
+                  assertHandler(#DerivedTaggedYmerror_,                             \
                                 SrcLoc,                                             \
                                 Format,                                             \
                                 Args...), Tag);                                     \
@@ -130,38 +128,38 @@
             Args_T const... Args) -> check<Args_T...>;                              \
    };
 
-/** YM_DECL_YMCEPT1
+/** YM_DECL_YMERROR1
  *
- * @brief Convenience macro to declare empty custom Ymception classes.
+ * @brief Convenience macro to declare empty custom Ymerror classes.
  *
- * @param DerivedYmception_ -- Name of custom Ymception class.
+ * @param DerivedYmerror_ -- Name of custom Ymerror class.
  */
-#define YM_DECL_YMCEPT1(DerivedYmception_) YM_DECL_YMCEPT2(Ymception, DerivedYmception_)
+#define YM_DECL_YMERROR1(DerivedYmerror_) YM_DECL_YMERROR2(Ymerror, DerivedYmerror_)
 
 namespace ym
 {
 
-/** Ymceptable
+/** Ymerrorable
  *
- * @brief Represents a Ymception class.
+ * @brief Represents a Ymerror class.
  *
- * @tparam T -- Type that is or is derived from Ymception.
+ * @tparam T -- Type that is or is derived from Ymerror.
  */
 template <typename T>
-concept Ymceptable = std::is_base_of_v<class Ymception, T>;
+concept Ymerrorable = std::is_base_of_v<class Ymerror, T>;
 
-/** Ymception
+/** Ymerror
  *
  * @brief Base class for all custom exceptions in the ym namespace.
  * 
  * @ref <https://en.cppreference.com/w/cpp/language/eval_order>. See point 20.
  */
-class Ymception : public std::exception
+class Ymerror : public std::exception
 {
 public:
-   explicit Ymception(std::string  msg,
-                      uint32 const Tag = 0_u32);
-   virtual ~Ymception(void) = default;
+   explicit Ymerror(std::string  msg,
+                    uint32 const Tag = 0_u32);
+   virtual ~Ymerror(void) = default;
 
    virtual rawstr what(void) const noexcept override;
 

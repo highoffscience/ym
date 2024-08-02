@@ -24,7 +24,7 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   @brief Collection of all tests for SUT Ymception.
+   @brief Collection of all tests for SUT Ymerror.
    """
 
    @classmethod
@@ -34,8 +34,8 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
 
       super().setUpBaseClass(filepath="ym/common",
-                             filename="ymception",
-                             SUT_name="Ymception")
+                             filename="ymerror",
+                             SUT_name="Ymerror")
 
    @classmethod
    def tearDownClass(cls):
@@ -84,8 +84,8 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
 # kick-off
 if __name__ == "__main__":
-   if os.path.basename(os.getcwd()) != "ymception":
-      print("Needs to be run in the ymception/ directory")
+   if os.path.basename(os.getcwd()) != "ymerror":
+      print("Needs to be run in the ymerror/ directory")
       sys.exit(1)
 
    unittest.main()

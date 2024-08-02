@@ -7,10 +7,10 @@
 #include "ymdefs.h"
 #include "testsuite.h"
 
-#include "ymception.h"
+#include "ymerror.h"
 
 #include "textlogger.h"
-#include "ymception.h"
+#include "ymerror.h"
 
 #include <cstring>
 
@@ -19,19 +19,10 @@
  * @brief Constructor.
  */
 ym::ut::TestSuite::TestSuite(void)
-   : TestSuiteBase("Ymception")
+   : TestSuiteBase("Ymerror")
 {
    addTestCase<InteractiveInspection>();
    addTestCase<What                 >();
-}
-
-// TODO
-int main(void)
-{
-   ym::ut::TestSuite ts;
-   auto results = ts.runTestCase("What");
-   std::printf(":) %d\n", results.get<bool>("GAM"));
-   return 0;
 }
 
 /** run
@@ -42,7 +33,7 @@ int main(void)
  */
 auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_Ymception);
+   auto const SE = ymLogPushEnable(VG::UnitTest_Ymerror);
 
    return {
       {"True", true}
@@ -53,7 +44,7 @@ namespace ym
 {
    struct Test
    {
-      YM_DECL_YMCEPT(Ym_UT_Ymcept_What_Error)
+      YM_DECL_YMERROR(Ym_UT_Ymerror_What_Error)
    };
 } // ym
 
@@ -65,18 +56,19 @@ namespace ym
  */
 auto ym::ut::TestSuite::What::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_Ymception);
+   auto const SE = ymLogPushEnable(VG::UnitTest_Ymerror);
 
    bool generatedAppropriateMsg = false;
 
    try
    {
-      Test::Ym_UT_Ymcept_What_Error::check(false, "Go! Torchic!");
+      Test::Ym_UT_Ymerror_What_Error::check(false, "Go! Torchic!");
    }
    catch (std::exception const & E)
    {
       str const ExpectedMsg =
-         "Ym_UT_Ymcept_What_Error \"/home/forrest/code/ym/unittests/ym/common/ymception/testsuite.cpp:74\": Go! Torchic!";
+         "Ym_UT_Ymerror_What_Error \"/home/forrest/code/ym/unittests/ym/common/ymerror/testsuite.cpp:65\": Go! Torchic!";
+      ymLog(VG::UnitTest_Ymerror, "--> %s", E.what());
       generatedAppropriateMsg = std::strcmp(E.what(), ExpectedMsg) == 0;
    }
 
