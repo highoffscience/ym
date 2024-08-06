@@ -15,9 +15,80 @@ import sys
 sys.path.append("..")
 from ympyutils import *
 
+def getLinkMap():
+   """
+   @brief TODO
+
+   @note
+      ym.common
+         ym.common.argparser -> ym.common
+         ym.common.rng       -> ym.common
+         ym.common.timer     -> ym.common
+   """
+
+   return { # all
+      "@action": run_unittests, "@links": {
+         "ym": {
+            "@action": run_unittests, "@links": {
+               "common": {
+                  "@action": run_unittests, "@links": {
+                     "argparser": {"@action": run_unittest, "@links": "ym.common"},
+                     "rng"      : {"@action": run_unittest, "@links": "ym.common"},
+                     "timer"    : {"@action": run_unittest, "@links": "ym.common"}
+                  }
+               },
+               "hsm": {
+                  "@action": run_unittests, "@links": {
+                     "hsm": {"@action": run_unittest, "@links": "ym.hsm"}
+                  }
+               }
+            }
+         }
+      }
+   }
+
+def run_unittest(args,
+                 target:  str,
+                 cov_obj: str):
+   """
+   @brief Runs specific unittest.
+
+   @param args    -- Command line arguments.
+   @param target  -- Specified subset of unittests to run.
+   @param cov_obj -- Object to run coverage against (if applicable).
+   """
+
+   # testsuitebase makes decision on this variable so always set it to desired state
+   if args.cov:
+      os.environ["LLVM_PROFILE_FILE"] = f"./covbuild/profiles/{target}.profraw"
+   else:
+      if "LLVM_PROFILE_FILE" in os.environ:
+         del os.environ["LLVM_PROFILE_FILE"]
+
+   runCmd(f"python -m unittest {target}.testsuite", per_line_action_func=print)
+
+def run_unittests(args,
+                  target:   str,
+                  link_map: dict):
+   """
+   @brief Runs all unittests specified in link_map.
+
+   @param args     -- Command line arguments.
+   @param target   -- Specified subset of unittests to run.
+   @param link_map -- Map containing the subset of unittests to run.
+   """
+
+   for key, link in link_map.items():
+      link["@action"](args, f"{target}.{key}", link["@links"])
+
 def main():
    """
    @brief TODO
+
+   @note Available options:
+      --target
+         all
+         ym.common.argparser_unittest -> ym.common
    """
 
    parser = argparse.ArgumentParser()
@@ -41,6 +112,15 @@ def main():
 
       runCmd(f"cmake --build . --target {args.target}", cwd=build_dir, per_line_action_func=print)
 
+   if args.run:
+      link_map = getLinkMap()
+      if args.target != "all": # find desired subset of unittests
+         for link in args.target.split("."):
+            link_map = link_map["@links"][link]
+      link_map["@action"](args.target, link_map["@links"])
+
+   # ----------------------------------------
+
    # testsuitebase makes decision on this variable so always set it to desired state
    if args.cov:
       os.environ["LLVM_PROFILE_FILE"] = f"./covbuild/profiles/{args.target}.profraw"
@@ -55,8 +135,7 @@ def main():
             if "testsuite.py" in files:
                runCmd(f"python -m unittest {root.replace('/', '.')}.testsuite", per_line_action_func=print)
       else:
-         test_module_name = f"{args.target.replace('_unittest', '')}.testsuite"
-         runCmd(f"python -m unittest {test_module_name}", per_line_action_func=print)
+         runCmd(f"python -m unittest {args.target}", per_line_action_func=print)
          
       if args.cov:
          root_filename = os.path.splitext(os.environ["LLVM_PROFILE_FILE"])[0]
@@ -67,7 +146,8 @@ def main():
    
 # kick-off
 if __name__ == "__main__":
-   main()
+   #main()
+   getLinkMap()
 else:
    print("Meant to run stand-alone - not to be imported.")
    sys.exit(1)

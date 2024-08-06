@@ -8,14 +8,18 @@ cmake_minimum_required(VERSION 3.27)
 
 ## ym.common
 #
-# @brief Defines target to build ym.common, ym.common_all, and all child unittests.
+# @brief Defines target to build ym.common, and all child unittests.
 #
 function(ym.common)
    set(SubBuilds argparser datalogger fileio memio ops rng textlogger threadsafeproxy timer ymerror)
    set(SrcFilesPath ${YM_ProjRootDir}/ym/common/)
    set(Target ${CMAKE_CURRENT_FUNCTION})
+   set(TargetRun ${Target}_run)
 
    add_library(${Target} SHARED)
+
+   add_custom_target(${TargetRun})
+   add_dependencies(${TargetRun} ${Target})
 
    target_sources(${Target} PRIVATE ${SrcFilesPath}/logger.cpp)
 
@@ -29,23 +33,25 @@ function(ym.common)
       target_link_options(   ${Target} PRIVATE ${YM_CovFlags})
    endif()
 
-   set(TargetAll ${Target}_all)
-   add_custom_target(${TargetAll})
-   add_dependencies(${TargetAll} ${Target})
-
    foreach(SubBuild IN LISTS SubBuilds)
       if(EXISTS                           ${SrcFilesPath}/${SubBuild}.cpp)
          target_sources(${Target} PRIVATE ${SrcFilesPath}/${SubBuild}.cpp)
       endif()
 
+      set(SubTarget ym.common.${SubBuild})
+      set(SubTargetRun ${SubTarget}_run)
+
       set(SubBuildUTPath ${CMAKE_SOURCE_DIR}/ym/common/${SubBuild}/)
+
       if(EXISTS  ${SubBuildUTPath}/build.cmake)
          include(${SubBuildUTPath}/build.cmake)
-         cmake_language(CALL ym.common.${SubBuild}_unittest)
+         cmake_language(CALL ym.common.${SubBuild})
       else()
-         set(SubTarget ym.common.${SubBuild}_unittest)
-
          add_library(${SubTarget} SHARED)
+
+         add_custom_target(${SubTargetRun})
+         add_dependencies(${SubTargetRun} ${SubTarget})
+         add_custom_command(TARGET ${SubTargetRun} POST_BUILD COMMAND python -m unittest ${SubTarget}.testsuite)
 
          target_sources(${SubTarget} PRIVATE ${SubBuildUTPath}/testsuite.cpp)
 
@@ -61,7 +67,9 @@ function(ym.common)
          set_target_properties(${SubTarget} PROPERTIES VERSION ${PROJECT_VERSION})
          set_target_properties(${SubTarget} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_UTLibDir})
 
-         add_dependencies(${TargetAll} ${SubTarget})
+         add_dependencies(${Target} ${SubTarget})
       endif()
+
+      add_dependencies(${TargetRun} ${SubTargetRun})
    endforeach()
 endfunction()
