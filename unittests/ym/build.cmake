@@ -4,6 +4,8 @@
 # @author  Forrest Jablonski
 #
 
+# TODO ensure virtual environment is active if running unittests
+
 cmake_minimum_required(VERSION 3.27)
 
 ## ym
@@ -12,18 +14,16 @@ cmake_minimum_required(VERSION 3.27)
 #
 function(ym)
    set(SubDirs common)
-   set(Target ${CMAKE_CURRENT_FUNCTION})
+   set(TargetAll ${CMAKE_CURRENT_FUNCTION}_all)
    set(TargetRun ${Target}_run)
 
-   add_custom_target(${Target})
+   add_custom_target(${TargetAll})
    add_custom_target(${TargetRun})
-
-   add_dependencies(${TargetRun} ${Target})
 
    foreach(SubDir IN LISTS SubDirs)
       include(${CMAKE_SOURCE_DIR}/ym/${SubDir}/build.cmake)
       cmake_language(CALL ym.${SubDir})
-      add_dependencies(${Target} ym.${SubDir})
+      add_dependencies(${TargetAll} ym.${SubDir}_all)
       add_dependencies(${TargetRun} ym.${SubDir}_run)
    endforeach()
 endfunction()

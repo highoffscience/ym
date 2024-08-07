@@ -13,13 +13,12 @@ cmake_minimum_required(VERSION 3.27)
 # @brief Defines target to build the rng unittest.
 #
 function(ym.common.rng)
-   set(Target ${CMAKE_CURRENT_FUNCTION})
+   set(Target    ${CMAKE_CURRENT_FUNCTION})
    set(TargetRun ${Target}_run)
 
    add_library(${Target} SHARED)
 
-   add_custom_target(${TargetRun})
-   add_dependencies(${TargetRun} ${Target})
+   add_custom_target(${TargetRun} DEPENDS ${Target})
    add_custom_command(TARGET ${TargetRun} POST_BUILD COMMAND python -m unittest ${Target}.testsuite)
 
    target_sources(${Target} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/testsuite.cpp)
