@@ -51,7 +51,10 @@ function(ym.common)
          add_library(${SubTarget} SHARED)
 
          add_custom_target(${SubTargetRun} DEPENDS ${SubTarget})
-         add_custom_command(TARGET ${SubTargetRun} POST_BUILD COMMAND python -m unittest ${SubTarget}.testsuite)
+         add_custom_command(TARGET ${SubTargetRun}
+                            POST_BUILD
+                            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                            COMMAND python -m unittest ${SubTarget}.testsuite)
 
          target_sources(${SubTarget} PRIVATE ${SubBuildUTPath}/testsuite.cpp)
 
@@ -68,7 +71,7 @@ function(ym.common)
          set_target_properties(${SubTarget} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_UTLibDir})
       endif()
 
-      add_dependencies(${TargetAll}    ${SubTarget})
-      add_dependencies(${SubTargetRun} ${TargetRun})
+      add_dependencies(${TargetAll} ${SubTarget})
+      add_dependencies(${TargetRun} ${SubTargetRun})
    endforeach()
 endfunction()

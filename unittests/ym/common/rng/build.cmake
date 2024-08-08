@@ -19,7 +19,10 @@ function(ym.common.rng)
    add_library(${Target} SHARED)
 
    add_custom_target(${TargetRun} DEPENDS ${Target})
-   add_custom_command(TARGET ${TargetRun} POST_BUILD COMMAND python -m unittest ${Target}.testsuite)
+   add_custom_command(TARGET ${TargetRun}
+                      POST_BUILD
+                      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                      COMMAND python -m unittest ${Target}.testsuite)
 
    target_sources(${Target} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/testsuite.cpp)
 
