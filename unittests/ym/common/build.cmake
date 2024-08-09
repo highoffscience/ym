@@ -50,12 +50,6 @@ function(ym.common)
       else()
          add_library(${SubTarget} SHARED)
 
-         add_custom_target(${SubTargetRun} DEPENDS ${SubTarget})
-         add_custom_command(TARGET ${SubTargetRun}
-                            POST_BUILD
-                            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-                            COMMAND python -m unittest ${SubTarget}.testsuite)
-
          target_sources(${SubTarget} PRIVATE ${SubBuildUTPath}/testsuite.cpp)
 
          target_include_directories(${SubTarget} PRIVATE
@@ -73,5 +67,18 @@ function(ym.common)
 
       add_dependencies(${TargetAll} ${SubTarget})
       add_dependencies(${TargetRun} ${SubTargetRun})
+
+      add_custom_target(${SubTargetRun} DEPENDS ${SubTarget})
+
+      add_custom_command(TARGET ${SubTargetRun}
+                         PRE_BUILD
+                         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                         COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/check_pyvirtualenv.cmake)
+
+      add_custom_command(TARGET ${SubTargetRun}
+                         POST_BUILD
+                         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                         COMMAND python -m unittest ${SubTarget}.testsuite)
+
    endforeach()
 endfunction()

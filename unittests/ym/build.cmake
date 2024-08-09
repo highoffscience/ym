@@ -4,8 +4,6 @@
 # @author  Forrest Jablonski
 #
 
-# TODO ensure virtual environment is active if running unittests
-
 cmake_minimum_required(VERSION 3.27)
 
 ## ym
