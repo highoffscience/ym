@@ -3,6 +3,11 @@ Framework is still in progress.
 
 Install instructions
 
+To update submodules (cppyy and fmt) run
+git submodule update --init --recursive
+
+*Deprecated* cppyy and fmt are now submodules
+
 To update subtree (cppyy and fmt) run
 git subtree pull --prefix <cppyy|fmt|ym> <git-url> <branch-name> --squash
 
