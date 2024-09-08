@@ -34,8 +34,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
 
       super().setUpBaseClass(filepath="ym/common",
-                             filename="timer",
-                             SUT_name="Timer")
+                             filename="timer")
 
    @classmethod
    def tearDownClass(cls):

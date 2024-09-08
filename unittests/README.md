@@ -6,48 +6,54 @@ can experiment with "$jupyter lab <name-of-file>" after activating venv
 $ python -m venv venv/
 $ . ./venv/bin/activate
 $ python -m pip install -r requirements.txt
-$ mkdir build/
-$ cd build/
-$ cmake ..
-$ cd ..
-$ cmake --build build/ [--target <suite-name>]
-$ eg...
-$ cmake --build build/ [--target ym-common-textlogger]
+$ mkdir build/ | covbuild/
+$ cd build/ | covbuild/
+$ cmake .. [-DYM_COV_ENABLED=True|False]
+$ cmake --build . [--target <suite-name>[_run]]
+
+eg...
+$ cmake --build . --target ym.common.ymdefs[_run]
+
+To clean, eg...
+$ cmake --build . --target clean
+
+Produced libraries are placed in customlibs/
+The "_run" option will build the testsuite(s) and then run it
+If running for coverage it will optionally produce coverage files in profiles/
 
 To add a new unittest suite:
 Use setup_ut_scaffold.py
 Edit generated files as appropriate
-Edit runner.py
 Edit CMakeLists.txt
 
-If the SUT requires extra care to test make sure CMakeLists.txt exists in the directory
+If the suite requires extra care to test you can add a custom build.cmake to the test suite directory
+
+// -----------------------------------------------------------------------------
 
 Unittests require to be run in the venv
 $ . ./venv/bin/activate
 
-To run a unittest, eg...
-$ python -m unittest ym.common.textlogger.testsuite
+To run a unittest manually, eg...
+$ python -m unittest ym.common.ymdefs.testsuite
 
 To run a specific test, eg...
-$ python -m unittest ym.common.textlogger.testsuite.TestSuite.test_OpenAndClose
+$ python -m unittest ym.common.ymdefs.testsuite.TestSuite.test_InteractiveInspection
 
 Test suites can also be run in the directory, eg...
 $ python testsuite.py
+
+// -----------------------------------------------------------------------------
 
 <https://clang.llvm.org/docs/SourceBasedCodeCoverage.html>
 <https://llvm.org/docs/CommandGuide/llvm-cov.html>
 
 To prepare testing for coverage do the following:
-$ rm -rf covbuild/*
-$ . ./set_cov_env.sh
-rebuild using cmake
-Run the desired unit test, eg (TODO below instructions need work)
-   $ LLVM_PROFILE_FILE="<filename>.profraw"
-   $ python -m unittest ...
-$ llvm-profdata merge default.profraw -o default.profdata
-$ llvm-cov show <desired-obj-file> -instr-profile=default.profdata -format=html > default-covprofile.html
+$ cd covbuild/
+$ cmake .. -DYM_COV_ENABLED=True
+$ cmake --build . --target clean
 
-And below shows
-$ llvm-cov report <desired-obj-file> -instr-profile=default.profdata
+TODO
+llvm-profdata merge doesn't merge all the files
 
-The desired obj file can be the .so or a .o that comprises the .so
+The scripts use llvm-cov show, but could also use llvm-cov report...
+$ llvm-cov report <desired-obj-file> -instr-profile=<testsuite>.profdata

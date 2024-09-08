@@ -34,8 +34,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
 
       super().setUpBaseClass(filepath="ym/common",
-                             filename="fileio",
-                             SUT_name="FileIO")
+                             filename="fileio")
 
    @classmethod
    def tearDownClass(cls):

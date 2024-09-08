@@ -72,17 +72,22 @@ static_assert(__cplusplus >= 202002L, "At least C++20 standard required");
  * @param ClassName_ -- Name of class.
  */
 
-#define YM_NO_DEFAULT(        ClassName_ ) ClassName_              (void              ) = delete;
-#define YM_NO_COPY(           ClassName_ ) ClassName_              (ClassName_ const &) = delete;
-#define YM_NO_ASSIGN(         ClassName_ ) ClassName_ & operator = (ClassName_ const &) = delete;
-#define YM_NO_MOVE_CONSTRUCT( ClassName_ ) ClassName_              (ClassName_ &&     ) = delete;
-#define YM_NO_MOVE_ASSIGN(    ClassName_ ) ClassName_ & operator = (ClassName_ &&     ) = delete;
+#define YM_NO_DEFAULT(     ClassName_ ) ClassName_              (void              ) = delete;
+#define YM_NO_COPY(        ClassName_ ) ClassName_              (ClassName_ const &) = delete;
+#define YM_NO_ASSIGN(      ClassName_ ) ClassName_ & operator = (ClassName_ const &) = delete;
+#define YM_NO_MOVE_COPY(   ClassName_ ) ClassName_              (ClassName_ &&     ) = delete;
+#define YM_NO_MOVE_ASSIGN( ClassName_ ) ClassName_ & operator = (ClassName_ &&     ) = delete;
 
 /** YM_MACRO_OVERLOAD
  * 
  * @brief Helper macro to allow for macro overloading based on number of arguments.
  * 
  * @ref <https://stackoverflow.com/questions/11761703/overloading-macro-on-number-of-arguments>
+ * 
+ * @note Example:
+ *    #define YM_MY_MACRO(...) YM_MACRO_OVERLOAD(YM_MY_MACRO, __VA_ARGS__)
+ *    #define YM_MY_MACRO1(First) ...
+ *    #define YM_MY_MACRO2(First, Second) ...
  * 
  * @param MACRO_ -- Name of macro to overload.
  * @param ...    -- Args to pass to macro.
@@ -100,11 +105,18 @@ static_assert(__cplusplus >= 202002L, "At least C++20 standard required");
 #define YM_MACRO_OVERLOAD(MACRO_, ...) \
    YM_MACRO_OVERLOAD_HELPER_2(MACRO_, YM__NARG__(__VA_ARGS__)) (__VA_ARGS__)
 
-/** YM_IMPLICIT
+/** implicit
  * 
  * @brief Used to make constructors explicitly implicit.
+ * 
+ * @note Name is not "YM_IMPLICIT" because it is more natural to write "implicit".
  */
-#define YM_IMPLICIT
+#if defined(implicit)
+   // if we get here consider using YM_IMPLICIT (or ymimplicit)
+   #error "implicit macro already defined"
+#else
+   #define implicit
+#endif
 
 // ----------------------------------------------------------------------------
 
@@ -201,7 +213,7 @@ class BoundedPtr
 {
 public:
    // TODO add std::source_location as default argument
-   YM_IMPLICIT constexpr BoundedPtr(T * const t_Ptr)
+   implicit constexpr BoundedPtr(T * const t_Ptr)
       : _t_ptr {t_Ptr}
    {
       if (!get())
@@ -216,6 +228,7 @@ public:
    constexpr operator T       * (void)       { return get(); }
    constexpr operator T const * (void) const { return get(); }
 
+   // TODO constexpr auto && get (this auto && self) { return self._t_ptr; }
    constexpr T       * get        (void)       { return _t_ptr; }
    constexpr T const * get        (void) const { return _t_ptr; }
 

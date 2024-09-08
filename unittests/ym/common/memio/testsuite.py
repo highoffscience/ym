@@ -34,8 +34,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
 
       super().setUpBaseClass(filepath="ym/common/",
-                             filename="memio",
-                             SUT_name="MemIO")
+                             filename="memio")
 
    @classmethod
    def tearDownClass(cls):

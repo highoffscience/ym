@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 3.27)
 # @brief Defines target to build ym.common, and all child unittests.
 #
 function(ym.common)
-   set(SubBuilds argparser datalogger fileio memio ops rng textlogger threadsafeproxy timer ymerror)
+   set(SubBuilds argparser datalogger fileio memio ops rng textlogger threadsafeproxy timer ymdefs ymerror)
    set(SrcFilesPath ${YM_ProjRootDir}/ym/common/)
    set(Target       ${CMAKE_CURRENT_FUNCTION})
    set(TargetAll    ${Target}_all)
@@ -61,8 +61,10 @@ function(ym.common)
          target_link_libraries(${SubTarget} PRIVATE ut.common)
          target_link_libraries(${SubTarget} PRIVATE ym.common)
 
-         set_target_properties(${SubTarget} PROPERTIES VERSION ${PROJECT_VERSION})
-         set_target_properties(${SubTarget} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_UTLibDir})
+         set_target_properties(${SubTarget} PROPERTIES
+            VERSION ${PROJECT_VERSION}
+            LIBRARY_OUTPUT_DIRECTORY ${YM_UTLibDir}
+            OUTPUT_NAME ${SubTarget}_unittest)
       endif()
 
       add_dependencies(${TargetAll} ${SubTarget})
@@ -71,14 +73,20 @@ function(ym.common)
       add_custom_target(${SubTargetRun} DEPENDS ${SubTarget})
 
       add_custom_command(TARGET ${SubTargetRun}
-                         PRE_BUILD
-                         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-                         COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/check_pyvirtualenv.cmake)
+         PRE_BUILD
+         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+         COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/check_pyvirtualenv.cmake)
 
       add_custom_command(TARGET ${SubTargetRun}
-                         POST_BUILD
-                         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-                         COMMAND python -m unittest ${SubTarget}.testsuite)
-
+         POST_BUILD
+         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+         BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles/
+         COMMAND ${CMAKE_COMMAND} -D YM_COV_ENABLED=${YM_COV_ENABLED}
+                                  -D TARGET_NAME=${SubTarget}
+                                  -D OBJECT_NAME=lib${Target}.so
+                                  -P ${CMAKE_SOURCE_DIR}/run_unittest.cmake)
    endforeach()
+
+   # TODO
+   # add custom command that attaches to main target that merges all cov files
 endfunction()

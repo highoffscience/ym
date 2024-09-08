@@ -12,7 +12,8 @@ cmake_minimum_required(VERSION 3.27)
 #
 function(ym)
    set(SubDirs common)
-   set(TargetAll ${CMAKE_CURRENT_FUNCTION}_all)
+   set(Target    ${CMAKE_CURRENT_FUNCTION})
+   set(TargetAll ${Target}_all)
    set(TargetRun ${Target}_run)
 
    add_custom_target(${TargetAll})
@@ -24,4 +25,7 @@ function(ym)
       add_dependencies(${TargetAll} ym.${SubDir}_all)
       add_dependencies(${TargetRun} ym.${SubDir}_run)
    endforeach()
+
+   # TODO
+   # add custom command that attaches to main target that merges all cov files
 endfunction()

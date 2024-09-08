@@ -8,9 +8,6 @@ import os
 import sys
 import unittest
 
-import numpy as np
-from scipy.stats import binom as bn
-
 try:
    # @note Grabs the first directory in the chain named unittests/.
    sys.path.append(os.path.join(os.getcwd().split("unittests")[0], "unittests/"))
@@ -27,7 +24,7 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   @brief Collection of all tests for SUT PRNG.
+   @brief Collection of all tests for suite YmDefs.
    """
 
    @classmethod
@@ -36,15 +33,15 @@ class TestSuite(testsuitebase.TestSuiteBase):
       @brief Acting constructor.
       """
 
-      super().setUpBaseClass(filepath="ym/common",
-                             filename="rng")
+      super().setUpBaseClass(filepath="ym/common/",
+                             filename="ymdefs")
 
    @classmethod
    def tearDownClass(cls):
       """
       @brief Acting destructor.
       """
-      pass
+      super().tearDownBaseClass()
 
    def setUp(self):
       """
@@ -58,7 +55,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       pass
 
-   def test_ZerosAndOnes(self):
+   def test_InteractiveInspection(self):
       """
       @brief Analyzes results from test case.
 
@@ -68,17 +65,9 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
-      results = self.run_test_case("ZerosAndOnes")
+      # results = self.run_test_case("InteractiveInspection")
 
-      set_bit_vector = results.get[std.vector[std.pair[ym.utdefs.uint64, ym.utdefs.uint64]]]("SetBitVector")
-      for set_bits in set_bit_vector:
-         nTrials    = set_bits.first
-         kSuccesses = set_bits.second
-         assumedProb = 0.5
-         probOfResultOrWorse = bn.cdf(kSuccesses, nTrials, assumedProb)
-         print(f"For {nTrials} trials, prob of {kSuccesses} or worse {(probOfResultOrWorse*100):0.2f}%")
-
-   def test_UniformBins(self):
+   def test_BigFiveDeleteMacros(self):
       """
       @brief Analyzes results from test case.
 
@@ -88,19 +77,14 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
-      results = self.run_test_case("UniformBins")
+      results = self.run_test_case("BigFiveDeleteMacros")
 
-      for bin_name in ["u32", "u64", "f32", "f64"]:
-         bin_counts = np.array(results.get[std.vector[ym.utdefs.uint64]](f"{bin_name}Bins"))
-         print(f"std of {bin_name} bins {bin_counts.std()}")
-         print(f"min of {bin_name} bins {bin_counts.min()}")
-         print(f"max of {bin_name} bins {bin_counts.max()}")
-         print(f"ave of {bin_name} bins {bin_counts.mean()}")
+      self.assertTrue(results.get[bool]("Defined"), "Macros not defined")
 
 # kick-off
 if __name__ == "__main__":
-   if os.path.basename(os.getcwd()) != "rng":
-      print("Needs to be run in the rng/ directory")
+   if os.path.basename(os.getcwd()) != "ymdefs":
+      print("Needs to be run in the ymdefs/ directory")
       sys.exit(1)
 
    unittest.main()

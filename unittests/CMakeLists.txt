@@ -11,7 +11,6 @@ cmake_minimum_required(VERSION 3.27)
 
 if (YM_COV_ENABLED)
    message("Cov mode enabled")
-
    set(YM_CovFlags -fprofile-instr-generate -fcoverage-mapping) # also used in linking
    set(CMAKE_C_COMPILER   "clang")   # /usr/bin/clang-17
    set(CMAKE_CXX_COMPILER "clang++") # /usr/bin/clang++-17

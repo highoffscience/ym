@@ -9,7 +9,7 @@ import sys
 import unittest
 
 try:
-   # @note Grabs the first directory in the chain named unittests/.
+   # @note grabs the first directory in the chain named unittests/
    sys.path.append(os.path.join(os.getcwd().split("unittests")[0], "unittests/"))
    import testsuitebase
 except:
@@ -34,8 +34,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
 
       super().setUpBaseClass(filepath="ym/common/",
-                             filename="argparser",
-                             SUT_name="ArgParser")
+                             filename="argparser")
 
    @classmethod
    def tearDownClass(cls):

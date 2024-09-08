@@ -5,7 +5,6 @@
 #
 
 import os
-import pathlib
 import sys
 import unittest
 
@@ -25,25 +24,22 @@ class TestSuiteBase(unittest.TestCase):
 
    @classmethod
    def setUpBaseClass(cls, filepath: str,
-                           filename: str,
-                           SUT_name: str):
+                           filename: str):
       """
       @brief Acting constructor.
 
-      @param filepath -- Path of SUT relative to unittests/ directory.
-      @param filename -- Name of SUT file.
-      @param SUT_name -- Name of SUT.
+      @param filepath -- Path of suite relative to unittests/ directory.
+      @param filename -- Name of suite file.
       """
 
-      cls.filepath    = filepath
-      cls.filename    = filename
-      cls.SUT_name    = SUT_name # TODO we don't need this
+      cls.filepath     = filepath
+      cls.filename     = filename
 
-      cls.ut_rootpath = os.path.dirname(os.path.abspath(__file__))
-      cls.rootpath    = os.path.join(cls.ut_rootpath, "../../")
+      cls.ut_rootpath  = os.path.dirname(os.path.abspath(__file__))
+      cls.rootpath     = os.path.join(cls.ut_rootpath, "../../")
 
-      cls.SUTpath     = os.path.join(cls.rootpath,    cls.filepath)
-      cls.ut_SUTpath  = os.path.join(cls.ut_rootpath, cls.filepath, cls.filename)
+      cls.suitepath    = os.path.join(cls.rootpath,    cls.filepath)
+      cls.ut_suitepath = os.path.join(cls.ut_rootpath, cls.filepath, cls.filename)
 
       cls.configCppyy()
 
@@ -61,14 +57,14 @@ class TestSuiteBase(unittest.TestCase):
       """
 
       cppyy.add_include_path(os.path.join(cls.ut_rootpath, "common/"))
-      cppyy.add_include_path(cls.SUTpath   )
-      cppyy.add_include_path(cls.ut_SUTpath)
+      cppyy.add_include_path(cls.suitepath   )
+      cppyy.add_include_path(cls.ut_suitepath)
 
-      cppyy.include(os.path.join(cls.ut_SUTpath, "testsuite.h"))
+      cppyy.include(os.path.join(cls.ut_suitepath, "testsuite.h"))
 
       build_path = "covbuild/" if os.environ.get("LLVM_PROFILE_FILE", default=None) else "build/"
       cppyy.add_library_path(os.path.join(cls.ut_rootpath, build_path, "customlibs/"))
-      cppyy.load_library(f"lib{os.path.join(cls.filepath, cls.filename).replace('/', '.')}")
+      cppyy.load_library(f"lib{os.path.join(cls.filepath, cls.filename).replace('/', '.')}_unittest")
 
    def run_test_case(self, test_case_name: str):
       """

@@ -21,7 +21,7 @@ template <typename T>
 class BoundedPtr
 {
 public:
-   YM_IMPLICIT constexpr BoundedPtr(T * const t_Ptr)
+   implicit constexpr BoundedPtr(T * const t_Ptr)
       : _t_ptr {t_Ptr}
    {
       UtilError::check(get(), "Bounded ptr cannot be null");

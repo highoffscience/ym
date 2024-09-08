@@ -34,8 +34,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
 
       super().setUpBaseClass(filepath="ym/common",
-                             filename="threadsafeproxy",
-                             SUT_name="ThreadSafeProxy")
+                             filename="threadsafeproxy")
 
    @classmethod
    def tearDownClass(cls):
