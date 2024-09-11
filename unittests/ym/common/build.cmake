@@ -29,7 +29,7 @@ function(ym.common)
 
    target_compile_options(${Target} PRIVATE -DYM_COMMON_UT_DBG)
 
-   if (YM_COV_ENABLED)
+   if (${COV_ENABLED})
       target_compile_options(${Target} PRIVATE ${YM_CovFlags})
       target_link_options(   ${Target} PRIVATE ${YM_CovFlags})
    endif()
@@ -42,7 +42,7 @@ function(ym.common)
       set(SubTarget    ym.common.${SubBuild})
       set(SubTargetRun ${SubTarget}_run)
 
-      set(SubBuildUTPath ${CMAKE_SOURCE_DIR}/ym/common/${SubBuild}/)
+      set(SubBuildUTPath ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/${SubBuild}/)
 
       if(EXISTS  ${SubBuildUTPath}/build.cmake)
          include(${SubBuildUTPath}/build.cmake)
@@ -81,12 +81,21 @@ function(ym.common)
          POST_BUILD
          WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
          BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles/
-         COMMAND ${CMAKE_COMMAND} -D YM_COV_ENABLED=${YM_COV_ENABLED}
+         COMMAND ${CMAKE_COMMAND} -D COV_ENABLED=${COV_ENABLED}
                                   -D TARGET_NAME=${SubTarget}
                                   -D OBJECT_NAME=lib${Target}.so
                                   -P ${CMAKE_SOURCE_DIR}/run_unittest.cmake)
    endforeach()
 
-   # TODO
-   # add custom command that attaches to main target that merges all cov files
+   if (${COV_ENABLED})
+      add_custom_command(TARGET ${TargetRun}
+         POST_BUILD
+         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+         BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles/
+         COMMAND ${CMAKE_COMMAND} -D TARGET_NAME=${Target}
+                                  -D SUBTARGET_NAMES="${SubBuilds}"
+                                  -D OBJECT_NAME=lib${Target}.so
+                                  -P ${CMAKE_SOURCE_DIR}/merge_covdata.cmake)
+   endif()
+
 endfunction()

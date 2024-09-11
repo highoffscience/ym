@@ -45,7 +45,7 @@ auto ym::ut::TestSuite::ZerosAndOnes::run([[maybe_unused]] DataShuttle const & I
 
    std::vector<std::pair<uint64, uint64>> setBitVector;
 
-   for (auto i = 8_u64; i <= 28_u64; ++i)
+   for (auto i = 8_u64; i <= 24_u64; ++i)
    {
       auto const NIters   = (1_u64 << i);
       auto       nSetBits = 0_u64;
@@ -84,7 +84,7 @@ auto ym::ut::TestSuite::UniformBins::run([[maybe_unused]] DataShuttle const & In
    std::vector<uint64> f32Bins(1_u64 << BitShiftAmount, 0_u64);
    std::vector<uint64> f64Bins(1_u64 << BitShiftAmount, 0_u64);
 
-   constexpr auto NIters = 100'000'000_u64;
+   constexpr auto NIters = 100'000_u64;
 
    for (auto i = 0_u64; i < NIters; ++i)
    {

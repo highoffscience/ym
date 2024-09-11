@@ -25,7 +25,4 @@ function(ym)
       add_dependencies(${TargetAll} ym.${SubDir}_all)
       add_dependencies(${TargetRun} ym.${SubDir}_run)
    endforeach()
-
-   # TODO
-   # add custom command that attaches to main target that merges all cov files
 endfunction()

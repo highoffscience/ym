@@ -29,6 +29,8 @@ function(ym.common.rng)
    target_link_libraries(${Target} PRIVATE ut.common)
    target_link_libraries(${Target} PRIVATE ym.common)
 
-   set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
-   set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_UTLibDir})
+   set_target_properties(${Target} PROPERTIES
+            VERSION ${PROJECT_VERSION}
+            LIBRARY_OUTPUT_DIRECTORY ${YM_UTLibDir}
+            OUTPUT_NAME ${Target}_unittest)
 endfunction()

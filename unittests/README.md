@@ -8,7 +8,7 @@ $ . ./venv/bin/activate
 $ python -m pip install -r requirements.txt
 $ mkdir build/ | covbuild/
 $ cd build/ | covbuild/
-$ cmake .. [-DYM_COV_ENABLED=True|False]
+$ cmake .. [-DCOV_ENABLED=True|False]
 $ cmake --build . [--target <suite-name>[_run]]
 
 eg...
@@ -49,11 +49,8 @@ $ python testsuite.py
 
 To prepare testing for coverage do the following:
 $ cd covbuild/
-$ cmake .. -DYM_COV_ENABLED=True
+$ cmake .. -DCOV_ENABLED=True
 $ cmake --build . --target clean
-
-TODO
-llvm-profdata merge doesn't merge all the files
 
 The scripts use llvm-cov show, but could also use llvm-cov report...
 $ llvm-cov report <desired-obj-file> -instr-profile=<testsuite>.profdata
