@@ -4,7 +4,7 @@
 
 #include "TopicManager.h"
 
-#include "Ymerror.h"
+#include "YmError.h"
 
 #include "Event.h"
 #include "Hsm.h"

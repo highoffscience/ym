@@ -19,6 +19,7 @@ ym::ut::TestSuite::TestSuite(void)
 {
    addTestCase<InteractiveInspection>();
    addTestCase<BigFiveDeleteMacros  >();
+   addTestCase<OverloadMacros       >();
 }
 
 /** run
@@ -55,5 +56,28 @@ auto ym::ut::TestSuite::BigFiveDeleteMacros::run([[maybe_unused]] DataShuttle co
 
    return {
       {"Defined", true}
+   };
+}
+
+/** run
+ *
+ * @brief Interactive inspection - for debug purposes.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::ut::TestSuite::OverloadMacros::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VG::UnitTest_YmDefs);
+
+   #define YM_SUM(...) YM_MACRO_OVERLOAD(YM_SUM, __VA_ARGS__)
+   #define YM_SUM1(First) (First)
+   #define YM_SUM2(First, Second) (YM_SUM1(First) + YM_SUM1(Second))
+   #define YM_SUM3(First, Second, Third) (YM_SUM2(First, Second) + YM_SUM1(Third))
+   #define YM_SUM4(First, Second, Third, Fourth) (YM_SUM3(First, Second, Third) + YM_SUM1(Fourth))
+
+   auto const Sum = YM_SUM(1, 2, 3, 4);
+
+   return {
+      {"Sum", Sum}
    };
 }

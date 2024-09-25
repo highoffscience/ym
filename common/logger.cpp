@@ -58,7 +58,7 @@ bool ym::Logger::openOutfile(str            const Filename,
 
    if (!isOutfileOpened())
    { // file not opened
-      if (ymIsStrNonEmpty(Filename))
+      if (*Filename)
       { // valid filename specified
          if (FilenameMode == FilenameMode_T::AppendTimeStamp)
          { // append file stamp
@@ -71,7 +71,7 @@ bool ym::Logger::openOutfile(str            const Filename,
                LoggerError_FailureToOpen::check(!std::filesystem::exists(Filename.get()),
                   "File (or directory) %s already exists", Filename.get());
             }
-            catch (Ymerror const & E)
+            catch (YmError const & E)
             { // re-throw
                throw;
             }

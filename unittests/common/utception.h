@@ -36,8 +36,8 @@ namespace ym::ut
  * 
  * @brief Base class for unittest exceptions.
  * 
- * @note cppyy knows how to parse Utception classes but not Ymerror classes. As such
- *       any potential escapes of Ymerror needs to be caught and re-thrown as a
+ * @note cppyy knows how to parse Utception classes but not YmError classes. As such
+ *       any potential escapes of YmError needs to be caught and re-thrown as a
  *       Utception.
  */
 class Utception : public std::exception

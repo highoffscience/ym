@@ -27,28 +27,28 @@
 
 /** YM_DECL_YMERROR2
  *
- * @brief Convenience macro to declare empty custom Ymerror classes.
+ * @brief Convenience macro to declare empty custom YmError classes.
  * 
  * @note check() instead of assert() to avoid name clashes (like boost's #define assert).
  * 
  * @ref <https://en.cppreference.com/w/cpp/language/class_template_argument_deduction>
  *
- * @param BaseYmerror_    -- Name of base class.
- * @param DerivedYmerror_ -- Name of custom Ymerror class.
+ * @param BaseYmError_    -- Name of base class.
+ * @param DerivedYmError_ -- Name of custom YmError class.
  */
-#define YM_DECL_YMERROR2(BaseYmerror_, DerivedYmerror_)                             \
+#define YM_DECL_YMERROR2(BaseYmError_, DerivedYmError_)                             \
                                                                                     \
-   static_assert(std::is_base_of_v<Ymerror, BaseYmerror_>,                          \
-      #BaseYmerror_" must be of Ymerror type");                                     \
+   static_assert(std::is_base_of_v<YmError, BaseYmError_>,                          \
+      #BaseYmError_" must be of YmError type");                                     \
                                                                                     \
-   class DerivedYmerror_ : public BaseYmerror_                                      \
+   class DerivedYmError_ : public BaseYmError_                                      \
    {                                                                                \
    public:                                                                          \
-      explicit inline DerivedYmerror_(std::string msg)                              \
-         : BaseYmerror_(std::move(msg))                                             \
+      explicit inline DerivedYmError_(std::string msg)                              \
+         : BaseYmError_(std::move(msg))                                             \
       { }                                                                           \
                                                                                     \
-      virtual ~DerivedYmerror_(void) = default;                                     \
+      virtual ~DerivedYmError_(void) = default;                                     \
                                                                                     \
       template <Loggable... Args_T>                                                 \
       struct check                                                                  \
@@ -61,8 +61,8 @@
          {                                                                          \
             if (!Condition)                                                         \
             {                                                                       \
-               throw DerivedYmerror_(                                               \
-                  assertHandler(#DerivedYmerror_,                                   \
+               throw DerivedYmError_(                                               \
+                  assertHandler(#DerivedYmError_,                                   \
                                 SrcLoc,                                             \
                                 Format,                                             \
                                 Args...));                                          \
@@ -76,29 +76,37 @@
             Args_T const... Args) -> check<Args_T...>;                              \
    };
 
+/** YM_DECL_YMERROR1
+ *
+ * @brief Convenience macro to declare empty custom YmError classes.
+ *
+ * @param DerivedYmError_ -- Name of custom YmError class.
+ */
+#define YM_DECL_YMERROR1(DerivedYmError_) YM_DECL_YMERROR2(YmError, DerivedYmError_)
+
 /** YM_DECL_TAGGED_YMERROR
  *
- * @brief Convenience macro to declare empty custom Ymerror classes.
+ * @brief Convenience macro to declare empty custom YmError classes.
  * 
  * @note check() instead of assert() to avoid name clashes (like boost's #define assert).
  * 
  * @ref <https://en.cppreference.com/w/cpp/language/class_template_argument_deduction>
  *
- * @param DerivedYmerror_ -- Name of custom Ymerror class.
+ * @param DerivedYmError_ -- Name of custom YmError class.
  * @param ...             -- List of enum fields.
  */
-#define YM_DECL_TAGGED_YMERROR(DerivedTaggedYmerror_, ...)                          \
-   class DerivedTaggedYmerror_ : public Ymerror                                     \
+#define YM_DECL_TAGGED_YMERROR(DerivedTaggedYmError_, ...)                          \
+   class DerivedTaggedYmError_ : public YmError                                     \
    {                                                                                \
    public:                                                                          \
       enum Tag_T : uint32 { __VA_ARGS__ };                                          \
                                                                                     \
-      explicit inline DerivedTaggedYmerror_(std::string msg,                        \
+      explicit inline DerivedTaggedYmError_(std::string msg,                        \
                                             Tag_T const Tag)                        \
-         : Ymerror(std::move(msg), std::to_underlying(Tag))                         \
+         : YmError(std::move(msg), std::to_underlying(Tag))                         \
       { }                                                                           \
                                                                                     \
-      virtual ~DerivedTaggedYmerror_(void) = default;                               \
+      virtual ~DerivedTaggedYmError_(void) = default;                               \
                                                                                     \
       template <Loggable... Args_T>                                                 \
       struct check                                                                  \
@@ -112,8 +120,8 @@
          {                                                                          \
             if (!Condition)                                                         \
             {                                                                       \
-               throw DerivedTaggedYmerror_(                                         \
-                  assertHandler(#DerivedTaggedYmerror_,                             \
+               throw DerivedTaggedYmError_(                                         \
+                  assertHandler(#DerivedTaggedYmError_,                             \
                                 SrcLoc,                                             \
                                 Format,                                             \
                                 Args...), Tag);                                     \
@@ -128,38 +136,30 @@
             Args_T const... Args) -> check<Args_T...>;                              \
    };
 
-/** YM_DECL_YMERROR1
- *
- * @brief Convenience macro to declare empty custom Ymerror classes.
- *
- * @param DerivedYmerror_ -- Name of custom Ymerror class.
- */
-#define YM_DECL_YMERROR1(DerivedYmerror_) YM_DECL_YMERROR2(Ymerror, DerivedYmerror_)
-
 namespace ym
 {
 
-/** Ymerrorable
+/** YmErrorable
  *
- * @brief Represents a Ymerror class.
+ * @brief Represents a YmError class.
  *
- * @tparam T -- Type that is or is derived from Ymerror.
+ * @tparam T -- Type that is or is derived from YmError.
  */
 template <typename T>
-concept Ymerrorable = std::is_base_of_v<class Ymerror, T>;
+concept YmErrorable = std::is_base_of_v<class YmError, T>;
 
-/** Ymerror
+/** YmError
  *
  * @brief Base class for all custom exceptions in the ym namespace.
  * 
  * @ref <https://en.cppreference.com/w/cpp/language/eval_order>. See point 20.
  */
-class Ymerror : public std::exception
+class YmError : public std::exception
 {
 public:
-   explicit Ymerror(std::string  msg,
+   explicit YmError(std::string  msg,
                     uint32 const Tag = 0_u32);
-   virtual ~Ymerror(void) = default;
+   virtual ~YmError(void) = default;
 
    virtual rawstr what(void) const noexcept override;
 

@@ -229,7 +229,7 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
       // --- --- validate key name --- ---
 
       ArgParserError::check(ArgParserError::ArgError,
-         ymIsStrNonEmpty(Key), "Name must be non-empty");
+         *Key, "Name must be non-empty");
       ArgParserError::check(ArgParserError::ArgError,
          std::strcmp(Key, "help") != 0, "Arg cannot be named the reserved word 'help'");
 
@@ -243,7 +243,7 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
       // --- --- validate description --- ---
 
       ArgParserError::check(ArgParserError::ArgError,
-         ymIsStrNonEmpty(Desc), "Description must be non-empty");
+         *Desc, "Description must be non-empty");
 
       // --- --- validate value --- ---
 

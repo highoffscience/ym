@@ -7,11 +7,12 @@
 #pragma once
 
 #include "ymdefs.h"
+#include "ymerror.h"
+#include "ymutils.h"
 
 #include "logger.h"
 #include "memio.h"
 #include "nameable.h"
-#include "ymerror.h"
 
 #include <string>
 #include <vector>

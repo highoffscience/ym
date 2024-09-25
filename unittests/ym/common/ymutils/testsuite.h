@@ -15,7 +15,7 @@ namespace ym::ut
 
 /** TestSuite
  *
- * @brief Test suite for YmDefs.
+ * @brief Test suite for YmUtils.
  */
 class TestSuite : public TestSuiteBase
 {
@@ -24,8 +24,9 @@ public:
    virtual ~TestSuite(void) = default;
 
    YM_UT_TESTCASE(InteractiveInspection)
-   YM_UT_TESTCASE(BigFiveDeleteMacros  )
-   YM_UT_TESTCASE(OverloadMacros       )
+   YM_UT_TESTCASE(PtrToIntConversion   )
+   YM_UT_TESTCASE(BoundedPtrClass      )
+   YM_UT_TESTCASE(BinarySearch         )
 };
 
 } // ym::ut

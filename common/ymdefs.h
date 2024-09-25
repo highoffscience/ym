@@ -13,16 +13,36 @@
 
 #pragma once
 
+/**
+ * @brief Helper define's for the current cpp standard.
+ */
+#if (__cplusplus >= 201703L)
+   #if (__cplusplus >= 202002L)
+      #if (__cplusplus >= 202302L)
+         #define YM_CPP_STANDARD 23
+      #else
+         #define YM_CPP_STANDARD 20
+      #endif
+   #else
+      #define YM_CPP_STANDARD 17
+   #endif
+#else
+   #error "At least C++17 standard required"
+#endif
+
+// ----------------------------------------------------------------------------
+
 #include <algorithm>
 #include <cstdint>
 #include <exception>
 #include <limits>
+#include <stdexcept>
 #include <type_traits>
 #include <utility>
 
-// ----------------------------------------------------------------------------
-
-static_assert(__cplusplus >= 202002L, "At least C++20 standard required");
+#if (YM_CPP_STANDARD >= 20)
+   #include <source_location>
+#endif
 
 // ----------------------------------------------------------------------------
 
@@ -130,8 +150,8 @@ namespace ym
  *       are structured unorthodoxically so all supported compilers can parse it.
  */
 
-using rawstr = char const *  ;
-using uchar  = unsigned char ;
+using rawstr = char const * ;
+using uchar  = unsigned char;
 
 using int8   = std::int8_t  ; static_assert(sizeof(int8 ) == 1u, "int8  not of expected size");
 using int16  = std::int16_t ; static_assert(sizeof(int16) == 2u, "int16 not of expected size");
@@ -165,198 +185,10 @@ using floatext = long double    ; static_assert(std::numeric_limits<floatext>::d
 using uintptr = std::uintptr_t;
 static_assert(std::is_same_v<uintptr, uint64>, "Unexpected uintptr type");
 
-// ----------------------------------------------------------------------------
-
-/** PtrToInt_T
- *
- * @brief Casts non-member pointer to an appropriately sized uint.
- *
- * @ref <https://en.cppreference.com/w/cpp/types/integer>.
- *
- * @note It is important to make sure the size of the pointer is the exact size of the
- *       type we're trying to cast too. Too small or large will lead to undefined
- *       behaviour and subtle bugs.
- *
- * @note It is unrecommended to store function pointers as a pointer to void, and thus
- *       as a uint. However many compilers allow it because of the days of C, and hence
- *       a reinterpret_cast instead of a static_cast. As long as the type we are casting
- *       is the same size we will be ok. We explicitly disqualify member function
- *       pointers because they usually occupy 16 bytes. If necessary a convenience
- *       casting method similar to this one can be made and placed in the experimental
- *       block but there is no need and usually cleaner solutions exist.
- *
- * @tparam T -- Pointer type.
- */
-template <typename T>
-requires(std::is_pointer_v<T *>)
-union PtrToInt_T
-{
-   T       * ptr_val;
-   T     * * ptr_ptr_val;
-   uintptr * uint_ptr_val;
-   uintptr   uint_val;
-};
-
-/** BoundedPtr
- *
- * @brief Non-null pointer.
- * 
- * @tparam T -- Type of pointer.
- * 
- * @note Throwing in the constructor is preferable because you cannot swallow the
- *       exception and use BoundedPtr in an unacceptable state.
- * 
- * @note Remember to add std::set_terminate() in main().
- */
-template <typename T, auto ActionIfNull = std::terminate>
-class BoundedPtr
-{
-public:
-   // TODO add std::source_location as default argument
-   implicit constexpr BoundedPtr(T * const t_Ptr)
-      : _t_ptr {t_Ptr}
-   {
-      if (!get())
-      {
-         ActionIfNull();
-      }
-   }
-
-   constexpr BoundedPtr              (std::nullptr_t) = delete;
-   constexpr BoundedPtr & operator = (std::nullptr_t) = delete;
-
-   constexpr operator T       * (void)       { return get(); }
-   constexpr operator T const * (void) const { return get(); }
-
-   // TODO constexpr auto && get (this auto && self) { return self._t_ptr; }
-   constexpr T       * get        (void)       { return _t_ptr; }
-   constexpr T const * get        (void) const { return _t_ptr; }
-
-   constexpr T       & operator * (void)       { return *get(); }
-   constexpr T const & operator * (void) const { return *get(); }
-
-   constexpr T       * operator -> (void)       { return get(); }
-   constexpr T const * operator -> (void) const { return get(); }
-
-private:
-   T * _t_ptr;
-};
-
 /// @brief Convenience alias.
-template <typename T>
-using bptr = BoundedPtr<T>;
-
-/// @brief Convenience alias.
-using str = bptr<char const>;
-
-/// @brief Convenience alias.
-using mstr = bptr<char>;
-
-// ----------------------------------------------------------------------------
-
-/** ymCastPtrTo
- * 
- * @brief Casts given pointer to byte pointer.
- * 
- * @note According to @ref <https://en.cppreference.com/w/cpp/language/object>, any object can be
- *       inspected assuming an underlying representation of bytes.
- * 
- * @note A reinterpret_cast will not convert a pointer of arbitrary type to another, must cast
- *       to void first. We can avoid an explicit cast to void by just accepting a void * since
- *       pointers can be implicitely cast to void.
- * 
- * @tparam T -- Data type to cast to.
- * 
- * @param Data_Ptr -- Pointer to object(s).
- * 
- * @returns T const * -- Pointer to object(s) represented as an array of T.
- */
-template <typename T>
-constexpr auto const * ymCastPtrTo(void const * const Data_Ptr)
-{
-   return static_cast<T const *>(Data_Ptr);
-}
-
-/** ymCastPtrTo
- * 
- * @brief Non-const version of above.
- * 
- * @tparam T -- Data type to cast to.
- * 
- * @param data_Ptr -- Pointer to object(s).
- * 
- * @returns T * -- Pointer to object(s) represented as an array of T.
- */
-template <typename T>
-constexpr auto * ymCastPtrTo(void * const data_Ptr)
-{
-   return static_cast<T *>(data_Ptr);
-}
-
-/** ymIsStrNonEmpty
- * 
- * @brief Convenience method to detect if a c-style string is non-empty.
- * 
- * @param S -- String to test.
- * 
- * @returns bool -- True if string S is non-empty, false otherwise.
- */
-constexpr bool ymIsStrNonEmpty(rawstr const S)
-{
-   return S && *S;
-}
-
-/** ymIsStrEmpty
- * 
- * @brief Convenience method to detect if a c-style string is null or empty.
- * 
- * @param S -- String to test.
- * 
- * @returns bool -- True if string S is null or empty, false otherwise.
- */
-constexpr bool ymIsStrEmpty(rawstr const S)
-{
-   return !ymIsStrNonEmpty(S);
-}
-
-/**
- * TODO
- * 
- * @note TODO T = typename std::iterator_traits<Iterator_T>::value_type is specialized overload
- */
-template <typename Iterator_T,
-          typename T,
-          typename Compare_T>
-constexpr auto ymBinarySearch(Iterator_T first,
-                              Iterator_T last,
-                              T const &  Value,
-                              Compare_T  compare)
-{
-   auto elemIt = last;
-
-   while (first != last)
-   { // while there are still elements unchecked
-   
-      auto const Mid = first + (std::distance(first, last) / 2);
-      auto const Cmp = compare(Value, Mid);
-
-      if (Cmp < 0)
-      { // Value < *Mid
-         last = Mid;
-      }
-      else if (Cmp > 0)
-      { // Value > *Mid
-         first = Mid + 1ull;
-      }
-      else
-      { // Value == *Mid
-         elemIt = Mid;
-         break;
-      }
-   }
-
-   return elemIt;
-}
+using intptr = std::ptrdiff_t;
+static_assert(std::is_same_v<intptr, int64        >, "Unexpected intptr type");
+static_assert(std::is_same_v<intptr, std::intptr_t>, "Unexpected intptr type");
 
 // ----------------------------------------------------------------------------
 
@@ -396,7 +228,5 @@ YM_LITERAL_DECL(fext, floatext)
 
 // don't pollute namespace
 #undef YM_LITERAL_DECL
-
-constexpr auto operator "" _str(rawstr const S) { return str(S); }
 
 } // ym

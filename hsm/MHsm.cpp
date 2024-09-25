@@ -6,7 +6,7 @@
 
 #include "Updater.h"
 
-#include "Ymerror.h"
+#include "YmError.h"
 
 #include <cmath>
 

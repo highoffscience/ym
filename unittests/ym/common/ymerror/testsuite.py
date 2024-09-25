@@ -24,7 +24,7 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   @brief Collection of all tests for SUT Ymerror.
+   @brief Collection of all tests for SUT YmError.
    """
 
    @classmethod

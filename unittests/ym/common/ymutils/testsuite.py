@@ -24,7 +24,7 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   @brief Collection of all tests for suite YmDefs.
+   @brief Collection of all tests for suite YmUtils.
    """
 
    @classmethod
@@ -34,7 +34,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
 
       super().setUpBaseClass(filepath="ym/common/",
-                             filename="ymdefs")
+                             filename="ymutils")
 
    @classmethod
    def tearDownClass(cls):
@@ -65,9 +65,10 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
+      # uncomment to run test
       # results = self.run_test_case("InteractiveInspection")
 
-   def test_BigFiveDeleteMacros(self):
+   def test_PtrToIntConversion(self):
       """
       @brief Analyzes results from test case.
 
@@ -77,11 +78,11 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
-      results = self.run_test_case("BigFiveDeleteMacros")
+      results = self.run_test_case("PtrToIntConversion")
 
-      self.assertTrue(results.get[bool]("Defined"), "Macros not defined")
+      self.assertEqual(results.get[int]("Val"), 7, "Ptr to int yielded unexpected value")
 
-   def test_OverloadMacros(self):
+   def test_BoundedPtrClass(self):
       """
       @brief Analyzes results from test case.
 
@@ -91,14 +92,29 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
-      results = self.run_test_case("OverloadMacros")
+      results = self.run_test_case("BoundedPtrClass")
 
-      self.assertEqual(results.get[int]("Sum"), 10, "Macro overloads not behaving as expected")
+      self.assertEqual(results.get[int]("Ptr_1"), 9, "Bounded ptr does not have expected value")
+      self.assertEqual(results.get[str]("Name"), "Torchic", "Bounded ptr does not have expected value")
+
+   def test_BinarySearch(self):
+      """
+      @brief Analyzes results from test case.
+
+      @param results -- Results from test case.
+      """
+
+      from cppyy.gbl import std
+      from cppyy.gbl import ym
+
+      results = self.run_test_case("BinarySearch")
+
+      self.assertTrue(results.get[bool]("ElementFound"), "Search failed to find correct element")
 
 # kick-off
 if __name__ == "__main__":
-   if os.path.basename(os.getcwd()) != "ymdefs":
-      print("Needs to be run in the ymdefs/ directory")
+   if os.path.basename(os.getcwd()) != "ymutils":
+      print("Needs to be run in the ymutils/ directory")
       sys.exit(1)
 
    unittest.main()
