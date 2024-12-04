@@ -6,9 +6,7 @@
 
 #pragma once
 
-#include "ymdefs.h"
-#include "ymerror.h"
-#include "ymutils.h"
+#include "ymglobals.h"
 
 #include <string>
 

@@ -6,13 +6,15 @@
 
 #pragma once
 
-#include "ymdefs.h"
-#include "ymerror.h"
-#include "ymutils.h"
+#include "ymglobals.h"
 
 #include <array>
-#include <span>
 #include <type_traits>
+
+#if (YM_CPP_STANDARD >= 23)
+#include <span>
+#define YM_ARGPARSER_USE_STD_SPAN 1
+#endif
 
 namespace ym
 {
@@ -53,16 +55,20 @@ public:
     */
    class Arg
    {
+      friend ArgParser;
+      
    public:
       explicit Arg(str const Name);
 
-      inline auto getName(void) const { return _name; }
-      inline auto getDesc(void) const { return _desc; }
-      inline auto getVal (void) const { return _val;  }
-      inline auto getAbbr(void) const { return _abbr; }
+      inline auto getName (void) const { return _name;  }
+      inline auto getDesc (void) const { return _desc;  }
+             str  getVal  (uint32 const Idx = 0_u32) const;
+      inline auto getAbbr (void) const { return _abbr;  }
+      inline auto getNVals(void) const { return _nvals; }
 
       inline auto isFlag (void) const { return _flag; }
       inline auto isEnbl (void) const { return _enbl; }
+      inline auto isList (void) const { return _list; }
 
       inline Arg & desc  (str  const Desc       ) { _desc = Desc;       return *this; }
       inline Arg & defval(str  const DefaultVal ) { _val  = DefaultVal; return *this; }
@@ -71,62 +77,108 @@ public:
                                                     _enbl = Enbl;
                                                     _val  = _enbl ? "1" : "0";
                                                                         return *this; }
+      inline Arg & list  (bool const List = true) { _list = List;       return *this; }
+
+      YM_DECL_YMERROR(Error)
 
    private:
       // no consts - see static assert below
-      str  _name; // arg name (used as the key)
-      str  _desc; // description
-      str  _val;  // value
-      char _abbr; // abbreviation
-      bool _flag; // flag
-      bool _enbl; // enabled
+      str    _name;  // arg name (used as the key)
+      str    _desc;  // description
+      str    _val;   // value
+      uint32 _nvals; // number of values, if list
+      char   _abbr;  // abbreviation
+      bool   _flag;  // flag
+      bool   _enbl;  // enabled
+      bool   _list;  // list
    };
 
    // copyable to load Arg params into vector
    // assignable for std::sort
    static_assert(std::is_copy_assignable_v<Arg>, "Arg needs to be copyable/assignable");
 
-   explicit ArgParser(int         const Argc,         // command line arg count
-                      str const * const Argv_Ptr,     // command line args
-                      std::span<Arg>    argHandlers); // user-defined arg handlers
+// std::span is defined in c++20, but useless without const_iterator,
+//  which is defined in c++23.
+#if (YM_ARGPARSER_USE_STD_SPAN)
+   using ArgHandlers_T = std::span<Arg>;
+#else
+   using ArgHandlers_T = Arg * const;
+#endif
+
+   using ArgPtr_T  = Arg       *;
+   using ArgCPtr_T = Arg const *;
+
+   explicit ArgParser(
+      int            const Argc,     // command line arg count
+      strlit const * const Argv_Ptr, // command line args
+      ArgHandlers_T     argHandlers  // user-defined arg handlers
+   #if (!YM_ARGPARSER_USE_STD_SPAN)
+      , uint32    const NHandlers    // number of arg handlers
+   #endif
+   );
+
+   explicit ArgParser(
+      str     const Argv,       // command line args
+      ArgHandlers_T argHandlers // user-defined arg handlers
+   #if (!YM_ARGPARSER_USE_STD_SPAN)
+      ,
+      uint32  const NHandlers   // number of arg handlers
+   #endif
+   );
 
    YM_NO_COPY  (ArgParser)
    YM_NO_ASSIGN(ArgParser)
 
    void parse(void);
 
-   using ArgCIt_T = std::span<Arg>::const_iterator;
+          ArgCPtr_T get       (str const Key) const;
+   inline ArgCPtr_T operator[](str const Key) const { return get(Key); }
 
-          ArgCIt_T get       (str const Key) const;
-   inline ArgCIt_T operator[](str const Key) const { return get(Key); }
-
-   YM_DECL_TAGGED_YMERROR(ArgParserError,
-      ParseError, ArgError, AccessError)
+   YM_DECL_YMERROR(Error)
+   YM_DECL_YMERROR(Error, ParseError )
+   YM_DECL_YMERROR(Error, ArgError   )
+   YM_DECL_YMERROR(Error, AccessError)
 
 private:
-   static constexpr auto s_NValidChars = static_cast<uint32>('~' - '!' + 1);
+   static constexpr auto s_NValidChars = static_cast<uint32>('~' - '!' + 1); // 126 - 33 + 1
    static constexpr auto getNValidChars(void) { return s_NValidChars; }
 
    static constexpr auto isValidChar(char const Char) { return Char >= '!' && Char <= '~'; }
    static constexpr auto getAbbrIdx (char const Abbr) { return Abbr - '!'; }
 
-   using ArgIt_T   = std::span<Arg>::iterator;
-   using AbbrSet_T = std::array<ArgIt_T, s_NValidChars>;
+   void init(void);
+
+   rawstr getNextCmdLineArg(rawstr currCmdLineArg = nullptr);
+
+   using AbbrSet_T = std::array<ArgPtr_T, s_NValidChars>;
 
    void organizeAndValidateArgHandlerVector(void);
 
    void displayHelpMenu(void) const;
 
-   ArgIt_T getArgPtrFromPrefix(str  const Prefix);
-   ArgIt_T getArgPtrFromAbbr  (char const Abbr  );
+   ArgPtr_T getArgPtrFromPrefix(str  const Prefix);
+   ArgPtr_T getArgPtrFromAbbr  (char const Abbr  );
 
-   int32 parseArgSet(ArgIt_T argIt,
-                     int32   idx) const;
-                     
-   int32 const         _Argc;
-   str   const * const _Argv_Ptr;
-   std::span<Arg>      _argHandlers;
-   AbbrSet_T           _abbrs;
+   int32 parseArgSet(ArgPtr_T argPtr,
+                     int32    idx) const;
+
+   /// @brief Helper type.
+   union Argv_T
+   {
+      constexpr Argv_T(strlit const * const Argv_Ptr) : _Argv_Ptr{Argv_Ptr} {}
+      constexpr Argv_T(str            const Argv    ) : _Argv    {Argv    } {}
+
+      strlit const * const _Argv_Ptr; // array of args (as passed to main)
+      str            const _Argv;     // one string
+   };
+           
+   AbbrSet_T     _abbrs;
+   ArgHandlers_T _argHandlers;
+   int32   const _Argc;
+   Argv_T  const _Argv;
+#if (!YM_ARGPARSER_USE_STD_SPAN)
+   uint32  const _NHandlers;
+#endif
 };
 
 } // ym

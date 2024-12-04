@@ -9,10 +9,7 @@
 #include "logger.h"
 #include "timer.h"
 #include "verbogroup.h"
-
-#include "ymdefs.h"
-#include "ymerror.h"
-#include "ymutils.h"
+#include "ymglobals.h"
 
 #include <array>
 #include <atomic>

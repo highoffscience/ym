@@ -13,11 +13,11 @@
 #include <cstring>
 #include <utility>
 
-#define YM_DISABLE_STACKTRACE
+#define YM_ENABLE_STACKTRACE 0
 
-#if !defined(YM_DISABLE_STACKTRACE)
+#if YM_ENABLE_STACKTRACE
    #include <boost/stacktrace.hpp>
-#endif // YM_DISABLE_STACKTRACE
+#endif // YM_ENABLE_STACKTRACE
 
 /** YmError
  *
@@ -25,10 +25,8 @@
  *
  * @param msg -- Message string.
  */
-ym::YmError::YmError(std::string  msg,
-                         uint32 const Tag)
-   : _Msg {std::move(msg)},
-     _Tag {Tag           }
+ym::YmError::YmError(std::string msg)
+   : _Msg {std::move(msg)}
 {
 }
 
@@ -36,26 +34,40 @@ ym::YmError::YmError(std::string  msg,
  *
  * @brief Assert has failed. Print diagnostic information and throw.
  * 
- * TODO params and returns
- * 
  * @todo std::stacktrace implementation instead of boost.
+ * 
+ * @param Name   -- Name of YmError being thrown.
+ * @param SrcLoc -- Source location of the thrown YmError.
+ * @param Format -- Format string.
+ * @param ...    -- Arguments.
+ * 
+ * @returns std::string -- YmError formatted details.
  */
 std::string ym::YmError::assertHandler(
    rawstr               const Name,
+#if (YM_CPP_STANDARD >= 20)
    std::source_location const SrcLoc,
+#endif
    rawstr               const Format,
-   /*variadic*/               ...)
+   /*variadic*/         ...)
 {
    std::array<char, 1024_u64> buffer{'\0'};
 
    // writes null terminator for us
    auto const NCharsWritten =
-      std::snprintf(buffer.data(),
-                    buffer.size(),
-                    "%s \"%s:%u\": ",
-                    Name,
-                    SrcLoc.file_name(),
-                    SrcLoc.line());
+      std::snprintf(
+         buffer.data(),
+         buffer.size(),
+      #if (YM_CPP_STANDARD >= 20)
+         "%s \"%s:%u\": ",
+         Name,
+         SrcLoc.file_name(),
+         static_cast<uint32>(SrcLoc.line())
+      #else
+         "%s: ",
+         Name
+      #endif
+         );
 
    auto const Offset = 
       (                    NCharsWritten  < 0            ) ? 0_u32 : // snprintf encountered an error
@@ -86,7 +98,7 @@ std::string ym::YmError::assertHandler(
       ymLog(VG::YmError_Assert, "Assert failed!");
       ymLog(VG::YmError_Assert, "%s!", buffer.data());
 
-   #if !defined(YM_DISABLE_STACKTRACE)
+   #if YM_ENABLE_STACKTRACE
       ymLog(VGM_T::YmError_Assert, "Stack dump follows...");
 
       { // split and print stack dump
@@ -101,7 +113,7 @@ std::string ym::YmError::assertHandler(
             startPos = StackDumpStr.find_first_not_of('\n', EndPos);
          }
       }
-   #endif // YM_DISABLE_STACKTRACE
+   #endif // YM_ENABLE_STACKTRACE
    }
 
    return std::string(buffer.data());

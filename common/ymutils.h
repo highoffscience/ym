@@ -70,6 +70,11 @@ public:
     * @note This class is used to skip the null check in BoundedPtr for cases
     *       where the programmer is guaranteeing non-nullness.
     * 
+    * @note Constructor is marked explicit to help the compiler disambiguate
+    *       the statement
+    *          BoundedPtr s = "s";
+    *       The assignment operator can take string literal or TrustedBoundedPtr.
+    * 
     * @param t_Ptr -- Pointer to bind.
     */
    explicit constexpr TrustedBoundedPtr(T * const t_Ptr)

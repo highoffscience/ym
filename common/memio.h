@@ -7,10 +7,7 @@
 #pragma once
 
 #include "textlogger.h"
-
-#include "ymdefs.h"
-#include "ymerror.h"
-#include "ymutils.h"
+#include "ymglobals.h"
 
 #include <alloca.h>
 #include <cstdint>

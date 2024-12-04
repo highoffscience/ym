@@ -6,9 +6,7 @@
 
 #pragma once
 
-#include "ymdefs.h"
-#include "ymerror.h"
-#include "ymutils.h"
+#include "ymglobals.h"
 
 #include "logger.h"
 #include "memio.h"
@@ -37,7 +35,7 @@ public:
    YM_NO_COPY  (DataLogger)
    YM_NO_ASSIGN(DataLogger)
 
-   YM_DECL_YMERROR(DataLoggerError)
+   YM_DECL_YMERROR(Error)
 
    inline auto getMaxNDataEntries(void) const { return _MaxNDataEntries; }
 

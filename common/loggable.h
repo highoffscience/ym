@@ -22,7 +22,11 @@ namespace ym
  * @tparam T -- Type that is loggable.
  */
 template <typename T>
-concept Loggable = std::is_fundamental_v<T> ||
-                   std::is_pointer_v    <T> ;
+#if (YM_CPP_STANDARD >= 20)
+   concept Loggable
+#else
+   constexpr auto Loggable
+#endif
+   = std::is_fundamental_v<T> || std::is_pointer_v<T>;
 
 } // ym

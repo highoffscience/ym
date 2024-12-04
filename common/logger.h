@@ -7,14 +7,12 @@
 #pragma once
 
 #include "loggable.h"
-
-#include "ymdefs.h"
-#include "ymerror.h"
-#include "ymutils.h"
+#include "ymglobals.h"
 
 #include <cstdio>
 #include <memory>
 #include <string_view>
+#include <type_traits>
 
 namespace ym
 {
@@ -51,7 +49,21 @@ public:
 protected:
    explicit Logger(void);
 
+   /** printfInternalError
+    *
+    * @brief Print to stderr. If something goes wrong in the logger then printing to stderr
+    *        is our only choice.
+    *
+    * @tparam Args_T -- Argument types.
+    *
+    * @param Format -- Format string.
+    * @param Args   -- Arguments.
+    */
+#if (YM_CPP_STANDARD >= 20)
    template <Loggable... Args_T>
+#else
+   template <typename... Args_T, typename = std::enable_if_t<(Loggable<Args_T>&&...)>>
+#endif
    inline void printfInternalError(str    const    Format,
                                    Args_T const... Args);
 
@@ -72,28 +84,11 @@ protected:
 
 private:
    // TS = Time Stamp
-   static constexpr std::string_view s_DefaultTS{"_0000_000_00_00_00_00"};
+   static constexpr std::string_view _s_DefaultTS{"_0000_000_00_00_00_00"};
 
    bool openOutfile_appendTimeStamp(str const Filename);
 
    void populateFilenameTimeStamp(char * const timeStamp_Ptr) const;
 };
-
-/** printfInternalError
- *
- * @brief Print to stderr. If something goes wrong in the logger then printing to stderr
- *        is our only choice.
- *
- * @tparam Args_T -- Argument types.
- *
- * @param Format -- Format string.
- * @param Args   -- Arguments.
- */
-template <Loggable... Args_T>
-inline void Logger::printfInternalError(str    const    Format,
-                                        Args_T const... Args)
-{
-   std::fprintf(stderr, Format, Args...);
-}
 
 } // ym

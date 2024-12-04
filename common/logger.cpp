@@ -149,7 +149,7 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
       "Got %lu bytes, max %lu bytes", FilenameSize_bytes, MaxFilenameSize_bytes);
 
    auto const TSFilenameSize_bytes =
-      FilenameSize_bytes + s_DefaultTS.length() + 1_u64; // include null terminator
+      FilenameSize_bytes + _s_DefaultTS.length() + 1_u64; // include null terminator
    auto * const tsFilename_Ptr = YM_STACK_ALLOC(char, TSFilenameSize_bytes);
 
    // write stem
@@ -159,7 +159,7 @@ bool ym::Logger::openOutfile_appendTimeStamp(str const Filename)
    populateFilenameTimeStamp(tsFilename_Ptr + StemSize_bytes);
 
    // write extension
-   std::strncpy(tsFilename_Ptr + StemSize_bytes + s_DefaultTS.length(),
+   std::strncpy(tsFilename_Ptr + StemSize_bytes + _s_DefaultTS.length(),
                 Filename + StemSize_bytes,
                 FilenameSize_bytes - StemSize_bytes + 1ul); // include null terminator
 
@@ -181,7 +181,7 @@ void ym::Logger::closeOutfile(void)
  *
  * @note If the current timestamp cannot be fetched 0's will be written instead.
  *
- * @link Logger::s_DefaultTS @endlink
+ * @link Logger::_s_DefaultTS
  *
  * @param timeStamp_Ptr -- Pointer to buffer to write timestamp to
  */
@@ -199,14 +199,14 @@ void ym::Logger::populateFilenameTimeStamp(char * const timeStamp_Ptr) const
    auto const NBytesWritten =
       // write time stamp
       std::strftime(timeStamp_Ptr,
-                    s_DefaultTS.length() + 1_u64, // include null terminator
+                    _s_DefaultTS.length() + 1_u64, // include null terminator
                     "_%Y_%b_%d_%H_%M_%S",
                     timeinfo_ptr);
 
-   if (NBytesWritten != s_DefaultTS.length())
+   if (NBytesWritten != _s_DefaultTS.length())
    { // failed to write time and contents of buffer are undefined
       std::strncpy(timeStamp_Ptr,
-                   s_DefaultTS.data(),
-                   s_DefaultTS.length() + 1_u64); // include null terminator
+                   _s_DefaultTS.data(),
+                   _s_DefaultTS.length() + 1_u64); // include null terminator
    }
 }
