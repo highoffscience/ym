@@ -72,7 +72,8 @@ public:
 
       inline Arg & desc  (str  const Desc       ) { _desc = Desc;       return *this; }
       inline Arg & defval(str  const DefaultVal ) { _val  = DefaultVal; return *this; }
-      inline Arg & abbr  (char const Abbr       ) { _abbr = Abbr;       return *this; }
+      inline Arg & abbr  (char const Abbr       ) { if (Abbr != '-')  { _abbr = Abbr; }
+                                                                        return *this; }
       inline Arg & enbl  (bool const Enbl = true) { _flag = true;
                                                     _enbl = Enbl;
                                                     _val  = _enbl ? "1" : "0";
@@ -105,7 +106,7 @@ public:
    using ArgHandlers_T = Arg * const;
 #endif
 
-   using ArgPtr_T  = Arg       *;
+   using ArgPtr_T  = Arg       *; // TODO it would be cleaner not making these typedefs
    using ArgCPtr_T = Arg const *;
 
    explicit ArgParser(
@@ -129,7 +130,7 @@ public:
    YM_NO_COPY  (ArgParser)
    YM_NO_ASSIGN(ArgParser)
 
-   void parse(void);
+   bool parse(void);
 
           ArgCPtr_T get       (str const Key) const;
    inline ArgCPtr_T operator[](str const Key) const { return get(Key); }
@@ -148,7 +149,8 @@ private:
 
    void init(void);
 
-   rawstr getNextCmdLineArg(rawstr currCmdLineArg = nullptr);
+   rawstr getNextToken  (rawstr currToken);
+   rawstr getArgNegation(rawstr currToken);
 
    using AbbrSet_T = std::array<ArgPtr_T, s_NValidChars>;
 
@@ -159,8 +161,11 @@ private:
    ArgPtr_T getArgPtrFromPrefix(str  const Prefix);
    ArgPtr_T getArgPtrFromAbbr  (char const Abbr  );
 
-   int32 parseArgSet(ArgPtr_T argPtr,
-                     int32    idx) const;
+   rawstr parseLonghand (rawstr token); // TODO review const on all functions
+   rawstr parseShorthand(rawstr token);
+   rawstr parseArg(ArgPtr_T argPtr,
+                   rawstr   token,
+                   bool const IsNegation = false) const;
 
    /// @brief Helper type.
    union Argv_T

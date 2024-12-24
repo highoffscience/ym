@@ -13,6 +13,12 @@
 
 #pragma once
 
+#include <cstdint>
+#include <limits>
+#include <type_traits>
+
+// ----------------------------------------------------------------------------
+
 /**
  * @brief Helper define's for the current cpp standard.
  */
@@ -28,20 +34,6 @@
    #endif
 #else
    #error "At least C++17 standard required"
-#endif
-
-// ----------------------------------------------------------------------------
-
-#include <algorithm>
-#include <cstdint>
-#include <exception>
-#include <limits>
-#include <stdexcept>
-#include <type_traits>
-#include <utility>
-
-#if (YM_CPP_STANDARD >= 20)
-   #include <source_location>
 #endif
 
 // ----------------------------------------------------------------------------
@@ -163,7 +155,7 @@ using int128 =
    #else
       void
    #endif
-   ; static_assert(!std::is_void_v<int128> || sizeof(int128) == 16ul, "int128 not of expected size");
+   ; static_assert(!std::is_void_v<int128> || sizeof(int128) == 16u, "int128 not of expected size");
 
 using uint8   = std::uint8_t  ; static_assert(sizeof(uint8 ) == 1u, "uint8  not of expected size");
 using uint16  = std::uint16_t ; static_assert(sizeof(uint16) == 2u, "uint16 not of expected size");
@@ -175,7 +167,7 @@ using uint128 =
    #else
       void
    #endif
-   ; static_assert(!std::is_void_v<uint128> || sizeof(uint128) == 16ul, "uint128 not of expected size");
+   ; static_assert(!std::is_void_v<uint128> || sizeof(uint128) == 16u, "uint128 not of expected size");
 
 using float32  = float          ; static_assert(std::numeric_limits<float32 >::digits == 24, "float32  (mantissa) not of expected size");
 using float64  = double         ; static_assert(std::numeric_limits<float64 >::digits == 53, "float64  (mantissa) not of expected size");

@@ -10,10 +10,15 @@
 #include "ymdefs.h"
 
 #include <cstdio>
-#include <exception>
 #include <string>
 #include <type_traits>
 #include <utility>
+
+#if defined(YM_USE_EXCEPTIONS)
+   #include <exception>
+#else
+   #include <array>
+#endif
 
 #if (YM_CPP_STANDARD >= 20)
    #include <source_location>
@@ -133,10 +138,13 @@ namespace ym
 class YmError : public std::exception
 {
 public:
-   explicit YmError(std::string  msg);
+   explicit YmError(std::string msg);
    virtual ~YmError(void) = default;
 
    virtual rawstr what(void) const noexcept override;
+
+   static bool isErrorRaised(void);
+   static std::string getRaisedError(void);
 
 protected:
    static std::string assertHandler(
@@ -148,7 +156,15 @@ protected:
       /*variadic*/               ...);
 
 private:
+   void consume(void); // TODO we need a static array to hold all raised errors
+
    std::string const _Msg;
+
+#if !defined(YM_USE_EXCEPTIONS) // no exceptions
+   using RaisedErrorArray_T = std::array<std::string, 10_u32>;
+   static inline    RaisedErrorArray_T _s_raisedErrors {     };
+   static inline    bool               _s_raisedError  {false};
+#endif
 };
 
 } // ym

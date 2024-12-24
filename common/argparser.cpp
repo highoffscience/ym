@@ -81,7 +81,7 @@ ym::ArgParser::ArgParser(
 
 /** init
  * 
- * TODO
+ * @brief Initializes all abbreviation pointers.
  */
 void ym::ArgParser::init(void)
 {
@@ -96,30 +96,29 @@ void ym::ArgParser::init(void)
  * @brief Parses through the command line arguments and populates registered args.
  * 
  * @throws ParseError -- If a parsing error occurs.
+ * 
+ * @returns bool -- True if the parse succeeds, false otherwise.
  */
-void ym::ArgParser::parse(void)
+bool ym::ArgParser::parse(void)
 {
    organizeAndValidateArgHandlerVector();
 
-   for (auto i = 1_i32; i < _Argc; ++i)
+   auto succeed = true; // until told otherwise
+
+   for (rawstr token = nullptr; token = getNextToken(token); /*nothing*/)
    { // go through all command line arguments
 
-      auto name = _Argv_Ptr[i].get();
-
-      if (name[0_u32] == '-')
+      if (token[0_u32] == '-')
       { // arg found
-         if (name[1_u32] == '-')
-         { // longhand arg found
-            name += 2_u32;
 
-            if (std::strcmp(name, "help") == 0) // must be full name - no prefix allowed
-            { // help menu requested
-               displayHelpMenu();
-            }
-            else
-            { // standard arg
-               auto const ArgPtr = getArgPtrFromPrefix(name);
-               i = parseArgSet(ArgPtr, i);
+         if (token[1_u32] == '-')
+         { // longhand arg found
+
+            token = parseLonghand(token);
+            if (!token)
+            { // 
+               succeed = false;
+               break;
             }
          }
          else
@@ -163,19 +162,50 @@ void ym::ArgParser::parse(void)
    }
 }
 
-/** parse_Helper
+/**
+ * TODO
+ * 
+ */
+auto ym::ArgParser::parseLonghand(rawstr token) -> rawstr
+{
+   token += 2_u32; // move past "--"
+
+   if (std::strcmp(token, "help") == 0) // must be full name - no prefix allowed
+   { // help menu requested
+      displayHelpMenu();
+      token = nullptr;
+   }
+   else
+   { // standard arg
+      
+      auto isNegation = false; // until told otherwise
+
+      if (auto newToken = getArgNegation(token); newToken != token)
+      { // arg prefixed by --no- - negation on flag
+         isNegation = true;
+         token = newToken;
+      }
+
+      auto const ArgPtr = getArgPtrFromPrefix(token);
+      token = parseArg(ArgPtr, token, isNegation);
+   }
+
+   return token;
+}
+
+/** parseArg
  * 
  * @brief Sets the value depending on the type of argument.
  * 
  * @throws ParseError -- If a parsing occurs.
  * 
- * @param argPtr -- Pointer to argument.
- * @param idx    -- Current index of command line argument.
+ * @param argPtr    -- Pointer to argument.
+ * @param currToken -- Current token of command line arguments.
  * 
- * @returns int32 -- Updated index of command line argument.
+ * @returns rawstr -- Next token to parse of command line arguments.
  */
-auto ym::ArgParser::parseArgSet(ArgPtr_T argPtr,
-                                int32    idx) const -> int32
+auto ym::ArgParser::parseArg(ArgPtr_T argPtr,
+                             rawstr   currToken) const -> rawstr
 {
    if (argPtr->isFlag())
    { // enable argument - no explicit value
@@ -250,11 +280,11 @@ auto ym::ArgParser::get(str const Key) const -> ArgCPtr_T
    return ArgCPtr;
 }
 
-/** getNextCmdLineArg
+/** getNextToken
  * 
  * TODO
  */
-auto ym::ArgParser::getNextCmdLineArg(rawstr currCmdLineArg) -> rawstr
+auto ym::ArgParser::getNextToken(rawstr currToken) -> rawstr
 {
    rawstr nextCmdLineArg = nullptr;
 

@@ -127,5 +127,6 @@ std::string ym::YmError::assertHandler(
  */
 auto ym::YmError::what(void) const noexcept -> rawstr
 {
+   // TODO consume()
    return _Msg.c_str();
 }
