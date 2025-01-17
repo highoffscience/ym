@@ -54,7 +54,7 @@ ym::ArgParser::ArgParser(
  * 
  * @brief Initializes class variables.
  * 
- * @note ArgParser assumes ownership argHandlers.
+ * @note ArgParser assumes ownership of argHandlers.
  * 
  * @param Argc        -- Argument count  (as supplied from main()).
  * @param Argv        -- Argument vector (as supplied from main()).
@@ -96,14 +96,15 @@ void ym::ArgParser::init(void)
  * @brief Parses through the command line arguments and populates registered args.
  * 
  * @throws ParseError -- If a parsing error occurs.
+ * @throws Whatever the other functions throw.
  * 
- * @returns bool -- True if the parse succeeds, false otherwise.
+ * @returns bool -- True if the parse finishes normally, false otherwise (fails or aborts).
  */
 bool ym::ArgParser::parse(void)
 {
    organizeAndValidateArgHandlerVector();
 
-   auto succeed = true; // until told otherwise
+   auto success = true; // until told otherwise
 
    for (rawstr token = nullptr; token = getNextToken(token); /*nothing*/)
    { // go through all command line arguments
@@ -112,59 +113,36 @@ bool ym::ArgParser::parse(void)
       { // arg found
 
          if (token[1_u32] == '-')
-         { // longhand arg found
-
+         { // longhand arg found ("--")
             token = parseLonghand(token);
-            if (!token)
-            { // 
-               succeed = false;
-               break;
-            }
          }
          else
-         { // shorthand arg found
-            name += 1_u32;
+         { // shorthand arg found ("-")
+            token = parseShorthand(token);
+         }
 
-            auto const NAbbrs = std::strlen(name);
-            ParseError::check(NAbbrs > 0_u32, "Expected abbr at count %d but none found", i);
-
-            for (auto j = 0_u32; j < NAbbrs; ++j)
-            { // go through all abbrs in pack
-
-               auto const Abbr = name[j];
-
-               if (Abbr == 'h')
-               { // help menu requested
-                  displayHelpMenu();
-               }
-               else
-               { // standard arg
-                  auto argPtr = getArgPtrFromAbbr(Abbr);
-
-                  if (NAbbrs == 1_u32)
-                  { // only 1 abbr - might have value
-                     i = parseArgSet(argPtr, i);
-                     break;
-                  }
-                  else
-                  { // abbr found
-                     ParseError::check(argPtr->isFlag(), "Arg '%s' not a flag", argPtr->getName().get());
-                     argPtr->enbl(true);
-                  }
-               }
-            }
+         if (!token)
+         { // help menu was called - exit parse
+            success = false;
+            break;
          }
       }
       else
       { // unexpected command line argument
-         ParseError::check(false, "Argument '%s' was unexpected", name);
+         ParseError::check(false, "Argument '%s' was unexpected", token);
       }
    }
+
+   return success;
 }
 
-/**
- * TODO
+/** parseLonghand
  * 
+ * @brief Parses next long command.
+ * 
+ * @param token -- Current token in stream.
+ * 
+ * @returns rawstr -- Next token to parse.
  */
 auto ym::ArgParser::parseLonghand(rawstr token) -> rawstr
 {
@@ -186,8 +164,58 @@ auto ym::ArgParser::parseLonghand(rawstr token) -> rawstr
          token = newToken;
       }
 
-      auto const ArgPtr = getArgPtrFromPrefix(token);
-      token = parseArg(ArgPtr, token, isNegation);
+      auto * const arg_Ptr = getArgPtrFromPrefix(token);
+      token = parseArg(arg_Ptr, token, isNegation);
+   }
+
+   return token;
+}
+
+/** parseShorthand
+ * 
+ * @brief Parses next short command.
+ * 
+ * @param token -- Current token in stream.
+ * 
+ * @returns rawstr -- Next token to parse.
+ */
+auto ym::ArgParser::parseShorthand(rawstr token) -> rawstr
+{
+   token += 2_u32; // move past "-"
+
+   auto const NAbbrs = std::strlen(token);
+   if (ParseError::check(NAbbrs > 0_u32, "Expected abbreviation after '-' symbol"))
+   {
+      return nullptr;
+   }
+
+   for (auto i = 0_u32; i < NAbbrs; ++i)
+   { // go through all abbrs in pack
+
+      auto const Abbr = token[i];
+
+      if (Abbr == 'h')
+      { // help menu requested
+         displayHelpMenu();
+         token = nullptr;
+         break;
+      }
+      else
+      { // standard arg
+
+         auto * const arg_Ptr = getArgPtrFromAbbr(Abbr);
+
+         if (NAbbrs == 1_u32)
+         { // only 1 abbr - might have value
+            token = parseArg(arg_Ptr, token);
+            break;
+         }
+         else
+         { // abbr found
+            ParseError::check(arg_Ptr->isFlag(), "Arg '%s' not a flag", arg_Ptr->getName().get());
+            arg_Ptr->enbl(true);
+         }
+      }
    }
 
    return token;
@@ -199,22 +227,24 @@ auto ym::ArgParser::parseLonghand(rawstr token) -> rawstr
  * 
  * @throws ParseError -- If a parsing occurs.
  * 
- * @param argPtr    -- Pointer to argument.
- * @param currToken -- Current token of command line arguments.
+ * @param arg_Ptr    -- Pointer to argument.
+ * @param token      -- Current token of command line arguments.
+ * @param IsNegation -- Flag requested to be off.
  * 
  * @returns rawstr -- Next token to parse of command line arguments.
  */
-auto ym::ArgParser::parseArg(ArgPtr_T argPtr,
-                             rawstr   currToken) const -> rawstr
+auto ym::ArgParser::parseArg(Arg * const arg_Ptr,
+                             rawstr      token,
+                             bool  const IsNegation) const -> rawstr
 {
-   if (argPtr->isFlag())
+   if (arg_Ptr->isFlag())
    { // enable argument - no explicit value
-      argPtr->enbl(true);
+      arg_Ptr->enbl(!IsNegation);
    }
    else
    { // value is next command line argument
 
-      idx += 1_i32;
+      token = getNextToken(token);
       ParseError::check(idx < _Argc, "No value for arg '%s'", argPtr->getName().get());
 
       // TODO this will incorrectly trigger for negative numbers
@@ -384,7 +414,9 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
    // --- --- --- --- organize --- --- --- ---
 
    try
-   { // std::sort may fail
+   { // std::sort may fail (typical standard libraries don't use dynamic
+     // allocation, so this catch should never be executed)
+
       // searching algorithms require keys be sorted
       std::sort(BeginPtr, EndPtr,
          [](Arg const & Lhs, Arg const & Rhs) -> bool {
@@ -395,6 +427,8 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
    catch(std::exception const & E)
    { // throw custom error
       ParseError::check(false, "std::sort failed with msg '%s'", E.what());
+
+      // ymCheck<ParseError>(false, "kjldhsaf").wrv(false);
    }
 
    // --- --- --- --- validate --- --- --- ---

@@ -9,6 +9,7 @@
 #include "memio.h"
 #include "ymdefs.h"
 
+#include <algorithm>
 #include <utility>
 
 namespace ym
@@ -20,10 +21,10 @@ namespace ym
  */
 template <typename T,
           uint64   Depth> // TODO static_assert or requires based on c++ standard (> 0 && < 2^31)
-class RingBuffer
+class alignas(std::max(sizeof(uint64), sizeof(T))) RingBuffer
 {
 public:
-   explicit inline RingBuffer(void);
+   explicit inline RingBuffer(void) = default;
 
    void reset(void);
 
@@ -38,8 +39,8 @@ private:
    };
    static_assert(sizeof(IdxFlag) == sizeof(uint64), "Bit packing not as expected");
 
-   alignas(T) uint8 _buffer[Depth * sizeof(T)] {};
-   IdxFlag          _next                      {};
+   uint8   _buffer[Depth * sizeof(T)] {};
+   IdxFlag _next                      {};
 };
 
 /**

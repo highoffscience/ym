@@ -72,8 +72,7 @@ public:
 
       inline Arg & desc  (str  const Desc       ) { _desc = Desc;       return *this; }
       inline Arg & defval(str  const DefaultVal ) { _val  = DefaultVal; return *this; }
-      inline Arg & abbr  (char const Abbr       ) { if (Abbr != '-')  { _abbr = Abbr; }
-                                                                        return *this; }
+      inline Arg & abbr  (char const Abbr       ) { _abbr = Abbr;       return *this; }
       inline Arg & enbl  (bool const Enbl = true) { _flag = true;
                                                     _enbl = Enbl;
                                                     _val  = _enbl ? "1" : "0";
@@ -106,9 +105,6 @@ public:
    using ArgHandlers_T = Arg * const;
 #endif
 
-   using ArgPtr_T  = Arg       *; // TODO it would be cleaner not making these typedefs
-   using ArgCPtr_T = Arg const *;
-
    explicit ArgParser(
       int            const Argc,     // command line arg count
       strlit const * const Argv_Ptr, // command line args
@@ -132,8 +128,8 @@ public:
 
    bool parse(void);
 
-          ArgCPtr_T get       (str const Key) const;
-   inline ArgCPtr_T operator[](str const Key) const { return get(Key); }
+          Arg const * get       (str const Key) const;
+   inline Arg const * operator[](str const Key) const { return get(Key); }
 
    YM_DECL_YMERROR(Error)
    YM_DECL_YMERROR(Error, ParseError )
@@ -144,7 +140,7 @@ private:
    static constexpr auto s_NValidChars = static_cast<uint32>('~' - '!' + 1); // 126 - 33 + 1
    static constexpr auto getNValidChars(void) { return s_NValidChars; }
 
-   static constexpr auto isValidChar(char const Char) { return Char >= '!' && Char <= '~'; }
+   static constexpr auto isValidChar(char const Char) { return Char >= '!' && Char <= '~' && Char != '-'; }
    static constexpr auto getAbbrIdx (char const Abbr) { return Abbr - '!'; }
 
    void init(void);
@@ -152,20 +148,20 @@ private:
    rawstr getNextToken  (rawstr currToken);
    rawstr getArgNegation(rawstr currToken);
 
-   using AbbrSet_T = std::array<ArgPtr_T, s_NValidChars>;
+   using AbbrSet_T = std::array<Arg *, s_NValidChars>;
 
    void organizeAndValidateArgHandlerVector(void);
 
    void displayHelpMenu(void) const;
 
-   ArgPtr_T getArgPtrFromPrefix(str  const Prefix);
-   ArgPtr_T getArgPtrFromAbbr  (char const Abbr  );
+   Arg * getArgPtrFromPrefix(str  const Prefix);
+   Arg * getArgPtrFromAbbr  (char const Abbr  );
 
    rawstr parseLonghand (rawstr token); // TODO review const on all functions
    rawstr parseShorthand(rawstr token);
-   rawstr parseArg(ArgPtr_T argPtr,
-                   rawstr   token,
-                   bool const IsNegation = false) const;
+   rawstr parseArg(Arg * const arg_Ptr,
+                   rawstr      token,
+                   bool  const IsNegation = false) const;
 
    /// @brief Helper type.
    union Argv_T

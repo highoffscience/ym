@@ -340,6 +340,7 @@ void ym::TextLogger::printf_Handler(VG    const  VG,
 
          std::va_list args;
          va_start(args, Format);
+         // TODO should be marked as noexcept
          printf_Producer(Format, args); // doesn't throw so va_end will be called
          va_end(args);
       }
@@ -363,7 +364,7 @@ void ym::TextLogger::printf_Producer(str const    Format,
 {
    try
    { // try to acquire
-      _availableSem.acquire();
+      _availableSem.acquire(); // TODO this doesn't throw!
    }
    catch (std::exception const & E)
    { // post what went wrong and throw
@@ -372,6 +373,7 @@ void ym::TextLogger::printf_Producer(str const    Format,
    }
    
    // _writePos doesn't need to wrap (power of 2), so just incrementing until it rolls over is ok
+   // TODO memory_order_relaxed? or acquire?
    auto   const WritePos  = _writePos.fetch_add(1_u32, std::memory_order_relaxed) % getMaxNMessagesInBuffer();
    auto * const write_Ptr = _buffer + (WritePos * getMaxMessageSize_bytes());
 
@@ -383,7 +385,7 @@ void ym::TextLogger::printf_Producer(str const    Format,
       printfInternalError("std::vsnprintf failed with error code %d! "
                           "Message was '%s'\n",
                           NCharsWrittenInTheory,
-                          write_Ptr);
+                          write_Ptr); // TODO write_Ptr may not have anything to say! it failed to write!
 
       std::strncpy(write_Ptr, "error in printf (internal vsnprintf error)", getMaxMessageSize_bytes());
 
@@ -391,6 +393,11 @@ void ym::TextLogger::printf_Producer(str const    Format,
    }
    else if (static_cast<uint32>(NCharsWrittenInTheory) >= getMaxMessageSize_bytes())
    { // not everything was printed to the buffer
+
+      // TODO can we acquire() again until the whole message is printed?
+      //  that way we can lower the max message size, increasing throughput
+      //  and minimizing wasted memory
+
       printfInternalError("Failed to write everything to the buffer! NCharsWrittenInTheory = %ld. "
                           "Msg size = %lu bytes. Message = '%s'\n",
                           NCharsWrittenInTheory,
