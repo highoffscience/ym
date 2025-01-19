@@ -14,15 +14,30 @@
 
 #if (YM_YES_EXCEPTIONS)
    #include <exception>
+   #define YM_THROW throw
+#else
+   #define YM_THROW
 #endif
 
 #if (YM_CPP_STANDARD >= 20)
    #include <source_location>
+   #define YM_TMP_SRC_LOC_CRNT  std::source_location::current(),
+   #define YM_TMP_SRC_LOC_PARAM std::source_location const SrcLoc,
+   #define YM_TMP_SRC_LOC       SrcLoc,
+#else
+   #define YM_TMP_SRC_LOC_CRNT
+   #define YM_TMP_SRC_LOC_PARAM
+   #define YM_TMP_SRC_LOC
 #endif
 
 namespace ym
 {
 
+/** ymassert_Base
+ *
+ * @brief Base assert class. Will either set an error flag or throw
+ *        an exception.
+ */
 class ymassert_Base
    #if (YM_YES_EXCEPTIONS)
       : public std::exception
@@ -30,83 +45,59 @@ class ymassert_Base
 {
 public:
    explicit ymassert_Base(
-      #if (YM_CPP_STANDARD >= 20)
-         std::source_location const SrcLoc,
-      #endif
-         rawstr               const Format,
-         /*variadic*/               ...);
+      YM_TMP_SRC_LOC_PARAM
+      rawstr const Format,
+      /*variadic*/ ...);
 
 #if (YM_YES_EXCEPTIONS)
    virtual ~ymassert_Base(void) = default;
-
    virtual rawstr what(void) const noexcept override;
 #endif
 };
 
-#if (YM_YES_EXCEPTIONS)
-   #define YM_THROW throw
-#else // YM_NO_EXCEPTIONS
-   #define YM_THROW
-#endif
-
-#define YMASSERT(Condition_,              \
-                 DerivedYmassert_,        \
-                 Format_,                 \
-                 ...)                     \
-   if (!Condition)                        \
-   {                                      \
-      YM_THROW DerivedYmassert_(          \
-         std::source_location::current(), \
-         Format,                          \
-         __VA_ARGS__);                    \
-   }
-
-#define YM_DECL_YMASSERT(Name_) \
-   class Name_
-   {
-   public:
-      template <Loggable...
-   }
-
-namespace ym
-{
-
-/** YmError
+/** YMASSERT
  *
- * @brief Base class for all custom exceptions in the ym namespace.
- * 
- * @ref <https://en.cppreference.com/w/cpp/language/eval_order>. See point 20.
+ * @brief Macro to assert on a condition.
+ *
+ * @param Condition_       -- True for happy path, false triggers the assert.
+ * @param DerivedYmassert_ -- Ymassert class to handle assert.
+ * @param Format_          -- Format string.
+ * @param ...              -- Arguments.
  */
-class YmError : public std::exception
-{
-public:
-   explicit YmError(std::string msg);
-   virtual ~YmError(void) = default;
+#define YMASSERT(Condition_,       \
+                 DerivedYmassert_, \
+                 Format_,          \
+                 ...)              \
+   static_assert(std::is_convertible_v<Condition_, bool>, "Condition must be convertible to bool");                 \
+   static_assert(std::is_base_of_v<ymassert_Base, DerivedYmassert_>, "Assert class must be of type ymassert_Base"); \
+   static_assert(std::is_same_v<Format_, rawstr>, "Format must be a string literal");                               \
+   if (!Condition)                 \
+   {                               \
+      YM_THROW DerivedYmassert_(   \
+         YM_TMP_SRC_LOC_CRNT       \
+         Format,                   \
+         __VA_ARGS__);             \
+   }
 
-   virtual rawstr what(void) const noexcept override;
-
-   static bool isErrorRaised(void);
-   static std::string getRaisedError(void);
-
-protected:
-   static std::string assertHandler(
-      rawstr               const Name,
-   #if (YM_CPP_STANDARD >= 20)
-      std::source_location const SrcLoc,
-   #endif
-      rawstr               const Format,
-      /*variadic*/               ...);
-
-private:
-   void consume(void); // TODO we need a static array to hold all raised errors
-
-   std::string const _Msg;
-
-#if !defined(YM_USE_EXCEPTIONS) // no exceptions
-   using RaisedErrorArray_T = std::array<std::string, 10_u32>;
-   static inline    RaisedErrorArray_T _s_raisedErrors {     };
-   static inline    bool               _s_raisedError  {false};
-#endif
-};
+/** ymassert_Base
+ *
+ * @brief Base assert class. Will either set an error flag or throw
+ *        an exception.
+ */
+#define YM_DECL_YMASSERT(Name_)            \
+   class Name_                             \
+   {                                       \
+   public:                                 \
+      template <Loggable... Args_T>        \
+      explicit inline Name_(               \
+            YM_TMP_SRC_LOC_PARAM           \
+            rawstr const Format,           \
+            Args_T &&... args_uref)        \
+         : ymassert_Base(                  \
+            YM_TMP_SRC_LOC                 \
+            Format,                        \
+            std::forward<Args_T>(args)...) \
+      {}                                   \
+   };
 
 } // ym
