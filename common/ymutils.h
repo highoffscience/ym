@@ -6,13 +6,18 @@
 
 #pragma once
 
+#include "ymassert.h"
 #include "ymdefs.h"
-#include "ymerror.h"
 
 #include <cstddef>
+#include <cstdlib>
+#include <exception>
+#include <type_traits>
 
 namespace ym
 {
+
+YM_DECL_YMASSERT(NullPtrError)
 
 /** PtrToInt_T
  *
@@ -37,9 +42,9 @@ namespace ym
  * @tparam T -- Pointer type.
  */
 template <typename T>
-#if (YM_CPP_STANDARD >= 20)
-requires (std::is_pointer_v<T *>)
-#endif
+   #if (YM_CPP_STANDARD >= 20)
+      requires (!std::is_member_function_pointer<T>::value)
+   #endif
 union PtrToInt_T
 {
    T       * ptr_val;
@@ -132,7 +137,7 @@ public:
    implicit constexpr BoundedPtr(T * const t_Ptr)
       : TrustedBoundedPtr<T>(t_Ptr)
    {
-      typename BoundedPtrNullError::check(this->get(), "Bounded pointer cannot be null");
+      YMASSERT(this->get(), NullPtrError, "Bounded pointer cannot be null");
    }
 
    /** BoundedPtr
@@ -164,8 +169,6 @@ public:
       this->_t_ptr = TBP;
       return *this;
    }
-
-   YM_DECL_YMERROR(BoundedPtrNullError)
 };
 
 static_assert(sizeof(BoundedPtr<int>) == sizeof(TrustedBoundedPtr<int>), "Potential slicing hazard");
@@ -181,7 +184,7 @@ using str = bptr<char const>;
 using strlit = TrustedBoundedPtr<char const>;
 
 /// @brief Convenience user-defined literal
-constexpr auto operator"" _str(rawstr const S, std::size_t) { return strlit(S); }
+constexpr inline auto operator"" _str(rawstr const S, std::size_t) { return strlit(S); }
 
 // ----------------------------------------------------------------------------
 

@@ -6,6 +6,6 @@
 
 #pragma once
 
+#include "ymassert.h"
 #include "ymdefs.h"
-#include "ymerror.h"
 #include "ymutils.h"

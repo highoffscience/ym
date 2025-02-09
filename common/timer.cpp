@@ -12,8 +12,7 @@
  */
 ym::Timer::Timer(void)
    : _startTime {Clock_T::now()}
-{
-}
+{ }
 
 /** reset
  *

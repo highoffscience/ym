@@ -6,117 +6,121 @@
 
 #include "ymassert.h"
 
+#include "memio.h"
 #include "textlogger.h"
 
 #include <array>
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <utility>
 
-#define YM_ENABLE_STACKTRACE 0
+// /** ymassert_Base
+//  *
+//  * @brief Constructor.
+//  *
+//  * @note Assert has failed. Print diagnostic information and throw/flag error.
+//  * 
+//  * @todo std::stacktrace.
+//  *
+//  * @param SrcLoc -- File location information.
+//  * @param Format -- Format string.
+//  * @param ...    -- Arguments.
+//  */
+// ym::ymassert_Base::ymassert_Base(
+//    YM_HELPER_SRC_LOC_PRM(SrcLoc)
+//    rawstr          const Format,
+//    /*variadic*/          ...)
+// {
+//    // let's say Format is "Index is %u"
+//    // I want "Ymassert @ \"%s:%u\": Index is %u"
 
-#if YM_ENABLE_STACKTRACE
-   #include <boost/stacktrace.hpp>
-#endif
+//    auto const Prefix = "Ymassert @ \"%s:%u\": "_str;
+//    auto const PrefixSize_bytes = std::strlen(Prefix);
+//    auto const FormatSize_bytes = std::strlen(Format);
+//    auto const TotalSize_bytes  = PrefixSize_bytes + FormatSize_bytes;
 
-/** ymassert_Base
- *
- * @brief Constructor.
- *
- * @note Assert has failed. Print diagnostic information and throw/flag error.
- * 
- * @todo std::stacktrace implementation instead of boost.
- *
- * @param SrcLoc -- File location information.
- * @param Format -- Format string.
- * @param ...    -- Arguments.
- */
-ym::ymassert_Base::ymassert_Base(
-   #if (YM_CPP_STANDARD >= 20)
-      std::source_location const SrcLoc,
-   #endif
-      rawstr               const Format,
-      /*variadic*/               ...)
-{
-   ymLog(VG::YmError_Assert,
-      #if (YM_CPP_STANDARD >= 20)
-         "Ymassert @ \"%s:%u\": ",
-         SrcLoc.file_name(),
-         static_cast<uint32>(SrcLoc.line())
-      #else
-         "%s: ",
-         Name
-      #endif
-   );
+//    auto * const buffer_Ptr = YM_STACK_ALLOC(char, TotalSize_bytes + 1_u64); // +1 for null terminator
 
-   std::array<char, 1024_u64> buffer{'\0'};
+//    std::strcpy(buffer_Ptr, Prefix);
+//    std::strcpy(buffer_Ptr + PrefixSize_bytes, Format);
+//    buffer_Ptr[TotalSize_bytes] = '\0'; // safety, though strcpy does this for us
 
-   // writes null terminator for us
-   auto const NCharsWritten =
-      std::snprintf(
-         buffer.data(),
-         buffer.size(),
-      #if (YM_CPP_STANDARD >= 20)
-         "%s \"%s:%u\": ",
-         Name,
-         SrcLoc.file_name(),
-         static_cast<uint32>(SrcLoc.line())
-      #else
-         "%s: ",
-         Name
-      #endif
-         );
+//    std::va_list args;
 
-   auto const Offset = 
-      (                    NCharsWritten  < 0            ) ? 0_u32 : // snprintf encountered an error
-      (static_cast<uint32>(NCharsWritten) < buffer.size()) ? static_cast<uint32>(NCharsWritten) :
-                                                             buffer.size();
+//    auto argsDeleter = [] (std::va_list * const args_Ptr) {
+//       va_end(*args_Ptr);
+//    };
+//    auto args_uptr = std::unique_ptr<std::va_list *, decltype(argsDeleter)>(&args, argsDeleter);
 
-   std::va_list args;
-   va_start(args, Format);
+//    va_start(args, Format);
 
-   // writes null terminator for us
-   (void)std::vsnprintf(buffer.data() + Offset,
-                        buffer.size() - Offset,
-                        Format,
-                        args);
+//    ymLog(VG::YmError_Assert, buffer_Ptr, args);
 
-   va_end(args);
+//    // std::array<char, 512_u32> buffer{'\0'};
 
-   // need to check if the global log is the one that threw
-   auto const IsGlobalLogOk = std::strcmp(Name, "TextLoggerError_GlobalFailureToOpen") != 0;
+//    // ymLog(VG::YmError_Assert,
+//    //    #if (YM_CPP_STANDARD >= 20)
+//    //       "Ymassert @ \"%s:%u\": ",
+//    //       SrcLoc.file_name(),
+//    //       static_cast<uint32>(SrcLoc.line())
+//    //    #else
+//    //       "%s: ",
+//    //       Name
+//    //    #endif
+//    // );
 
-   if (!IsGlobalLogOk)
-   { // only option is to log to the error stream
-      ymLogToStdErr("Assert failed!");
-      ymLogToStdErr("%s!", buffer.data());
-   }
-   else
-   { // log the error
-      ymLog(VG::YmError_Assert, "Assert failed!");
-      ymLog(VG::YmError_Assert, "%s!", buffer.data());
+//    // std::array<char, 1024_u64> buffer{'\0'};
 
-   #if (YM_ENABLE_STACKTRACE)
-      ymLog(VGM_T::YmError_Assert, "Stack dump follows...");
+//    // // writes null terminator for us
+//    // auto const NCharsWritten =
+//    //    std::snprintf(
+//    //       buffer.data(),
+//    //       buffer.size(),
+//    //    #if (YM_CPP_STANDARD >= 20)
+//    //       "%s \"%s:%u\": ",
+//    //       Name,
+//    //       SrcLoc.file_name(),
+//    //       static_cast<uint32>(SrcLoc.line())
+//    //    #else
+//    //       "%s: ",
+//    //       Name
+//    //    #endif
+//    //       );
 
-      { // split and print stack dump
-         auto const StackDumpStr = boost::stacktrace::to_string(boost::stacktrace::stacktrace());
+//    // auto const Offset = 
+//    //    (                    NCharsWritten  < 0            ) ? 0_u32 : // snprintf encountered an error
+//    //    (static_cast<uint32>(NCharsWritten) < buffer.size()) ? static_cast<uint32>(NCharsWritten) :
+//    //                                                           buffer.size();
 
-         for (auto startPos = StackDumpStr.find_first_not_of('\n', 0);
-            startPos != std::string::npos;
-            /*empty*/)
-         { // print each line of the stack dump separately
-            auto const EndPos = StackDumpStr.find_first_of('\n', startPos);
-            ymLog(VGM_T::YmError_Assert, StackDumpStr.substr(startPos, EndPos - startPos).c_str());
-            startPos = StackDumpStr.find_first_not_of('\n', EndPos);
-         }
-      }
-   #endif
-   }
+//    // std::va_list args;
+//    // va_start(args, Format);
 
-   return std::string(buffer.data());
-}
+//    // // writes null terminator for us
+//    // (void)std::vsnprintf(buffer.data() + Offset,
+//    //                      buffer.size() - Offset,
+//    //                      Format,
+//    //                      args);
+
+//    // va_end(args);
+
+//    // // need to check if the global log is the one that threw
+//    // auto const IsGlobalLogOk = std::strcmp(Name, "TextLoggerError_GlobalFailureToOpen") != 0;
+
+//    // if (!IsGlobalLogOk)
+//    // { // only option is to log to the error stream
+//    //    ymLogToStdErr("Assert failed!");
+//    //    ymLogToStdErr("%s!", buffer.data());
+//    // }
+//    // else
+//    // { // log the error
+//    //    ymLog(VG::YmError_Assert, "Assert failed!");
+//    //    ymLog(VG::YmError_Assert, "%s!", buffer.data());
+//    // }
+// }
+
+#if (YM_YES_EXCEPTIONS)
 
 /** what
  *
@@ -127,91 +131,4 @@ auto ym::ymassert_Base::what(void) const noexcept -> rawstr
    return "Ymassert";
 }
 
-/** assertHandler
- *
- * @brief Assert has failed. Print diagnostic information and throw.
- * 
- * @todo std::stacktrace implementation instead of boost.
- * 
- * @param Name   -- Name of YmError being thrown.
- * @param SrcLoc -- Source location of the thrown YmError.
- * @param Format -- Format string.
- * @param ...    -- Arguments.
- * 
- * @returns std::string -- YmError formatted details.
- */
-std::string ym::YmError::assertHandler(
-   rawstr               const Name,
-#if (YM_CPP_STANDARD >= 20)
-   std::source_location const SrcLoc,
 #endif
-   rawstr               const Format,
-   /*variadic*/         ...)
-{
-   std::array<char, 1024_u64> buffer{'\0'};
-
-   // writes null terminator for us
-   auto const NCharsWritten =
-      std::snprintf(
-         buffer.data(),
-         buffer.size(),
-      #if (YM_CPP_STANDARD >= 20)
-         "%s \"%s:%u\": ",
-         Name,
-         SrcLoc.file_name(),
-         static_cast<uint32>(SrcLoc.line())
-      #else
-         "%s: ",
-         Name
-      #endif
-         );
-
-   auto const Offset = 
-      (                    NCharsWritten  < 0            ) ? 0_u32 : // snprintf encountered an error
-      (static_cast<uint32>(NCharsWritten) < buffer.size()) ? static_cast<uint32>(NCharsWritten) :
-                                                             buffer.size();
-
-   std::va_list args;
-   va_start(args, Format);
-
-   // writes null terminator for us
-   (void)std::vsnprintf(buffer.data() + Offset,
-                        buffer.size() - Offset,
-                        Format,
-                        args);
-
-   va_end(args);
-
-   // need to check if the global log is the one that threw
-   auto const IsGlobalLogOk = std::strcmp(Name, "TextLoggerError_GlobalFailureToOpen") != 0;
-
-   if (!IsGlobalLogOk)
-   { // only option is to log to the error stream
-      ymLogToStdErr("Assert failed!");
-      ymLogToStdErr("%s!", buffer.data());
-   }
-   else
-   { // log the error
-      ymLog(VG::YmError_Assert, "Assert failed!");
-      ymLog(VG::YmError_Assert, "%s!", buffer.data());
-
-   #if YM_ENABLE_STACKTRACE
-      ymLog(VGM_T::YmError_Assert, "Stack dump follows...");
-
-      { // split and print stack dump
-         auto const StackDumpStr = boost::stacktrace::to_string(boost::stacktrace::stacktrace());
-
-         for (auto startPos = StackDumpStr.find_first_not_of('\n', 0);
-            startPos != std::string::npos;
-            /*empty*/)
-         { // print each line of the stack dump separately
-            auto const EndPos = StackDumpStr.find_first_of('\n', startPos);
-            ymLog(VGM_T::YmError_Assert, StackDumpStr.substr(startPos, EndPos - startPos).c_str());
-            startPos = StackDumpStr.find_first_not_of('\n', EndPos);
-         }
-      }
-   #endif // YM_ENABLE_STACKTRACE
-   }
-
-   return std::string(buffer.data());
-}

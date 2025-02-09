@@ -9,7 +9,9 @@
 #include "logger.h"
 #include "timer.h"
 #include "verbogroup.h"
-#include "ymglobals.h"
+#include "ymdefs.h"
+
+#include "fmt/core.h"
 
 #include <array>
 #include <atomic>
@@ -26,14 +28,10 @@ namespace ym
  * Convenience functions.
  * -------------------------------------------------------------------------- */
 
-template <Loggable... Args_T>
-inline void ymLog(VG     const    VG,
-                  str    const    Format,
-                  Args_T const... Args);
-
-template <Loggable... Args_T>
-inline void ymLogToStdErr(str    const    Format,
-                          Args_T const... Args);
+template <typename... Args_T>
+inline void ymLog(VG     const VG,
+                  rawstr const Format,
+                  Args_T &&... Args);
 
 inline bool ymLogEnable (VG const VG);
 inline bool ymLogDisable(VG const VG);
@@ -79,21 +77,18 @@ public:
    YM_NO_COPY  (TextLogger)
    YM_NO_ASSIGN(TextLogger)
 
-   YM_DECL_YMERROR(TextLoggerError)
-   YM_DECL_YMERROR(TextLoggerError, TextLoggerError_GlobalFailureToOpen)
-   YM_DECL_YMERROR(TextLoggerError, TextLoggerError_FailureToOpen)
-   YM_DECL_YMERROR(TextLoggerError, TextLoggerError_ProducerConsumerError)
-
    static TextLogger * getGlobalInstancePtr(void);
 
    bool isOpen(void) const;
 
-   bool open(PrintMode_T    const PrintMode,
-             RedirectMode_T const RedirectMode);
-   bool open(FilenameMode_T const FilenameMode,
-             PrintMode_T    const PrintMode,
-             RedirectMode_T const RedirectMode,
-             str            const Filename);
+   bool open(
+      PrintMode_T    const PrintMode,
+      RedirectMode_T const RedirectMode);
+   bool open(
+      FilenameMode_T const FilenameMode,
+      PrintMode_T    const PrintMode,
+      RedirectMode_T const RedirectMode,
+      rawstr         const Filename);
    void close(void);
 
    static constexpr auto getMaxMessageSize_bytes(void) { return _s_MaxMessageSize_bytes; }
@@ -107,8 +102,7 @@ public:
     * 
     * @note Uses RAII to storing/restoring enabling verbosity groups.
     * 
-    * @note The return value from @ref TextLogger::pushEnable will need to be explicitly
-    *       stored, ie.
+    * @note The return value from pushEnable will need to be explicitly stored, ie.
     *       auto const SE = ymLogPushEnable(VG);
     *       even if SE is not used, since the destructor has side effects. Simply calling
     *       pushEnable will result in the ScopedEnable structure being deleted immediately.
@@ -133,10 +127,11 @@ public:
 
    ScopedEnable pushEnable(VG const VG);
 
-   template <Loggable... Args_T>
-   inline void printf(VG     const    VG,
-                      str    const    Format,
-                      Args_T const... Args);
+   template <typename... Args_T>
+   inline void printf(
+      VG     const VG,
+      rawstr const Format,
+      Args_T &&... Args);
 
 private:
    void printf_Handler(VG    const  VG,
@@ -153,12 +148,14 @@ private:
 
    void writeMessagesToFile(void);
 
-   void populateFormattedTime(char * const write_Ptr) const;
+   void populateFormattedTime(
+      char * const write_Ptr,
+      uint64 const Size_bytes) const;
 
    static constexpr auto _s_MaxMessageSize_bytes = 256_u32;
    static constexpr auto _s_MaxNMessagesInBuffer =  64_u32;
    static constexpr auto _s_BufferSize_bytes     = _s_MaxMessageSize_bytes * _s_MaxNMessagesInBuffer;
-   static constexpr auto _s_TimeStampSize_bytes  = 33_u32;
+   static constexpr auto _s_TimeStampSize_bytes  = 32_u32;
 
    static_assert(std::has_single_bit(_s_MaxNMessagesInBuffer),
                  "_s_MaxNMessagesInBuffer needs to be power of 2");

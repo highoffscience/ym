@@ -6,13 +6,11 @@
 
 #pragma once
 
-#include "loggable.h"
-#include "ymglobals.h"
+#include "ymdefs.h"
 
 #include <cstdio>
 #include <memory>
 #include <string_view>
-#include <type_traits>
 
 namespace ym
 {
@@ -33,9 +31,6 @@ public:
    YM_NO_COPY  (Logger)
    YM_NO_ASSIGN(Logger)
 
-   YM_DECL_YMERROR(LoggerError)
-   YM_DECL_YMERROR(LoggerError, LoggerError_FailureToOpen)
-
    /** FilenameMode_T
     *
     * @brief Mode to determine how to mangle the filename.
@@ -49,33 +44,15 @@ public:
 protected:
    explicit Logger(void);
 
-   /** printfInternalError
-    *
-    * @brief Print to stderr. If something goes wrong in the logger then printing to stderr
-    *        is our only choice.
-    *
-    * @tparam Args_T -- Argument types.
-    *
-    * @param Format -- Format string.
-    * @param Args   -- Arguments.
-    */
-#if (YM_CPP_STANDARD >= 20)
-   template <Loggable... Args_T>
-#else
-   template <typename... Args_T, typename = std::enable_if_t<(Loggable<Args_T>&&...)>>
-#endif
-   inline void printfInternalError(str    const    Format,
-                                   Args_T const... Args);
-
    inline auto isOutfileOpened(void) const { return static_cast<bool>(_outfile_uptr); }
 
    // Don't name simply "open" or "close" because we want to allow derived
    // classes to implement these functions without the overhead of
    // virtual calls.
 
-   bool openOutfile(str            const Filename,
-                    FilenameMode_T const FilenameMode = FilenameMode_T::AppendTimeStamp);
-   bool openOutfile(std::FILE *    const file_Ptr);
+   bool openOutfile(
+      rawstr         const Filename,
+      FilenameMode_T const FilenameMode = FilenameMode_T::AppendTimeStamp);
 
    void closeOutfile(void);
 
@@ -83,12 +60,7 @@ protected:
    std::unique_ptr<std::FILE, FileDeleter_T> _outfile_uptr;
 
 private:
-   // TS = Time Stamp
-   static constexpr std::string_view _s_DefaultTS{"_0000_000_00_00_00_00"};
-
-   bool openOutfile_appendTimeStamp(str const Filename);
-
-   void populateFilenameTimeStamp(char * const timeStamp_Ptr) const;
+   bool openOutfile_appendTimeStamp(std::string_view const Filename);
 };
 
 } // ym

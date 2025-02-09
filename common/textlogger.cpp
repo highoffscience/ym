@@ -6,6 +6,8 @@
 
 #include "textlogger.h"
 
+#include "fmt/core.h"
+
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
@@ -226,9 +228,7 @@ void ym::TextLogger::close(void)
       close_Helper("File closing...");
       _writerMode.store(WriterMode_T::Closing, std::memory_order_release);
       _writer.join(); // wait until all messages have been written before closing the file
-
       closeOutfile();
-
       _writerMode.store(WriterMode_T::Closed, std::memory_order_relaxed);
    }
 }
@@ -281,7 +281,6 @@ void ym::TextLogger::close_Helper(str          msg,
 bool ym::TextLogger::enable(VG const VG)
 {
    using VGM = VerboGroupMask;
-
    return _vGroups[VGM::getGroup(VG)].fetch_or(VGM::getMaskAsByte(VG), std::memory_order_relaxed);
 }
 
@@ -296,7 +295,6 @@ bool ym::TextLogger::enable(VG const VG)
 bool ym::TextLogger::disable(VG const VG)
 {
    using VGM = VerboGroupMask;
-
    return _vGroups[VGM::getGroup(VG)].fetch_and(~VGM::getMaskAsByte(VG), std::memory_order_relaxed);
 }
 
@@ -347,77 +345,48 @@ void ym::TextLogger::printf_Handler(VG    const  VG,
    }
 }
 
-/** printf_Producer
+/** printf_Handler
  *
  * @brief Prints the requested message to the internal buffer.
  *
  * @note The system call to get the timestamp is usually optimized at runtime.
- *
- * @throws TextLoggerError_ProducerConsumerError -- If _availableSem fails to acquire.
- * @throws TextLoggerError_ProducerConsumerError -- If _messagesSem fails to release.
  * 
  * @param Format -- Format string.
  * @param args   -- Arguments.
  */
-void ym::TextLogger::printf_Producer(str const    Format,
-                                     std::va_list args)
+void ym::TextLogger::printf_Handler(
+   rawstr const Msg,
+   uint64 const Size_bytes)
 {
-   try
-   { // try to acquire
-      _availableSem.acquire(); // TODO this doesn't throw!
-   }
-   catch (std::exception const & E)
-   { // post what went wrong and throw
-      TextLoggerError_ProducerConsumerError::check(false,
-         "Avail sem failed to acquire (%s)", E.what());
-   }
-   
-   // _writePos doesn't need to wrap (power of 2), so just incrementing until it rolls over is ok
-   // TODO memory_order_relaxed? or acquire?
-   auto   const WritePos  = _writePos.fetch_add(1_u32, std::memory_order_relaxed) % getMaxNMessagesInBuffer();
-   auto * const write_Ptr = _buffer + (WritePos * getMaxMessageSize_bytes());
-
-   // vsnprintf writes a null terminator for us
-   auto const NCharsWrittenInTheory = std::vsnprintf(write_Ptr, getMaxMessageSize_bytes(), Format, args);
-
-   if (NCharsWrittenInTheory < 0)
-   { // snprintf hit an internal error
-      printfInternalError("std::vsnprintf failed with error code %d! "
-                          "Message was '%s'\n",
-                          NCharsWrittenInTheory,
-                          write_Ptr); // TODO write_Ptr may not have anything to say! it failed to write!
-
-      std::strncpy(write_Ptr, "error in printf (internal vsnprintf error)", getMaxMessageSize_bytes());
-
-      // don't fail here - just keep going
-   }
-   else if (static_cast<uint32>(NCharsWrittenInTheory) >= getMaxMessageSize_bytes())
-   { // not everything was printed to the buffer
-
-      // TODO can we acquire() again until the whole message is printed?
-      //  that way we can lower the max message size, increasing throughput
-      //  and minimizing wasted memory
-
-      printfInternalError("Failed to write everything to the buffer! NCharsWrittenInTheory = %ld. "
-                          "Msg size = %lu bytes. Message = '%s'\n",
-                          NCharsWrittenInTheory,
-                          getMaxMessageSize_bytes(),
-                          write_Ptr);
-
-      // don't fail here - just keep going
+   while (_writeFlag.test_and_set(std::memory_order_acquire))
+   {
+   #if (YM_CPP_STANDARD >= 20)
+      _writeFlag.wait(true, std::memory_order_relaxed);
+   #else
+      std::this_thread::yield();
+   #endif
    }
 
-   _readReadySlots.fetch_or(1_u64 << WritePos, std::memory_order_release);
+   if (_printMode == PrintMode_T::PrependTimeStamp)
+   { // print message with time stamp
 
-   try
-   { // try to release
-      _messagesSem.release();
+      char timeStampBuffer[getTimeStampSize_bytes()]{};
+      populateFormattedTime(timeStampBuffer, getTimeStampSize_bytes());
+
+      nCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), "%s: %s\n", timeStampBuffer, Read_Ptr);
    }
-   catch (std::exception const & E)
-   { // post what went wrong and throw
-      TextLoggerError_ProducerConsumerError::check(false,
-         "Msgs sem failed to release (%s)", E.what());
+   else
+   { // print message plain
+      nCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), "%s", Read_Ptr);
    }
+
+   std::fwrite(Msg, sizeof(char), MsgSize_bytes, _outfile_Ptr);
+
+   _writeFlag.clear(std::memory_order_released);
+
+#if (YM_CPP_STANDARD >= 20)
+   _writeFlag.notify_one();
+#endif
 }
 
 /** writeMessagesToFile
@@ -514,57 +483,41 @@ void ym::TextLogger::writeMessagesToFile(void)
 /** populateFormattedTime
  *
  * @brief Writes the elapsed time in the specified buffer.
- *
- * @note Not to be confused with @link Logger::populateFilenameTimeStamp @endlink.
+ * 
+ * @note Does *not* write null terminator.
+ * 
+ * @note Not to be confused with Logger::populateFilenameTimeStamp.
  *
  * @note Returns the current time, in microseconds, since the creation of the log in the format
- *       (xxxxxxxxxxxx) xxx:xx:xx.xxx'xxx
+ *       (xxxxxxxxxxxx) xxx:xx:xx.xxxxxx
  *
- * @param write_Ptr -- Buffer to write time stamp into.
+ * @param write_Ptr  -- Buffer to write time stamp into.
+ * @param Size_bytes -- Size of buffer.
  */
-void ym::TextLogger::populateFormattedTime(char * const write_Ptr) const
+void ym::TextLogger::populateFormattedTime(
+   char * const write_Ptr,
+   uint64 const Size_bytes) const
 {
-   // we want signedness so it's not awkward adding char
-   auto const ElapsedTime_us  = static_cast<int64>(_timer.getElapsedTime<std::micro>());
-   auto const ElapsedTime_sec = (ElapsedTime_us /  1'000'000_i64             ) % 60_i64;
-   auto const ElapsedTime_min = (ElapsedTime_us / (1'000'000_i64 *    60_i64)) % 60_i64;
-   auto const ElapsedTime_hrs =  ElapsedTime_us / (1'000'000_i64 * 3'600_i64);
+   auto elapsed = _timer.getElapsedTime();
 
-   write_Ptr[ 0_u32] = '(';
-   write_Ptr[ 1_u32] = static_cast<int8>(((ElapsedTime_us / 100'000'000'000_i64) % 10_i64) + '0');
-   write_Ptr[ 2_u32] = static_cast<int8>(((ElapsedTime_us /  10'000'000'000_i64) % 10_i64) + '0');
-   write_Ptr[ 3_u32] = static_cast<int8>(((ElapsedTime_us /   1'000'000'000_i64) % 10_i64) + '0');
-   write_Ptr[ 4_u32] = static_cast<int8>(((ElapsedTime_us /     100'000'000_i64) % 10_i64) + '0');
-   write_Ptr[ 5_u32] = static_cast<int8>(((ElapsedTime_us /      10'000'000_i64) % 10_i64) + '0');
-   write_Ptr[ 6_u32] = static_cast<int8>(((ElapsedTime_us /       1'000'000_i64) % 10_i64) + '0');
-   write_Ptr[ 7_u32] = static_cast<int8>(((ElapsedTime_us /         100'000_i64) % 10_i64) + '0');
-   write_Ptr[ 8_u32] = static_cast<int8>(((ElapsedTime_us /          10'000_i64) % 10_i64) + '0');
-   write_Ptr[ 9_u32] = static_cast<int8>(((ElapsedTime_us /           1'000_i64) % 10_i64) + '0');
-   write_Ptr[10_u32] = static_cast<int8>(((ElapsedTime_us /             100_i64) % 10_i64) + '0');
-   write_Ptr[11_u32] = static_cast<int8>(((ElapsedTime_us /              10_i64) % 10_i64) + '0');
-   write_Ptr[12_u32] = static_cast<int8>(((ElapsedTime_us /               1_i64) % 10_i64) + '0');
-   write_Ptr[13_u32] = ')';
-   write_Ptr[14_u32] = ' ';
-   write_Ptr[15_u32] = static_cast<int8>(((ElapsedTime_hrs / 100_i64) % 10_i64) + '0');
-   write_Ptr[16_u32] = static_cast<int8>(((ElapsedTime_hrs /  10_i64) % 10_i64) + '0');
-   write_Ptr[17_u32] = static_cast<int8>(((ElapsedTime_hrs /   1_i64) % 10_i64) + '0');
-   write_Ptr[18_u32] = ':';
-   write_Ptr[19_u32] = static_cast<int8>(((ElapsedTime_min / 10_i64) % 10_i64) + '0');
-   write_Ptr[20_u32] = static_cast<int8>(((ElapsedTime_min /  1_i64) % 10_i64) + '0');
-   write_Ptr[21_u32] = ':';
-   write_Ptr[22_u32] = static_cast<int8>(((ElapsedTime_sec / 10_i64) % 10_i64) + '0');
-   write_Ptr[23_u32] = static_cast<int8>(((ElapsedTime_sec /  1_i64) % 10_i64) + '0');
-   write_Ptr[24_u32] = '.';
-   write_Ptr[25_u32] = write_Ptr[ 7_u32];
-   write_Ptr[26_u32] = write_Ptr[ 8_u32];
-   write_Ptr[27_u32] = write_Ptr[ 9_u32];
-   write_Ptr[28_u32] = '\'';
-   write_Ptr[29_u32] = write_Ptr[10_u32];
-   write_Ptr[30_u32] = write_Ptr[11_u32];
-   write_Ptr[31_u32] = write_Ptr[12_u32];
-   write_Ptr[32_u32] = '\0';
+   auto const TotalTime_us = std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
+   auto const Time_hr      = std::chrono::duration_cast<std::chrono::hours>       (elapsed);
+   elapsed -= Time_hr;
+   auto const Time_min     = std::chrono::duration_cast<std::chrono::minutes>     (elapsed);
+   elapsed -= Time_min;
+   auto const Time_sec     = std::chrono::duration_cast<std::chrono::seconds>     (elapsed);
+   elapsed -= Time_sec;
+   auto const Time_us      = std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
 
-   static_assert(getTimeStampSize_bytes() == 33_u32, "Time stamp buffer is incorrect size");
+// Use fmt to format directly into the pre-allocated buffer
+   [[maybe_unused]] auto const Result = fmt::fprintf(
+      _outfile_uptr.get(),
+      "({:012}) {:03}:{:02}:{:02}.{:06}",
+      TotalTime_us.count(),
+      Time_hr.count(),
+      Time_min.count(),
+      Time_sec.count(),
+      Time_us.count());
 }
 
 /** ScopedEnable
@@ -576,8 +529,9 @@ void ym::TextLogger::populateFormattedTime(char * const write_Ptr) const
  * @param logger_Ptr -- Logger instance to enable VG for.
  * @param VG         -- Verbosity group.
  */
-ym::TextLogger::ScopedEnable::ScopedEnable(TextLogger * const logger_Ptr,
-                                           VG           const VG)
+ym::TextLogger::ScopedEnable::ScopedEnable(
+   TextLogger * const logger_Ptr,
+   VG           const VG)
    : _logger_Ptr {logger_Ptr            },
      _VG         {VG                    },
      _WasEnabled {logger_Ptr->enable(VG)}

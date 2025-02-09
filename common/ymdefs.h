@@ -6,9 +6,17 @@
  * @note This file should be included in every file of the project. It provides
  *       standard declarations to be shared throughout.
  * 
- * @note Macros start with "YM_".
- * 
- * @note Macros used for a particular purpose start with "YM_SPECIAL_".
+ * @note Macros are prefixed "YM_".
+ * @note Macros used for a particular purpose are prefixed "YM_SPECIAL_".
+ * @note Macros used as helper functions are prefixed "YM_HELPER_".
+ * @note Macros that are defined/not defined are suffixed "_DEFINED".
+ * @note Macros that use #if semantics should have definitive values, ie
+ *       #define YM_MY_FLAG 0/1 -> #if (YM_MY_FLAG)
+ *          or should otherwise be
+ *       #define YM_MY_FLAG_DEFINED -> #if defined(YM_MY_FLAG_DEFINED)
+ *          otherwise the following would be a bug
+ *       #define YM_MY_FLAG 0/1 -> #if defined(YM_MY_FLAG)
+ *       #define YM_MY_FLAG     -> #if (YM_MY_FLAG) // macro may not be defined
  */
 
 #pragma once
@@ -45,18 +53,18 @@
  */
 
 #if defined(__clang__) // must be before GNU test because clang also defines __GNUG__
-   #define YM_CLANG_COMPILER
+   #define YM_CLANG_COMPILER_DEFINED
 #elif defined(__GNUG__)
-   #define YM_GNU_COMPILER
+   #define YM_GNU_COMPILER_DEFINED
 #elif defined(_MSC_VER)
-   #define YM_MSVC_COMPILER
+   #define YM_MSVC_COMPILER_DEFINED
 #else
    #warning "Unknown compiler detected"
 #endif
 
 // ----------------------------------------------------------------------------
 
-#if defined(YM_MSVC_COMPILER)
+#if defined(YM_MSVC_COMPILER_DEFINED)
 
    /**
     * @brief MSVC shenanigans.
@@ -68,7 +76,7 @@
    #pragma warning(error:    4062) // switch on all enum values
    #pragma warning(error:    4227) // reference of const should be pointer to const
 
-#endif // YM_MSVC_COMPILER
+#endif
 
 // ----------------------------------------------------------------------------
 
@@ -106,16 +114,16 @@
  */
 
 // get number of arguments with __NARG__
-#define YM__NARG__(...)  YM__NARG_I_(__VA_ARGS__, YM__RSEQ_N())
-#define YM__NARG_I_(...) YM__ARG_N(__VA_ARGS__)
-#define YM__ARG_N(_1, _2, _3, _4, _5, _6, _7, _8, N, ...) N
-#define YM__RSEQ_N() 8,7,6,5,4,3,2,1,0
+#define YM_HELPER__NARG__(...)  YM_HELPER__NARG_I_(__VA_ARGS__, YM_HELPER__RSEQ_N())
+#define YM_HELPER__NARG_I_(...) YM_HELPER__ARG_N(__VA_ARGS__)
+#define YM_HELPER__ARG_N(_1, _2, _3, _4, _5, _6, _7, _8, N, ...) N
+#define YM_HELPER__RSEQ_N() 8,7,6,5,4,3,2,1,0
 
 // general definition for any function name
-#define YM_MACRO_OVERLOAD_HELPER_1(Name_, N_) Name_##N_
-#define YM_MACRO_OVERLOAD_HELPER_2(Name_, N_) YM_MACRO_OVERLOAD_HELPER_1(Name_, N_)
+#define YM_HELPER_1_MACRO_OVERLOAD(Name_, N_) Name_##N_
+#define YM_HELPER_2_MACRO_OVERLOAD(Name_, N_) YMHELPER_1_MACRO_OVERLOAD(Name_, N_)
 #define YM_MACRO_OVERLOAD(MACRO_, ...) \
-   YM_MACRO_OVERLOAD_HELPER_2(MACRO_, YM__NARG__(__VA_ARGS__)) (__VA_ARGS__)
+   YM_HELPER_2_MACRO_OVERLOAD(MACRO_, YM_HELPER__NARG__(__VA_ARGS__)) (__VA_ARGS__)
 
 /** implicit
  * 
@@ -145,46 +153,46 @@ namespace ym
 using rawstr = char const * ;
 using uchar  = unsigned char;
 
-using int8   = std::int8_t  ; static_assert(sizeof(int8 ) == 1u, "int8  not of expected size");
-using int16  = std::int16_t ; static_assert(sizeof(int16) == 2u, "int16 not of expected size");
-using int32  = std::int32_t ; static_assert(sizeof(int32) == 4u, "int32 not of expected size");
-using int64  = std::int64_t ; static_assert(sizeof(int64) == 8u, "int64 not of expected size");
+using int8   = std::int8_t ; static_assert(sizeof(int8 ) == 1u, "int8  not of expected size");
+using int16  = std::int16_t; static_assert(sizeof(int16) == 2u, "int16 not of expected size");
+using int32  = std::int32_t; static_assert(sizeof(int32) == 4u, "int32 not of expected size");
+using int64  = std::int64_t; static_assert(sizeof(int64) == 8u, "int64 not of expected size");
 using int128 =
-   #if defined(YM_GNU_COMPILER) || defined(YM_CLANG_COMPILER)
+   #if defined(YM_GNU_COMPILER_DEFINED) || defined(YM_CLANG_COMPILER_DEFINED)
       __int128_t
    #else
       void
    #endif
-   ; static_assert(!std::is_void_v<int128> || sizeof(int128) == 16u, "int128 not of expected size");
+   ; static_assert(!std::is_void<int128>::value || sizeof(int128) == 16u, "int128 not of expected size");
 
-using uint8   = std::uint8_t  ; static_assert(sizeof(uint8 ) == 1u, "uint8  not of expected size");
-using uint16  = std::uint16_t ; static_assert(sizeof(uint16) == 2u, "uint16 not of expected size");
-using uint32  = std::uint32_t ; static_assert(sizeof(uint32) == 4u, "uint32 not of expected size");
-using uint64  = std::uint64_t ; static_assert(sizeof(uint64) == 8u, "uint64 not of expected size");
+using uint8   = std::uint8_t ; static_assert(sizeof(uint8 ) == 1u, "uint8  not of expected size");
+using uint16  = std::uint16_t; static_assert(sizeof(uint16) == 2u, "uint16 not of expected size");
+using uint32  = std::uint32_t; static_assert(sizeof(uint32) == 4u, "uint32 not of expected size");
+using uint64  = std::uint64_t; static_assert(sizeof(uint64) == 8u, "uint64 not of expected size");
 using uint128 =
-   #if defined(YM_GNU_COMPILER) || defined(YM_CLANG_COMPILER)
+   #if defined(YM_GNU_COMPILER_DEFINED) || defined(YM_CLANG_COMPILER_DEFINED)
       __uint128_t
    #else
       void
    #endif
-   ; static_assert(!std::is_void_v<uint128> || sizeof(uint128) == 16u, "uint128 not of expected size");
+   ; static_assert(!std::is_void<uint128>::value || sizeof(uint128) == 16u, "uint128 not of expected size");
 
-using float32  = float          ; static_assert(std::numeric_limits<float32 >::digits == 24, "float32  (mantissa) not of expected size");
-using float64  = double         ; static_assert(std::numeric_limits<float64 >::digits == 53, "float64  (mantissa) not of expected size");
-using floatext = long double    ; static_assert(std::numeric_limits<floatext>::digits >= 53, "floatext (mantissa) not of expected size");
+using float32  = float      ; static_assert(std::numeric_limits<float32 >::digits == 24, "float32  (mantissa) not of expected size");
+using float64  = double     ; static_assert(std::numeric_limits<float64 >::digits == 53, "float64  (mantissa) not of expected size");
+using floatext = long double; static_assert(std::numeric_limits<floatext>::digits >= 53, "floatext (mantissa) not of expected size");
 
 /// @brief Convenience alias.
 using uintptr = std::uintptr_t;
-static_assert(std::is_same_v<uintptr, uint64>, "Unexpected uintptr type");
+static_assert(std::is_same<uintptr, uint64>::value, "Unexpected uintptr type");
 
 /// @brief Convenience alias.
 using intptr = std::ptrdiff_t;
-static_assert(std::is_same_v<intptr, int64        >, "Unexpected intptr type");
-static_assert(std::is_same_v<intptr, std::intptr_t>, "Unexpected intptr type");
+static_assert(std::is_same<intptr, int64        >::value, "Unexpected intptr type");
+static_assert(std::is_same<intptr, std::intptr_t>::value, "Unexpected intptr type");
 
 // ----------------------------------------------------------------------------
 
-/** YM_LITERAL_DECL
+/** YM_HELPER_LITERAL_DECL
  *
  * @brief Defines a set of user-defined literals for commonly used types.
  *
@@ -195,30 +203,27 @@ static_assert(std::is_same_v<intptr, std::intptr_t>, "Unexpected intptr type");
  * 
  * @returns auto -- Input casted to TypeToCastTo_.
  */
-#define YM_LITERAL_DECL(UDL_, TypeToCastTo_)                                                                \
-   constexpr auto operator"" _##UDL_(unsigned long long int    u) { return static_cast<TypeToCastTo_>(u); } \
-   constexpr auto operator"" _##UDL_(              long double d) { return static_cast<TypeToCastTo_>(d); } \
-                                                                                                            \
-   static_assert(std::is_same_v<decltype(  0_##UDL_), TypeToCastTo_> &&                                     \
-                 std::is_same_v<decltype(0.0_##UDL_), TypeToCastTo_>,                                       \
+#define YM_HELPER_LITERAL_DECL(UDL_, TypeToCastTo_)                                                                       \
+   constexpr inline auto operator"" _##UDL_(unsigned long long int    u) { return static_cast<TypeToCastTo_>(u); } \
+   constexpr inline auto operator"" _##UDL_(              long double d) { return static_cast<TypeToCastTo_>(d); } \
+                                                                                                                   \
+   static_assert(std::is_same<decltype(  0_##UDL_), TypeToCastTo_>::value &&                                       \
+                 std::is_same<decltype(0.0_##UDL_), TypeToCastTo_>::value,                                         \
                  "User defined literal "#UDL_" failed to cast");
 
-YM_LITERAL_DECL(i8,   int8    )
-YM_LITERAL_DECL(i16,  int16   )
-YM_LITERAL_DECL(i32,  int32   )
-YM_LITERAL_DECL(i64,  int64   )
+YM_HELPER_LITERAL_DECL(i8,   int8    )
+YM_HELPER_LITERAL_DECL(i16,  int16   )
+YM_HELPER_LITERAL_DECL(i32,  int32   )
+YM_HELPER_LITERAL_DECL(i64,  int64   )
 
-YM_LITERAL_DECL(u8,   uint8   )
-YM_LITERAL_DECL(u16,  uint16  )
-YM_LITERAL_DECL(u32,  uint32  )
-YM_LITERAL_DECL(u64,  uint64  )
+YM_HELPER_LITERAL_DECL(u8,   uint8   )
+YM_HELPER_LITERAL_DECL(u16,  uint16  )
+YM_HELPER_LITERAL_DECL(u32,  uint32  )
+YM_HELPER_LITERAL_DECL(u64,  uint64  )
 
-YM_LITERAL_DECL(f32,  float32 )
-YM_LITERAL_DECL(f64,  float64 )
-YM_LITERAL_DECL(fext, floatext)
+YM_HELPER_LITERAL_DECL(f32,  float32 )
+YM_HELPER_LITERAL_DECL(f64,  float64 )
+YM_HELPER_LITERAL_DECL(fext, floatext)
 // you're on your own initializing float128
-
-// don't pollute namespace
-#undef YM_LITERAL_DECL
 
 } // ym

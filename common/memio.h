@@ -14,6 +14,7 @@
 #include <exception>
 #include <forward_list>
 #include <memory>
+#include <type_traits>
 
 /* TODO custom stack based allocator for stl types
 
@@ -97,7 +98,7 @@ namespace ym
  * @returns Type_ * -- Pointer to newly allocated stack memory.
  */
 #define YM_STACK_ALLOC(Type_, NElements_) \
-   static_cast<Type_ *>(alloca((NElements_) * sizeof(Type_)))
+   static_cast<Type_ *>(alloca((NElements_) * sizeof(Type_)));
 
 /** Chunkable_T
  *

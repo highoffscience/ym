@@ -13,19 +13,6 @@
 namespace ym
 {
 
-/** Timeable_T
- * 
- * @brief Represents a unit of time (std::ratio).
- * 
- * @tparam T -- Data type.
- */
-template <typename T>
-concept Timeable = requires(T)
-{
-   T::num;
-   T::den;
-};
-
 /** Timer
  *
  * @brief Provides basic timing functionality.
@@ -33,16 +20,15 @@ concept Timeable = requires(T)
 class Timer
 {
 public:
-   using Clock_T = std::chrono::steady_clock;
-   using Time_T  = Clock_T::time_point;
-   using Rep_T   = int64;
+   using Clock_T    = std::chrono::high_resolution_clock;
+   using Time_T     = Clock_T::time_point;
+   using Duration_T = std::chrono::duration<int64, std::nano>;
 
    Timer(void);
 
    void reset(void);
 
-   template <Timeable Timeable_T = std::nano>
-   Rep_T getElapsedTime(void) const;
+   inline Duration_T getElapsedTime(void) const;
 
 private:
    Time_T _startTime;
@@ -52,19 +38,11 @@ private:
  *
  * @brief Returns the elapsed time.
  *
- * @tparam Timeable_T -- Unit of returned time will be represented in.
- *
- * @returns Rep_T -- Elapsed time in specified units.
+ * @returns Duration_T -- Duration of elapsed time.
  */
-template <Timeable Timeable_T>
-auto Timer::getElapsedTime(void) const -> Rep_T
+auto Timer::getElapsedTime(void) const -> Duration_T
 {
-   return
-      std::chrono::duration_cast<
-         std::chrono::duration<
-            Rep_T, Timeable_T
-         >
-      >(Clock_T::now() - _startTime).count();
+   return Clock_T::now() - _startTime;
 }
 
 } // ym
