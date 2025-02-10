@@ -16,6 +16,21 @@
 #include <memory>
 #include <utility>
 
+ym::ymassert_Base::ymassert_Base(
+   rawstr const     Format,
+   std::format_args args)
+{
+   _msg.resize(getMaxMsgSize_bytes());
+
+   auto const Result = fmt::vformat_to_n(
+      _msg.data(),
+      _msg.size() - std::size_t(1),
+      Format,
+      SrcLoc.file_name(), SrcLoc.line(), args);
+      
+   *Result.out = '\0';
+}
+
 // /** ymassert_Base
 //  *
 //  * @brief Constructor.

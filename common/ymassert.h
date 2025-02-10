@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include "textlogger.h"
 #include "ymdefs.h"
 
 #include "fmt/core.h"
 
+#include <string>
 #include <type_traits>
 #include <utility>
 
@@ -67,15 +67,19 @@ class ymassert_Base
    #endif
 {
 public:
-   template <typename... Args_T>
-   explicit inline ymassert_Base(
-      rawstr const          Format,
-      YM_HELPER_SRC_LOC_PRM(SrcLoc),
-      Args_T &&...          args_uref);
+   explicit ymassert_Base(
+      rawstr const     Format,
+      std::format_args args);
 
 #if (YM_YES_EXCEPTIONS)
    virtual rawstr what(void) const noexcept override;
 #endif
+
+   static constexpr auto getMaxMsgSize_bytes(void) { return uint64(128); }
+
+private:
+   // TODO use custom allocator
+   std::string _msg{};
 };
 
 /** ymassert_Base
@@ -92,11 +96,21 @@ public:
  */
 template <typename... Args_T>
 inline ymassert_Base::ymassert_Base(
+   bool   const          Cond,
    rawstr const          Format,
    YM_HELPER_SRC_LOC_PRM(SrcLoc),
    Args_T &&...          args_uref)
 {
-   ymLog(Format, SrcLoc.file_name(), SrcLoc.line(), std::forward<Args_T>(args)...);
+   if (!Cond)
+   {
+      _msg.resize(getMaxMsgSize_bytes());
+      auto const Result = fmt::vformat_to_n(
+         _msg.data(),
+         _msg.size() - std::size_t(1),
+         Format,
+         fmt::make_format_args(SrcLoc.file_name(), SrcLoc.line(), args_uref...));
+      *Result.out = '\0';
+   }
 }
 
 /** YMASSERT
