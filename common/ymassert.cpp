@@ -6,29 +6,21 @@
 
 #include "ymassert.h"
 
-#include "memio.h"
-#include "textlogger.h"
-
-#include <array>
-#include <cstdarg>
-#include <cstdio>
-#include <cstring>
-#include <memory>
-#include <utility>
-
-ym::ymassert_Base::ymassert_Base(
+std::string ym::ymassert_Base::handler(
    rawstr const     Format,
-   std::format_args args)
+   fmt::format_args args)
 {
-   _msg.resize(getMaxMsgSize_bytes());
+   std::string msg(getMaxMsgSize_bytes(), '\0');
 
    auto const Result = fmt::vformat_to_n(
       _msg.data(),
       _msg.size() - std::size_t(1),
       Format,
-      SrcLoc.file_name(), SrcLoc.line(), args);
+      args);
       
    *Result.out = '\0';
+
+   return msg;
 }
 
 // /** ymassert_Base

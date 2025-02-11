@@ -34,26 +34,6 @@
    #define YM_HELPER_FMT_PREFIX         "Assert: "
 #endif
 
-// if (YMASSERT(
-//    i < 0,               // condition
-//    ym::catch_all_error, // thrown exception or logged error
-//    "Value is {}",       // fmt
-//    i))                  // args
-// {
-//    ymLog("{}", 
-//    return 0;
-// }
-
-// if (i < 0)
-// {
-// #if EXC
-//    throw ym::catch_all_error("Value is {}", i);
-// #else
-//    fmt::printf("Value is {}", i);
-//    return 0;
-// #endif
-// }
-
 namespace ym
 {
 
@@ -67,9 +47,12 @@ class ymassert_Base
    #endif
 {
 public:
-   explicit ymassert_Base(
-      rawstr const     Format,
-      std::format_args args);
+   template <typename... Args_T>
+   explicit inline ymassert_Base(
+      bool   const          Cond,
+      rawstr const          Format,
+      YM_HELPER_SRC_LOC_PRM(SrcLoc),
+      Args_T &&...          args_uref);
 
 #if (YM_YES_EXCEPTIONS)
    virtual rawstr what(void) const noexcept override;
@@ -78,8 +61,12 @@ public:
    static constexpr auto getMaxMsgSize_bytes(void) { return uint64(128); }
 
 private:
+   static std::string handler(
+      rawstr const     Format,
+      fmt::format_args args);
+
    // TODO use custom allocator
-   std::string _msg{};
+   std::string const _Msg{};
 };
 
 /** ymassert_Base
@@ -100,18 +87,8 @@ inline ymassert_Base::ymassert_Base(
    rawstr const          Format,
    YM_HELPER_SRC_LOC_PRM(SrcLoc),
    Args_T &&...          args_uref)
-{
-   if (!Cond)
-   {
-      _msg.resize(getMaxMsgSize_bytes());
-      auto const Result = fmt::vformat_to_n(
-         _msg.data(),
-         _msg.size() - std::size_t(1),
-         Format,
-         fmt::make_format_args(SrcLoc.file_name(), SrcLoc.line(), args_uref...));
-      *Result.out = '\0';
-   }
-}
+   : _Msg {(!Cond) ? handler(Format, fmt::make_format_args(SrcLoc.file_name(), SrcLoc.line(), args_uref...)) : ""}
+{ }
 
 /** YMASSERT
  *
