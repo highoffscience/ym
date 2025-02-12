@@ -13,8 +13,8 @@ std::string ym::ymassert_Base::handler(
    std::string msg(getMaxMsgSize_bytes(), '\0');
 
    auto const Result = fmt::vformat_to_n(
-      _msg.data(),
-      _msg.size() - std::size_t(1),
+      msg.data(),
+      msg.size() - std::size_t(1),
       Format,
       args);
       
@@ -135,7 +135,7 @@ std::string ym::ymassert_Base::handler(
  */
 auto ym::ymassert_Base::what(void) const noexcept -> rawstr
 {
-   return "Ymassert";
+   return _Msg.c_str();
 }
 
 #endif

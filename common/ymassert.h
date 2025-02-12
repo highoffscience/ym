@@ -23,9 +23,9 @@
 
 #if (YM_CPP_STANDARD >= 20)
    #include <source_location>
-   #define YM_HELPER_SRC_LOC_CURRENT    std::source_location::current()
-   #define YM_HELPER_SRC_LOC_PRM(Name_) std::source_location const Name_
-   #define YM_HELPER_SRC_LOC_VAR(Name_) Name_
+   #define YM_HELPER_SRC_LOC_CURRENT    std::source_location::current(),
+   #define YM_HELPER_SRC_LOC_PRM(Name_) std::source_location const Name_,
+   #define YM_HELPER_SRC_LOC_VAR(Name_) Name_,
    #define YM_HELPER_FMT_PREFIX         "Assert @ \"{}:{}\": "
 #else
    #define YM_HELPER_SRC_LOC_CURRENT
@@ -49,9 +49,8 @@ class ymassert_Base
 public:
    template <typename... Args_T>
    explicit inline ymassert_Base(
-      bool   const          Cond,
       rawstr const          Format,
-      YM_HELPER_SRC_LOC_PRM(SrcLoc),
+      YM_HELPER_SRC_LOC_PRM(SrcLoc)
       Args_T &&...          args_uref);
 
 #if (YM_YES_EXCEPTIONS)
@@ -83,12 +82,17 @@ private:
  */
 template <typename... Args_T>
 inline ymassert_Base::ymassert_Base(
-   bool   const          Cond,
    rawstr const          Format,
-   YM_HELPER_SRC_LOC_PRM(SrcLoc),
+   YM_HELPER_SRC_LOC_PRM(SrcLoc)
    Args_T &&...          args_uref)
-   : _Msg {(!Cond) ? handler(Format, fmt::make_format_args(SrcLoc.file_name(), SrcLoc.line(), args_uref...)) : ""}
+   : _Msg {handler(Format, fmt::make_format_args(SrcLoc.file_name(), SrcLoc.line(), args_uref...))}
 { }
+
+template <typename T>
+void defaultAssertHandler(ymassert_Base const & E)
+{
+   
+}
 
 /** YMASSERT
  *
@@ -131,7 +135,7 @@ inline ymassert_Base::ymassert_Base(
             Args_T &&...          args_uref) \
          : ymassert_Base(                    \
             Format,                          \
-            YM_HELPER_SRC_LOC_VAR(SrcLoc),   \
+            YM_HELPER_SRC_LOC_VAR(SrcLoc)    \
             std::forward<Args_T>(args)...)   \
       { }                                    \
    };
