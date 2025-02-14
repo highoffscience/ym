@@ -12,16 +12,18 @@
 using rawstr = char const *;
 
 #include "fmt/core.h"
+#include "fmt/chrono.h"
 
+#include <chrono>
 #include <string>
+#include <thread>
 #include <type_traits>
 #include <utility>
 
 #if (YM_YES_EXCEPTIONS)
    #include <exception>
-   #define YM_THROW throw
 #else
-   #define YM_THROW
+   #include <csignal>
 #endif
 
 #if (false)
@@ -60,7 +62,10 @@ public:
    //typedef void (*ActionHandlerFunc)(void);
    // template <typename F>
    // static inline void raise(F f) { f(); }
+   // virtual void raise(void) const = 0;
 #endif
+
+   
 
    static constexpr auto getMaxMsgSize_bytes(void) { return (unsigned long)(128); }
 
@@ -119,32 +124,59 @@ std::string ymassert_Base::handler(
    Derived_,         \
    Format_,          \
    ...)              \
-   if (!Cond_) { Action_(Derived_(Format_, __VA_ARGS__)); }
+   if (!(Cond_)) { Action_(Derived_(Format_, __VA_ARGS__)); }
 
-class OutOfRangeError : public ymassert_Base
-{
-public:
-   template <typename... Args_T>
-   explicit inline OutOfRangeError(
-         rawstr const          Format,
-         Args_T &&...          args_uref)
-      : ymassert_Base(
-         Format,
-         std::forward<Args_T>(args_uref)...)
-   { }
+#define YM_DECL_YMASSERT(Name_) \
+   class Name_ : public ymassert_Base \
+   { \
+   public: \
+      template <typename... Args_T> \
+      explicit inline Name_( \
+            rawstr const          Format, \
+            Args_T &&...          args_uref) \
+         : ymassert_Base( \
+            Format, \
+            std::forward<Args_T>(args_uref)...) \
+      { } \
+   };
 
-   // virtual void raise(void) const override { /*throw *this;*/ }
-};
+// 
+
+YM_DECL_YMASSERT(OutOfRangeError)
+YM_DECL_YMASSERT(OutOfRangeError0)
+YM_DECL_YMASSERT(OutOfRangeError1)
+YM_DECL_YMASSERT(OutOfRangeError2)
+YM_DECL_YMASSERT(OutOfRangeError3)
+YM_DECL_YMASSERT(OutOfRangeError4)
+YM_DECL_YMASSERT(OutOfRangeError5)
+YM_DECL_YMASSERT(OutOfRangeError6)
+YM_DECL_YMASSERT(OutOfRangeError7)
+YM_DECL_YMASSERT(OutOfRangeError8)
+YM_DECL_YMASSERT(OutOfRangeError9)
+
+#define YM_DEFAULT_ASSERT_HANDLER throw
 
 template <typename T>
-inline void defaultAssertHandler(T const & E)
+void defaultAssertHandler(T const & E)
 {
    throw E;
+   // std::raise(SIGTERM);
 }
 
 void test(int i)
 {
-   YMASSERT(defaultAssertHandler, i >= 0, OutOfRangeError, "Uh oh! i is {}", i);
+   static_assert(std::is_convertible_v<decltype(i != 10), bool>);
+   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i != 10, OutOfRangeError,  "Uh oh!  i is {}", i);
+   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  0, OutOfRangeError0, "Uh oh!0 i is {}", i);
+   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  1, OutOfRangeError1, "Uh oh!1 i is {}", i);
+   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  2, OutOfRangeError2, "Uh oh!2 i is {}", i);
+   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  3, OutOfRangeError3, "Uh oh!3 i is {}", i);
+   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  4, OutOfRangeError4, "Uh oh!4 i is {}", i);
+   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  5, OutOfRangeError5, "Uh oh!5 i is {}", i);
+   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  6, OutOfRangeError6, "Uh oh!6 i is {}", i);
+   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  7, OutOfRangeError7, "Uh oh!7 i is {}", i);
+   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  8, OutOfRangeError8, "Uh oh!8 i is {}", i);
+   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  9, OutOfRangeError9, "Uh oh!9 i is {}", i);
 }
 
 /**
@@ -153,14 +185,19 @@ void test(int i)
  * !fmt          15968 bytes
  *  fmt.so cmake 16248 bytes
  * 
- * 18056
- * 18032
- * 18400
- * 18528
+ * 23560 with no op
+ * 29240 with std::raise action
+ * 29488 with direct throw statement
+ * 34504 with virtual raise
+ * 29752 with defaultHandler
  */
 int main(void)
 {
-   fmt::println("sizeof Derived is {}", sizeof(OutOfRangeError));
-   test(-9);
+   volatile int i = 0;
+   fmt::println("sizeof Derived is {} {}", sizeof(OutOfRangeError), __FILE__);
+   // test(((unsigned long)(void*)&i) % 11u);
+   using namespace std::literals::chrono_literals;
+   auto diff = std::chrono::microseconds((3600 * 25 * 1'000'000ll) + (15 * 60 * 1'000'000ll));
+   fmt::print("{:%Q}\n", diff);
    return 0;
 }

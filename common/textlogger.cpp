@@ -370,7 +370,7 @@ void ym::TextLogger::printf_Handler(
    if (_printMode == PrintMode_T::PrependTimeStamp)
    { // print message with time stamp
 
-      char timeStampBuffer[getTimeStampSize_bytes()]{};
+      char timeStampBuffer[getTimeStampSize_bytes()];
       populateFormattedTime(timeStampBuffer, getTimeStampSize_bytes());
 
       nCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), "%s: %s\n", timeStampBuffer, Read_Ptr);
@@ -509,9 +509,9 @@ void ym::TextLogger::populateFormattedTime(
    elapsed -= Time_sec;
    auto const Time_us      = std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
 
-// Use fmt to format directly into the pre-allocated buffer
+   // Use fmt to format directly into the pre-allocated buffer
    [[maybe_unused]] auto const Result = fmt::fprintf(
-      _outfile_uptr.get(),
+      write_Ptr,
       "({:012}) {:03}:{:02}:{:02}.{:06}",
       TotalTime_us.count(),
       Time_hr.count(),

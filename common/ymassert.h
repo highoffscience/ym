@@ -16,23 +16,77 @@
 
 #if (YM_YES_EXCEPTIONS)
    #include <exception>
-   #define YM_THROW throw
-#else
-   #define YM_THROW
 #endif
 
-#if (YM_CPP_STANDARD >= 20)
-   #include <source_location>
-   #define YM_HELPER_SRC_LOC_CURRENT    std::source_location::current(),
-   #define YM_HELPER_SRC_LOC_PRM(Name_) std::source_location const Name_,
-   #define YM_HELPER_SRC_LOC_VAR(Name_) Name_,
-   #define YM_HELPER_FMT_PREFIX         "Assert @ \"{}:{}\": "
+#if (YM_YES_EXCEPTIONS)
+   #define YM_DEFAULT_ASSERT_HANDLER throw
 #else
-   #define YM_HELPER_SRC_LOC_CURRENT
-   #define YM_HELPER_SRC_LOC_PRM(Name_)
-   #define YM_HELPER_SRC_LOC_VAR(Name_)
-   #define YM_HELPER_FMT_PREFIX         "Assert: "
+   #define YM_DEFAULT_ASSERT_HANDLER ymassert_Base::defaultNoExceptHandler
 #endif
+
+/// @brief Convenience macro.
+#define YM_DAH YM_DEFAULT_ASSERT_HANDLER
+
+/** YMASSERT
+ *
+ * @brief Macro to assert on a condition.
+ *
+ * @param Cond_    -- Condition - true for happy path, false triggers the assert.
+ * @param Handler_ -- 
+ * @param Derived_ -- Ymassert class to handle assert.
+ * @param Format_  -- Format string.
+ * @param ...      -- Arguments.
+ */
+ #define YMASSERT(                                             \
+      Cond_,                                                   \
+      Handler_,                                                \
+      Derived_,                                                \
+      Format_,                                                 \
+      ...)                                                     \
+   static_assert(std::is_convertible_v<decltype(Cond_), bool>, \
+      "Condition must be convertible to bool");                \
+   static_assert(std::is_base_of_v<ymassert_Base, Derived_>,   \
+      "Assert class must be of type ymassert_Base");           \
+   static_assert(std::is_same_v<Format_, rawstr>,              \
+      "Format must be a string literal");                      \
+   if (!(Condition_))                                          \
+   {                                                           \
+      Handler_(DerivedYmassert_(                               \
+         "Assert @ \"{}:{}\": "Format_,                        \
+         __FILE__,                                             \
+         __LINE__,                                             \
+         __VA_ARGS__));                                        \
+   }
+
+/** YM_DECL_YMASSERT
+*
+* @brief Declares a custom error class.
+*
+* @note See definitions of YM_DECL_YMASSERT below.
+*
+* @param Name_     -- Name of derived class.
+* @param BaseName_ -- Name of base class.
+*/
+#define YM_DECL_YMASSERT2(Name_, BaseName_) \
+   class Name_ : public BaseName_           \
+   {                                        \
+   public:                                  \
+      template <typename... Args_T>         \
+      explicit inline Name_(                \
+            rawstr const Format,            \
+            rawstr const File,              \
+            uint32 const Line,              \
+            Args_T &&... args_uref)         \
+         : ymassert_Base(                   \
+            Format,                         \
+            File,                           \
+            Line,                           \
+            std::forward<Args_T>(args)...)  \
+      { }                                   \
+   };
+
+#define YM_DECL_YMASSERT1(Name_) YM_DECL_YMASSERT2(Name_, ymassert_Base)
+#define YM_DECL_YMASSERT(...) YM_MACRO_OVERLOAD(YM_MY_MACRO, __VA_ARGS__)
 
 namespace ym
 {
@@ -49,18 +103,22 @@ class ymassert_Base
 public:
    template <typename... Args_T>
    explicit inline ymassert_Base(
-      rawstr const          Format,
-      YM_HELPER_SRC_LOC_PRM(SrcLoc)
-      Args_T &&...          args_uref);
+      rawstr const Format,
+      rawstr const File,
+      uint32 const Line,
+      Args_T &&... args_uref);
 
 #if (YM_YES_EXCEPTIONS)
    virtual rawstr what(void) const noexcept override;
+#else
+   rawstr what(void) const noexcept;
+   static void defaultNoExceptHandler(ymassert_Base const & E);
 #endif
 
-   static constexpr auto getMaxMsgSize_bytes(void) { return uint64(128); }
+   static constexpr auto getMaxMsgSize_bytes(void) { return uint64(128u); }
 
 private:
-   static std::string handler(
+   static std::string format(
       rawstr const     Format,
       fmt::format_args args);
 
@@ -73,71 +131,19 @@ private:
  * @brief Constructor.
  *
  * @note Assert has failed. Print diagnostic information and throw/flag error.
- * 
- * @todo std::stacktrace.
  *
- * @param SrcLoc -- File location information.
  * @param Format -- Format string.
+ * @param File   -- File name of function call.
+ * @param Line   -- Line # of function call.
  * @param ...    -- Arguments.
  */
 template <typename... Args_T>
 inline ymassert_Base::ymassert_Base(
-   rawstr const          Format,
-   YM_HELPER_SRC_LOC_PRM(SrcLoc)
-   Args_T &&...          args_uref)
-   : _Msg {handler(Format, fmt::make_format_args(SrcLoc.file_name(), SrcLoc.line(), args_uref...))}
+      rawstr const Format,
+      rawstr const File,
+      uint32 const Line,
+      Args_T &&... args_uref)
+   : _Msg {format(Format, fmt::make_format_args(File, Line, args_uref...))}
 { }
-
-template <typename T>
-void defaultAssertHandler(ymassert_Base const & E)
-{
-   
-}
-
-/** YMASSERT
- *
- * @brief Macro to assert on a condition.
- *
- * @param Condition_       -- True for happy path, false triggers the assert.
- * @param DerivedYmassert_ -- Ymassert class to handle assert.
- * @param Format_          -- Format string.
- * @param ...              -- Arguments.
- */
-#define YMASSERT(Condition_,       \
-                 DerivedYmassert_, \
-                 Format_,          \
-                 ...)              \
-   static_assert(std::is_convertible_v<Condition_, bool>,            "Condition must be convertible to bool");      \
-   static_assert(std::is_base_of_v<ymassert_Base, DerivedYmassert_>, "Assert class must be of type ymassert_Base"); \
-   static_assert(std::is_same_v<Format_, rawstr>,                    "Format must be a string literal");            \
-   if (!Condition_)                     \
-   {                                    \
-      YM_THROW DerivedYmassert_(        \
-         YM_HELPER_FMT_PREFIX##Format_, \
-         YM_HELPER_SRC_LOC_CURRENT,     \
-         __VA_ARGS__);                  \
-   }
-
-// TODO add overload so we can have hierarchy 
-
-/** YM_DECL_YMASSERT
- *
- * @brief Declares a custom error class.
- */
-#define YM_DECL_YMASSERT(Name_)              \
-   class Name_ : public ymassert_Base        \
-   {                                         \
-   public:                                   \
-      template <typename... Args_T>          \
-      explicit inline Name_(                 \
-            rawstr const          Format,    \
-            YM_HELPER_SRC_LOC_PRM(SrcLoc)    \
-            Args_T &&...          args_uref) \
-         : ymassert_Base(                    \
-            Format,                          \
-            YM_HELPER_SRC_LOC_VAR(SrcLoc)    \
-            std::forward<Args_T>(args)...)   \
-      { }                                    \
-   };
 
 } // ym
