@@ -12,9 +12,6 @@
 using rawstr = char const *;
 
 #include "fmt/core.h"
-#include "fmt/chrono.h"
-
-#include <chrono>
 #include <string>
 #include <thread>
 #include <type_traits>
@@ -76,6 +73,8 @@ private:
 
    // TODO use custom allocator
    std::string const _Msg{};
+
+   static inline int _s_i{0};
 };
 
 #if (YM_YES_EXCEPTIONS)
@@ -116,6 +115,20 @@ std::string ymassert_Base::handler(
 
 //    return false;
 // }
+
+// Trait to check if F is callable with Test const&
+template <typename F, typename = void>
+struct is_callable_with_test : std::false_type {};
+
+template <typename F>
+struct is_callable_with_test<F,
+   std::void_t<decltype(std::declval<F>()(std::declval<ymassert_Base const&>()))>> 
+   : std::true_type {};
+
+template <typename F>
+constexpr bool is_callable_with_test_v = is_callable_with_test<F>::value;
+
+// static_assert(is_callable_with_test_v<decltype(Action_)>, "No!"); \
 
 // if (!Cond_) { Derived_(Format_, __VA_ARGS__).raise(); }
 #define YMASSERT(    \
@@ -165,18 +178,21 @@ void defaultAssertHandler(T const & E)
 
 void test(int i)
 {
+   // auto action = [](auto const & E) { throw E; };
+   // static_assert(is_callable_with_test_v<decltype([](ymassert_Base const & E) -> void { throw E; })>, "No!");
+
    static_assert(std::is_convertible_v<decltype(i != 10), bool>);
-   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i != 10, OutOfRangeError,  "Uh oh!  i is {}", i);
-   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  0, OutOfRangeError0, "Uh oh!0 i is {}", i);
-   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  1, OutOfRangeError1, "Uh oh!1 i is {}", i);
-   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  2, OutOfRangeError2, "Uh oh!2 i is {}", i);
-   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  3, OutOfRangeError3, "Uh oh!3 i is {}", i);
-   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  4, OutOfRangeError4, "Uh oh!4 i is {}", i);
-   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  5, OutOfRangeError5, "Uh oh!5 i is {}", i);
-   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  6, OutOfRangeError6, "Uh oh!6 i is {}", i);
-   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  7, OutOfRangeError7, "Uh oh!7 i is {}", i);
-   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  8, OutOfRangeError8, "Uh oh!8 i is {}", i);
-   YMASSERT(YM_DEFAULT_ASSERT_HANDLER, i !=  9, OutOfRangeError9, "Uh oh!9 i is {}", i);
+   YMASSERT([](auto const & E){throw E;}, i != 10, OutOfRangeError,  "Uh oh!  i is {}", i);
+   YMASSERT([](auto const & E){throw E;}, i !=  0, OutOfRangeError0, "Uh oh!0 i is {}", i);
+   YMASSERT([](auto const & E){throw E;}, i !=  1, OutOfRangeError1, "Uh oh!1 i is {}", i);
+   YMASSERT([](auto const & E){throw E;}, i !=  2, OutOfRangeError2, "Uh oh!2 i is {}", i);
+   YMASSERT([](auto const & E){throw E;}, i !=  3, OutOfRangeError3, "Uh oh!3 i is {}", i);
+   YMASSERT([](auto const & E){throw E;}, i !=  4, OutOfRangeError4, "Uh oh!4 i is {}", i);
+   YMASSERT([](auto const & E){throw E;}, i !=  5, OutOfRangeError5, "Uh oh!5 i is {}", i);
+   YMASSERT([](auto const & E){throw E;}, i !=  6, OutOfRangeError6, "Uh oh!6 i is {}", i);
+   YMASSERT([](auto const & E){throw E;}, i !=  7, OutOfRangeError7, "Uh oh!7 i is {}", i);
+   YMASSERT([](auto const & E){throw E;}, i !=  8, OutOfRangeError8, "Uh oh!8 i is {}", i);
+   YMASSERT([](auto const & E){throw E;}, i !=  9, OutOfRangeError9, "Uh oh!9 i is {}", i);
 }
 
 /**
@@ -190,14 +206,16 @@ void test(int i)
  * 29488 with direct throw statement
  * 34504 with virtual raise
  * 29752 with defaultHandler
+ * 29744 with [](auto const & E){throw E;}
+ * 29816 with [](ymassert_Base const & E){throw E;}
  */
 int main(void)
 {
    volatile int i = 0;
-   fmt::println("sizeof Derived is {} {}", sizeof(OutOfRangeError), __FILE__);
-   // test(((unsigned long)(void*)&i) % 11u);
-   using namespace std::literals::chrono_literals;
-   auto diff = std::chrono::microseconds((3600 * 25 * 1'000'000ll) + (15 * 60 * 1'000'000ll));
-   fmt::print("{:%Q}\n", diff);
+   // fmt::println("sizeof Derived is {} {}", sizeof(OutOfRangeError), __FILE__);
+   test(((unsigned long)(void*)&i) % 11u);
+   // using namespace std::literals::chrono_literals;
+   // auto diff = std::chrono::microseconds((3600 * 25 * 1'000'000ll) + (15 * 60 * 1'000'000ll));
+   // fmt::print("{:%Q}\n", diff);
    return 0;
 }

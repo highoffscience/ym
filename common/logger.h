@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "ymdefs.h"
+#include "ymglobals.h"
 
 #include <cstdio>
 #include <memory>
@@ -19,8 +19,6 @@ namespace ym
  *
  * @brief Base class for logging related classes.
  *
- * @note TS = Time Stamp
- *
  * @note We don't pass the file in via the constructor because we don't want to
  *       give the impression we'll try to open it there. We might throw an exception
  *       or the user might want to open multiple files using the same instance.
@@ -28,9 +26,6 @@ namespace ym
 class Logger
 {
 public:
-   YM_NO_COPY  (Logger)
-   YM_NO_ASSIGN(Logger)
-
    /** FilenameMode_T
     *
     * @brief Mode to determine how to mangle the filename.
@@ -40,6 +35,9 @@ public:
       KeepOriginal,
       AppendTimeStamp
    };
+
+   YM_NO_COPY  (Logger)
+   YM_NO_ASSIGN(Logger)
 
 protected:
    explicit Logger(void);
@@ -51,7 +49,7 @@ protected:
    // virtual calls.
 
    bool openOutfile(
-      rawstr         const Filename,
+      str            const Filename,
       FilenameMode_T const FilenameMode = FilenameMode_T::AppendTimeStamp);
 
    void closeOutfile(void);

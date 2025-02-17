@@ -9,17 +9,13 @@
 #include "logger.h"
 #include "timer.h"
 #include "verbogroup.h"
-#include "ymdefs.h"
+#include "ymglobals.h"
 
 #include "fmt/core.h"
 
 #include <array>
 #include <atomic>
-#include <bit>
-#include <cstdarg>
-#include <mutex>
-#include <semaphore>
-#include <thread>
+#include <utility>
 
 namespace ym
 {
@@ -29,9 +25,10 @@ namespace ym
  * -------------------------------------------------------------------------- */
 
 template <typename... Args_T>
-inline void ymLog(VG     const VG,
-                  rawstr const Format,
-                  Args_T &&... Args);
+inline void ymLog(
+   VG     const VG,
+   strlit const Format,
+   Args_T &&... args_uref);
 
 inline bool ymLogEnable (VG const VG);
 inline bool ymLogDisable(VG const VG);
@@ -44,8 +41,6 @@ inline bool ymLogDisable(VG const VG);
 /** TextLogger
  *
  * @brief Logs text to the given outfile - similary to std::fprintf.
- *
- * @note Uses the multi-producer/single-consumer model.
  */
 class TextLogger : public Logger
 {
@@ -57,7 +52,8 @@ public:
    enum class PrintMode_T : uint32
    {
       KeepOriginal,
-      PrependTimeStamp
+      PrependTimeStamp,
+      PrependHumanReadableTimeStamp
    };
 
    /** RedirectMode_T
@@ -66,9 +62,8 @@ public:
     */
    enum class RedirectMode_T : uint32
    {
-      ToStdOut,
-      ToStdErr,
-      ToLog
+      ToLog,
+      ToLogAndStdOut // for debugging
    };
 
    explicit TextLogger(void);
@@ -77,24 +72,35 @@ public:
    YM_NO_COPY  (TextLogger)
    YM_NO_ASSIGN(TextLogger)
 
-   static TextLogger * getGlobalInstancePtr(void);
+   YM_DECL_YMASSERT(PrintError)
+   YM_DECL_YMASSERT(GlobalError)
+
+   static bptr<TextLogger> getGlobalInstancePtr(
+      FilenameMode_T const FilenameMode,
+      PrintMode_T    const PrintMode,
+      RedirectMode_T const RedirectMode
+   );
+
+   inline auto getPrintMode   (void) const { return _printMode;    }
+   inline auto getRedirectMode(void) const { return _redirectMode; }
 
    bool isOpen(void) const;
 
    bool open(
-      PrintMode_T    const PrintMode,
-      RedirectMode_T const RedirectMode);
-   bool open(
-      FilenameMode_T const FilenameMode,
-      PrintMode_T    const PrintMode,
-      RedirectMode_T const RedirectMode,
-      rawstr         const Filename);
+      str            const Filename,
+      FilenameMode_T const FilenameMode = FilenameMode_T::AppendTimeStamp,
+      PrintMode_T    const PrintMode    = PrintMode_T::PrependHumanReadableTimeStamp,
+      RedirectMode_T const RedirectMode = 
+         #if (YM_DBG)
+            RedirectMode_T::ToLogAndStdOut
+         #else
+            RedirectMode_T::ToLog
+         #endif
+   );
+
    void close(void);
 
-   static constexpr auto getMaxMessageSize_bytes(void) { return _s_MaxMessageSize_bytes; }
-   static constexpr auto getMaxNMessagesInBuffer(void) { return _s_MaxNMessagesInBuffer; }
-   static constexpr auto getBufferSize_bytes    (void) { return _s_BufferSize_bytes;     }
-   static constexpr auto getTimeStampSize_bytes (void) { return _s_TimeStampSize_bytes;  }
+   static constexpr auto getMaxMsgSize_bytes(void) { return static_cast<std::size_t>(256u); }
 
    /** ScopedEnable
     * 
@@ -110,8 +116,9 @@ public:
    class ScopedEnable
    {
    public:
-      explicit ScopedEnable(TextLogger * const logger_Ptr,
-                            VG           const VG);
+      explicit ScopedEnable(
+         TextLogger * const logger_Ptr,
+         VG           const VG);
       ~ScopedEnable(void);
 
       void popEnable(void) const;
@@ -130,130 +137,97 @@ public:
    template <typename... Args_T>
    inline void printf(
       VG     const VG,
-      rawstr const Format,
-      Args_T &&... Args);
+      strlit const Format,
+      Args_T &&... args_uref);
 
 private:
-   void printf_Handler(VG    const  VG,
-                       str   const  Format,
-                       /*variadic*/ ...);
-
-   void printf_Producer(str const    Format,
-                        std::va_list args);
-
-   bool open_Helper(bool const Opened);
-
-   void close_Helper(str          msg,
-                     /*variadic*/ ...);
-
-   void writeMessagesToFile(void);
-
-   void populateFormattedTime(
-      char * const write_Ptr,
-      uint64 const Size_bytes) const;
-
-   static constexpr auto _s_MaxMessageSize_bytes = 256_u32;
-   static constexpr auto _s_MaxNMessagesInBuffer =  64_u32;
-   static constexpr auto _s_BufferSize_bytes     = _s_MaxMessageSize_bytes * _s_MaxNMessagesInBuffer;
-   static constexpr auto _s_TimeStampSize_bytes  = 32_u32;
-
-   static_assert(std::has_single_bit(_s_MaxNMessagesInBuffer),
-                 "_s_MaxNMessagesInBuffer needs to be power of 2");
-
-   static_assert(_s_MaxNMessagesInBuffer <= (sizeof(uint64) * 8_u64),
-                 "Max atomic bitfield size is 64 bits");
-
-   static_assert(_s_MaxMessageSize_bytes > _s_TimeStampSize_bytes,
-                 "No room for time stamp plus newline");
-
-   /** WriterMode_T
+   /** State_T
     *
     * @brief State of the logger.
-    *
-    * @note We differentiate between PreparingToClose and Closing as a way to properly
-    *       flush and stop the consumer thread. Communication between the client,
-    *       consumer thread, and producer thread requires at least this many states
-    *       in this implementation.
     */
-   enum WriterMode_T : uint32
+   enum class State_T : uint32
    {
       Closed,
-      PreparingToClose,
       Closing,
-      Open
+      Open,
+      Opening
    };
+   
+   static constexpr std::size_t getMaxMsgSize_bytes(void) { return std::size_t(256u); }
 
-   using MsgSemaphore_T = std::counting_semaphore<_s_MaxNMessagesInBuffer>;
-   using VGroups_T      = std::array<std::atomic<uint8>, VerboGroup::getNGroups()>;
+   void acquireWriteAccess(void);
+   void releaseWriteAccess(void);
 
-   char                      _buffer[_s_BufferSize_bytes];
-   VGroups_T                 _vGroups;
-   std::thread               _writer;
-   Timer                     _timer;
-   std::atomic<uint64>       _readReadySlots;
-   MsgSemaphore_T            _availableSem;
-   MsgSemaphore_T            _messagesSem;
-   std::atomic<uint32>       _writePos;
-   uint32                    _readPos;
-   std::atomic<WriterMode_T> _writerMode;
-   PrintMode_T               _printMode;
+   void printf_Handler(
+      VG     const     VG,
+      strlit const     Format,
+      fmt::format_args args);
+
+   void printf_Handler(
+      strlit const     Format,
+      fmt::format_args args);
+
+   char * populateFormattedTime(char * write_ptr) const;
+
+   using VGroups_T = std::array<std::atomic<uint8>, VerboGroup::getNGroups()>;
+
+   static inline TextLogger * _s_globalInstance_ptr{nullptr};
+
+   VGroups_T            _vGroups     {      /* default */      };
+   Timer                _timer       {      /* default */      };
+   PrintMode_T          _printMode   {PrintMode_T::KeepOriginal};
+   RedirectMode_T       _redirectMode{RedirectMode_T::ToLog    };
+   std::atomic<State_T> _state       {State_T::Closed          };
+   std::atomic_flag     _writeFlag   {ATOMIC_FLAG_INIT         };
 };
 
 /** printf
  *
  * @brief Prints to the active logger.
  *
+ * @throws Whatever print_Handler() throws.
+ *
  * @tparam Args_T -- Constrained argument types.
  *
  * @param VG     -- Verbosity level.
  * @param Format -- Format string.
  * @param Args   -- Arguments.
  */
-template <Loggable... Args_T>
-inline void TextLogger::printf(VG     const    VG,
-                               str    const    Format,
-                               Args_T const... Args)
+template <typename... Args_T>
+inline void TextLogger::printf(
+   VG     const VG,
+   strlit const Format,
+   Args_T &&... args_uref)
 {
-   printf_Handler(VG, Format, Args...);
+   printf_Handler(VG, Format, fmt::make_format_args(args_uref...));
 }
 
 /** ymLog
  * 
  * @brief Prints to the active logger.
+ *
+ * @throws Whatever getGlobalInstancePtr() throws.
  * 
- * @tparam Args_T -- Constrained argument types.
+ * @tparam Args_T -- Argument types.
  *
  * @param VG     -- Verbosity level.
  * @param Format -- Format string.
  * @param Args   -- Arguments.
  */
-template <Loggable... Args_T>
-inline void ymLog(VG     const    VG,
-                  str    const    Format,
-                  Args_T const... Args)
+template <typename... Args_T>
+inline void ymLog(
+   VG     const VG,
+   strlit const Format,
+   Args_T &&... args_uref)
 {
-   TextLogger::getGlobalInstancePtr()->printf(VG, Format, Args...);
-}
-
-/** ymLogToStdErr
- *
- * @brief Print to stderr. Usually as a last ditch effort to record something.
- * 
- * @tparam Args_T -- Argument types.
- *
- * @param Format -- Format string.
- * @param Args   -- Arguments.
- */
-template <Loggable... Args_T>
-inline void ymLogToStdErr(str    const    Format,
-                          Args_T const... Args)
-{
-   std::fprintf(stderr, Format, Args...);
+   TextLogger::getGlobalInstancePtr()->printf(VG, Format, std::forward<Args_T>(args_uref)...);
 }
 
 /** ymLogEnable
  * 
  * @brief Enables specified verbosity group for the global logger.
+ *
+ * @throws Whatever getGlobalInstancePtr() throws.
  *
  * @param VG -- Verbosity group to enable.
  * 
@@ -268,6 +242,8 @@ inline bool ymLogEnable(VG const VG)
  * 
  * @brief Disables specified verbosity group for the global logger.
  *
+ * @throws Whatever getGlobalInstancePtr() throws.
+ *
  * @param VG -- Verbosity group to disable.
  * 
  * @returns bool -- If previously enabled before this call.
@@ -281,7 +257,7 @@ inline bool ymLogDisable(VG const VG)
  * 
  * @brief Enables given verbosity group only in the current scope for the global logger.
  * 
- * @throws TODO
+ * @throws Whatever getGlobalInstancePtr() throws.
  * 
  * @param VG -- Verbosity group.
  * 

@@ -2,8 +2,8 @@
  * @author Forrest Jablonski
  */
 
-#include "battery.h"
-#include "stepper.h"
+// #include "battery.h"
+// #include "stepper.h"
 
 #include <atomic>
 #include <bitset>
@@ -14,17 +14,18 @@
 #include <new>
 #include <semaphore>
 
+void test(int i)
+{
+   char buf[i];
+   buf[i-1] = '\0';
+   std::cout << buf << std::endl;
+}
+
 int main(void)
 {
-   sizeof(std::bitset<4096>);
+   std::cout << BUFSIZ << std::endl;
 
-   std::cout << std::endl;
-
-   std::cout << StepperCmd  << std::endl;
-   std::cout << StepperOpto << std::endl;
-
-   std::cout << BatteryGauge   << std::endl;
-   std::cout << BatteryCharger << std::endl;
+   test(10);
 
    return 0;
 }

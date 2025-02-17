@@ -91,6 +91,7 @@ public:
       bool   _flag;  // flag
       bool   _enbl;  // enabled
       bool   _list;  // list
+      // TODO bool _reqd
    };
 
    // copyable to load Arg params into vector

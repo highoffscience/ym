@@ -175,6 +175,10 @@ static_assert(sizeof(BoundedPtr<int>) == sizeof(TrustedBoundedPtr<int>), "Potent
 
 /// @brief Convenience alias.
 template <typename T>
+using tbptr = TrustedBoundedPtr<T>;
+
+/// @brief Convenience alias.
+template <typename T>
 using bptr = BoundedPtr<T>;
 
 /// @brief Convenience alias.

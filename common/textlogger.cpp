@@ -6,35 +6,22 @@
 
 #include "textlogger.h"
 
-#include "fmt/core.h"
-
-#include <cstdarg>
+#include <chrono>
 #include <cstdio>
-#include <cstring>
-#include <ctime>
-#include <memory>
-#include <utility>
+
+#if (YM_CPP_STANDARD < 20)
+   #include <thread>
+#endif
 
 /** TextLogger
  *
  * @brief Constructor.
+ *
+ * @note Explicitly clear the write flag. <https://en.cppreference.com/w/cpp/atomic/ATOMIC_FLAG_INIT>.
  */
 ym::TextLogger::TextLogger(void)
-   : _buffer         {'\0'                        },
-     _vGroups        {/*default*/                 },
-     _writer         {/*default*/                 },
-     _timer          {/*default*/                 },
-     _readReadySlots {0_u64                       },
-     _availableSem   {static_cast<std::ptrdiff_t>(
-                      getMaxNMessagesInBuffer()  )},
-     _messagesSem    {0_i32                       },
-     _writePos       {0_u32                       },
-     _readPos        {0_u32                       },
-     _writerMode     {WriterMode_T::Closed        },
-     _printMode      {PrintMode_T::KeepOriginal   }
 {
-   static_assert(sizeof(std::ptrdiff_t) > sizeof(getMaxNMessagesInBuffer()),
-      "Potential overflow of signed value");
+   _writeFlag.clear();
 }
 
 /** ~TextLogger
@@ -54,220 +41,98 @@ ym::TextLogger::~TextLogger(void)
  */
 bool ym::TextLogger::isOpen(void) const
 {
-   return _writerMode.load(std::memory_order_relaxed) == WriterMode_T::Open;
+   return _state.load(std::memory_order_relaxed) == State_T::Open;
 }
 
 /** getGlobalInstancePtr
  *
  * @brief Gets the global text logger instance.
  * 
- * @throws TextLoggerError_GlobalFailureToOpen -- If TextLogger instance fails to be instantiated.
- * @throws TextLoggerError_GlobalFailureToOpen -- If attempting to open throws.
- * @throws TextLoggerError_GlobalFailureToOpen -- If attempting to open is unsuccessful.
- *
  * @note Used as the global logger for the program. Not expected to close until the end.
+ * @note Not thread-safe.
+ *
+ * @throws GlobalError -- If TextLogger instance fails to be instantiated.
  */
-auto ym::TextLogger::getGlobalInstancePtr(void) -> TextLogger *
+auto ym::TextLogger::getGlobalInstancePtr(void) -> bptr<TextLogger>
 {
-   static TextLogger * instance_ptr = nullptr;
-
-   if (!instance_ptr)
+   if (!_s_globalInstance_ptr)
    { // file not already opened - open it
-      instance_ptr = new TextLogger();
 
-      TextLoggerError_GlobalFailureToOpen::check(instance_ptr,
-         "Global instance failed to be created");
+      _s_globalInstance_ptr = new TextLogger();
+      YMASSERT(_s_globalInstance_ptr, GlobalError, YM_DAH, "Global instance failed to be created");
 
-      auto opened = false; // until told otherwise
-
-      try
-      { // attempt to open the file
-         opened = instance_ptr->open(
-            #if defined(YM_PRINT_TO_SCREEN)
-               PrintMode_T::PrependTimeStamp,
-               RedirectMode_T::ToStdOut
-            #else
-               FilenameMode_T::AppendTimeStamp,
-               PrintMode_T::PrependTimeStamp,
-               RedirectMode_T::ToLog,
-               "global.txt"
-            #endif // YM_PRINT_TO_SCREEN
-         );
-      }
-      catch (std::exception const & E)
-      { // clean up memory before rethrowing
-         delete instance_ptr;
-         instance_ptr = nullptr;
-
-         TextLoggerError_GlobalFailureToOpen::check(false,
-            "Error in opening global file (%s)", E.what());
-      }
-
-      if (!opened)
-      { // something went wrong - clean up memory
-         delete instance_ptr;
-         instance_ptr = nullptr;
-
-         TextLoggerError_GlobalFailureToOpen::check(false,
-            "Global instance failed to open");
-      }
+      auto const Opened = _s_globalInstance_ptr->open("global.txt");
+      YMASSERT(Opened, GlobalError,
+         [&_s_globalInstance_ptr](auto const & E) {
+            delete _s_globalInstance_ptr;
+            _s_globalInstance_ptr = nullptr;
+            throw E;
+         }, "Global instance failed to open");
    }
 
-   return instance_ptr; // guaranteed not null
+   return tbptr(_s_globalInstance_ptr); // guaranteed not null
 }
 
 /** open
  *
  * @brief Opens and prepares the logger to be written to.
  * 
- * @throws TextLoggerError_FailureToOpen -- If redirect mode doesn't point to a static stream.
- * @throws LoggerError_FailureToOpen     -- If the file already exists.
- * 
- * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdOut mode is requested.
- * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdErr mode is requested.
- * @throws TextLoggerError_FailureToOpen -- If filename is not specified but ToLog mode is requested.
- * @throws TextLoggerError_FailureToOpen -- If RedirectMode is invalid.
- * 
- * @param PrintMode    -- Mode to determine how to mangle the printable message.
- * @param RedirectMode -- Specifies what streams to pipe the output to.
- * 
- * @returns bool -- Whether the outfile was opened successfully, false otherwise.
- */
-bool ym::TextLogger::open(PrintMode_T    const PrintMode,
-                          RedirectMode_T const RedirectMode)
-{
-   TextLoggerError_FailureToOpen::check(
-      RedirectMode == RedirectMode_T::ToStdOut ||
-      RedirectMode == RedirectMode_T::ToStdErr,
-      "Redirect mode %u must specify a filename", std::to_underlying(RedirectMode)
-   );
-
-   return open(FilenameMode_T::KeepOriginal, PrintMode, RedirectMode, "");
-}
-
-/** open
- *
- * @brief Opens and prepares the logger to be written to.
- *
- * @throws LoggerError_FailureToOpen -- If openOutfile() fails.
- * 
- * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdOut mode is requested.
- * @throws TextLoggerError_FailureToOpen -- If filename is specified but ToStdErr mode is requested.
- * @throws TextLoggerError_FailureToOpen -- If filename is not specified but ToLog mode is requested.
- * @throws TextLoggerError_FailureToOpen -- If RedirectMode is invalid.
- * 
+ * @param Filename     -- Name of file to open.
  * @param FilenameMode -- Mode to determine how to mangle the filename.
  * @param PrintMode    -- Mode to determine how to mangle the printable message.
  * @param RedirectMode -- Specifies what streams to pipe the output to.
- * @param Filename     -- Name of file to open.
  * 
  * @returns bool -- Whether the outfile was opened successfully, false otherwise.
  */
-bool ym::TextLogger::open(FilenameMode_T const FilenameMode,
-                          PrintMode_T    const PrintMode,
-                          RedirectMode_T const RedirectMode,
-                          str            const Filename)
+bool ym::TextLogger::open(
+   str            const Filename,
+   FilenameMode_T const FilenameMode,
+   PrintMode_T    const PrintMode,
+   RedirectMode_T const RedirectMode)
 {
-   _printMode = PrintMode;
+   auto expectedState = State_T::Closed;
 
-   auto opened = false; // until told otherwise
+   if (_state.compare_exchange_strong(
+      expectedState, State_T::Opening,
+      std::memory_order_acquire,
+      std::memory_order_relaxed))
+   { // file not opened - let's do that
 
-   switch (RedirectMode)
-   {
-      case RedirectMode_T::ToStdOut:
-      {
-         TextLoggerError_FailureToOpen::check(!*Filename,
-            "File '%s' attempted to open with StdOut only option", Filename.get());
-         opened = open_Helper(openOutfile(stdout));
-         break;
+      if (openOutfile(Filename, FilenameMode))
+      { // successfully opened
+         _printMode    = PrintMode;
+         _redirectMode = RedirectMode;
+         expectedState = State_T::Open;
+      }
+      else
+      { // something went wrong - file not opened
+         expectedState = State_T::Closed;
       }
 
-      case RedirectMode_T::ToStdErr:
-      {
-         TextLoggerError_FailureToOpen::check(!*Filename,
-            "File '%s' attempted to open with StdErr only option", Filename.get());
-         opened = open_Helper(openOutfile(stderr));
-         break;
-      }
-
-      case RedirectMode_T::ToLog:
-      {
-         TextLoggerError_FailureToOpen::check(*Filename,
-            "Attempted to open empty file");
-         opened = open_Helper(openOutfile(Filename, FilenameMode));
-         break;
-      }
-
-      default:
-      {
-         TextLoggerError_FailureToOpen::check(false,
-            "Unaccounted for redirect mode %u", std::to_underlying(RedirectMode));
-         break;
-      }
+      _state.store(expectedState, std::memory_order_relaxed);
    }
 
-   return opened;
+   return expectedState == State_T::Open;
 }
 
 /** close
  *
  * @brief Closes the outfile and shuts the logger down.
- * 
- * @throws TextLoggerError_ProducerConsumerError -- If close_Helper() fails.
  */
 void ym::TextLogger::close(void)
 {
-   auto       expected = WriterMode_T::Open;
-   auto const Desired  = WriterMode_T::PreparingToClose;
+   acquireWriteAccess();
 
-   if (_writerMode.compare_exchange_strong(expected, Desired,
-                                           std::memory_order_acquire,  // success
-                                           std::memory_order_relaxed)) // failure
-   { // file open
-
-      close_Helper("File closing...");
-      _writerMode.store(WriterMode_T::Closing, std::memory_order_release);
-      _writer.join(); // wait until all messages have been written before closing the file
+   if (auto expectedState = State_T::Open; _state.compare_exchange_strong(
+      expectedState, State_T::Closing,
+      std::memory_order_acquire,
+      std::memory_order_relaxed))
+   { // file opened - let's change that
       closeOutfile();
-      _writerMode.store(WriterMode_T::Closed, std::memory_order_relaxed);
-   }
-}
-
-/** open_Helper
- * 
- * @brief Starts the consumer thread of the outfile was successfully opened.
- * 
- * @param Opened -- Whether or not the outfile was successfully opened.
- * 
- * @returns bool -- Whether or not the outfile was successfully opened.
- */
-bool ym::TextLogger::open_Helper(bool const Opened)
-{
-   if (Opened)
-   { // file opened successfully
-      _writer     = std::thread(&TextLogger::writeMessagesToFile, this); // starts the thread
-      _writerMode = WriterMode_T::Open;
+      _state.store(State_T::Closed, std::memory_order_relaxed);
    }
 
-   return Opened;
-}
-
-/** close_Helper
- * 
- * @brief Wrapper (helper) function to call printf_Producer().
- * 
- * @throws TextLoggerError_ProducerConsumerError -- If printf_Producer() fails.
- * 
- * @param msg -- Message to print.
- * @param ... -- Arguments.
- */
-void ym::TextLogger::close_Helper(str          msg,
-                                  /*variadic*/ ...)
-{
-   std::va_list args;
-   va_start(args, msg);
-   printf_Producer(msg, args); // this call is necessary to wake the semaphore and check the closing flag
-   va_end(args);
+   releaseWriteAccess();
 }
 
 /** enable
@@ -311,37 +176,56 @@ auto ym::TextLogger::pushEnable(VG const VG) -> ScopedEnable
    return ScopedEnable(this, VG);
 }
 
+/** acquireWriteAccess
+ * 
+ * @brief Acquires the write flag.
+ */
+void ym::TextLogger::acquireWriteAccess(void)
+{
+   while (_writeFlag.test_and_set(std::memory_order_acquire))
+   { // wait until the other thread is done
+   #if (YM_CPP_STANDARD >= 20)
+      _writeFlag.wait(true, std::memory_order_relaxed);
+   #else
+      std::this_thread::yield();
+   #endif
+   }
+}
+
+/** releaseWriteAccess
+ * 
+ * @brief Releases the write flag.
+ */
+void ym::TextLogger::releaseWriteAccess(void)
+{
+   _writeFlag.clear(std::memory_order_release);
+
+#if (YM_CPP_STANDARD >= 20)
+   _writeFlag.notify_one();
+#endif
+}
+
 /** printf_Handler
  *
  * @brief Conditionally prints the requested message.
  *
- * @note printf_Producer is not marked noexcept because terminate should not be called.
- *
- * @throws TextLoggerError_ProducerConsumerError -- If printf_Producer() if fails.
+ * @throws Whatever print_Handler(Format, args) throws.
  * 
  * @param VG     -- Verbosity group.
  * @param Format -- Format string.
  * @param ...    -- Arguments.
  */
-void ym::TextLogger::printf_Handler(VG    const  VG,
-                                    str   const  Format,
-                                    /*variadic*/ ...)
+void ym::TextLogger::printf_Handler(
+   VG     const     VG,
+   strlit const     Format,
+   fmt::format_args args)
 {
-   if (isOpen())
-   { // ok to print
+   using VGM = VerboGroupMask;
+   auto const IsEnabled = (_vGroups[VGM::getGroup(VG)] & VGM::getMaskAsByte(VG)) > 0_u8;
 
-      using VGM = VerboGroupMask;
-      auto const IsEnabled = (_vGroups[VGM::getGroup(VG)] & VGM::getMaskAsByte(VG)) > 0_u8;
-
-      if (IsEnabled)
-      { // verbose enough to print this message
-
-         std::va_list args;
-         va_start(args, Format);
-         // TODO should be marked as noexcept
-         printf_Producer(Format, args); // doesn't throw so va_end will be called
-         va_end(args);
-      }
+   if (IsEnabled)
+   { // verbose enough to print this message
+      printf_Handler(Format, args);
    }
 }
 
@@ -350,134 +234,66 @@ void ym::TextLogger::printf_Handler(VG    const  VG,
  * @brief Prints the requested message to the internal buffer.
  *
  * @note The system call to get the timestamp is usually optimized at runtime.
+ *
+ * @throws PrintError -- If unenexpected pointer manipulation happens.
+ * @throws PrintError -- If time stamp cannot fit into the buffer.
  * 
  * @param Format -- Format string.
  * @param args   -- Arguments.
  */
 void ym::TextLogger::printf_Handler(
-   rawstr const Msg,
-   uint64 const Size_bytes)
+   strlit const     Format,
+   fmt::format_args args)
 {
-   while (_writeFlag.test_and_set(std::memory_order_acquire))
-   {
-   #if (YM_CPP_STANDARD >= 20)
-      _writeFlag.wait(true, std::memory_order_relaxed);
-   #else
-      std::this_thread::yield();
-   #endif
-   }
+   char buffer[getMaxMsgSize_bytes()]{};
+   auto * const write_Ptr = populateFormattedTime(buffer); // conditionally
 
-   if (_printMode == PrintMode_T::PrependTimeStamp)
-   { // print message with time stamp
+   YMASSERT(write_Ptr >= buffer, YM_DAH, PrintError,
+      "populateFormattedTime not returning as expected")
 
-      char timeStampBuffer[getTimeStampSize_bytes()];
-      populateFormattedTime(timeStampBuffer, getTimeStampSize_bytes());
+   auto const TimeStampSize_bytes = static_cast<std::size_t>(write_Ptr - buffer);
 
-      nCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), "%s: %s\n", timeStampBuffer, Read_Ptr);
+   YMASSERT(getMaxMsgSize_bytes() >= TimeStampSize_bytes, YM_DAH, PrintError,
+      "Buffer ({} bytes) not large enough to hold time stamp ({} bytes)",
+      getMaxMsgSize_bytes(), TimeStampSize_bytes)
+   
+   auto const Result = fmt::format_to_n(
+      write_Ptr,
+      getMaxMsgSize_bytes() - TimeStampSize_bytes,
+      Format,
+      args);
+
+   auto const TotalWritten_bytes = static_cast<std::size_t>(Result.out - buffer);
+
+   acquireWriteAccess();
+
+   if (_state.load(std::memory_order_relaxed) == State_T::Open)
+   { // ok to print
+
+      if (TotalWritten_bytes > getMaxMsgSize_bytes())
+      {
+         constexpr std::string_view OverflowMsg("OVERFLOW: ");
+         std::fwrite(OverflowMsg.data(), sizeof(char), OverflowMsg.size(), _outfile_uptr.get());
+      }
+
+      // It is possible to ship this block to another thread/process,
+      // but if no need for it just write it here. It blocks, but if
+      // you're printing it's probably not a high performance task.
+
+      std::fwrite(buffer, sizeof(char), TotalWritten_bytes, _outfile_uptr.get());
+
+      if (getRedirectMode() == RedirectMode_T::ToLogAndStdOut)
+      {
+         buffer[getMaxMsgSize_bytes() - std::size_t(1u)] = '\0';
+         fmt::fprintf(stdout, "{}", buffer);
+      }
    }
    else
-   { // print message plain
-      nCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), "%s", Read_Ptr);
+   { // *not* ok to print
+      fmt::fprintf(stderr, "WARNING: Tried to print on a logger that is not opened!");
    }
 
-   std::fwrite(Msg, sizeof(char), MsgSize_bytes, _outfile_Ptr);
-
-   _writeFlag.clear(std::memory_order_released);
-
-#if (YM_CPP_STANDARD >= 20)
-   _writeFlag.notify_one();
-#endif
-}
-
-/** writeMessagesToFile
- *
- * @brief Writes all pending messages in the buffer to the outfile.
- *
- * @note This is the consumer thread.
- * 
- * @note There's also full-blown defense sections where your ally has to stop and inject a
- *       a virus into three separate pillars while endless waves of enemies try to kill them
- *       because obviously they don't want those pillars to have viruses injected into them.
- * 
- * @throws TextLoggerError_ProducerConsumerError -- If _messagesSem fails to acquire.
- * @throws TextLoggerError_ProducerConsumerError -- If _availableSem fails to release.
- */
-void ym::TextLogger::writeMessagesToFile(void)
-{
-   auto writerEnabled = true;
-
-   while (writerEnabled)
-   { // wait for messages to print while logger is still active
-
-      auto nMsgs = 0_u32;
-      do
-      { // wait until the next message is ready
-         try
-         { // try to acquire
-            _messagesSem.acquire(); // _readReadySlots has been updated
-         }
-         catch (std::exception const & E)
-         { // post what went wrong and throw
-            TextLoggerError_ProducerConsumerError::check(false,
-               "Msgs sem failed to acquire (%s)", E.what());
-         }
-
-         nMsgs++;
-      }
-      while ( !( (1_u64 << _readPos) & _readReadySlots.load(std::memory_order_acquire) ) );
-
-      while (nMsgs > 0_u32)
-      { // write pending messages
-
-         auto         const ReadPos  = _readPos % getMaxNMessagesInBuffer();
-         auto const * const Read_Ptr = _buffer + (ReadPos * getMaxMessageSize_bytes());
-         _readPos++; // doesn't wrap - needs to keep pace with _writePos which doesn't wrap
-
-         auto nCharsWrittenInTheory = -1_i32; // default to error value
-
-         if (_printMode == PrintMode_T::PrependTimeStamp)
-         { // print message with time stamp
-            char timeStampBuffer[getTimeStampSize_bytes()] = {'\0'};
-            populateFormattedTime(timeStampBuffer);
-
-            nCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), "%s: %s\n", timeStampBuffer, Read_Ptr);
-         }
-         else
-         { // print message plain
-            nCharsWrittenInTheory = std::fprintf(_outfile_uptr.get(), "%s", Read_Ptr);
-         }
-
-         if (nCharsWrittenInTheory < 0_i32)
-         { // fwrite hit an internal error
-            printfInternalError("std::fprintf failed with error code %d! "
-                                "Message was '%s'\n",
-                                nCharsWrittenInTheory,
-                                Read_Ptr);
-
-            // don't fail here - just keep going
-         }
-
-         nMsgs--;
-
-         try
-         { // try to release
-            _availableSem.release();
-         }
-         catch (std::exception const & E)
-         { // post what went wrong and throw
-            TextLoggerError_ProducerConsumerError::check(false,
-               "Avail sem failed to release (%s)", E.what());
-         }
-      }
-
-      if (_writerMode.load(std::memory_order_relaxed) == WriterMode_T::Closing)
-      { // close requested
-         if (_readPos == _writePos.load(std::memory_order_relaxed))
-         { // no more messages in buffer
-            writerEnabled = false;
-         }
-      }
-   }
+   releaseWriteAccess();
 }
 
 /** populateFormattedTime
@@ -489,35 +305,66 @@ void ym::TextLogger::writeMessagesToFile(void)
  * @note Not to be confused with Logger::populateFilenameTimeStamp.
  *
  * @note Returns the current time, in microseconds, since the creation of the log in the format
- *       (xxxxxxxxxxxx) xxx:xx:xx.xxxxxx
+ *       xxxxxxxxxxxx xxx:xx:xx.xxxxxx
+ *       uuuuuuuuuuuu HHH:MM:SS.uuuuuu
  *
- * @param write_Ptr  -- Buffer to write time stamp into.
- * @param Size_bytes -- Size of buffer.
+ * @param write_Ptr -- Buffer to write time stamp into.
+ *
+ * @returns char * -- Where to continue writing into the buffer (after the time stamp).
  */
-void ym::TextLogger::populateFormattedTime(
-   char * const write_Ptr,
-   uint64 const Size_bytes) const
+char * ym::TextLogger::populateFormattedTime(char * write_ptr) const
 {
-   auto elapsed = _timer.getElapsedTime();
+   if (getPrintMode() == PrintMode_T::PrependHumanReadableTimeStamp)
+   { // print raw form of the time stamp
+   
+      auto       elapsed      = _timer.getElapsedTime();
+      auto const TotalTime_us = std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
 
-   auto const TotalTime_us = std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
-   auto const Time_hr      = std::chrono::duration_cast<std::chrono::hours>       (elapsed);
-   elapsed -= Time_hr;
-   auto const Time_min     = std::chrono::duration_cast<std::chrono::minutes>     (elapsed);
-   elapsed -= Time_min;
-   auto const Time_sec     = std::chrono::duration_cast<std::chrono::seconds>     (elapsed);
-   elapsed -= Time_sec;
-   auto const Time_us      = std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
+      constexpr std::string_view RawTemplate("uuuuuuuuuuuu");
+      static_assert(getMaxMsgSize_bytes() >= RawTemplate.size(),
+         "No room for raw time stamp");
 
-   // Use fmt to format directly into the pre-allocated buffer
-   [[maybe_unused]] auto const Result = fmt::fprintf(
-      write_Ptr,
-      "({:012}) {:03}:{:02}:{:02}.{:06}",
-      TotalTime_us.count(),
-      Time_hr.count(),
-      Time_min.count(),
-      Time_sec.count(),
-      Time_us.count());
+      auto const Result = fmt::format_to_n(
+         write_Ptr,
+         RawTemplate.size(),
+         "{:012}",
+         TotalTime_us.count());
+
+      write_ptr = Result.out;
+
+      if (getPrintMode() == PrintMode_T::PrependHumanReadableTimeStamp)
+      { // print human readable form of the time stamp
+
+         auto const Time_hr   = std::chrono::duration_cast<std::chrono::hours>       (elapsed);
+         elapsed -= Time_hr;
+
+         auto const Time_min  = std::chrono::duration_cast<std::chrono::minutes>     (elapsed);
+         elapsed -= Time_min;
+
+         auto const Time_sec  = std::chrono::duration_cast<std::chrono::seconds>     (elapsed);
+         elapsed -= Time_sec;
+
+         auto const Time_us   = std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
+
+         // Use fmt to format directly into the pre-allocated buffer
+         constexpr std::string_view HumanReadableTemplate(" HHH:MM:SS.uuuuuu: ");
+         static_assert(getMaxMsgSize_bytes() >= RawTemplate.size() + HumanReadableTemplate.size(),
+            "No room for human readable time stamp");
+
+         auto const Result = fmt::format_to_n(
+            write_ptr,
+            HumanReadableTemplate.size(),
+            " {:03}:{:02}:{:02}.{:06}: ",
+            Time_hr.count(),
+            Time_min.count(),
+            Time_sec.count(),
+            Time_us.count());
+
+         write_ptr = Result.out;
+      }
+   }
+
+   return write_ptr;
 }
 
 /** ScopedEnable
@@ -531,10 +378,10 @@ void ym::TextLogger::populateFormattedTime(
  */
 ym::TextLogger::ScopedEnable::ScopedEnable(
    TextLogger * const logger_Ptr,
-   VG           const VG)
-   : _logger_Ptr {logger_Ptr            },
-     _VG         {VG                    },
-     _WasEnabled {logger_Ptr->enable(VG)}
+   VG           const VG) :
+      _logger_Ptr {logger_Ptr            },
+      _VG         {VG                    },
+      _WasEnabled {logger_Ptr->enable(VG)}
 {
 }
 

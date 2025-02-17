@@ -32,15 +32,15 @@
  * @brief Macro to assert on a condition.
  *
  * @param Cond_    -- Condition - true for happy path, false triggers the assert.
- * @param Handler_ -- 
  * @param Derived_ -- Ymassert class to handle assert.
+ * @param Handler_ -- Callback function if assert fails.
  * @param Format_  -- Format string.
  * @param ...      -- Arguments.
  */
  #define YMASSERT(                                             \
       Cond_,                                                   \
-      Handler_,                                                \
       Derived_,                                                \
+      Handler_,                                                \
       Format_,                                                 \
       ...)                                                     \
    static_assert(std::is_convertible_v<decltype(Cond_), bool>, \
@@ -67,26 +67,26 @@
 * @param Name_     -- Name of derived class.
 * @param BaseName_ -- Name of base class.
 */
-#define YM_DECL_YMASSERT2(Name_, BaseName_) \
-   class Name_ : public BaseName_           \
-   {                                        \
-   public:                                  \
-      template <typename... Args_T>         \
-      explicit inline Name_(                \
-            rawstr const Format,            \
-            rawstr const File,              \
-            uint32 const Line,              \
-            Args_T &&... args_uref)         \
-         : ymassert_Base(                   \
-            Format,                         \
-            File,                           \
-            Line,                           \
-            std::forward<Args_T>(args)...)  \
-      { }                                   \
+#define YM_HELPER_DECL_YMASSERT2(Name_, BaseName_) \
+   class Name_ : public BaseName_          \
+   {                                       \
+   public:                                 \
+      template <typename... Args_T>        \
+      explicit inline Name_(               \
+            rawstr const Format,           \
+            rawstr const File,             \
+            uint32 const Line,             \
+            Args_T &&... args_uref)        \
+         : ymassert_Base(                  \
+            Format,                        \
+            File,                          \
+            Line,                          \
+            std::forward<Args_T>(args)...) \
+      { }                                  \
    };
 
-#define YM_DECL_YMASSERT1(Name_) YM_DECL_YMASSERT2(Name_, ymassert_Base)
-#define YM_DECL_YMASSERT(...) YM_MACRO_OVERLOAD(YM_MY_MACRO, __VA_ARGS__)
+#define YM_HELPER_DECL_YMASSERT1(Name_) YM_HELPER_DECL_YMASSERT2(Name_, ymassert_Base)
+#define YM_DECL_YMASSERT(...) YM_MACRO_OVERLOAD(YM_DECL_YMASSERT, __VA_ARGS__)
 
 namespace ym
 {
@@ -139,11 +139,11 @@ private:
  */
 template <typename... Args_T>
 inline ymassert_Base::ymassert_Base(
-      rawstr const Format,
-      rawstr const File,
-      uint32 const Line,
-      Args_T &&... args_uref)
-   : _Msg {format(Format, fmt::make_format_args(File, Line, args_uref...))}
+   rawstr const Format,
+   rawstr const File,
+   uint32 const Line,
+   Args_T &&... args_uref) :
+      _Msg {format(Format, fmt::make_format_args(File, Line, args_uref...))}
 { }
 
 } // ym

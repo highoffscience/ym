@@ -22,13 +22,12 @@ std::string ym::ymassert_Base::format(
 {
    std::string msg(getMaxMsgSize_bytes(), '\0');
 
+   [[maybe_unused]]
    auto const Result = fmt::vformat_to_n(
       msg.data(),
-      msg.size() - std::size_t(1),
+      msg.size(),
       Format,
       args);
-      
-   *Result.out = '\0';
 
    return msg;
 }
