@@ -12,7 +12,6 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
-#include <string>
 #include <system_error>
 
 /** createFileBuffer
@@ -21,14 +20,15 @@
  * 
  * @param Filename -- Name of file to read from.
  * 
- * @returns std::string -- File contents.
+ * @returns std::optional<std::string> -- File contents, or null if an error occured.
  */
-std::string ym::FileIO::createFileBuffer(str const Filename)
+ std::optional<std::string> ym::FileIO::createFileBuffer(str const Filename)
 {
    std::string buffer;
 
    if (std::ifstream infile(Filename); infile.is_open())
    { // file opened
+
       std::error_code ec;
       auto const Size_bytes = std::filesystem::file_size(Filename.get(), ec);
 
@@ -46,7 +46,7 @@ std::string ym::FileIO::createFileBuffer(str const Filename)
    }
    else
    { // file failed to open
-      FileIOError::check(false, "File %s failed to open", Filename.get());
+      return std::nullopt;
    }
 
    return buffer;

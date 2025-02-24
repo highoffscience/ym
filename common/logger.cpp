@@ -6,19 +6,15 @@
 
 #include "logger.h"
 
-// TODO
-// #include "memio.h"
-// #include "textlogger.h"
+#include "textlogger.h"
 #include "timer.h"
-#include "ymassert.h"
 
 #include "fmt/core.h"
 
-#include <cstring>
-#include <ctime>
+#include <exception>
 #include <filesystem>
-#include <stdexcept>
 #include <string>
+#include <system_error>
 
 /** Logger
  *
@@ -31,12 +27,12 @@ ym::Logger::Logger(void)
       [] (std::FILE * const file_Ptr) {
          if (file_Ptr != stdout &&
              file_Ptr != stderr) { // don't try to close standard streams
-            [[maybe_unused]] auto const RetVal = std::fclose(file_Ptr);
+            [[maybe_unused]]
+            auto const RetVal = std::fclose(file_Ptr);
          }
       }
    }
-{
-}
+{ }
 
 /** openOutfile
  *
@@ -54,38 +50,34 @@ ym::Logger::Logger(void)
  * @returns bool -- True if the file was opened, false otherwise.
  */
 bool ym::Logger::openOutfile(
-   rawstr         const Filename,
+   str            const Filename,
    FilenameMode_T const FilenameMode)
 {
    // don't rely on isOutfileOpened(), since we want to return if the file
    // was opened, which is a no if the file already exists, but isOutfileOpened()
    // would return true - not the behaviour we desire
+
    auto opened = false; // until told otherwise
 
    if (!isOutfileOpened())
    { // file not opened
-      if (Filename && *Filename)
-      { // valid filename specified
-         if (FilenameMode == FilenameMode_T::AppendTimeStamp)
-         { // append file stamp
-            opened = openOutfile_appendTimeStamp(Filename);
+      if (FilenameMode == FilenameMode_T::AppendTimeStamp)
+      { // append file stamp
+         opened = openOutfile_appendTimeStamp(Filename);
+      }
+      else
+      { // do not append file stamp (default fallthrough)
+         std::error_code ec;
+         if (std::filesystem::exists(Filename, ec))
+         { // file we are attempting to create already exists
+            ymLog("WARNING: File (or directory) '{}' already exists", Filename);
+         }
+         else if (ec)
+         { // filesystem failure 
+            ymLog("WARNING: Filesystem error when attempting to open '{}' with error code {}", Filename, ec.value());
          }
          else
-         { // do not append file stamp (default fallthrough)
-            try
-            { // to catch utility failures
-               if (std::filesystem::exists(Filename))
-               {
-                  // TODO
-                  // ymLog("Warning: File (or directory) {} already exists", Filename);
-               }
-            }
-            catch (std::exception const & E)
-            { // filesystem utility failure
-               // TODO
-               // ymLog("Warning: Filesystem error when attempting to open %s (%s)", Filename, E.what());
-            }
-            
+         { // open!
             _outfile_uptr.reset(std::fopen(Filename, "w"));
             opened = isOutfileOpened();
          }
@@ -106,7 +98,7 @@ bool ym::Logger::openOutfile(
 bool ym::Logger::openOutfile_appendTimeStamp(std::string_view const Filename)
 {
    auto extPos = Filename.find_last_of('.');
-   if (extPos == 0_u64 ||                // hidden files
+   if (extPos == std::size_t(0u) ||      // hidden files
        extPos == std::string_view::npos) // no extension
    { // no extension found
       extPos = Filename.size();
@@ -114,14 +106,12 @@ bool ym::Logger::openOutfile_appendTimeStamp(std::string_view const Filename)
 
    std::string_view ext;
    try
-   {
+   { // get extension
       ext = Filename.substr(extPos);
    }
    catch (std::out_of_range const & E)
-   {
-      // TODO
-      // YMASSERT_CATCHALL(false, "{}", E.what());
-      return false;
+   { // logic error
+      YMASSERTDBG(false, OpenError, YM_DAH, "Error finding extension. {}", E.what())
    }
 
    constexpr std::string_view TimeStamp("_YYYY_mm_dd_HH_MM_SS");
@@ -150,7 +140,8 @@ bool ym::Logger::openOutfile_appendTimeStamp(std::string_view const Filename)
       "{}",
       ext);
 
-   *result.out = '\0';
+   YMASSERTDBG(result.out == &*timeStampedFilename.end(), OpenError, YM_DAH,
+      "Error printing time stamp. {} -- {}", (void*)result.out, (void*)&*timeStampedFilename.end())
 
    return openOutfile(timeStampedFilename.c_str(), FilenameMode_T::KeepOriginal);
 }

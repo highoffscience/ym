@@ -31,13 +31,18 @@
  *
  * @brief Macro to assert on a condition.
  *
+ * @note Handler_ generally is a function of the form
+ *       void Handler_(auto const & E)
+ *       However, we cannot enforce a requirement because we'd also like to allow
+ *       throw (E).
+ *
  * @param Cond_    -- Condition - true for happy path, false triggers the assert.
  * @param Derived_ -- Ymassert class to handle assert.
  * @param Handler_ -- Callback function if assert fails.
  * @param Format_  -- Format string.
  * @param ...      -- Arguments.
  */
- #define YMASSERT(                                             \
+#define YMASSERT(                                              \
       Cond_,                                                   \
       Derived_,                                                \
       Handler_,                                                \
@@ -58,6 +63,24 @@
          __VA_ARGS__));                                        \
    }
 
+/** YMASSERTDBG
+ *
+ * @brief Macro to assert on a condition. Enabled only if YM_DBG is enabled.
+ *        This version should be used for logic errors, as it is meant to be
+ *        disabled for production.
+ *
+ * @param Cond_    -- Condition - true for happy path, false triggers the assert.
+ * @param Derived_ -- Ymassert class to handle assert.
+ * @param Handler_ -- Callback function if assert fails.
+ * @param Format_  -- Format string.
+ * @param ...      -- Arguments.
+ */
+#if (YM_DBG)
+   #define YMASSERTDBG(Cond_, Derived_, Handler_, Format_, ...) YMASSERT(Cond_, Derived_, Handler_, Format_, __VA_ARGS__)
+#else
+   #define YMASSERTDBG(Cond_, Derived_, Handler_, Format_, ...) (void);
+#endif
+
 /** YM_DECL_YMASSERT
 *
 * @brief Declares a custom error class.
@@ -68,21 +91,21 @@
 * @param BaseName_ -- Name of base class.
 */
 #define YM_HELPER_DECL_YMASSERT2(Name_, BaseName_) \
-   class Name_ : public BaseName_          \
-   {                                       \
-   public:                                 \
-      template <typename... Args_T>        \
-      explicit inline Name_(               \
-            rawstr const Format,           \
-            rawstr const File,             \
-            uint32 const Line,             \
-            Args_T &&... args_uref)        \
-         : ymassert_Base(                  \
-            Format,                        \
-            File,                          \
-            Line,                          \
-            std::forward<Args_T>(args)...) \
-      { }                                  \
+   class Name_ : public BaseName_                  \
+   {                                               \
+   public:                                         \
+      template <typename... Args_T>                \
+      explicit inline Name_(                       \
+            rawstr const Format,                   \
+            rawstr const File,                     \
+            uint32 const Line,                     \
+            Args_T &&... args_uref) :              \
+         ymassert_Base(                            \
+            Format,                                \
+            File,                                  \
+            Line,                                  \
+            std::forward<Args_T>(args)...)         \
+      { }                                          \
    };
 
 #define YM_HELPER_DECL_YMASSERT1(Name_) YM_HELPER_DECL_YMASSERT2(Name_, ymassert_Base)

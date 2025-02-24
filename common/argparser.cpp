@@ -34,17 +34,17 @@
 ym::ArgParser::ArgParser(
    int            const Argc,
    strlit const * const Argv_Ptr,
-   ArgHandlers_T     argHandlers
+   ArgHandlers_T        argHandlers
 #if (!YM_ARGPARSER_USE_STD_SPAN)
    , uint32       const NHandlers
 #endif
-)
-   : _abbrs       {/*default*/},
-     _argHandlers {argHandlers},
-     _Argc        {Argc       },
-     _Argv        {Argv_Ptr   }
+) :
+   _abbrs       {/*default*/},
+   _argHandlers {argHandlers},
+   _Argc        {Argc       },
+   _Argv        {Argv_Ptr   }
 #if (!YM_ARGPARSER_USE_STD_SPAN)
-   , _NHandlers   {NHandlers  }
+   , _NHandlers {NHandlers  }
 #endif
 {
    init();

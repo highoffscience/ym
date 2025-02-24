@@ -154,6 +154,10 @@ private:
    };
    
    static constexpr std::size_t getMaxMsgSize_bytes(void) { return std::size_t(256u); }
+   static constexpr std::string_view RawTimeStampTemplate("uuuuuuuuuuuu");
+   static constexpr std::string_view HumanReadableTimeStampTemplate(" HHH:MM:SS.uuuuuu: ");
+
+   static_assert(getMaxMsgSize_bytes() >= std::size_t(64u), "Too limited room");
 
    void acquireWriteAccess(void);
    void releaseWriteAccess(void);

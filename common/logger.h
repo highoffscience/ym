@@ -39,6 +39,8 @@ public:
    YM_NO_COPY  (Logger)
    YM_NO_ASSIGN(Logger)
 
+   YM_DECL_YMASSERT(OpenError)
+
 protected:
    explicit Logger(void);
 

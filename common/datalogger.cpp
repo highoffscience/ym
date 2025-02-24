@@ -6,19 +6,21 @@
 
 #include "datalogger.h"
 
+#include "fmt/core.h"
+
 #include <cstring>
 
 /** DataLogger
  *
  * @brief Constructor.
  */
-ym::DataLogger::DataLogger(uint64 const MaxNDataEntries)
-   : _columnEntries     {/*default*/    },
-     _MaxNDataEntries   {MaxNDataEntries},
-     _nextDataEntry_idx {0_u64          },
-     _rollover          {false          }
+ym::DataLogger::DataLogger(uint64 const MaxNDataEntries) :
+   _columnEntries     {/*default*/    },
+   _MaxNDataEntries   {MaxNDataEntries},
+   _nextDataEntry_idx {0_u64          },
+   _rollover          {false          }
 {
-   DataLoggerError::check(_MaxNDataEntries > 0_u64, "Depth of data logger must be > 0");
+   YMASSERT(_MaxNDataEntries > 0_u64, Error, YM_DAH, "Depth of data logger must be > 0");
 }
 
 /** ~DataLogger
@@ -69,6 +71,8 @@ void ym::DataLogger::clear(void)
  * @brief Dumps blackbox to file.
  * 
  * @param Filename -- Name of file to dump data to.
+ *
+ * TODO add dump to binary format mode
  * 
  * @returns bool -- If dump was successful.
  */
@@ -82,12 +86,12 @@ bool ym::DataLogger::dump(str const Filename)
       { // print all the headers
          if (j > 0_u64)
          { // prevent printing trailing comma
-            std::fprintf(_outfile_uptr.get(), ",");
+            fmt::fprintf(_outfile_uptr.get(), ",");
          }
          auto const & Entry = _columnEntries[j];
-         std::fprintf(_outfile_uptr.get(), "%s", Entry.getName().get());
+         fmt::fprintf(_outfile_uptr.get(), "{}", Entry.getName().get());
       }
-      std::fprintf(_outfile_uptr.get(), "\n");
+      fmt::fprintf(_outfile_uptr.get(), "\n");
 
       auto const Start_idx = _rollover ?
          (_nextDataEntry_idx + 1_u64) % getMaxNDataEntries() : 0_u64;
@@ -98,13 +102,13 @@ bool ym::DataLogger::dump(str const Filename)
          { // print row
             if (j > 0_u64)
             { // prevent printing trailing comma
-               std::fprintf(_outfile_uptr.get(), ",");
+               fmt::fprintf(_outfile_uptr.get(), ",");
             }
             auto const & Entry = _columnEntries[j];
             void const * const Data_Ptr = Entry._dataEntries_Ptr + (Entry._DataSize_bytes * i);
-            std::fprintf(_outfile_uptr.get(), "%s", Entry._Stringify_Ptr->toStr(Data_Ptr).c_str());
+            fmt::fprintf(_outfile_uptr.get(), "{}", Entry._Stringify_Ptr->toStr(Data_Ptr).c_str());
          }
-         std::fprintf(_outfile_uptr.get(), "\n");
+         fmt::fprintf(_outfile_uptr.get(), "\n");
       }
    }
 

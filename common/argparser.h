@@ -12,8 +12,10 @@
 #include <type_traits>
 
 #if (YM_CPP_STANDARD >= 23)
-#include <span>
-#define YM_ARGPARSER_USE_STD_SPAN 1
+   #include <span>
+   #define YM_ARGPARSER_USE_STD_SPAN 1
+#else
+#define YM_ARGPARSER_USE_STD_SPAN 0
 #endif
 
 namespace ym
@@ -91,7 +93,7 @@ public:
       bool   _flag;  // flag
       bool   _enbl;  // enabled
       bool   _list;  // list
-      // TODO bool _reqd
+      bool   _reqd;  // required
    };
 
    // copyable to load Arg params into vector
@@ -107,11 +109,11 @@ public:
 #endif
 
    explicit ArgParser(
-      int            const Argc,     // command line arg count
-      strlit const * const Argv_Ptr, // command line args
-      ArgHandlers_T     argHandlers  // user-defined arg handlers
+      int            const Argc,       // command line arg count
+      strlit const * const Argv_Ptr,   // command line args
+      ArgHandlers_T        argHandlers // user-defined arg handlers
    #if (!YM_ARGPARSER_USE_STD_SPAN)
-      , uint32    const NHandlers    // number of arg handlers
+      , uint32       const NHandlers   // number of arg handlers
    #endif
    );
 

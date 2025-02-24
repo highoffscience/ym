@@ -8,6 +8,7 @@
 
 #include "ymglobals.h"
 
+#include <optional>
 #include <string>
 
 namespace ym
@@ -22,9 +23,7 @@ class FileIO
 public:
    YM_NO_DEFAULT(FileIO)
 
-   YM_DECL_YMERROR(FileIOError)
-
-   static std::string createFileBuffer(str const Filename);
+   static std::optional<std::string> createFileBuffer(str const Filename);
 };
 
 } // ym

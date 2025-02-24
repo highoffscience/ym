@@ -24,7 +24,7 @@ namespace ym
  * 
  * @note Implemented as a circular buffer. Stores the last X data entries.
  * 
- * @note *Not* multi-thread safe.
+ * @note *Not* thread-safe.
  */
 class DataLogger : public Logger
 {
@@ -40,8 +40,9 @@ public:
    inline auto getMaxNDataEntries(void) const { return _MaxNDataEntries; }
 
    template <typename T>
-   bool addEntry(str         const Name,
-                 T   const * const Read_Ptr);
+   bool addEntry(
+      str         const Name,
+      T   const * const Read_Ptr);
 
    void acquireAll(void);
 
@@ -94,10 +95,11 @@ private:
    struct ColumnEntry : public Nameable_NV<str>
    {
       template <typename T>
-      explicit inline ColumnEntry(str                const Name,
-                                  uint8            * const dataEntries_Ptr,
-                                  T          const * const Read_Ptr,
-                                  IStringify const * const Stringify_Ptr);
+      explicit inline ColumnEntry(
+         str                const Name,
+         uint8            * const dataEntries_Ptr,
+         T          const * const Read_Ptr,
+         IStringify const * const Stringify_Ptr);
 
       uint8            * const _dataEntries_Ptr;
       void       const * const _Read_Ptr;
@@ -121,14 +123,15 @@ private:
  * @returns bool -- If the entry was successfully added.
  */
 template <typename T>
-bool DataLogger::addEntry(str         const Name,
-                          T   const * const Read_Ptr)
+bool DataLogger::addEntry(
+   str         const Name,
+   T   const * const Read_Ptr)
 {
    // not alloc<T> because the deallocator needs the type and we lose the type after this call
    auto * const dataEntries_Ptr = MemIO::alloc<uint8>(getMaxNDataEntries() * sizeof(T));
 
    if (dataEntries_Ptr)
-   {
+   { // successful allocation
       _columnEntries.emplace_back(Name, dataEntries_Ptr, Read_Ptr, new Stringify<T>());
    }
 
@@ -151,6 +154,8 @@ bool DataLogger::addEntry(str         const Name,
 template <typename T>
 std::string DataLogger::Stringify<T>::toStr(void const * const DataEntry_Ptr) const
 {
+   // TODO instead of this we can add a global fmt::formatter<T>
+   // TODO I also dont like that we use std::string here
    return std::to_string(*static_cast<T const *>(DataEntry_Ptr));
 }
 
@@ -163,14 +168,12 @@ inline DataLogger::ColumnEntry::ColumnEntry(
    str                const Name,
    uint8            * const dataEntries_Ptr,
    T          const * const Read_Ptr,
-   IStringify const * const Stringify_Ptr)
-
-   : Nameable_NV(Name),
-     _dataEntries_Ptr {dataEntries_Ptr},
-     _Read_Ptr        {Read_Ptr       },
-     _Stringify_Ptr   {Stringify_Ptr  },
-     _DataSize_bytes  {sizeof(T)      }
-{
-}
+   IStringify const * const Stringify_Ptr) :
+      Nameable_NV(Name),
+      _dataEntries_Ptr {dataEntries_Ptr},
+      _Read_Ptr        {Read_Ptr       },
+      _Stringify_Ptr   {Stringify_Ptr  },
+      _DataSize_bytes  {sizeof(T)      }
+{ }
 
 } // ym

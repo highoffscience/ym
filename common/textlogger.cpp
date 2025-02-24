@@ -248,44 +248,70 @@ void ym::TextLogger::printf_Handler(
    char buffer[getMaxMsgSize_bytes()]{};
    auto * const write_Ptr = populateFormattedTime(buffer); // conditionally
 
-   YMASSERT(write_Ptr >= buffer, YM_DAH, PrintError,
+   YMASSERTDBG(write_Ptr >= buffer, YM_DAH, PrintError,
       "populateFormattedTime not returning as expected")
 
    auto const TimeStampSize_bytes = static_cast<std::size_t>(write_Ptr - buffer);
 
-   YMASSERT(getMaxMsgSize_bytes() >= TimeStampSize_bytes, YM_DAH, PrintError,
+   YMASSERTDBG(getMaxMsgSize_bytes() >= TimeStampSize_bytes, YM_DAH, PrintError,
       "Buffer ({} bytes) not large enough to hold time stamp ({} bytes)",
       getMaxMsgSize_bytes(), TimeStampSize_bytes)
    
-   auto const Result = fmt::format_to_n(
+   auto const HasTimeStamp =
+      getPrintMode() == PrintMode_T::PrependTimeStamp ||
+      getPrintMode() == PrintMode_T::PrependHumanReadableTimeStamp;
+
+   auto const NewlineSize_bytes = std::size_t((HasTimeStamp) ? 1u : 0u);
+
+   auto result = fmt::format_to_n(
       write_Ptr,
-      getMaxMsgSize_bytes() - TimeStampSize_bytes,
+      getMaxMsgSize_bytes() - TimeStampSize_bytes - NewlineSize_bytes,
       Format,
       args);
 
-   auto const TotalWritten_bytes = static_cast<std::size_t>(Result.out - buffer);
+   if (HasTimeStamp)
+   { // automatically print newline if in this mode
+      result.out = '\n';
+   }
+
+   // following logic technically belongs in the below if statement but I don't want the assert,
+   // which alters control flow, to leave the atomic write flag in an undesirable state
+   YMASSERTDBG(result.out >= buffer, PrintError, YM_DAH, "Format to buffer did not behave as expected")
+   auto const TotalWritten_bytes = static_cast<std::size_t>(result.out - buffer) + NewlineSize_bytes;
 
    acquireWriteAccess();
 
    if (_state.load(std::memory_order_relaxed) == State_T::Open)
    { // ok to print
 
-      if (TotalWritten_bytes > getMaxMsgSize_bytes())
-      {
-         constexpr std::string_view OverflowMsg("OVERFLOW: ");
-         std::fwrite(OverflowMsg.data(), sizeof(char), OverflowMsg.size(), _outfile_uptr.get());
-      }
-
       // It is possible to ship this block to another thread/process,
       // but if no need for it just write it here. It blocks, but if
       // you're printing it's probably not a high performance task.
 
+      // TODO does fwrite wait until it has BUFSIZ data before writing to disk?
       std::fwrite(buffer, sizeof(char), TotalWritten_bytes, _outfile_uptr.get());
 
       if (getRedirectMode() == RedirectMode_T::ToLogAndStdOut)
-      {
+      { // print to console
          buffer[getMaxMsgSize_bytes() - std::size_t(1u)] = '\0';
          fmt::fprintf(stdout, "{}", buffer);
+      }
+
+      if (auto const WantedSize_bytes = (result.size + NewlineSize_bytes);
+         WantedSize_bytes > getMaxMsgSize_bytes())
+      { // overflow
+
+         releaseWriteAccess();
+
+         if (HasTimeStamp)
+         { // alert user which line overflowed
+            buffer[RawTimeStampTemplate.size()] = '\0';
+            printf_Handler("OVERFLOW message @ time stamp {}", fmt::make_format_args(buffer));
+         }
+         else
+         { // alert user a message overflowed
+            printf_Handler("OVERFLOW on a previous message");
+         }
       }
    }
    else
@@ -320,13 +346,9 @@ char * ym::TextLogger::populateFormattedTime(char * write_ptr) const
       auto       elapsed      = _timer.getElapsedTime();
       auto const TotalTime_us = std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
 
-      constexpr std::string_view RawTemplate("uuuuuuuuuuuu");
-      static_assert(getMaxMsgSize_bytes() >= RawTemplate.size(),
-         "No room for raw time stamp");
-
       auto const Result = fmt::format_to_n(
          write_Ptr,
-         RawTemplate.size(),
+         RawTimeStampTemplate.size(),
          "{:012}",
          TotalTime_us.count());
 
@@ -346,14 +368,9 @@ char * ym::TextLogger::populateFormattedTime(char * write_ptr) const
 
          auto const Time_us   = std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
 
-         // Use fmt to format directly into the pre-allocated buffer
-         constexpr std::string_view HumanReadableTemplate(" HHH:MM:SS.uuuuuu: ");
-         static_assert(getMaxMsgSize_bytes() >= RawTemplate.size() + HumanReadableTemplate.size(),
-            "No room for human readable time stamp");
-
          auto const Result = fmt::format_to_n(
             write_ptr,
-            HumanReadableTemplate.size(),
+            HumanReadableTimeStampTemplate.size(),
             " {:03}:{:02}:{:02}.{:06}: ",
             Time_hr.count(),
             Time_min.count(),
@@ -377,11 +394,11 @@ char * ym::TextLogger::populateFormattedTime(char * write_ptr) const
  * @param VG         -- Verbosity group.
  */
 ym::TextLogger::ScopedEnable::ScopedEnable(
-   TextLogger * const logger_Ptr,
-   VG           const VG) :
-      _logger_Ptr {logger_Ptr            },
-      _VG         {VG                    },
-      _WasEnabled {logger_Ptr->enable(VG)}
+      TextLogger * const logger_Ptr,
+      VG           const VG) :
+   _logger_Ptr {logger_Ptr            },
+   _VG         {VG                    },
+   _WasEnabled {logger_Ptr->enable(VG)}
 {
 }
 
