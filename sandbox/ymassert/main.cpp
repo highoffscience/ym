@@ -12,6 +12,7 @@
 using rawstr = char const *;
 
 #include "fmt/core.h"
+
 #include <string>
 #include <thread>
 #include <type_traits>
@@ -128,7 +129,6 @@ struct is_callable_with_test<F,
 template <typename F>
 constexpr bool is_callable_with_test_v = is_callable_with_test<F>::value;
 
-// static_assert(is_callable_with_test_v<decltype(Action_)>, "No!"); \
 
 // if (!Cond_) { Derived_(Format_, __VA_ARGS__).raise(); }
 #define YMASSERT(    \
@@ -195,6 +195,76 @@ void test(int i)
    YMASSERT([](auto const & E){throw E;}, i !=  9, OutOfRangeError9, "Uh oh!9 i is {}", i);
 }
 
+template <typename F, typename I>
+constexpr auto call_or_return(F&& f, I i) {
+   if constexpr (std::is_void_v<std::invoke_result_t<F, I>>) {
+      f(i);  // Just call the function if it returns void
+   } else {
+      return f(i);  // Return the result if it's non-void
+   }
+}
+
+#define CALL_OR_RETURN(F, I) [[maybe_unused]] call_or_return(F, I)
+
+void printInt(int x) {
+   fmt::print("Value: {}\n", x);
+}
+
+int square(int x) {
+   return x * x;
+}
+
+template <typename F>
+struct FuncWrapper
+{
+   // TODO
+   // std::is_invocable F
+
+   using Result_T = std::invoke_result_t<F, int>;
+   static constexpr bool isVoid(void) { return std::is_void_v<Result_T>; }
+
+   using VoidFuncPtr = void(*)(int);
+   using ResultFuncPtr = std::conditional_t<isVoid(), int, Result_T>(*)(int);
+
+   
+
+   VoidFuncPtr voidFunc{};
+   ResultFuncPtr resultFunc{};
+
+   constexpr FuncWrapper(F && f) {
+      if constexpr (isVoid()) {
+         voidFunc = f;
+      } else {
+         resultFunc = f;
+      }
+   }
+};
+
+#define TEST_CALL_OR_RETURN(b, i) [[maybe_unused]] auto const Result = test_call_or_return(b, i);
+/**
+ * 34592 bytes with FuncWrapper square
+ * 34592 without the FuncWrapper!
+ *
+ * 29976
+ */
+int test_call_or_return(bool b, int i)
+{
+   if (b)
+   {
+      constexpr FuncWrapper f(square);
+      if constexpr (f.isVoid())
+      {
+         f.voidFunc(i); // Just call the function if it returns void
+         return 0;
+      }
+      else
+      {
+         return f.resultFunc(i); // Return the result if it's non-void
+      }
+   }
+   return 0;
+}
+
 /**
  *  fmt.a       145136 bytes
  *  fmt.so       16080 bytes
@@ -211,9 +281,11 @@ void test(int i)
  */
 int main(void)
 {
-   volatile int i = 0;
+   TEST_CALL_OR_RETURN(true, 3)
+   // fmt::print("{}\n", Result);
+   // volatile int i = 0;
    // fmt::println("sizeof Derived is {} {}", sizeof(OutOfRangeError), __FILE__);
-   test(((unsigned long)(void*)&i) % 11u);
+   // test(((unsigned long)(void*)&i) % 11u);
    // using namespace std::literals::chrono_literals;
    // auto diff = std::chrono::microseconds((3600 * 25 * 1'000'000ll) + (15 * 60 * 1'000'000ll));
    // fmt::print("{:%Q}\n", diff);

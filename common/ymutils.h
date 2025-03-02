@@ -9,6 +9,8 @@
 #include "ymassert.h"
 #include "ymdefs.h"
 
+#include "fmt/base.h"
+
 #include <cstddef>
 #include <cstdlib>
 #include <exception>
@@ -284,3 +286,28 @@ constexpr auto ymBinarySearch(Iterator_T first,
 }
 
 } // ym
+
+// ----------------------------------------------------------------------------
+
+namespace fmt
+{
+
+/**
+ * TODO
+ */
+template <>
+struct formatter<ym::str> : public fmt::formatter<fmt::string_view>
+{
+   auto format(ym::str s, fmt::format_context & ctx_ref) const -> fmt::format_context::iterator;
+};
+
+/**
+ * TODO
+ */
+template <>
+struct formatter<ym::strlit> : public fmt::formatter<fmt::string_view>
+{
+   auto format(ym::strlit s, fmt::format_context & ctx_ref) const -> fmt::format_context::iterator;
+};
+
+} // fmt

@@ -85,20 +85,28 @@ public:
 
    private:
       // no consts - see static assert below
-      str    _name;  // arg name (used as the key)
-      str    _desc;  // description
-      str    _val;   // value
-      uint32 _nvals; // number of values, if list
-      char   _abbr;  // abbreviation
-      bool   _flag;  // flag
-      bool   _enbl;  // enabled
-      bool   _list;  // list
-      bool   _reqd;  // required
+      str    _name {}; // arg name (used as the key)
+      str    _desc {}; // description
+      str    _val  {}; // value
+      uint32 _nvals{}; // number of values, if list
+      char   _abbr {}; // abbreviation
+      bool   _flag {}; // flag
+      bool   _enbl {}; // enabled
+      bool   _list {}; // list
+      bool   _reqd {}; // required
    };
 
    // copyable to load Arg params into vector
    // assignable for std::sort
    static_assert(std::is_copy_assignable_v<Arg>, "Arg needs to be copyable/assignable");
+
+   /// @brief Result status of the parse
+   enum class ParseResult_T : uint32
+   {
+      Success,
+      Failure,
+      HelpMenuCalled
+   };
 
 // std::span is defined in c++20, but useless without const_iterator,
 //  which is defined in c++23.
@@ -129,7 +137,7 @@ public:
    YM_NO_COPY  (ArgParser)
    YM_NO_ASSIGN(ArgParser)
 
-   bool parse(void);
+   ParseResult_T parse(void);
 
           Arg const * get       (str const Key) const;
    inline Arg const * operator[](str const Key) const { return get(Key); }
@@ -140,13 +148,12 @@ public:
    YM_DECL_YMERROR(Error, AccessError)
 
 private:
+   // TODO maybe use constexpr functions instead?
    static constexpr auto s_NValidChars = static_cast<uint32>('~' - '!' + 1); // 126 - 33 + 1
    static constexpr auto getNValidChars(void) { return s_NValidChars; }
 
    static constexpr auto isValidChar(char const Char) { return Char >= '!' && Char <= '~' && Char != '-'; }
    static constexpr auto getAbbrIdx (char const Abbr) { return Abbr - '!'; }
-
-   void init(void);
 
    rawstr getNextToken  (rawstr currToken);
    rawstr getArgNegation(rawstr currToken);
@@ -157,14 +164,15 @@ private:
 
    void displayHelpMenu(void) const;
 
-   Arg * getArgPtrFromPrefix(str  const Prefix);
-   Arg * getArgPtrFromAbbr  (char const Abbr  );
+   Arg * getArgPtrFromPrefix(rawstr const Prefix);
+   Arg * getArgPtrFromAbbr  (char   const Abbr  );
 
-   rawstr parseLonghand (rawstr token); // TODO review const on all functions
-   rawstr parseShorthand(rawstr token);
-   rawstr parseArg(Arg * const arg_Ptr,
-                   rawstr      token,
-                   bool  const IsNegation = false) const;
+   rawstr parseLonghand (rawstr token, ParseResult_T * const result_out_Ptr);
+   rawstr parseShorthand(rawstr token, ParseResult_T * const result_out_Ptr);
+   rawstr parseArg(
+      Arg * const arg_Ptr,
+      rawstr      token,
+      bool  const IsNegation = false) const;
 
    /// @brief Helper type.
    union Argv_T
@@ -178,7 +186,7 @@ private:
            
    AbbrSet_T     _abbrs;
    ArgHandlers_T _argHandlers;
-   int32   const _Argc;
+   int     const _Argc;
    Argv_T  const _Argv;
 #if (!YM_ARGPARSER_USE_STD_SPAN)
    uint32  const _NHandlers;

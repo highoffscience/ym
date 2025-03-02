@@ -19,7 +19,7 @@
 #endif
 
 #if (YM_YES_EXCEPTIONS)
-   #define YM_DEFAULT_ASSERT_HANDLER throw
+   #define YM_DEFAULT_ASSERT_HANDLER ymassert_Base::defaultYesExceptHandler
 #else
    #define YM_DEFAULT_ASSERT_HANDLER ymassert_Base::defaultNoExceptHandler
 #endif
@@ -54,13 +54,27 @@
       "Assert class must be of type ymassert_Base");           \
    static_assert(std::is_same_v<Format_, rawstr>,              \
       "Format must be a string literal");                      \
-   if (!(Condition_))                                          \
+   if (!(Cond_))                                               \
    {                                                           \
-      Handler_(DerivedYmassert_(                               \
+      DerivedYmassert_ e;                                      \
+      [[maybe_unused]]                                         \
+      auto const Result = fmt::format_to_n(                    \
+         e.buffer.data(),                                      \
+         e.buffer.size() - std::size_t(1u),                    \
          "Assert @ \"{}:{}\": "Format_,                        \
          __FILE__,                                             \
          __LINE__,                                             \
-         __VA_ARGS__));                                        \
+         __VA_ARGS__);                                         \
+      constexpr YmassertHandlerWrapper f(Handler_);            \
+      if constexpr (f.isVoid())                                \
+      {                                                        \
+         f.voidFunc(i);                                        \
+         return;                                               \
+      }                                                        \
+      else                                                     \
+      {                                                        \
+         return f.resultFunc(i);                               \
+      }                                                        \
    }
 
 /** YMASSERTDBG
@@ -114,6 +128,37 @@
 namespace ym
 {
 
+/**
+ *
+ */
+template <typename F>
+struct YmassertHandlerWrapper
+{
+   // TODO
+   // std::is_invocable F
+
+   using Result_T = std::invoke_result_t<F, int>;
+   static constexpr bool isVoid(void) { return std::is_void_v<Result_T>; }
+
+   using VoidFuncPtr = void(*)(int);
+   using ResultFuncPtr = std::conditional_t<isVoid(), int, Result_T>(*)(int);
+
+   VoidFuncPtr voidFunc{};
+   ResultFuncPtr resultFunc{};
+
+   constexpr YmassertHandlerWrapper(F && f_uref)
+   {
+      if constexpr (isVoid())
+      {
+         voidFunc = f_uref;
+      }
+      else
+      {
+         resultFunc = f_uref;
+      }
+   }
+};
+
 /** ymassert_Base
  *
  * @brief Base assert class. Will either set an error flag or throw an exception.
@@ -133,12 +178,22 @@ public:
 
 #if (YM_YES_EXCEPTIONS)
    virtual rawstr what(void) const noexcept override;
+   static inline void defaultYesExceptHandler(auto const & E) { throw E; }
 #else
    rawstr what(void) const noexcept;
    static void defaultNoExceptHandler(ymassert_Base const & E);
 #endif
 
    static constexpr auto getMaxMsgSize_bytes(void) { return uint64(128u); }
+
+   template <typename F, typename I>
+   constexpr auto call_or_return(F&& f, I i) {
+      if constexpr (std::is_void_v<std::invoke_result_t<F, I>>) {
+         f(i);  // Just call the function if it returns void
+      } else {
+         return f(i);  // Return the result if it's non-void
+      }
+   }
 
 private:
    static std::string format(
