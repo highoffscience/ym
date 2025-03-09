@@ -233,6 +233,16 @@ constexpr auto * ymCastPtrTo(void * const data_Ptr)
    return static_cast<T *>(data_Ptr);
 }
 
+/**
+ * TODO
+ *
+ * @note Can be overloaded for other types.
+ */
+constexpr auto ymEmpty(rawstr const S)
+{
+   return static_cast<bool>(!(S && *S));
+}
+
 /** ymBinarySearch
  * 
  * @brief Returns an iterator to the searched for element, or last

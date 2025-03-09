@@ -42,7 +42,8 @@ ym::ArgParser::ArgParser(
    _abbrs       {/*default*/},
    _argHandlers {argHandlers},
    _Argc        {Argc       },
-   _Argv        {Argv_Ptr   }
+   _Argv        {Argv_Ptr   },
+   _argv_idx    {0_u32      }
 #if (!YM_ARGPARSER_USE_STD_SPAN)
    , _NHandlers {NHandlers  }
 #endif
@@ -119,6 +120,11 @@ auto ym::ArgParser::parse(void) -> ParseResult_T
    return result;
 }
 
+auto ym::ArgParser::parse(rawstr token) -> ParseResult_T
+{
+
+}
+
 /** parseLonghand
  * 
  * @brief Parses next long command.
@@ -131,25 +137,20 @@ auto ym::ArgParser::parseLonghand(
    rawstr                token,
    ParseResult_T * const result_out_Ptr) -> rawstr
 {
-   token += 2_u32; // move past "--"
+   YMASSERTDBG(!ymEmpty(token), Error, YM_DAH, "token cannot be null")
 
-   if (*token && std::strcmp(token, "help") == 0) // must be full name - no prefix allowed
+   if (std::strcmp(token, "--help") == 0) // must be full name - no prefix allowed
    { // help menu requested
       displayHelpMenu();
       *result_out_Ptr = ParseResult_T::HelpMenuCalled;
    }
    else
    { // standard arg
-      
-      auto isNegation = false; // until told otherwise
 
-      if (auto newToken = getArgNegation(token); newToken != token)
-      { // arg prefixed by --no- - negation on flag
-         isNegation = true;
-         token = newToken;
-      }
+      auto const IsNeg = std::strncmp(token, "--no-", std::size_t(5u)) == 0;
+      auto const Shift = (IsNeg) ? 5 : 2;
 
-      auto * const arg_Ptr = getArgPtrFromPrefix(token);
+      auto * const arg_Ptr = getArgPtrFromPrefix(token + Shift);
       token = parseArg(arg_Ptr, token, isNegation);
    }
 
@@ -189,7 +190,7 @@ auto ym::ArgParser::parseShorthand(rawstr token) -> rawstr
 
          if (NAbbrs == 1_u32)
          { // only 1 abbr - might have value
-            token = parseArg(arg_Ptr, token);
+            token = parseArg(arg_Ptr, token, Handedness_T::Short);
             break;
          }
          else
@@ -201,21 +202,6 @@ auto ym::ArgParser::parseShorthand(rawstr token) -> rawstr
    }
 
    return token;
-}
-
-/**
- * TODO
- */
-auto ym::ArgParser::getArgNegation(rawstr currToken) -> rawstr
-{
-   constexpr std::string_view NegPrefix("-no");
-
-   if (*currToken && std::strncmp(currToken, NegPrefix.data(), NegPrefix.size()) == 0)
-   { // has negation
-      currToken += NegPrefix.size();
-   }
-
-   return currToken;
 }
 
 /** parseArg
@@ -230,9 +216,10 @@ auto ym::ArgParser::getArgNegation(rawstr currToken) -> rawstr
  * 
  * @returns rawstr -- Next token to parse of command line arguments.
  */
-auto ym::ArgParser::parseArg(Arg * const arg_Ptr,
-                             rawstr      token,
-                             bool  const IsNegation) const -> rawstr
+auto ym::ArgParser::parseArg(
+   Arg *  const arg_Ptr,
+   rawstr       token,
+   bool   const IsNegation) const -> rawstr
 {
    if (arg_Ptr->isFlag())
    { // enable argument - no explicit value
@@ -242,20 +229,18 @@ auto ym::ArgParser::parseArg(Arg * const arg_Ptr,
    { // value is next command line argument
 
       token = getNextToken(token);
-      ParseError::check(idx < _Argc, "No value for arg '%s'", argPtr->getName().get());
+      YMASSERT(token, ParseError, YM_DAH, "No value for arg '{}'", argPtr->getName());
 
-      // TODO this will incorrectly trigger for negative numbers
-      ParseError::check(_Argv_Ptr[idx][0_u32] != '-', "Arg '%s' cannot have command line value ('%s')",
-         argPtr->getName().get(), _Argv_Ptr[idx].get());
-
-      argPtr->defval(_Argv_Ptr[idx]);
+      argPtr->defval(token);
 
       if (argPtr->isList())
       { // argument is list
 
-         argPtr->_nvals = 1_i32; // one element so far
+         argPtr->_nvals = 1_u32; // one element so far
 
-         for (idx + 1_i32; (idx < _Argc) && (_Argv_Ptr[idx][0] != '-'); ++idx)
+         token = getNextToken(token);
+
+         for (idx + 1_i32; (idx < _Argc) && (/*if next arg isn't a registered arg*/); ++idx)
          { // go through all args that are not commands
             argPtr->_nvals++;
          }
@@ -265,100 +250,109 @@ auto ym::ArgParser::parseArg(Arg * const arg_Ptr,
    return idx;
 }
 
-/** get
+/** get_nocheck
  * 
  * @brief Returns the registered argument info associated with the given key.
  * 
  * @note std::binary_search doesn't return a pointer to the found object, which is
  *       why we use a custom binary search function.
- * 
- * @throws AccessError -- If no argument with the given name found.
- * 
- * TODO span's can have non-contiguous memory, whereas non-spans must be.
  *
  * @param Key -- Name of argument.
  * 
- * @returns ArgCIt_T -- Found argument.
+ * @returns Arg const * -- Found argument, or nullptr if none found.
  */
-auto ym::ArgParser::get(str const Key) const -> Arg const *
+auto ym::ArgParser::get_nocheck(str const Key) const -> Arg const *
 {
-   auto const BeginPtr =
+   auto const BeginIt =
 #if (YM_ARGPARSER_USE_STD_SPAN)
       _argHandlers.cbegin();
 #else
       _argHandlers;
 #endif
 
-   auto const EndPtr =
+   auto const EndIt =
 #if (YM_ARGPARSER_USE_STD_SPAN)
       _argHandlers.cend();
 #else
       _argHandlers + _NHandlers;
 #endif
 
-   auto const ArgPtr = ymBinarySearch(BeginPtr, EndPtr, Key,
+   auto const It = ymBinarySearch(BeginIt, EndIt, Key,
       [](str const Key, auto const & Arg) -> int32 {
          return std::strcmp(Key, Arg->getName());
       }
    );
 
-   YMASSERT(ArgPtr != EndPtr, AccessError, YM_DAH, "Key '{}' not found", Key);
+   return (It != EndIt) ? &*It : nullptr;
+}
 
-   return &*ArgPtr;
+/** get
+ * 
+ * @brief Returns the registered argument info associated with the given key.
+ * 
+ * @throws AccessError -- If no argument with the given name found.
+ *
+ * @param Key -- Name of argument.
+ * 
+ * @returns Arg const * -- Found argument.
+ */
+auto ym::ArgParser::get(str const Key) const -> Arg const *
+{
+   auto const * const Value_Ptr = get_nocheck(Key);
+
+   YMASSERT(Value_Ptr, AccessError, YM_DAH, "Key '{}' not found", Key);
+
+   return Value_Ptr;
 }
 
 /** getNextToken
  * 
- * TODO
+ * @brief Grabs the next token in the given command arguments.
+ *
+ * @param currToken -- The current (previously produced) token in the list.
+ *
+ * @returns rawstr -- Next token in the list, or nullptr if no next.
  */
 auto ym::ArgParser::getNextToken(rawstr currToken) -> rawstr
 {
-   rawstr nextCmdLineArg = nullptr;
+   rawstr nextToken = nullptr;
+
+   // TODO can reuse _argv_idx here, that way we wouldn't need to pass in currToken
 
    if (_Argc < 0)
    { // cmd line args are in one string
       
-      if (!currCmdLineArg)
-      { // no selected cmd line arg - set to argument string
-         currCmdLineArg = _Argv._Argv;
+      if (!currToken)
+      { // no selected cmd line arg yet - set to argument string
+         currToken = _Argv._Argv; // TODO not null
       }
 
-      while (*currCmdLineArg && !std::isspace(static_cast<unsigned char>(*currCmdLineArg)))
+      while (*currToken && !std::isspace(static_cast<unsigned char>(*currToken)))
       { // advance stream to next token separator
-         currCmdLineArg++;
+         currToken++;
       }
 
-      while (*currCmdLineArg && std::isspace(static_cast<unsigned char>(*currCmdLineArg)))
+      while (*currToken && std::isspace(static_cast<unsigned char>(*currToken)))
       { // advance stream to next token
-         currCmdLineArg++;
+         currToken++;
       }
 
-      if (currCmdLineArg)
+      if (*currToken)
       { // found next cmd line arg
-         nextCmdLineArg = currCmdLineArg;
+         nextToken = currToken;
       }
    }
    else
    { // cmd line args as passed into main()
 
-      if (currCmdLineArg)
-      { // captured a cmd line arg before
-
-         auto const CurrIdx = static_cast<int>(std::distance(_Argv._Argv_Ptr[0].get(), currCmdLineArg));
-         auto const NextIdx = CurrIdx + 1;
-
-         if (NextIdx < _Argc)
-         { // there is a next element
-            nextCmdLineArg = _Argv._Argv_Ptr[NextIdx].get();
-         }
-      }
-      else if (_Argc > 0)
+      if (_argv_idx < _Argc)
       { // there is a next element
-         nextCmdLineArg = _Argv._Argv_Ptr[0].get();
+         nextToken = _Argv._Argv_Ptr[_argv_idx].get();
+         _argv_idx++;
       }
    }
 
-   return nextCmdLineArg;
+   return nextToken;
 }
 
 /** organizeAndValidateArgHandlerVector
@@ -375,14 +369,14 @@ auto ym::ArgParser::getNextToken(rawstr currToken) -> rawstr
  */
 void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 {
-   auto const BeginPtr =
+   auto const BeginIt =
 #if (YM_ARGPARSER_USE_STD_SPAN)
       _argHandlers.cbegin();
 #else
       _argHandlers;
 #endif
 
-   auto const EndPtr =
+   auto const EndIt =
 #if (YM_ARGPARSER_USE_STD_SPAN)
       _argHandlers.cend();
 #else
@@ -396,7 +390,7 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
      // allocation, so this catch should never be executed)
 
       // searching algorithms require keys be sorted
-      std::sort(BeginPtr, EndPtr,
+      std::sort(BeginIt, EndIt,
          [](Arg const & Lhs, Arg const & Rhs) -> bool {
             return std::strcmp(Lhs.getName(), Rhs.getName()) < 0;
          }
@@ -404,12 +398,12 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
    }
    catch (std::exception const & E)
    { // throw custom error
-      YMASSERT(false, ParseError, YM_DAH, "std::sort failed with msg '{}'", E.what());
+      YMASSERT(false, Error, YM_DAH, "std::sort failed with msg '{}'", E.what());
    }
 
    // --- --- --- --- validate --- --- --- ---
 
-   for (auto it = BeginPtr; it != EndPtr; it++)
+   for (auto it = BeginIt; it != EndIt; it++)
    { // go through all args
 
       auto const Key  = it->getName();
@@ -419,7 +413,7 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 
       // --- --- detect duplicate keys --- ---
 
-      if (it != BeginPtr)
+      if (it != BeginIt)
       { // compare current key to previous key
          YMASSERT(std::strcmp(Key, (it - 1)->getName()) != 0, ParseError, YM_DAH,
             "Duplicate key '{}'", Key);
@@ -450,7 +444,7 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 
       if (Abbr != '\0')
       { // assigned abbr
-         YMASSERT(isValidChar(Abbr), ParseError, YM_DAH, "Abbr 0x%x not valid for arg '{}'", Abbr, Key);
+         YMASSERT(isValidChar(Abbr), ParseError, YM_DAH, "Abbr 0x{0:x} not valid for arg '{}'", Abbr, Key);
          YMASSERT(_abbrs[getAbbrIdx(Abbr)] == EndPtr, ParseError, YM_DAH, "Abbr '{}' already occupied", Abbr);
 
          _abbrs[getAbbrIdx(Abbr)] = &*it;
@@ -496,14 +490,14 @@ void ym::ArgParser::displayHelpMenu(void) const
 {
    auto const SE = ymLogPushEnable(VG::ArgParser);
 
-   auto const BeginPtr =
+   auto const BeginIt =
 #if (YM_ARGPARSER_USE_STD_SPAN)
       _argHandlers.cbegin();
 #else
       _argHandlers;
 #endif
 
-   auto const EndPtr =
+   auto const EndIt =
 #if (YM_ARGPARSER_USE_STD_SPAN)
       _argHandlers.cend();
 #else
@@ -512,7 +506,7 @@ void ym::ArgParser::displayHelpMenu(void) const
 
    auto maxKeyLen = std::size_t(0);
 
-   for (auto it = BeginPtr; it != EndPtr; it++)
+   for (auto it = BeginIt; it != EndIt; it++)
    { // go through all registered arguments
       if (auto const KeyLen = std::strlen(it->getName()); KeyLen > maxKeyLen)
       { // update max key length
@@ -529,14 +523,14 @@ void ym::ArgParser::displayHelpMenu(void) const
 
    ymLog(VG::ArgParser, "ArgParser help menu:");
 
-   for (auto it = BeginPtr; it != EndPtr; it++)
+   for (auto it = BeginIt; it != EndIt; it++)
    { // go through all registered arguments
       auto const KeyLen = std::strlen(it->getName());
       ymLog(VG::ArgParser, " --{}{} : {}", it->getName(), spaces_bptr + KeyLen, it->getDesc());
 
       if (auto const Abbr = it->getAbbr(); isValidChar(Abbr))
       { // this arg has an abbreviation
-         ymLog(VG::ArgParser, "   (-%c)", Abbr);
+         ymLog(VG::ArgParser, "   (-{})", Abbr);
       }
    }
 }
@@ -559,14 +553,14 @@ auto ym::ArgParser::getArgPtrFromPrefix(rawstr const Prefix) -> Arg *
    if (Prefix)
    { // valid prefix
 
-      auto const BeginPtr =
+      auto const BeginIt =
    #if (YM_ARGPARSER_USE_STD_SPAN)
          _argHandlers.cbegin();
    #else
          _argHandlers;
    #endif
 
-      auto const EndPtr =
+      auto const EndIt =
    #if (YM_ARGPARSER_USE_STD_SPAN)
          _argHandlers.cend();
    #else
@@ -576,30 +570,30 @@ auto ym::ArgParser::getArgPtrFromPrefix(rawstr const Prefix) -> Arg *
       std::string_view const PrefixSV(Prefix);
 
       // returns first iterator where comp() evals to false
-      auto const LowerBoundArgIt = std::lower_bound(BeginPtr, EndPtr, PrefixSV,
+      auto const LowerBoundIt = std::lower_bound(BeginIt, EndIt, PrefixSV,
          // should return true if Arg is ordered before Prefix
          [](Arg const & Arg, std::string_view const & PrefixSV) -> bool {
             return std::strncmp(Arg.getName(), PrefixSV.data(), PrefixSV.size()) < 0;
          }
       );
 
-      for (auto argIt = LowerBoundArgIt; argIt != EndPtr; argIt++)
+      for (auto it = LowerBoundIt; it != EndIt; it++)
       { // search through all stored args
 
-         auto const Cmp = std::strncmp(PrefixSV.data(), argIt->getName(), PrefixSV.size());
+         auto const Cmp = std::strncmp(PrefixSV.data(), it->getName(), PrefixSV.size());
 
          if (Cmp == 0)
          { // prefix found (whole prefix matched)
-            if (std::strlen(argIt->getName()) == PrefixSV.size())
+            if (std::strlen(it->getName()) == PrefixSV.size())
             { // entire key matched
-               arg_ptr = &*argIt;
+               arg_ptr = &*it;
                break;
             }
             else
             { // prefix matched but maybe others will match so continue search
               // if another match is found it will trigger the assert below
-               YMASSERT(argIt == EndPtr, ParseError, YM_DAH, "Prefix '{}' is ambiguous", PrefixSV);
-               arg_ptr = &*argIt;
+               YMASSERT(it == EndIt, ParseError, YM_DAH, "Prefix '{}' is ambiguous", PrefixSV);
+               arg_ptr = &*it;
             }
          }
          else if (Cmp < 0)
@@ -627,7 +621,7 @@ auto ym::ArgParser::getArgPtrFromPrefix(rawstr const Prefix) -> Arg *
  */
 auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> Arg *
 {
-   YMASSERT(isValidChar(Abbr), ParseError, YM_DAH, "Abbr 0x%x not valid", Abbr);
+   YMASSERT(isValidChar(Abbr), ParseError, YM_DAH, "Abbr 0x{0:x} not valid", Abbr);
 
    auto * const arg_Ptr = _abbrs[getAbbrIdx(Abbr)];
 
@@ -658,14 +652,15 @@ ym::ArgParser::Arg::Arg(str const Name)
  * 
  * @return str -- Requested value.
  */
-auto ym::ArgParser::Arg::getVal(uint32 const Idx) const -> str
+auto ym::ArgParser::Arg::getVal(uint32 const Idx) const -> rawstr
 {
    auto retVal = _val;
 
    if (isList())
    { // access the requested element
-      Error::check(Idx < _nvals, "Invalid index %u for arg %s in [0..%u)", Idx, getName().get(), _nvals);
-      retVal = _val + Idx; // _val is a pointer to an element in _Argv_Ptr
+      YMASSERT(Idx < _nvals, Error, YM_DAH,
+         "Invalid index {} for arg {} in [0..{})", Idx, getName(), _nvals);
+      retVal += Idx; // retVal is a pointer to an element in _Argv_Ptr
    }
 
    return retVal;

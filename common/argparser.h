@@ -62,38 +62,38 @@ public:
    public:
       explicit Arg(str const Name);
 
-      inline auto getName (void) const { return _name;  }
-      inline auto getDesc (void) const { return _desc;  }
-             str  getVal  (uint32 const Idx = 0_u32) const;
-      inline auto getAbbr (void) const { return _abbr;  }
-      inline auto getNVals(void) const { return _nvals; }
+      inline auto   getName (void) const { return _name;  }
+      inline auto   getDesc (void) const { return _desc;  }
+             rawstr getVal  (uint32 const Idx = 0_u32) const;
+      inline auto   getAbbr (void) const { return _abbr;  }
+      inline auto   getNVals(void) const { return _nvals; }
 
       inline auto isFlag (void) const { return _flag; }
       inline auto isEnbl (void) const { return _enbl; }
       inline auto isList (void) const { return _list; }
 
-      inline Arg & desc  (str  const Desc       ) { _desc = Desc;       return *this; }
-      inline Arg & defval(str  const DefaultVal ) { _val  = DefaultVal; return *this; }
-      inline Arg & abbr  (char const Abbr       ) { _abbr = Abbr;       return *this; }
-      inline Arg & enbl  (bool const Enbl = true) { _flag = true;
-                                                    _enbl = Enbl;
-                                                    _val  = _enbl ? "1" : "0";
-                                                                        return *this; }
-      inline Arg & list  (bool const List = true) { _list = List;       return *this; }
+      inline Arg & desc  (rawstr const Desc       ) { _desc = Desc;       return *this; }
+      inline Arg & defval(rawstr const DefaultVal ) { _val  = DefaultVal; return *this; }
+      inline Arg & abbr  (char   const Abbr       ) { _abbr = Abbr;       return *this; }
+      inline Arg & enbl  (bool   const Enbl = true) { _flag = true;
+                                                      _enbl = Enbl;
+                                                      _val  = _enbl ? "1" : "0";
+                                                                          return *this; }
+      inline Arg & list  (bool const List = true  ) { _list = List;       return *this; }
 
       YM_DECL_YMERROR(Error)
 
    private:
       // no consts - see static assert below
-      str    _name {}; // arg name (used as the key)
-      str    _desc {}; // description
-      str    _val  {}; // value
-      uint32 _nvals{}; // number of values, if list
-      char   _abbr {}; // abbreviation
-      bool   _flag {}; // flag
-      bool   _enbl {}; // enabled
-      bool   _list {}; // list
-      bool   _reqd {}; // required
+      str    _name {""}; // arg name (used as the key)
+      str    _desc {""}; // description
+      rawstr _val  {  }; // value
+      uint32 _nvals{  }; // number of values, if list
+      char   _abbr {  }; // abbreviation
+      bool   _flag {  }; // flag
+      bool   _enbl {  }; // enabled
+      bool   _list {  }; // list
+      bool   _reqd {  }; // required
    };
 
    // copyable to load Arg params into vector
@@ -139,6 +139,7 @@ public:
 
    ParseResult_T parse(void);
 
+   Arg const * get_nocheck(rawstr const Key) const;
           Arg const * get       (str const Key) const;
    inline Arg const * operator[](str const Key) const { return get(Key); }
 
@@ -170,9 +171,9 @@ private:
    rawstr parseLonghand (rawstr token, ParseResult_T * const result_out_Ptr);
    rawstr parseShorthand(rawstr token, ParseResult_T * const result_out_Ptr);
    rawstr parseArg(
-      Arg * const arg_Ptr,
-      rawstr      token,
-      bool  const IsNegation = false) const;
+      Arg *  const arg_Ptr,
+      rawstr       token,
+      bool   const IsNegation = false) const;
 
    /// @brief Helper type.
    union Argv_T
@@ -183,13 +184,23 @@ private:
       strlit const * const _Argv_Ptr; // array of args (as passed to main)
       str            const _Argv;     // one string
    };
+
+   /// @brief Helper type.
+   union Idx_T
+   {
+      constexpr Idx_T(int const Argv_idx) : _argv_idx{Argv_idx}
+
+      int    _argv_idx;
+      rawstr _token_idx;
+   };
            
-   AbbrSet_T     _abbrs;
-   ArgHandlers_T _argHandlers;
-   int     const _Argc;
-   Argv_T  const _Argv;
+   AbbrSet_T     _abbrs{};
+   ArgHandlers_T _argHandlers{};
+   int     const _Argc{};
+   Argv_T  const _Argv{};
+   int        _argv_idx{};
 #if (!YM_ARGPARSER_USE_STD_SPAN)
-   uint32  const _NHandlers;
+   uint32  const _NHandlers{};
 #endif
 };
 

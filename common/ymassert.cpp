@@ -11,25 +11,25 @@
    #include <csignal>
 #endif
 
-/**
- * TODO
+/** write
+ *
+ * @brief Write message into buffer.
+ *
+ * @param Format -- Format string.
+ * @param args   -- Arguments.
  *
  * @todo std::stacktrace.
  */
-std::string ym::ymassert_Base::format(
+void ym::ymassert_Base::write(
    rawstr const     Format,
    fmt::format_args args)
 {
-   std::string msg(getMaxMsgSize_bytes(), '\0');
-
-   [[maybe_unused]]
    auto const Result = fmt::vformat_to_n(
-      msg.data(),
-      msg.size(),
+      _msg,
+      getMaxMsgSize_bytes() - std::size_t(1u),
       Format,
       args);
-
-   return msg;
+   *Result.out = '\0';
 }
 
 /** what
@@ -38,13 +38,16 @@ std::string ym::ymassert_Base::format(
  */
 auto ym::ymassert_Base::what(void) const noexcept -> rawstr
 {
-   return _Msg.c_str();
+   return _msg;
 }
 
 #if (YM_NO_EXCEPTIONS)
 
-/**
- * TODO
+/** defaultNoExceptHandler
+ *
+ * @brief Logs the error message and raises interrupt.
+ *
+ * @param E -- Raised error.
  */
 void ym::ymassert_Base::defaultNoExceptHandler(ymassert_Base const & E)
 {
