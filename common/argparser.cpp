@@ -43,7 +43,7 @@ ym::ArgParser::ArgParser(
    _argHandlers {argHandlers},
    _Argc        {Argc       },
    _Argv        {Argv_Ptr   },
-   _argv_idx    {0_u32      }
+   _tidx        {0          }
 #if (!YM_ARGPARSER_USE_STD_SPAN)
    , _NHandlers {NHandlers  }
 #endif
@@ -60,16 +60,16 @@ ym::ArgParser::ArgParser(
  * @param argHandlers -- Array of argument handlers.
  */
 ym::ArgParser::ArgParser(
-   str     const Argv,
-   ArgHandlers_T argHandlers
+   str       const Argv,
+   ArgHandlers_T   argHandlers
 #if (!YM_ARGPARSER_USE_STD_SPAN)
-   ,
-   uint32  const NHandlers
+   , uint32  const NHandlers
 #endif
 ) : _abbrs      {/*default*/},
    _argHandlers {argHandlers},
    _Argc        {-1_i32     },
-   _Argv        {Argv       }
+   _Argv        {Argv       },
+   _tidx        {nullptr    }
 #if (!YM_ARGPARSER_USE_STD_SPAN)
    , _NHandlers {NHandlers  }
 #endif
@@ -113,14 +113,14 @@ auto ym::ArgParser::parse(void) -> ParseResult_T
       else
       { // unexpected command line argument
          result = ParseResult_T::Failure;
-         YMASSERT(false, ParseError, YM_DAH, "Argument '{}' was unexpected", token);
+         YMASSERT(false, Error, YM_DAH, "Argument '{}' was unexpected", token);
       }
    }
 
    return result;
 }
 
-auto ym::ArgParser::parse(rawstr token) -> ParseResult_T
+auto ym::ArgParser::parse(rawstr token) -> rawstr
 {
 
 }
@@ -313,46 +313,44 @@ auto ym::ArgParser::get(str const Key) const -> Arg const *
  *
  * @returns rawstr -- Next token in the list, or nullptr if no next.
  */
-auto ym::ArgParser::getNextToken(rawstr currToken) -> rawstr
+auto ym::ArgParser::getNextToken(void) -> rawstr
 {
-   rawstr nextToken = nullptr;
-
-   // TODO can reuse _argv_idx here, that way we wouldn't need to pass in currToken
+   rawstr token = nullptr;
 
    if (_Argc < 0)
    { // cmd line args are in one string
       
-      if (!currToken)
+      if (_tidx.str_idx)
       { // no selected cmd line arg yet - set to argument string
-         currToken = _Argv._Argv; // TODO not null
+         _tidx.str_idx = _Argv.Str;
       }
 
-      while (*currToken && !std::isspace(static_cast<unsigned char>(*currToken)))
+      while (*_tidx.str_idx && !std::isspace(static_cast<unsigned char>(*_tidx.str_idx)))
       { // advance stream to next token separator
-         currToken++;
+         _tidx.str_idx++;
       }
 
-      while (*currToken && std::isspace(static_cast<unsigned char>(*currToken)))
+      while (*_tidx.str_idx && std::isspace(static_cast<unsigned char>(*_tidx.str_idx)))
       { // advance stream to next token
-         currToken++;
+         _tidx.str_idx++;
       }
 
-      if (*currToken)
+      if (*_tidx.str_idx)
       { // found next cmd line arg
-         nextToken = currToken;
+         token = _tidx.str_idx;
       }
    }
    else
    { // cmd line args as passed into main()
 
-      if (_argv_idx < _Argc)
+      if (_tidx.vec_idx < _Argc)
       { // there is a next element
-         nextToken = _Argv._Argv_Ptr[_argv_idx].get();
-         _argv_idx++;
+         token = _Argv.Vec[_tidx.vec_idx];
+         _tidx.vec_idx++;
       }
    }
 
-   return nextToken;
+   return token;
 }
 
 /** organizeAndValidateArgHandlerVector

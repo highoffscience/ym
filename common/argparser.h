@@ -13,9 +13,9 @@
 
 #if (YM_CPP_STANDARD >= 23)
    #include <span>
-   #define YM_ARGPARSER_USE_STD_SPAN 1
+   #define YM_ARGPARSER_USE_STD_SPAN true
 #else
-#define YM_ARGPARSER_USE_STD_SPAN 0
+#define YM_ARGPARSER_USE_STD_SPAN false
 #endif
 
 namespace ym
@@ -81,7 +81,7 @@ public:
                                                                           return *this; }
       inline Arg & list  (bool const List = true  ) { _list = List;       return *this; }
 
-      YM_DECL_YMERROR(Error)
+      YM_DECL_YMASSERT(Error)
 
    private:
       // no consts - see static assert below
@@ -126,11 +126,10 @@ public:
    );
 
    explicit ArgParser(
-      str     const Argv,       // command line args
-      ArgHandlers_T argHandlers // user-defined arg handlers
+      str      const Argv,       // command line args
+      ArgHandlers_T  argHandlers // user-defined arg handlers
    #if (!YM_ARGPARSER_USE_STD_SPAN)
-      ,
-      uint32  const NHandlers   // number of arg handlers
+      , uint32 const NHandlers   // number of arg handlers
    #endif
    );
 
@@ -143,10 +142,10 @@ public:
           Arg const * get       (str const Key) const;
    inline Arg const * operator[](str const Key) const { return get(Key); }
 
-   YM_DECL_YMERROR(Error)
-   YM_DECL_YMERROR(Error, ParseError )
-   YM_DECL_YMERROR(Error, ArgError   )
-   YM_DECL_YMERROR(Error, AccessError)
+   YM_DECL_YMASSERT(Error)
+   // YM_DECL_YMASSERT(ParseError,  Error)
+   YM_DECL_YMASSERT(ArgError,    Error)
+   YM_DECL_YMASSERT(AccessError, Error)
 
 private:
    // TODO maybe use constexpr functions instead?
@@ -178,27 +177,28 @@ private:
    /// @brief Helper type.
    union Argv_T
    {
-      constexpr Argv_T(strlit const * const Argv_Ptr) : _Argv_Ptr{Argv_Ptr} {}
-      constexpr Argv_T(str            const Argv    ) : _Argv    {Argv    } {}
+      constexpr Argv_T(strlit const * const Vec_) : Vec{Vec_} {}
+      constexpr Argv_T(str            const Str_) : Str{Str_} {}
 
-      strlit const * const _Argv_Ptr; // array of args (as passed to main)
-      str            const _Argv;     // one string
+      strlit const * const Vec; // array of args (as passed to main)
+      str            const Str; // one string
    };
 
    /// @brief Helper type.
    union Idx_T
    {
-      constexpr Idx_T(int const Argv_idx) : _argv_idx{Argv_idx}
+      constexpr Idx_T(int    const Vec_idx_) : vec_idx{Vec_idx_} {}
+      constexpr Idx_T(rawstr const Str_idx_) : str_idx{Str_idx_} {}
 
-      int    _argv_idx;
-      rawstr _token_idx;
+      int    vec_idx; // used for array of args (as passed to main)
+      rawstr str_idx; // used for one string
    };
            
    AbbrSet_T     _abbrs{};
    ArgHandlers_T _argHandlers{};
-   int     const _Argc{};
-   Argv_T  const _Argv{};
-   int        _argv_idx{};
+   int    const  _Argc{};
+   Argv_T const  _Argv{nullptr};
+   Idx_T         _tidx{nullptr};
 #if (!YM_ARGPARSER_USE_STD_SPAN)
    uint32  const _NHandlers{};
 #endif

@@ -264,10 +264,11 @@ constexpr auto ymEmpty(rawstr const S)
 template <typename Iterator_T,
           typename T,
           typename Compare_T>
-constexpr auto ymBinarySearch(Iterator_T first,
-                              Iterator_T last,
-                              T const &  Value,
-                              Compare_T  compare)
+constexpr auto ymBinarySearch(
+   Iterator_T first,
+   Iterator_T last,
+   T const &  Value,
+   Compare_T  compare)
 {
    auto elemIt = last;
 

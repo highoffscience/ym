@@ -8,7 +8,7 @@
 
 #include "ymdefs.h"
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 
 #include <type_traits>
 
@@ -51,24 +51,26 @@
       "Assert class must be of type ymassert_Base");                \
    static_assert(std::is_invocable_v<decltype(Handler_), Derived_>, \
       "Handler must be a function of the form Handler_(Derived)");  \
-   static_assert(std::is_same_v<Format_, rawstr>,                   \
-      "Format must be a string literal");                           \
    if (!(Cond_))                                                    \
    {                                                                \
-      DerivedYmassert_ e__;                                         \
-      e__.write("Assert @ \"{}:{}\": "Format_,                      \
+      Derived_ e__;                                                 \
+      e__.write("Assert @ \"{}:{}\": "##Format_,                    \
          fmt::make_format_args(__FILE__, __LINE__, __VA_ARGS__));   \
-      constexpr YmassertHandlerWrapper_Helper F__(Handler_);        \
-      if constexpr (F__.isVoid())                                   \
-      {                                                             \
-         f__.voidFunc(e__);                                         \
-         return;                                                    \
-      }                                                             \
-      else                                                          \
-      {                                                             \
-         return f__.resultFunc(e__);                                \
-      }                                                             \
    }
+
+   Derived_ e__;                                                 \
+   e__.write("Assert @ \"{}:{}\": "Format_,                      \
+      fmt::make_format_args(__FILE__, __LINE__, __VA_ARGS__));   \
+   constexpr YmassertHandlerWrapper_Helper F__(Handler_);        \
+   if constexpr (F__.isVoid())                                   \
+   {                                                             \
+      F__.voidFunc(e__);                                         \
+      return;                                                    \
+   }                                                             \
+   else                                                          \
+   {                                                             \
+      return F__.resultFunc(e__);                                \
+   }                                                             \
 
 /** YMASSERTDBG
  *
@@ -92,45 +94,15 @@
 *
 * @brief Declares a custom error class.
 *
-* @note See definitions of YM_DECL_YMASSERT below.
-*
 * @param Name_     -- Name of derived class.
 * @param BaseName_ -- Name of base class.
 */
-#define YM_HELPER_DECL_YMASSERT2(Name_, BaseName_) class Name_ : public BaseName_ {};
+#define YM_DECL_YMASSERT(...) YM_MACRO_OVERLOAD(YM_HELPER_DECL_YMASSERT, __VA_ARGS__)
 #define YM_HELPER_DECL_YMASSERT1(Name_) YM_HELPER_DECL_YMASSERT2(Name_, ymassert_Base)
-#define YM_DECL_YMASSERT(...) YM_MACRO_OVERLOAD(YM_DECL_YMASSERT, __VA_ARGS__)
+#define YM_HELPER_DECL_YMASSERT2(Name_, BaseName_) class Name_ : public BaseName_ {};
 
 namespace ym
 {
-
-/**
- *
- */
-template <typename F>
-struct YmassertHandlerWrapper_Helper
-{
-   using Result_T = std::invoke_result_t<F, int>;
-   static constexpr bool isVoid(void) { return std::is_void_v<Result_T>; }
-
-   using VoidFuncPtr = void(*)(int);
-   using ResultFuncPtr = std::conditional_t<isVoid(), int, Result_T>(*)(int);
-
-   VoidFuncPtr   voidFunc  {};
-   ResultFuncPtr resultFunc{};
-
-   constexpr YmassertHandlerWrapper_Helper(F && f_uref)
-   {
-      if constexpr (isVoid())
-      { // init the function that returns void
-         voidFunc = f_uref;
-      }
-      else
-      { // init the function that returns a value
-         resultFunc = f_uref;
-      }
-   }
-};
 
 /** ymassert_Base
  *
@@ -151,14 +123,49 @@ public:
    static void defaultNoExceptHandler(ymassert_Base const & E);
 #endif
 
-   static constexpr std::size_t getMaxMsgSize_bytes(void) { return std::size_t(128u); }
+   static constexpr auto _s_MaxMsgSize_bytes = std::size_t(128u);
 
-   void write(
+   template <typename... Args_T>
+   inline void write(
+      rawstr const Format,
+      Args_T &&... args_uref) {
+         write_Helper(Format, std::make_format_args(args_uref...));
+      }
+
+   void write_Helper(
       rawstr const     Format,
       fmt::format_args args);
 
 private:
-   char _msg[getMaxMsgSize_bytes()]{};
+   char _msg[_s_MaxMsgSize_bytes]{};
+};
+
+/**
+ *
+ */
+template <typename F>
+struct YmassertHandlerWrapper_Helper
+{
+   using Result_T = std::invoke_result_t<F, ymassert_Base>;
+   static constexpr bool isVoid(void) { return std::is_void_v<Result_T>; }
+
+   using VoidFuncPtr = void(*)(ymassert_Base);
+   using ResultFuncPtr = std::conditional_t<isVoid(), void, Result_T>(*)(ymassert_Base const &);
+
+   VoidFuncPtr   voidFunc  {};
+   ResultFuncPtr resultFunc{};
+
+   constexpr YmassertHandlerWrapper_Helper(F && f_uref)
+   {
+      if constexpr (isVoid())
+      { // init the function that returns void
+         voidFunc = f_uref;
+      }
+      else
+      { // init the function that returns a value
+         resultFunc = f_uref;
+      }
+   }
 };
 
 } // ym

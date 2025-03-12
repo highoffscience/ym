@@ -11,7 +11,7 @@
    #include <csignal>
 #endif
 
-/** write
+/** write_Helper
  *
  * @brief Write message into buffer.
  *
@@ -20,13 +20,13 @@
  *
  * @todo std::stacktrace.
  */
-void ym::ymassert_Base::write(
+void ym::ymassert_Base::write_Helper(
    rawstr const     Format,
    fmt::format_args args)
 {
    auto const Result = fmt::vformat_to_n(
       _msg,
-      getMaxMsgSize_bytes() - std::size_t(1u),
+      _s_MaxMsgSize_bytes - std::size_t(1u),
       Format,
       args);
    *Result.out = '\0';

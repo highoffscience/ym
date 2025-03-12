@@ -130,7 +130,7 @@
 
 // general definition for any function name
 #define YM_HELPER_1_MACRO_OVERLOAD(Name_, N_) Name_##N_
-#define YM_HELPER_2_MACRO_OVERLOAD(Name_, N_) YMHELPER_1_MACRO_OVERLOAD(Name_, N_)
+#define YM_HELPER_2_MACRO_OVERLOAD(Name_, N_) YM_HELPER_1_MACRO_OVERLOAD(Name_, N_)
 #define YM_MACRO_OVERLOAD(MACRO_, ...) \
    YM_HELPER_2_MACRO_OVERLOAD(MACRO_, YM_HELPER__NARG__(__VA_ARGS__)) (__VA_ARGS__)
 
