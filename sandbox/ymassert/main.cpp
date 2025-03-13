@@ -251,11 +251,11 @@ int test_call_or_return(bool b, int i)
 {
    if (b)
    {
-      constexpr FuncWrapper f(square);
+      constexpr FuncWrapper f(printInt);
       if constexpr (f.isVoid())
       {
          f.voidFunc(i); // Just call the function if it returns void
-         return 0;
+         return 0; // may not be the ret val of the parent function
       }
       else
       {
@@ -263,6 +263,19 @@ int test_call_or_return(bool b, int i)
       }
    }
    return 0;
+}
+
+inline void write_Helper(char const * F, fmt::format_args a)
+{
+   fmt::print("{}\n", fmt::vformat(F, a));
+}
+
+template <typename... Args_T>
+inline void write(
+   char const * F,
+   Args_T &&... args_uref)
+{
+   write_Helper(F, fmt::make_format_args(args_uref...));
 }
 
 /**
@@ -281,8 +294,9 @@ int test_call_or_return(bool b, int i)
  */
 int main(void)
 {
+   // write("{} + {} = {}", 2, 3, 5);
    TEST_CALL_OR_RETURN(true, 3)
-   // fmt::print("{}\n", Result);
+   fmt::print("{}\n", Result);
    // volatile int i = 0;
    // fmt::println("sizeof Derived is {} {}", sizeof(OutOfRangeError), __FILE__);
    // test(((unsigned long)(void*)&i) % 11u);

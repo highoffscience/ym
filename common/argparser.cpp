@@ -60,14 +60,14 @@ ym::ArgParser::ArgParser(
  * @param argHandlers -- Array of argument handlers.
  */
 ym::ArgParser::ArgParser(
-   str       const Argv,
+   str      const  Argv,
    ArgHandlers_T   argHandlers
 #if (!YM_ARGPARSER_USE_STD_SPAN)
-   , uint32  const NHandlers
+   , uint32 const  NHandlers
 #endif
 ) : _abbrs      {/*default*/},
    _argHandlers {argHandlers},
-   _Argc        {-1_i32     },
+   _Argc        {-1         },
    _Argv        {Argv       },
    _tidx        {nullptr    }
 #if (!YM_ARGPARSER_USE_STD_SPAN)

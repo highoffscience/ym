@@ -54,8 +54,7 @@
    if (!(Cond_))                                                    \
    {                                                                \
       Derived_ e__;                                                 \
-      e__.write("Assert @ \"{}:{}\": "##Format_,                    \
-         fmt::make_format_args(__FILE__, __LINE__, __VA_ARGS__));   \
+      e__.write("Assert @ \"{}:{}\": "##Format_, __FILE__, __LINE__, __VA_ARGS__);   \
    }
 
    Derived_ e__;                                                 \
@@ -129,8 +128,8 @@ public:
    inline void write(
       rawstr const Format,
       Args_T &&... args_uref) {
-         write_Helper(Format, std::make_format_args(args_uref...));
-      }
+         write_Helper(Format, fmt::make_format_args(args_uref...));
+   }
 
    void write_Helper(
       rawstr const     Format,
