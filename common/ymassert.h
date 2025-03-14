@@ -54,22 +54,19 @@
    if (!(Cond_))                                                    \
    {                                                                \
       Derived_ e__;                                                 \
-      e__.write("Assert @ \"{}:{}\": "##Format_, __FILE__, __LINE__, __VA_ARGS__);   \
+      e__.write("Assert @ \"{}:{}\": "##Format_,                    \
+         __FILE__, __LINE__, __VA_ARGS__);                          \
+      constexpr YmassertHandlerWrapper_Helper F__(Handler_);        \
+      if constexpr (F__.isReturnVoid())                             \
+      {                                                             \
+         F__.returnVoidFunc(e__);                                   \
+         return;                                                    \
+      }                                                             \
+      else                                                          \
+      {                                                             \
+         return F__.returnResultFunc(e__);                          \
+      }                                                             \
    }
-
-   Derived_ e__;                                                 \
-   e__.write("Assert @ \"{}:{}\": "Format_,                      \
-      fmt::make_format_args(__FILE__, __LINE__, __VA_ARGS__));   \
-   constexpr YmassertHandlerWrapper_Helper F__(Handler_);        \
-   if constexpr (F__.isVoid())                                   \
-   {                                                             \
-      F__.voidFunc(e__);                                         \
-      return;                                                    \
-   }                                                             \
-   else                                                          \
-   {                                                             \
-      return F__.resultFunc(e__);                                \
-   }                                                             \
 
 /** YMASSERTDBG
  *
@@ -145,24 +142,24 @@ private:
 template <typename F>
 struct YmassertHandlerWrapper_Helper
 {
-   using Result_T = std::invoke_result_t<F, ymassert_Base>;
-   static constexpr bool isVoid(void) { return std::is_void_v<Result_T>; }
+   using ReturnResult_T = std::invoke_result_t<F, ymassert_Base>;
+   static constexpr bool isReturnVoid(void) { return std::is_void_v<ReturnResult_T>; }
 
-   using VoidFuncPtr = void(*)(ymassert_Base);
-   using ResultFuncPtr = std::conditional_t<isVoid(), void, Result_T>(*)(ymassert_Base const &);
+   using ReturnVoidFunc_T   = void(*)(ymassert_Base);
+   using ReturnResultFunc_T = std::conditional_t<isReturnVoid(), int, ReturnResult_T>(*)(ymassert_Base const &);
 
-   VoidFuncPtr   voidFunc  {};
-   ResultFuncPtr resultFunc{};
+   ReturnVoidFunc_T   returnVoidFunc  {};
+   ReturnResultFunc_T returnResultFunc{};
 
    constexpr YmassertHandlerWrapper_Helper(F && f_uref)
    {
       if constexpr (isVoid())
       { // init the function that returns void
-         voidFunc = f_uref;
+         returnVoidFunc = f_uref;
       }
       else
       { // init the function that returns a value
-         resultFunc = f_uref;
+         returnResultFunc = f_uref;
       }
    }
 };

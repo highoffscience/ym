@@ -120,9 +120,29 @@ auto ym::ArgParser::parse(void) -> ParseResult_T
    return result;
 }
 
-auto ym::ArgParser::parse(rawstr token) -> rawstr
+auto ym::ArgParser::parse(rawstr token) -> Arg *
 {
+   Arg * arg_ptr = nullptr;
 
+   if (token && token[0] == '-')
+   { // arg found
+
+      if (token[1] == '-')
+      { // longhand arg found ("--")
+         arg_ptr = parseLonghand(token);
+      }
+      else
+      { // shorthand arg found ("-")
+         arg_ptr = parseShorthand(token);
+      }
+
+      if (result == ParseResult_T::HelpMenuCalled)
+      { // help menu was called - exit parse
+         break;
+      }
+   }
+
+   return arg_ptr;
 }
 
 /** parseLonghand
@@ -135,8 +155,9 @@ auto ym::ArgParser::parse(rawstr token) -> rawstr
  */
 auto ym::ArgParser::parseLonghand(
    rawstr                token,
-   ParseResult_T * const result_out_Ptr) -> rawstr
+   ParseResult_T * const result_out_Ptr) -> Arg *
 {
+   // TODO need args for this to compile for some reason
    YMASSERTDBG(!ymEmpty(token), Error, YM_DAH, "token cannot be null")
 
    if (std::strcmp(token, "--help") == 0) // must be full name - no prefix allowed
@@ -228,8 +249,8 @@ auto ym::ArgParser::parseArg(
    else
    { // value is next command line argument
 
-      token = getNextToken(token);
-      YMASSERT(token, ParseError, YM_DAH, "No value for arg '{}'", argPtr->getName());
+      token = getNextToken();
+      YMASSERT(token, ParseError, YM_DAH, "No value for arg '{}'", arg_Ptr->getName());
 
       argPtr->defval(token);
 
@@ -238,9 +259,9 @@ auto ym::ArgParser::parseArg(
 
          argPtr->_nvals = 1_u32; // one element so far
 
-         token = getNextToken(token);
+         token = getNextToken();
 
-         for (idx + 1_i32; (idx < _Argc) && (/*if next arg isn't a registered arg*/); ++idx)
+         for (auto i = 1; (i < _Argc) && (!parse(getNextToken())); i++)
          { // go through all args that are not commands
             argPtr->_nvals++;
          }
@@ -261,11 +282,11 @@ auto ym::ArgParser::parseArg(
  * 
  * @returns Arg const * -- Found argument, or nullptr if none found.
  */
-auto ym::ArgParser::get_nocheck(str const Key) const -> Arg const *
+auto ym::ArgParser::get_nocheck(rawstr const Key) const -> Arg *
 {
    auto const BeginIt =
 #if (YM_ARGPARSER_USE_STD_SPAN)
-      _argHandlers.cbegin();
+      _argHandlers.cbegin(); // TODO not const - create const version of this function
 #else
       _argHandlers;
 #endif

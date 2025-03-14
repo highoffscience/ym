@@ -138,12 +138,12 @@ public:
 
    ParseResult_T parse(void);
 
-   Arg const * get_nocheck(rawstr const Key) const;
+   Arg * get_nocheck(rawstr const Key) const;
           Arg const * get       (str const Key) const;
    inline Arg const * operator[](str const Key) const { return get(Key); }
 
    YM_DECL_YMASSERT(Error)
-   // YM_DECL_YMASSERT(ParseError,  Error)
+   YM_DECL_YMASSERT(ParseError,  Error)
    YM_DECL_YMASSERT(ArgError,    Error)
    YM_DECL_YMASSERT(AccessError, Error)
 
@@ -155,7 +155,7 @@ private:
    static constexpr auto isValidChar(char const Char) { return Char >= '!' && Char <= '~' && Char != '-'; }
    static constexpr auto getAbbrIdx (char const Abbr) { return Abbr - '!'; }
 
-   rawstr getNextToken  (rawstr currToken);
+   rawstr getNextToken  (void);
    rawstr getArgNegation(rawstr currToken);
 
    using AbbrSet_T = std::array<Arg *, s_NValidChars>;
