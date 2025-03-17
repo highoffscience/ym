@@ -20,6 +20,15 @@ ym::DataLogger::DataLogger(uint64 const MaxNDataEntries) :
    _nextDataEntry_idx {0_u64          },
    _rollover          {false          }
 {
+   if constexpr(true)
+   {
+
+   }
+   else
+   {
+      return 7;
+   }
+
    YMASSERT(_MaxNDataEntries > 0_u64, Error, YM_DAH, "Depth of data logger must be > 0");
 }
 

@@ -33,6 +33,8 @@
  *       function. Handlers that return void will call the handler then simply
  *       return from the calling function.
  *
+ * @note ", ## __VA_ARGS__" eats the comma when __VA_ARGS__ is empty.
+ * 
  * @param Cond_    -- Condition - true for happy path, false triggers the assert.
  * @param Derived_ -- Ymassert class to handle assert.
  * @param Handler_ -- Callback function if assert fails.
@@ -55,7 +57,7 @@
    {                                                                \
       Derived_ e__;                                                 \
       e__.write("Assert @ \"{}:{}\": "##Format_,                    \
-         __FILE__, __LINE__, __VA_ARGS__);                          \
+         __FILE__, __LINE__, ## __VA_ARGS__);                       \
       constexpr YmassertHandlerWrapper_Helper F__(Handler_);        \
       if constexpr (F__.isReturnVoid())                             \
       {                                                             \

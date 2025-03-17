@@ -35,7 +35,7 @@ public:
    YM_NO_COPY  (DataLogger)
    YM_NO_ASSIGN(DataLogger)
 
-   YM_DECL_YMERROR(Error)
+   YM_DECL_YMASSERT(Error)
 
    inline auto getMaxNDataEntries(void) const { return _MaxNDataEntries; }
 

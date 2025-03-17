@@ -265,6 +265,32 @@ int test_call_or_return(bool b, int i)
    return 0;
 }
 
+template <typename T>
+void test_call_helper(void)
+{
+
+}
+
+template <typename T>
+constexpr T test_or_call_helper(void)
+{
+   if constexpr (std::is_void_v<T>)
+   {
+      fmt::println("Hello void");
+   }
+   else
+   {
+      fmt::println("Hello non-void");
+      return 7;
+   }
+}
+
+void test_call_or_return2(bool b, int i)
+{
+   constexpr FuncWrapper f(printInt);
+   test_or_call_helper<void>();
+}
+
 inline void write_Helper(char const * F, fmt::format_args a)
 {
    fmt::print("{}\n", fmt::vformat(F, a));
@@ -296,6 +322,7 @@ int main(void)
 {
    // write("{} + {} = {}", 2, 3, 5);
    TEST_CALL_OR_RETURN(true, 3)
+   test_call_or_return2(true, 5);
    fmt::print("{}\n", Result);
    // volatile int i = 0;
    // fmt::println("sizeof Derived is {} {}", sizeof(OutOfRangeError), __FILE__);

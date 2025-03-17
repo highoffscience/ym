@@ -133,12 +133,13 @@ public:
    #endif
    );
 
+   void test(int i);
+
    YM_NO_COPY  (ArgParser)
    YM_NO_ASSIGN(ArgParser)
 
    ParseResult_T parse(void);
 
-   Arg * get_nocheck(rawstr const Key) const;
           Arg const * get       (str const Key) const;
    inline Arg const * operator[](str const Key) const { return get(Key); }
 
@@ -148,15 +149,11 @@ public:
    YM_DECL_YMASSERT(AccessError, Error)
 
 private:
-   // TODO maybe use constexpr functions instead?
    static constexpr auto s_NValidChars = static_cast<uint32>('~' - '!' + 1); // 126 - 33 + 1
    static constexpr auto getNValidChars(void) { return s_NValidChars; }
 
    static constexpr auto isValidChar(char const Char) { return Char >= '!' && Char <= '~' && Char != '-'; }
    static constexpr auto getAbbrIdx (char const Abbr) { return Abbr - '!'; }
-
-   rawstr getNextToken  (void);
-   rawstr getArgNegation(rawstr currToken);
 
    using AbbrSet_T = std::array<Arg *, s_NValidChars>;
 
@@ -164,15 +161,21 @@ private:
 
    void displayHelpMenu(void) const;
 
+   rawstr getNextToken(void);
+
    Arg * getArgPtrFromPrefix(rawstr const Prefix);
    Arg * getArgPtrFromAbbr  (char   const Abbr  );
 
-   rawstr parseLonghand (rawstr token, ParseResult_T * const result_out_Ptr);
-   rawstr parseShorthand(rawstr token, ParseResult_T * const result_out_Ptr);
-   rawstr parseArg(
-      Arg *  const arg_Ptr,
-      rawstr       token,
-      bool   const IsNegation = false) const;
+   ParseResult_T parseLonghand (rawstr token);
+   ParseResult_T parseShorthand(rawstr token);
+
+   ParseResult_T parseLonghand(
+      Arg * const arg_Ptr,
+      bool  const IsNeg = false);
+
+   ParseResult_T parseShorthand(
+      Arg * const arg_Ptr,
+      bool  const MightHaveValue);
 
    /// @brief Helper type.
    union Argv_T
@@ -194,13 +197,13 @@ private:
       rawstr str_idx; // used for one string
    };
            
-   AbbrSet_T     _abbrs{};
-   ArgHandlers_T _argHandlers{};
-   int    const  _Argc{};
-   Argv_T const  _Argv{nullptr};
-   Idx_T         _tidx{nullptr};
+   AbbrSet_T     _abbrs      {       };
+   ArgHandlers_T _argHandlers{       };
+   int    const  _Argc       {       };
+   Argv_T const  _Argv       {nullptr};
+   Idx_T         _tidx       {nullptr};
 #if (!YM_ARGPARSER_USE_STD_SPAN)
-   uint32  const _NHandlers{};
+   uint32  const _NHandlers  {       };
 #endif
 };
 
