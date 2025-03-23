@@ -139,19 +139,22 @@ public:
    implicit constexpr BoundedPtr(T * const t_Ptr)
       : TrustedBoundedPtr<T>(t_Ptr)
    {
-      YMASSERT(this->get(), NullPtrError, "Bounded pointer cannot be null");
+      YMASSERT(this->get(), NullPtrError, YM_DAH, "Bounded pointer cannot be null");
    }
 
    /** BoundedPtr
     * 
     * @brief Constructs a bounded pointer from TrustedBoundedPtr.
     * 
-    * @param TBP -- Pointer to bind.
+    * @note Param tbp is marked non-const because it will take non-const pointers
+    *       and incorrectly put them in a const context.
+    * 
+    * @param tbp -- Pointer to bind.
     * 
     * @throws Whatever BoundedPtr() throws.
     */
-   implicit constexpr BoundedPtr(TrustedBoundedPtr<T> const TBP)
-      : BoundedPtr(TBP.get())
+   implicit constexpr BoundedPtr(TrustedBoundedPtr<T> tbp)
+      : BoundedPtr(tbp.get())
    { }
 
    /// @brief Compile time non-nullness checks.
@@ -186,11 +189,8 @@ using bptr = BoundedPtr<T>;
 /// @brief Convenience alias.
 using str = bptr<char const>;
 
-/// @brief Convenience alias.
-using strlit = TrustedBoundedPtr<char const>;
-
 /// @brief Convenience user-defined literal
-constexpr inline auto operator"" _str(rawstr const S, std::size_t) { return strlit(S); }
+constexpr inline auto operator"" _str(rawstr const S, std::size_t) { return tbptr(S); }
 
 // ----------------------------------------------------------------------------
 
@@ -233,10 +233,13 @@ constexpr auto * ymCastPtrTo(void * const data_Ptr)
    return static_cast<T *>(data_Ptr);
 }
 
-/**
- * TODO
+/** ymEmpty
+ * 
+ * @brief Determines if the parameter is consider empty.
  *
  * @note Can be overloaded for other types.
+ * 
+ * @returns True if empty, false otherwise.
  */
 constexpr auto ymEmpty(rawstr const S)
 {
@@ -261,9 +264,10 @@ constexpr auto ymEmpty(rawstr const S)
  * 
  * @todo T = typename std::iterator_traits<Iterator_T>::value_type should be specialized overload
  */
-template <typename Iterator_T,
-          typename T,
-          typename Compare_T>
+template <
+   typename Iterator_T,
+   typename T,
+   typename Compare_T>
 constexpr auto ymBinarySearch(
    Iterator_T first,
    Iterator_T last,
@@ -303,22 +307,14 @@ constexpr auto ymBinarySearch(
 namespace fmt
 {
 
-/**
- * TODO
+/** formatter
+ *
+ * @brief Helper class to format ym::str types for use in the fmt library.
  */
 template <>
 struct formatter<ym::str> : public fmt::formatter<fmt::string_view>
 {
    auto format(ym::str s, fmt::format_context & ctx_ref) const -> fmt::format_context::iterator;
-};
-
-/**
- * TODO
- */
-template <>
-struct formatter<ym::strlit> : public fmt::formatter<fmt::string_view>
-{
-   auto format(ym::strlit s, fmt::format_context & ctx_ref) const -> fmt::format_context::iterator;
 };
 
 } // fmt

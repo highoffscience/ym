@@ -30,8 +30,8 @@
 /**
  * @brief Debug flag.
  */
-#if !defined(YM_DBG)
-   #define YM_DBG true
+#if !defined(YM_DEBUG)
+   #define YM_DEBUG true
 #endif
 
 // ----------------------------------------------------------------------------
@@ -160,6 +160,7 @@ namespace ym
  */
 
 using rawstr = char const * ;
+using strlit = rawstr;
 using uchar  = unsigned char;
 
 using int8   = std::int8_t ; static_assert(sizeof(int8 ) == 1u, "int8  not of expected size");

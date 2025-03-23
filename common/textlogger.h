@@ -40,7 +40,7 @@ inline bool ymLogDisable(VG const VG);
 
 /** TextLogger
  *
- * @brief Logs text to the given outfile - similary to std::fprintf.
+ * @brief Logs text to the given outfile - similary to fmt::printf.
  */
 class TextLogger : public Logger
 {
@@ -66,7 +66,17 @@ public:
       ToLogAndStdOut // for debugging
    };
 
-   explicit TextLogger(void);
+   explicit TextLogger(
+      str            const Filename,
+      FilenameMode_T const FilenameMode = FilenameMode_T::AppendTimeStamp,
+      PrintMode_T    const PrintMode    = PrintMode_T::PrependHumanReadableTimeStamp,
+      RedirectMode_T const RedirectMode = 
+         #if (YM_DEBUG)
+            RedirectMode_T::ToLogAndStdOut
+         #else
+            RedirectMode_T::ToLog
+         #endif
+   );
    ~TextLogger(void);
 
    YM_NO_COPY  (TextLogger)
@@ -75,32 +85,15 @@ public:
    YM_DECL_YMASSERT(PrintError)
    YM_DECL_YMASSERT(GlobalError)
 
-   static bptr<TextLogger> getGlobalInstancePtr(
-      FilenameMode_T const FilenameMode,
-      PrintMode_T    const PrintMode,
-      RedirectMode_T const RedirectMode
-   );
+   static bptr<TextLogger> getGlobalInstancePtr(void);
 
-   inline auto getPrintMode   (void) const { return _printMode;    }
-   inline auto getRedirectMode(void) const { return _redirectMode; }
+   inline auto getPrintMode   (void) const { return _PrintMode;    }
+   inline auto getRedirectMode(void) const { return _RedirectMode; }
 
    bool isOpen(void) const;
 
-   bool open(
-      str            const Filename,
-      FilenameMode_T const FilenameMode = FilenameMode_T::AppendTimeStamp,
-      PrintMode_T    const PrintMode    = PrintMode_T::PrependHumanReadableTimeStamp,
-      RedirectMode_T const RedirectMode = 
-         #if (YM_DBG)
-            RedirectMode_T::ToLogAndStdOut
-         #else
-            RedirectMode_T::ToLog
-         #endif
-   );
-
+   bool open(void);
    void close(void);
-
-   static constexpr auto getMaxMsgSize_bytes(void) { return static_cast<std::size_t>(256u); }
 
    /** ScopedEnable
     * 
@@ -153,11 +146,12 @@ private:
       Opening
    };
    
-   static constexpr std::size_t getMaxMsgSize_bytes(void) { return std::size_t(256u); }
-   static constexpr std::string_view RawTimeStampTemplate("uuuuuuuuuuuu");
-   static constexpr std::string_view HumanReadableTimeStampTemplate(" HHH:MM:SS.uuuuuu: ");
+   static constexpr auto _s_MaxMsgSize_bytes = std::size_t(256u);
+   static constexpr auto getMaxMsgSize_bytes(void) { return _s_MaxMsgSize_bytes; }
+   static constexpr std::string_view RawTimeStampTemplate{"uuuuuuuuuuuu"};
+   static constexpr std::string_view HumanReadableTimeStampTemplate{" HHH:MM:SS.uuuuuu: "};
 
-   static_assert(getMaxMsgSize_bytes() >= std::size_t(64u), "Too limited room");
+   static_assert(_s_MaxMsgSize_bytes >= std::size_t(64u), "Too limited room");
 
    void acquireWriteAccess(void);
    void releaseWriteAccess(void);
@@ -177,10 +171,10 @@ private:
 
    static inline TextLogger * _s_globalInstance_ptr{nullptr};
 
+   PrintMode_T    const _PrintMode   {PrintMode_T::KeepOriginal};
+   RedirectMode_T const _RedirectMode{RedirectMode_T::ToLog    };
    VGroups_T            _vGroups     {      /* default */      };
    Timer                _timer       {      /* default */      };
-   PrintMode_T          _printMode   {PrintMode_T::KeepOriginal};
-   RedirectMode_T       _redirectMode{RedirectMode_T::ToLog    };
    std::atomic<State_T> _state       {State_T::Closed          };
    std::atomic_flag     _writeFlag   {ATOMIC_FLAG_INIT         };
 };

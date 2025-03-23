@@ -1,33 +1,33 @@
-/**
- * @file    subscriber.h
- * @version 1.0.0
- * @author  Forrest Jablonski
- */
+// /**
+//  * @file    subscriber.h
+//  * @version 1.0.0
+//  * @author  Forrest Jablonski
+//  */
 
-#pragma once
+// #pragma once
 
-#include "ymdefs.h"
+// #include "ymdefs.h"
 
-#include <memory>
+// #include <memory>
 
-namespace ym
-{
+// namespace ym
+// {
 
-/** Subscriber
- * 
- * @brief TODO
- */
-class Subscriber
-{
-   friend class Publisher;
+// /** Subscriber
+//  * 
+//  * @brief TODO
+//  */
+// class Subscriber
+// {
+//    friend class Publisher;
 
-public:
-   explicit Subscriber(void);
+// public:
+//    explicit Subscriber(void);
 
-   virtual bool receive(void const * const Payload_Ptr) = 0;
+//    virtual bool receive(void const * const Payload_Ptr) = 0;
 
-private:
-   std::shared_ptr<class Subscriber> _self_sptr;
-};
+// private:
+//    std::shared_ptr<class Subscriber> _self_sptr;
+// };
 
-} // ym
+// } // ym

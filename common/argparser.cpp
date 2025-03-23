@@ -89,7 +89,7 @@ auto ym::ArgParser::parse(void) -> ParseResult_T
 
    auto result = ParseResult_T::Success; // until told otherwise
 
-   for (rawstr token = nullptr; token = getNextToken(); /*nothing*/)
+   for (rawstr token = nullptr; (token = getNextToken()); /*nothing*/)
    { // go through all command line arguments
 
       if (token[0] == '-')
@@ -190,20 +190,6 @@ auto ym::ArgParser::parseShorthand(rawstr token) -> ParseResult_T
    }
 
    return result;
-}
-
-void ym::ArgParser::test(int i)
-{
-   if constexpr (true)
-   {
-
-   }
-   else
-   {
-      return 7;
-   }
-
-   YMASSERT(i == 0, ParseError, YM_DAH, "No value for arg '{}'", i);
 }
 
 /** parse

@@ -133,8 +133,6 @@ public:
    #endif
    );
 
-   void test(int i);
-
    YM_NO_COPY  (ArgParser)
    YM_NO_ASSIGN(ArgParser)
 

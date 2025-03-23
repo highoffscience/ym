@@ -33,8 +33,9 @@ class TestSuite(testsuitebase.TestSuiteBase):
       @brief Acting constructor.
       """
 
-      super().setUpBaseClass(filepath="ym/common/",
-                             filename="ymdefs")
+      super().setUpBaseClass(
+         filepath="ym/common/",
+         filename="ymdefs")
 
    @classmethod
    def tearDownClass(cls):

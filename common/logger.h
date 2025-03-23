@@ -42,25 +42,31 @@ public:
    YM_DECL_YMASSERT(OpenError)
 
 protected:
-   explicit Logger(void);
+   explicit Logger(
+      str            const Filename,
+      FilenameMode_T const FilenameMode = FilenameMode_T::AppendTimeStamp);
 
    inline auto isOutfileOpened(void) const { return static_cast<bool>(_outfile_uptr); }
+
+   inline auto getFilename    (void) const { return _Filename;     }
+   inline auto getFilenameMode(void) const { return _FilenameMode; }
 
    // Don't name simply "open" or "close" because we want to allow derived
    // classes to implement these functions without the overhead of
    // virtual calls.
 
-   bool openOutfile(
-      str            const Filename,
-      FilenameMode_T const FilenameMode = FilenameMode_T::AppendTimeStamp);
-
+   bool openOutfile(void);
    void closeOutfile(void);
 
    using FileDeleter_T = void(*)(std::FILE * const);
    std::unique_ptr<std::FILE, FileDeleter_T> _outfile_uptr;
 
 private:
+   bool openOutfile                (std::string_view const Filename);
    bool openOutfile_appendTimeStamp(std::string_view const Filename);
+
+   str            const _Filename    {""_str                         };
+   FilenameMode_T const _FilenameMode{FilenameMode_T::AppendTimeStamp};
 };
 
 } // ym

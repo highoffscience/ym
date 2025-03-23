@@ -4,11 +4,9 @@
  * @author  Forrest Jablonski
  */
 
-#include "ymdefs.h"
+#include "ymglobals.h"
 #include "testsuite.h"
-
 #include "textlogger.h"
-#include "ymerror.h"
 
 /** TestSuite
  *
@@ -31,7 +29,6 @@ ym::ut::TestSuite::TestSuite(void)
 auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_YmDefs);
-
    return {};
 }
 

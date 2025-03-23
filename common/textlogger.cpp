@@ -18,8 +18,20 @@
  * @brief Constructor.
  *
  * @note Explicitly clear the write flag. <https://en.cppreference.com/w/cpp/atomic/ATOMIC_FLAG_INIT>.
+ * 
+ * @param Filename     -- Name of file to open.
+ * @param FilenameMode -- Mode to determine how to mangle the filename.
+ * @param PrintMode    -- Mode to determine how to mangle the printable message.
+ * @param RedirectMode -- Specifies what streams to pipe the output to.
  */
-ym::TextLogger::TextLogger(void)
+ym::TextLogger::TextLogger(
+   str            const Filename,
+   FilenameMode_T const FilenameMode,
+   PrintMode_T    const PrintMode,
+   RedirectMode_T const RedirectMode) :
+      Logger(Filename, FilenameMode),
+      _PrintMode    {PrintMode   },
+      _RedirectMode {RedirectMode}
 {
    _writeFlag.clear();
 }
@@ -58,12 +70,12 @@ auto ym::TextLogger::getGlobalInstancePtr(void) -> bptr<TextLogger>
    if (!_s_globalInstance_ptr)
    { // file not already opened - open it
 
-      _s_globalInstance_ptr = new TextLogger();
+      _s_globalInstance_ptr = new TextLogger("global.txt");
       YMASSERT(_s_globalInstance_ptr, GlobalError, YM_DAH, "Global instance failed to be created");
 
-      auto const Opened = _s_globalInstance_ptr->open("global.txt");
+      auto const Opened = _s_globalInstance_ptr->open();
       YMASSERT(Opened, GlobalError,
-         [&_s_globalInstance_ptr](auto const & E) {
+         [](auto const & E) -> void {
             delete _s_globalInstance_ptr;
             _s_globalInstance_ptr = nullptr;
             throw E;
@@ -77,18 +89,9 @@ auto ym::TextLogger::getGlobalInstancePtr(void) -> bptr<TextLogger>
  *
  * @brief Opens and prepares the logger to be written to.
  * 
- * @param Filename     -- Name of file to open.
- * @param FilenameMode -- Mode to determine how to mangle the filename.
- * @param PrintMode    -- Mode to determine how to mangle the printable message.
- * @param RedirectMode -- Specifies what streams to pipe the output to.
- * 
  * @returns bool -- Whether the outfile was opened successfully, false otherwise.
  */
-bool ym::TextLogger::open(
-   str            const Filename,
-   FilenameMode_T const FilenameMode,
-   PrintMode_T    const PrintMode,
-   RedirectMode_T const RedirectMode)
+bool ym::TextLogger::open(void)
 {
    auto expectedState = State_T::Closed;
 
@@ -98,17 +101,7 @@ bool ym::TextLogger::open(
       std::memory_order_relaxed))
    { // file not opened - let's do that
 
-      if (openOutfile(Filename, FilenameMode))
-      { // successfully opened
-         _printMode    = PrintMode;
-         _redirectMode = RedirectMode;
-         expectedState = State_T::Open;
-      }
-      else
-      { // something went wrong - file not opened
-         expectedState = State_T::Closed;
-      }
-
+      expectedState = openOutfile() ? State_T::Open : State_T::Closed;
       _state.store(expectedState, std::memory_order_relaxed);
    }
 
@@ -128,6 +121,7 @@ void ym::TextLogger::close(void)
       std::memory_order_acquire,
       std::memory_order_relaxed))
    { // file opened - let's change that
+
       closeOutfile();
       _state.store(State_T::Closed, std::memory_order_relaxed);
    }
@@ -248,14 +242,14 @@ void ym::TextLogger::printf_Handler(
    char buffer[getMaxMsgSize_bytes()]{};
    auto * const write_Ptr = populateFormattedTime(buffer); // conditionally
 
-   YMASSERTDBG(write_Ptr >= buffer, YM_DAH, PrintError,
-      "populateFormattedTime not returning as expected")
+   // YMASSERTDBG(write_Ptr >= buffer, PrintError, YM_DAH,
+   //    "populateFormattedTime not returning as expected")
 
    auto const TimeStampSize_bytes = static_cast<std::size_t>(write_Ptr - buffer);
 
-   YMASSERTDBG(getMaxMsgSize_bytes() >= TimeStampSize_bytes, YM_DAH, PrintError,
-      "Buffer ({} bytes) not large enough to hold time stamp ({} bytes)",
-      getMaxMsgSize_bytes(), TimeStampSize_bytes)
+   // YMASSERTDBG(getMaxMsgSize_bytes() >= TimeStampSize_bytes, PrintError, YM_DAH,
+   //    "Buffer ({} bytes) not large enough to hold time stamp ({} bytes)",
+   //    getMaxMsgSize_bytes(), TimeStampSize_bytes)
    
    auto const HasTimeStamp =
       getPrintMode() == PrintMode_T::PrependTimeStamp ||
@@ -263,7 +257,7 @@ void ym::TextLogger::printf_Handler(
 
    auto const NewlineSize_bytes = std::size_t((HasTimeStamp) ? 1u : 0u);
 
-   auto result = fmt::format_to_n(
+   auto result = fmt::vformat_to_n(
       write_Ptr,
       getMaxMsgSize_bytes() - TimeStampSize_bytes - NewlineSize_bytes,
       Format,
@@ -271,12 +265,12 @@ void ym::TextLogger::printf_Handler(
 
    if (HasTimeStamp)
    { // automatically print newline if in this mode
-      result.out = '\n';
+      *result.out = '\n';
    }
 
    // following logic technically belongs in the below if statement but I don't want the assert,
    // which alters control flow, to leave the atomic write flag in an undesirable state
-   YMASSERTDBG(result.out >= buffer, PrintError, YM_DAH, "Format to buffer did not behave as expected")
+   // YMASSERTDBG(result.out >= buffer, PrintError, YM_DAH, "Format to buffer did not behave as expected")
    auto const TotalWritten_bytes = static_cast<std::size_t>(result.out - buffer) + NewlineSize_bytes;
 
    acquireWriteAccess();
@@ -294,7 +288,7 @@ void ym::TextLogger::printf_Handler(
       if (getRedirectMode() == RedirectMode_T::ToLogAndStdOut)
       { // print to console
          buffer[getMaxMsgSize_bytes() - std::size_t(1u)] = '\0';
-         fmt::fprintf(stdout, "{}", buffer);
+         fmt::print("{}", buffer);
       }
 
       if (auto const WantedSize_bytes = (result.size + NewlineSize_bytes);
@@ -310,13 +304,13 @@ void ym::TextLogger::printf_Handler(
          }
          else
          { // alert user a message overflowed
-            printf_Handler("OVERFLOW on a previous message");
+            printf_Handler("OVERFLOW on a previous message", {});
          }
       }
    }
    else
    { // *not* ok to print
-      fmt::fprintf(stderr, "WARNING: Tried to print on a logger that is not opened!");
+      fmt::print("WARNING: Tried to print on a logger that is not opened!");
    }
 
    releaseWriteAccess();
@@ -347,7 +341,7 @@ char * ym::TextLogger::populateFormattedTime(char * write_ptr) const
       auto const TotalTime_us = std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
 
       auto const Result = fmt::format_to_n(
-         write_Ptr,
+         write_ptr,
          RawTimeStampTemplate.size(),
          "{:012}",
          TotalTime_us.count());
@@ -394,11 +388,11 @@ char * ym::TextLogger::populateFormattedTime(char * write_ptr) const
  * @param VG         -- Verbosity group.
  */
 ym::TextLogger::ScopedEnable::ScopedEnable(
-      TextLogger * const logger_Ptr,
-      VG           const VG) :
-   _logger_Ptr {logger_Ptr            },
-   _VG         {VG                    },
-   _WasEnabled {logger_Ptr->enable(VG)}
+   TextLogger * const logger_Ptr,
+   VG           const VG) :
+      _logger_Ptr {logger_Ptr            },
+      _VG         {VG                    },
+      _WasEnabled {logger_Ptr->enable(VG)}
 {
 }
 

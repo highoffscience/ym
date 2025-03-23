@@ -56,23 +56,30 @@
    if (!(Cond_))                                                    \
    {                                                                \
       Derived_ e__;                                                 \
-      e__.write("Assert @ \"{}:{}\": "##Format_,                    \
+      e__.write("Assert @ \"{}:{}\": ",                             \
          __FILE__, __LINE__, ## __VA_ARGS__);                       \
-      constexpr YmassertHandlerWrapper_Helper F__(Handler_);        \
-      if constexpr (F__.isReturnVoid())                             \
-      {                                                             \
-         F__.returnVoidFunc(e__);                                   \
-         return;                                                    \
-      }                                                             \
-      else                                                          \
-      {                                                             \
-         return F__.returnResultFunc(e__);                          \
-      }                                                             \
    }
+
+   // if (!(Cond_))                                                    
+   // {                                                                
+   //    Derived_ e__;                                                 
+   //    e__.write("Assert @ \"{}:{}\": "##Format_,                    
+   //       __FILE__, __LINE__, ## __VA_ARGS__);                       
+   //    constexpr YmassertHandlerWrapper_Helper F__(Handler_);        
+   //    if constexpr (F__.isReturnVoid())                             
+   //    {                                                             
+   //       F__.returnVoidFunc(e__);                                   
+   //       return;                                                    
+   //    }                                                             
+   //    else                                                          
+   //    {                                                             
+   //       return F__.returnResultFunc(e__);                          
+   //    }                                                             
+   // }
 
 /** YMASSERTDBG
  *
- * @brief Macro to assert on a condition. Enabled only if YM_DBG is enabled.
+ * @brief Macro to assert on a condition. Enabled only if YM_DEBUG is enabled.
  *        This version should be used for logic errors, as it is meant to be
  *        disabled for production.
  *
@@ -82,7 +89,7 @@
  * @param Format_  -- Format string.
  * @param ...      -- Arguments.
  */
-#if (YM_DBG)
+#if (YM_DEBUG)
    #define YMASSERTDBG(Cond_, Derived_, Handler_, Format_, ...) YMASSERT(Cond_, Derived_, Handler_, Format_, __VA_ARGS__)
 #else
    #define YMASSERTDBG(Cond_, Derived_, Handler_, Format_, ...) (void);
@@ -155,7 +162,7 @@ struct YmassertHandlerWrapper_Helper
 
    constexpr YmassertHandlerWrapper_Helper(F && f_uref)
    {
-      if constexpr (isVoid())
+      if constexpr (isReturnVoid())
       { // init the function that returns void
          returnVoidFunc = f_uref;
       }
