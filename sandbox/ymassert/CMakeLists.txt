@@ -21,6 +21,28 @@ set(Target a.out)
 
 add_executable(${Target})
 
+set(MY_CTX "{}")
+string(JSON MY_CTX SET ${MY_CTX} my_name \"Forrest\")
+message(STATUS "my ctx is ${MY_CTX}")
+string(JSON MY_NAME GET ${MY_CTX} my_name)
+message(STATUS "my name is ${MY_NAME}")
+
+# set(dat "{}")
+# set(fake "abc" "def" "xyz")
+
+# # foreach(i RANGE 1)
+
+#    string(JSON dat SET ${dat} key0 "{}")
+#    # foreach(j RANGE 2)
+#       # list(GET fake ${j} x)
+#       string(JSON dat SET ${dat} key0 prp0 \"${x}\")
+#    # endforeach()
+
+# # endforeach()
+
+# string(JSON KEY GET ${dat} key0)
+# message(${KEY})
+
 target_sources(${Target} PUBLIC main.cpp)
 
 include(FetchContent)
