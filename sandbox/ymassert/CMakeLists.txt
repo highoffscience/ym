@@ -21,10 +21,21 @@ set(Target a.out)
 
 add_executable(${Target})
 
+set(TestFVar 11)
+function(my_test_f)
+   set(TestFVar 9)
+endfunction()
+
+my_test_f()
+message(STATUS "My test var is ${TestFVar}")
+
 set(MY_CTX "{}")
 string(JSON MY_CTX SET ${MY_CTX} my_name \"Forrest\")
 message(STATUS "my ctx is ${MY_CTX}")
-string(JSON MY_NAME GET ${MY_CTX} my_name)
+string(JSON MY_NAME ERROR_VARIABLE ErrorOnGet GET ${MY_CTX} my_name_fake)
+if (ErrorOnGet)
+   message(FATAL_ERROR "JSON GET failed: ${ErrorOnGet}")
+endif()
 message(STATUS "my name is ${MY_NAME}")
 
 # set(dat "{}")

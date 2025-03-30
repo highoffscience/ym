@@ -10,8 +10,14 @@ cmake_minimum_required(VERSION 3.27)
 #
 # @brief Defines target to build ym.common, and all child unittests.
 #
-function(ym.common)
-   set(SubBuilds textlogger timer ymassert ymdefs ymutils)
+function(ym.common Ctx_JSON)
+
+   string(JSON ProjRootDir ERROR_VARIABLE ErrorOnGet GET ${Ctx_JSON} "ProjRootDir")
+   if (ErrorOnGet)
+      message(FATAL_ERROR ${ErrorOnGet})
+   endif()
+
+   set(SubBuilds logger textlogger timer ymassert ymdefs ymutils)
    set(SrcFilesPath ${YM_ProjRootDir}/ym/common/)
    set(Target       ${CMAKE_CURRENT_FUNCTION})
    set(TargetAll    ${Target}_all)
