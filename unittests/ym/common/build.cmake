@@ -17,36 +17,46 @@ function(ym.common Ctx_JSON)
       message(FATAL_ERROR ${ErrorOnGet})
    endif()
 
-   set(SubBuilds logger textlogger timer ymassert ymdefs ymutils)
-   set(SrcFilesPath ${YM_ProjRootDir}/ym/common/)
+   string(JSON UTLibDir ERROR_VARIABLE ErrorOnGet GET ${Ctx_JSON} "UTLibDir")
+   if (ErrorOnGet)
+      message(FATAL_ERROR ${ErrorOnGet})
+   endif()
+
+   string(JSON CovFlags ERROR_VARIABLE ErrorOnGet GET ${Ctx_JSON} "CovFlags")
+   if (ErrorOnGet)
+      message(FATAL_ERROR ${ErrorOnGet})
+   endif()
+
+   string(REPLACE "." "/" SrcFilesRelPath ${CMAKE_CURRENT_FUNCTION})
+
+   set(SrcFileNames logger textlogger timer ymassert ymdefs ymutils)
+   set(SrcFilesPath ${ProjRootDir}/${SrcFilesRelPath})
    set(Target       ${CMAKE_CURRENT_FUNCTION})
-   set(TargetAll    ${Target}_all)
-   set(TargetRun    ${Target}_run)
+   set(TargetAll    ${Target}.all)
+   set(TargetRun    ${Target}.run)
    
    add_library(${Target} SHARED)
 
    add_custom_target(${TargetAll})
    add_custom_target(${TargetRun})
 
-   target_sources(${Target} PRIVATE ${SrcFilesPath}/logger.cpp)
-
    set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
-   set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_UTLibDir})
+   set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${UTLibDir})
 
-   target_compile_options(${Target} PRIVATE -DYM_COMMON_UT_DBG)
+   target_compile_definitions(${Target} PRIVATE YM_COMMON_UT_DEBUG)
 
-   if (${COV_ENABLED})
-      target_compile_options(${Target} PRIVATE ${YM_CovFlags})
-      target_link_options(   ${Target} PRIVATE ${YM_CovFlags})
+   if (${YM_COV_ENABLED})
+      target_compile_options(${Target} PRIVATE ${CovFlags})
+      target_link_options(   ${Target} PRIVATE ${CovFlags})
    endif()
 
-   foreach(SubBuild IN LISTS SubBuilds)
-      if(EXISTS                           ${SrcFilesPath}/${SubBuild}.cpp)
-         target_sources(${Target} PRIVATE ${SrcFilesPath}/${SubBuild}.cpp)
+   foreach(SrcFileName ${SrcFileNames})
+      if(EXISTS                           ${SrcFilesPath}/${SrcFileName}.cpp)
+         target_sources(${Target} PRIVATE ${SrcFilesPath}/${SrcFileName}.cpp)
       endif()
 
-      set(SubTarget    ym.common.${SubBuild})
-      set(SubTargetRun ${SubTarget}_run)
+      set(SubTarget    ${Target}.${SubBuild})
+      set(SubTargetRun ${SubTarget}.run)
 
       set(SubBuildUTPath ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/${SubBuild}/)
 
