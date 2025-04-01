@@ -21,38 +21,9 @@ set(Target a.out)
 
 add_executable(${Target})
 
-set(TestFVar 11)
-function(my_test_f)
-   set(TestFVar 9)
-endfunction()
-
-my_test_f()
-message(STATUS "My test var is ${TestFVar}")
-
-set(MY_CTX "{}")
-string(JSON MY_CTX SET ${MY_CTX} my_name \"Forrest\")
-message(STATUS "my ctx is ${MY_CTX}")
-string(JSON MY_NAME ERROR_VARIABLE ErrorOnGet GET ${MY_CTX} my_name_fake)
-if (ErrorOnGet)
-   message(FATAL_ERROR "JSON GET failed: ${ErrorOnGet}")
-endif()
-message(STATUS "my name is ${MY_NAME}")
-
-# set(dat "{}")
-# set(fake "abc" "def" "xyz")
-
-# # foreach(i RANGE 1)
-
-#    string(JSON dat SET ${dat} key0 "{}")
-#    # foreach(j RANGE 2)
-#       # list(GET fake ${j} x)
-#       string(JSON dat SET ${dat} key0 prp0 \"${x}\")
-#    # endforeach()
-
-# # endforeach()
-
-# string(JSON KEY GET ${dat} key0)
-# message(${KEY})
+set(MyName ym.common.ymdefs)
+string(REGEX REPLACE "[.].+" "" MyName ${MyName})
+message(STATUS "My name is ${MyName}")
 
 target_sources(${Target} PUBLIC main.cpp)
 
