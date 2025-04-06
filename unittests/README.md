@@ -54,3 +54,39 @@ $ cmake --build . --target clean
 
 The scripts use llvm-cov show, but could also use llvm-cov report...
 $ llvm-cov report <desired-obj-file> -instr-profile=<testsuite>.profdata
+
+// -----------------------------------------------------------------------------
+
+                  a/                         a/
+                 .  .                       .  .
+               .      .                   .      .
+              b/        c/               b/        c/
+             .         .  .             .         .  .
+          b0..bn     .      .        b0..bn     .      .
+                  c0..cn     d/              c0..cn    d/
+                             .                         .
+                             e/                        e/
+                             .                         .
+                          e0..en                    e0..en
+
+Example source directory structure is above. a/ - e/ are directories, a0..an are files.
+There are 3 types of directories build-wise:
+   1) File-Level directories
+   2) Library    directories
+   3) Container  directories
+
+Type 1:
+   Each source file will have it's own directory for unittesting. These directories
+      are called File-Level directories. They may contain their own build.cmake
+      script if building the unittest is non-trivial.
+
+Type 2:
+   Every source file will have a directory it lives in. At the unittest level every
+      source directory that contains a source file will be a library directory. This
+      means all direct source files (not nested) will be packaged into a shared object.
+      This increases modularity and build times. Each unittest file in the directory
+      will link to this shared object.
+
+Type 3:
+   These directories don't contain any files, just other directories. Nested shared
+      objects will link to the parent shared object.
