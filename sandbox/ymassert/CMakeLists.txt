@@ -22,8 +22,9 @@ set(Target a.out)
 add_executable(${Target})
 
 set(MyName ym.common.ymdefs)
-string(REGEX REPLACE "[.].+" "" MyName ${MyName})
-message(STATUS "My name is ${MyName}")
+string(FIND ${MyName} . Idx REVERSE)
+string(SUBSTRING ${MyName} 0 ${Idx} MyName)
+message(STATUS "My name is ${MyName} (${Idx})")
 
 target_sources(${Target} PUBLIC main.cpp)
 
