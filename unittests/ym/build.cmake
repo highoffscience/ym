@@ -10,19 +10,24 @@ cmake_minimum_required(VERSION 3.27)
 #
 # @brief Defines target to build all child unittests.
 #
-function(ym)
-   set(SubDirs common)
+function(ym Ctx_JSON)
+   set(SubBuilds common)
    set(Target    ${CMAKE_CURRENT_FUNCTION})
-   set(TargetAll ${Target}_all)
-   set(TargetRun ${Target}_run)
+   set(TargetAll ${Target}-unittests)
+   set(TargetRun ${Target}-run)
 
    add_custom_target(${TargetAll})
    add_custom_target(${TargetRun})
 
-   foreach(SubDir IN LISTS SubDirs)
-      include(${CMAKE_SOURCE_DIR}/ym/${SubDir}/build.cmake)
-      cmake_language(CALL ym.${SubDir})
-      add_dependencies(${TargetAll} ym.${SubDir}_all)
-      add_dependencies(${TargetRun} ym.${SubDir}_run)
+   foreach(SubBuild ${SubBuilds})
+
+      set(SubTarget    ${Target}.${SubBuild}-unittests)
+      set(SubTargetRun ${Target}.${SubBuild}-run)
+
+      include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/${SubBuild}/build.cmake)
+      cmake_language(CALL ${Target}.${SubBuild} Ctx_JSON)
+
+      add_dependencies(${TargetAll} ${SubTarget})
+      add_dependencies(${TargetRun} ${SubTargetRun})
    endforeach()
 endfunction()

@@ -10,6 +10,8 @@ cmake_minimum_required(VERSION 3.27)
 #
 # @brief Defines target to build ym.common, and all child unittests.
 #
+# @note Library directory (see README for description).
+#
 function(ym.common Ctx_JSON)
 
    string(JSON ProjRootDir ERROR_VARIABLE ErrorOnGet GET ${Ctx_JSON} "ProjRootDir")
@@ -32,8 +34,8 @@ function(ym.common Ctx_JSON)
    set(SrcFileNames logger textlogger timer ymassert ymdefs ymutils)
    set(SrcFilesPath ${ProjRootDir}/${SrcFilesRelPath})
    set(Target       ${CMAKE_CURRENT_FUNCTION})
-   set(TargetAll    ${Target}.all)
-   set(TargetRun    ${Target}.run)
+   set(TargetAll    ${Target}-unittests)
+   set(TargetRun    ${Target}-run)
    
    add_library(${Target} SHARED)
 
@@ -55,32 +57,32 @@ function(ym.common Ctx_JSON)
          target_sources(${Target} PRIVATE ${SrcFilesPath}/${SrcFileName}.cpp)
       endif()
 
-      set(SubTarget    ${Target}.${SubBuild})
-      set(SubTargetRun ${SubTarget}.run)
+      set(SubTarget    ${Target}.${SubBuild}-unittest)
+      set(SubTargetRun ${Target}.${SubBuild}-run)
 
-      set(SubBuildUTPath ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/${SubBuild}/)
+      set(SubBuildUTPath ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/${SubBuild})
 
       if(EXISTS  ${SubBuildUTPath}/build.cmake)
          include(${SubBuildUTPath}/build.cmake)
-         cmake_language(CALL ym.common.${SubBuild})
+         cmake_language(CALL ${Target}.${SubBuild} Ctx_JSON)
       else()
          add_library(${SubTarget} SHARED)
 
          target_sources(${SubTarget} PRIVATE ${SubBuildUTPath}/testsuite.cpp)
 
          target_include_directories(${SubTarget} PRIVATE
-            ${YM_ProjRootDir}/ym/common/
+            ${SrcFilesPath}
             ${CMAKE_SOURCE_DIR}/common/)
 
-         target_link_directories(${SubTarget} PRIVATE ${YM_UTLibDir})
+         target_link_directories(${SubTarget} PRIVATE ${UTLibDir})
 
          target_link_libraries(${SubTarget} PRIVATE ut.common)
-         target_link_libraries(${SubTarget} PRIVATE ym.common)
+         target_link_libraries(${SubTarget} PRIVATE ${Target})
 
          set_target_properties(${SubTarget} PROPERTIES
             VERSION ${PROJECT_VERSION}
-            LIBRARY_OUTPUT_DIRECTORY ${YM_UTLibDir}
-            OUTPUT_NAME ${SubTarget}_unittest)
+            LIBRARY_OUTPUT_DIRECTORY ${UTLibDir}
+            OUTPUT_NAME ${SubTarget}-unittest)
       endif()
 
       add_dependencies(${TargetAll} ${SubTarget})

@@ -9,10 +9,10 @@ $ python -m pip install -r requirements.txt
 $ mkdir build/ | covbuild/
 $ cd build/ | covbuild/
 $ cmake .. [-DCOV_ENABLED=True|False]
-$ cmake --build . [--target <suite-name>[_run]]
+$ cmake --build . [--target <suite-name>[-run]]
 
 eg...
-$ cmake --build . --target ym.common.ymdefs[_run]
+$ cmake --build . --target ym.common.ymdefs[-run]
 
 To clean, eg...
 $ cmake --build . --target clean
@@ -86,6 +86,9 @@ Type 2:
       means all direct source files (not nested) will be packaged into a shared object.
       This increases modularity and build times. Each unittest file in the directory
       will link to this shared object.
+   These directories contain a build.cmake that build the shared object as well as
+      defines the unittest targets for each of the source files, assuming that source
+      file's File-Level unittest directory doesn't contain it's own build.cmake.
 
 Type 3:
    These directories don't contain any files, just other directories. Nested shared
