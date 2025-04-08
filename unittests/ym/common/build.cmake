@@ -57,14 +57,15 @@ function(ym.common Ctx_JSON)
          target_sources(${Target} PRIVATE ${SrcFilesPath}/${SrcFileName}.cpp)
       endif()
 
-      set(SubTarget    ${Target}.${SubBuild}-unittest)
-      set(SubTargetRun ${Target}.${SubBuild}-run)
+      set(SubTarget    ${Target}.${SubBuild})
+      set(SubTargetAll ${SubTarget}-unittest)
+      set(SubTargetRun ${SubTarget}-run)
 
       set(SubBuildUTPath ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/${SubBuild})
 
       if(EXISTS  ${SubBuildUTPath}/build.cmake)
          include(${SubBuildUTPath}/build.cmake)
-         cmake_language(CALL ${Target}.${SubBuild} Ctx_JSON)
+         cmake_language(CALL ${SubTarget} Ctx_JSON)
       else()
          add_library(${SubTarget} SHARED)
 
