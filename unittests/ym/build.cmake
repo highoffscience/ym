@@ -10,17 +10,21 @@ cmake_minimum_required(VERSION 3.27)
 #
 # @brief Defines target to build all child unittests.
 #
+# @param Ctx_JSON -- Context object.
+#
+# @note Container directory (see README for description).
+#
 function(ym Ctx_JSON)
 
    set(Target    ${CMAKE_CURRENT_FUNCTION})
    set(TargetAll ${Target}-unittests)
    set(TargetRun ${Target}-run)
-   set(TargetInt ${Target}-interface)
 
+   add_library(${Target} INTERFACE)
    add_custom_target(${TargetAll})
    add_custom_target(${TargetRun})
 
-   add_library(${TargetInt} INTERFACE)
+   target_link_libraries(${Target} INTERFACE ut.common)
 
    set(SubTargets common)
    foreach(SubTarget ${SubTargets})

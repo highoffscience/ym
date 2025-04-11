@@ -44,6 +44,14 @@ add_compile_options(
    -DYM_PRINT_TO_SCREEN
    -DFMT_HEADER_ONLY)
 
+## BEGIN TODO ##
+set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
+set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_UTLibDir})
+
+target_link_directories(${SubTarget} PRIVATE ${UTLibDir})
+
+## END ##
+
 include(common/build.cmake)
 cmake_language(CALL ut.common)
 

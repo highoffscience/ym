@@ -10,16 +10,13 @@ cmake_minimum_required(VERSION 3.27)
 #
 # @brief Defines target to build ym.common, and all child unittests.
 #
+# @param Ctx_JSON -- Context object.
+#
 # @note Library directory (see README for description).
 #
 function(ym.common Ctx_JSON)
 
    string(JSON ProjRootDir ERROR_VARIABLE ErrorOnGet GET ${Ctx_JSON} "ProjRootDir")
-   if (ErrorOnGet)
-      message(FATAL_ERROR ${ErrorOnGet})
-   endif()
-
-   string(JSON UTLibDir ERROR_VARIABLE ErrorOnGet GET ${Ctx_JSON} "UTLibDir")
    if (ErrorOnGet)
       message(FATAL_ERROR ${ErrorOnGet})
    endif()
@@ -33,17 +30,16 @@ function(ym.common Ctx_JSON)
 
    set(SrcFileNames logger textlogger timer ymassert ymdefs ymutils)
    set(SrcFilesPath ${ProjRootDir}/${SrcFilesRelPath})
+
    set(Target       ${CMAKE_CURRENT_FUNCTION})
    set(TargetAll    ${Target}-unittests)
    set(TargetRun    ${Target}-run)
-   
-   add_library(${Target} SHARED)
 
+   add_library(${Target} INTERFACE)
    add_custom_target(${TargetAll})
    add_custom_target(${TargetRun})
 
-   set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
-   set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${UTLibDir})
+   target_link_libraries(${Target} INTERFACE ym)
 
    target_compile_definitions(${Target} PRIVATE YM_COMMON_UT_DEBUG)
 
