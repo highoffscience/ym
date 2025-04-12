@@ -41,7 +41,9 @@ function(ym.common Ctx_JSON)
 
    target_link_libraries(${Target} INTERFACE ym)
 
-   target_compile_definitions(${Target} PRIVATE YM_COMMON_UT_DEBUG)
+   if (YM_COMMON_DEBUG)
+      target_compile_definitions(${Target} PRIVATE YM_COMMON_DEBUG)
+   endif()
 
    if (${YM_COV_ENABLED})
       target_compile_options(${Target} PRIVATE ${CovFlags})

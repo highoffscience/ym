@@ -26,6 +26,10 @@ function(ym Ctx_JSON)
 
    target_link_libraries(${Target} INTERFACE ut.common)
 
+   if (YM_DEBUG)
+      target_compile_definitions(${Target} YM_DEBUG)
+   endif()
+
    set(SubTargets common)
    foreach(SubTarget ${SubTargets})
       include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/${SubTarget}/build.cmake)
