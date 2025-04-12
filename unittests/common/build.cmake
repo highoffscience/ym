@@ -20,8 +20,6 @@ function(ut.common Ctx_JSON)
 
    add_library(${Target} SHARED)
 
-   target_link_libraries(${Target} PRIVATE YMRootInterfaceLibrary)
-
    target_sources(${Target} PRIVATE
       ${CMAKE_SOURCE_DIR}/common/datashuttle.cpp
       ${CMAKE_SOURCE_DIR}/common/nameable.cpp

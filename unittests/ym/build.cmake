@@ -20,11 +20,12 @@ function(ym Ctx_JSON)
    set(TargetAll ${Target}-unittests)
    set(TargetRun ${Target}-run)
 
-   add_library(${Target} INTERFACE)
+   add_library(${Target} PRIVATE)
    add_custom_target(${TargetAll})
    add_custom_target(${TargetRun})
 
-   target_link_libraries(${Target} INTERFACE ut.common)
+   target_link_libraries(${Target} PRIVATE YMRootInterfaceLibrary)
+   target_link_libraries(${Target} PRIVATE ut.common)
 
    if (YM_DEBUG)
       target_compile_definitions(${Target} YM_DEBUG)

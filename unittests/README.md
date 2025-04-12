@@ -93,3 +93,24 @@ Type 2:
 Type 3:
    These directories don't contain any files, just other directories. Nested shared
       objects will link to the parent shared object.
+
+There are several types of libraries.
+   1) Framework               Libraries (eg ut.common)
+   2) Interface-For-Shared    Libraries (eg ym)
+   3) Interface-For-Testsuite Libraries
+   4) Shared                  Libraries (eg ym.common)
+
+Type 1:
+   These libraries are for unittest framework operation. They are not instrumented and
+   are not part of any testsuite, they only provide operations the testsuite needs to
+   do it's job.
+
+Type 2:
+   These are pure abstract libraries meant to be linked into Shared (type 4) libraries.
+
+Type 3:
+   These are pure abstract libraries meant to be linked into testsuite executables.
+
+Type 4:
+   These libraries only contain the source files under test. Each directory/module will
+   package all the source files within it into one shared library.
