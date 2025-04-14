@@ -17,14 +17,33 @@ cmake_minimum_required(VERSION 3.27)
 function(ut.common Ctx_JSON)
 
    set(Target ${CMAKE_CURRENT_FUNCTION})
-
    add_library(${Target} SHARED)
 
-   target_sources(${Target} PRIVATE
-      ${CMAKE_SOURCE_DIR}/common/datashuttle.cpp
-      ${CMAKE_SOURCE_DIR}/common/nameable.cpp
-      ${CMAKE_SOURCE_DIR}/common/testcase.cpp
-      ${CMAKE_SOURCE_DIR}/common/testsuitebase.cpp
-      ${CMAKE_SOURCE_DIR}/common/utception.cpp)
+   set(Srcs
+      datashuttle.cpp
+      nameable.cpp
+      testcase.cpp
+      testsuitebase.cpp
+      utception.cpp)
+   list(TRANSFORM Srcs PREPEND ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/)
+   target_sources(${Target} PRIVATE ${Srcs})
+
+   target_include_directories(${Target} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR})
+
+   target_compile_options(${Target} PRIVATE -O2)
+
+   if (YM_UT_COMMON_DEBUG)
+      target_compile_definitions(${Target} PRIVATE YM_DEBUG=1)
+   endif()
+
+   string(JSON UTLibDir ERROR_VARIABLE ErrorOnGet GET ${Ctx_JSON} "UTLibDir")
+   if (ErrorOnGet)
+      message(FATAL_ERROR ${ErrorOnGet})
+   endif()
+
+   set_target_properties(${Target} PROPERTIES
+      VERSION ${PROJECT_VERSION}
+      LIBRARY_OUTPUT_DIRECTORY ${UTLibDir}
+      OUTPUT_NAME ${Target})
 
 endfunction()
