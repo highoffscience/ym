@@ -96,7 +96,7 @@ Type 3:
 
 There are several types of libraries.
    1) Framework               Libraries (eg ut.common)
-   2) Interface-For-Shared    Libraries (eg ym)
+   2) Interface-For-Shared    Libraries (eg ym-interface)
    3) Interface-For-Testsuite Libraries
    4) Shared                  Libraries (eg ym.common)
 
