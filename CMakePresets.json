@@ -1,0 +1,31 @@
+{
+   "version": 7,
+   "cmakeMinimumRequired": {
+      "major": 3,
+      "minor": 27,
+      "patch": 0
+   },
+   "configurePresets": [
+      {
+         "name": "test",
+         "displayName": "test",
+         "description": "Builds unittests",
+         "generator": "Makefiles",
+         "binaryDir": "${sourceDir}/build",
+         "toolchainFile": "${sourceDir}/toolchain.cmake",
+         "cacheVariables": {
+            "YM_COV_ENABLED": false
+         }
+      }, {
+         "name": "cov",
+         "displayName": "cov",
+         "description": "Builds unittests for coverage",
+         "generator": "Makefiles",
+         "binaryDir": "${sourceDir}/covbuild",
+         "toolchainFile": "${sourceDir}/cov_toolchain.cmake",
+         "cacheVariables": {
+            "YM_COV_ENABLED": true
+         }
+      }
+   ]
+}

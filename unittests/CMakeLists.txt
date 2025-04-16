@@ -11,42 +11,49 @@ cmake_minimum_required(VERSION 3.27)
 
 if (${YM_COV_ENABLED})
    message("Cov mode enabled")
-   set(YM_CovFlags -fprofile-instr-generate -fcoverage-mapping) # also used in linking
-   set(CMAKE_C_COMPILER   "clang")   # /usr/bin/clang-17
-   set(CMAKE_CXX_COMPILER "clang++") # /usr/bin/clang++-17
-else()
-   add_compile_options(-O2)
 endif()
-
-
 
 project(
    UnitTest
    VERSION     1.0.0
    DESCRIPTION "Builds unittest shared libraries and optionally runs them")
 
-set(Ctx_JSON "{}")
-string(JSON Ctx_JSON SET ${Ctx_JSON} "ProjRootDir" "${CMAKE_SOURCE_DIR}/../..")
-string(JSON Ctx_JSON SET ${Ctx_JSON} "UTLibDir"    "${CMAKE_BINARY_DIR}/customlibs")
+set(YM_Ctx_JSON    "{}")
+set(YM_ProjRootDir ${CMAKE_SOURCE_DIR}/../..)
+set(YM_UTLibDir    ${CMAKE_BINARY_DIR}/customlibs)
 
-include_directories(${YM_ProjRootDir}/ym/fmt/include/)
+string(JSON Ctx_JSON SET ${Ctx_JSON} "ProjRootDir" \"${YM_ProjRootDir}\")
+string(JSON Ctx_JSON SET ${Ctx_JSON} "UTLibDir"    \"${YM_UTLibDir}\")
 
-add_compile_options(
+add_library(YMRootIntLib INTERFACE)
+
+target_compile_options(YMRootIntLib INTERFACE
    -Werror
    -Wall
    -Wextra
-   -Wno-format-security
-   -DYM_UT_DBG
-   -DYM_PRINT_TO_SCREEN
-   -DFMT_HEADER_ONLY)
+   -Wno-format-security)
 
-add_library(YMRootInterfaceLibrary INTERFACE)
+target_compile_definitions(YMRootIntLib INTERFACE
+   YM_PRINT_TO_SCREEN
+   FMT_HEADER_ONLY)
 
-## BEGIN TODO ##
-set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
-set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_UTLibDir})
+include(FetchContent)
 
-target_link_directories(${SubTarget} PRIVATE ${UTLibDir})
+set(BUILD_SHARED_LIBS TRUE)
+FetchContent_Declare(
+   fmt
+   GIT_REPOSITORY https://github.com/fmtlib/fmt
+   GIT_TAG        8303d140a1a11f19b982a9f664bbe59a1ccda3f4) # 11.1.2
+FetchContent_MakeAvailable(fmt)
+
+target_link_libraries(YMRootIntLib fmt::fmt)
+
+target_include_directories(YMRootIntLib INTERFACE ${YM_ProjRootDir}/ym/fmt/include/)
+
+set_target_properties(YMRootIntLib PROPERTIES VERSION ${PROJECT_VERSION})
+set_target_properties(YMRootIntLib PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_UTLibDir})
+
+# target_link_directories(YMRootIntLib PRIVATE ${UTLibDir})
 
 ## END ##
 
