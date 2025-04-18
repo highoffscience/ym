@@ -10,7 +10,7 @@
 cmake_minimum_required(VERSION 3.27)
 
 if (${YM_COV_ENABLED})
-   message("Cov mode enabled")
+   message("Compiling for coverage...")
 endif()
 
 project(
@@ -43,7 +43,7 @@ set(BUILD_SHARED_LIBS TRUE)
 FetchContent_Declare(
    fmt
    GIT_REPOSITORY https://github.com/fmtlib/fmt
-   GIT_TAG        8303d140a1a11f19b982a9f664bbe59a1ccda3f4) # 11.1.2
+   GIT_TAG        123913715afeb8a437e6388b4473fcc4753e1c9a) # 11.1.4
 FetchContent_MakeAvailable(fmt)
 
 target_link_libraries(YMRootIntLib fmt::fmt)

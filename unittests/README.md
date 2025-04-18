@@ -114,3 +114,6 @@ Type 3:
 Type 4:
    These libraries only contain the source files under test. Each directory/module will
    package all the source files within it into one shared library.
+
+TODO REMOVE cppyy source code - just the module installed through pip is needed
+TODO create a thirdparty folder with it's own makefile to fetch and build 3rd party libs

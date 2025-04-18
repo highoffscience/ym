@@ -34,7 +34,8 @@ set(BUILD_SHARED_LIBS TRUE)
 FetchContent_Declare(
    fmt
    GIT_REPOSITORY https://github.com/fmtlib/fmt
-   GIT_TAG        8303d140a1a11f19b982a9f664bbe59a1ccda3f4) # 11.1.2
+   GIT_TAG        8303d140a1a11f19b982a9f664bbe59a1ccda3f4 # 11.1.2
+   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/fmt)
 FetchContent_MakeAvailable(fmt)
 
 target_link_libraries(${Target} fmt::fmt)
