@@ -26,7 +26,6 @@ function(ym Ctx_JSON)
    add_library(${TargetInt} INTERFACE)
 
    target_link_libraries(${TargetInt} INTERFACE YMRootInterfaceLibrary)
-   target_link_libraries(${TargetInt} INTERFACE ut.common)
 
    if (YM_DEBUG)
       target_compile_definitions(${TargetInt} YM_DEBUG)
