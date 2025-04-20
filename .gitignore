@@ -8,8 +8,8 @@
 .vscode/
 
 # build (cmake) specific
-build/
-covbuild/
+build/*
+covbuild/*
 
 # tmp files
 *.o
@@ -41,3 +41,6 @@ data*.csv
 
 # python virtual environment
 venv/
+
+# sandbox
+sandbox/*
