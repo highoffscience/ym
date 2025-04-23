@@ -30,20 +30,10 @@ function(ut.common Ctx_JSON)
 
    target_include_directories(${Target} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR})
 
-   target_compile_options(${Target} PRIVATE -O2)
-
    if (YM_UT_COMMON_DEBUG)
       target_compile_definitions(${Target} PRIVATE YM_DEBUG=1)
    endif()
 
-   string(JSON UTLibDir ERROR_VARIABLE ErrorOnGet GET ${Ctx_JSON} "UTLibDir")
-   if (ErrorOnGet)
-      message(FATAL_ERROR ${ErrorOnGet})
-   endif()
-
-   set_target_properties(${Target} PROPERTIES
-      VERSION ${PROJECT_VERSION}
-      LIBRARY_OUTPUT_DIRECTORY ${UTLibDir}
-      OUTPUT_NAME ${Target})
+   target_link_libraries(${Target} YMRootIntLib)
 
 endfunction()

@@ -16,7 +16,8 @@ project(
 
 
 
-
+include(${CMAKE_SOURCE_DIR}/unittests/common)
+target_link_libraries(YMRootIntLib INTERFACE ut.common) # TODO 
 
 include(ym/build.cmake)
 cmake_language(CALL ym ${Ctx_JSON})
