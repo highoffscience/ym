@@ -6,9 +6,8 @@
 
 #include "testsuitebase.h"
 
-#include "fmt/core.h"
-
 #include <algorithm>
+#include <string>
 #include <utility>
 
 /** TestSuiteBase
@@ -48,13 +47,14 @@ auto ym::ut::TestSuiteBase::runTestCase(std::string const & Name,
          ds = (*It)->run(InData);
       }
       catch (std::exception const & E)
-      { // re-throw a class cppyy knows how to convert - cppyy doesn't know about the YmError class
+      { // re-throw a class cppyy knows how to convert - cppyy doesn't know about the ymassert_Base class
          throw TSBError_TestCaseFailure(E.what());
       }
    }
    else
    { // test case not found
-      throw TSBError_TestCaseNotFound(fmt::format("Test case {} not found", Name));
+      using namespace std::string_literals;
+      throw TSBError_TestCaseNotFound("Test case"s + Name + " not found"s);
    }
 
    return ds;

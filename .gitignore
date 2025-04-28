@@ -8,8 +8,9 @@
 .vscode/
 
 # build (cmake) specific
-*/build/*
-*/covbuild/*
+**/build/*
+**/covbuild/*
+**/customlibs/*
 
 # tmp files
 *.o

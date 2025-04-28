@@ -1,0 +1,21 @@
+{
+   "version": 7,
+   "cmakeMinimumRequired": {
+      "major": 3,
+      "minor": 27,
+      "patch": 0
+   },
+   "configurePresets": [
+      {
+         "name": "default",
+         "displayName": "External Libs",
+         "description": "Builds external libraries",
+         "generator": "Makefiles",
+         "binaryDir": "${sourceDir}/build",
+         "toolchainFile": "${sourceDir}/toolchain.cmake",
+         "cacheVariables": {
+            "YM_BUILD_FMT": true
+         }
+      }
+   ]
+}

@@ -7,24 +7,38 @@
    },
    "configurePresets": [
       {
+         "name": "base",
+         "hidden": true,
+         "generator": "Makefiles",
+         "cacheVariables": {
+            "YM_ProjRootDir": "${sourceParentDir}/..",
+            "YM_UnitTestDir": "${sourceDir}",
+            "YM_ExtLibsDir": "${sourceParentDir}/extlibs",
+            "YM_PRINT_TO_SCREEN": true,
+            "YM_DEBUG": false
+         }
+      },
+      {
          "name": "test",
+         "inherits": "base",
          "displayName": "test",
          "description": "Builds unittests",
-         "generator": "Makefiles",
          "binaryDir": "${sourceDir}/build",
          "toolchainFile": "${sourceDir}/toolchain.cmake",
          "cacheVariables": {
-            "YM_COV_ENABLED": false
+            "YM_CustomLibsDir": "${sourceDir}/build/customlibs",
+            "YM_CovEnabled": false
          }
-      }, {
+      },
+      {
          "name": "cov",
          "displayName": "cov",
          "description": "Builds unittests for coverage",
-         "generator": "Makefiles",
          "binaryDir": "${sourceDir}/covbuild",
          "toolchainFile": "${sourceDir}/cov_toolchain.cmake",
          "cacheVariables": {
-            "YM_COV_ENABLED": true
+            "YM_CustomLibsDir": "${sourceDir}/covbuild/customlibs",
+            "YM_CovEnabled": true
          }
       }
    ]

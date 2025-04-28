@@ -25,10 +25,10 @@ function(ym Ctx_JSON)
    add_custom_target(${TargetRun})
    add_library(${TargetInt} INTERFACE)
 
-   target_link_libraries(${TargetInt} INTERFACE YMRootInterfaceLibrary)
+   target_link_libraries(${TargetInt} INTERFACE YMRootIntLib)
 
-   if (YM_DEBUG)
-      target_compile_definitions(${TargetInt} YM_DEBUG)
+   if (${YM_DEBUG})
+      target_compile_definitions(${TargetInt} YM_DEBUG=1)
    endif()
 
    set(SubTargets common)

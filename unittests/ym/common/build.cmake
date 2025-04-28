@@ -16,19 +16,9 @@ cmake_minimum_required(VERSION 3.27)
 #
 function(ym.common Ctx_JSON)
 
-   string(JSON ProjRootDir ERROR_VARIABLE ErrorOnGet GET ${Ctx_JSON} "ProjRootDir")
-   if (ErrorOnGet)
-      message(FATAL_ERROR ${ErrorOnGet})
-   endif()
-
-   string(JSON CovFlags ERROR_VARIABLE ErrorOnGet GET ${Ctx_JSON} "CovFlags")
-   if (ErrorOnGet)
-      message(FATAL_ERROR ${ErrorOnGet})
-   endif()
-
    string(REPLACE "." "/" SrcFilesRelPath ${CMAKE_CURRENT_FUNCTION})
 
-   set(SrcFileNames logger textlogger timer ymassert ymdefs ymutils)
+   set(SubTargets logger textlogger timer ymassert ymdefs ymutils)
    set(SrcFilesPath ${ProjRootDir}/${SrcFilesRelPath})
 
    set(Target       ${CMAKE_CURRENT_FUNCTION})
@@ -41,13 +31,8 @@ function(ym.common Ctx_JSON)
 
    target_link_libraries(${Target} INTERFACE ym)
 
-   if (YM_COMMON_DEBUG)
-      target_compile_definitions(${Target} PRIVATE YM_COMMON_DEBUG)
-   endif()
-
-   if (${YM_COV_ENABLED})
-      target_compile_options(${Target} PRIVATE ${CovFlags})
-      target_link_options(   ${Target} PRIVATE ${CovFlags})
+   if (${YM_DEBUG})
+      target_compile_definitions(${Target} PRIVATE YM_COMMON_DEBUG=1)
    endif()
 
    foreach(SrcFileName ${SrcFileNames})
