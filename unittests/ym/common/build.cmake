@@ -6,7 +6,7 @@
 
 cmake_minimum_required(VERSION 3.27)
 
-## ym.common
+## utbuild-ym.common
 #
 # @brief Defines target to build ym.common, and all child unittests.
 #
@@ -14,26 +14,22 @@ cmake_minimum_required(VERSION 3.27)
 #
 # @note Library directory (see README for description).
 #
-function(ym.common Ctx_JSON)
+function(utbuild-ym.common Ctx_JSON)
 
-   string(REPLACE "." "/" SrcFilesRelPath ${CMAKE_CURRENT_FUNCTION})
+   set(TargetAll ym.common-unittests)
+   set(TargetRun ym.common-run)
+   set(TargetInt ym.common-interface)
 
-   set(SubTargets logger textlogger timer ymassert ymdefs ymutils)
-   set(SrcFilesPath ${ProjRootDir}/${SrcFilesRelPath})
-
-   set(Target       ${CMAKE_CURRENT_FUNCTION})
-   set(TargetAll    ${Target}-unittests)
-   set(TargetRun    ${Target}-run)
-
-   add_library(${Target} INTERFACE)
    add_custom_target(${TargetAll})
    add_custom_target(${TargetRun})
+   add_library(${TargetInt} INTERFACE)
 
-   target_link_libraries(${Target} INTERFACE ym)
+   target_link_libraries(TargetInt INTERFACE ym-interface)
 
-   if (${YM_DEBUG})
-      target_compile_definitions(${Target} PRIVATE YM_COMMON_DEBUG=1)
-   endif()
+   include(${ProjRootDir}/ym/common/build.cmake)
+   cmake_language(CALL srcbuild-ym.common ${Ctx_JSON})
+
+   set(SubTargets logger textlogger timer ymassert ymdefs ymutils)
 
    foreach(SrcFileName ${SrcFileNames})
       if(EXISTS                           ${SrcFilesPath}/${SrcFileName}.cpp)

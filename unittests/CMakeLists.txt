@@ -42,6 +42,10 @@ if (${YM_PRINT_TO_SCREEN})
    target_compile_definitions(YMRootIntLib INTERFACE YM_PRINT_TO_SCREEN=1)
 endif()
 
+if (${YM_DEBUG})
+   target_compile_definitions(YMRootIntLib YM_DEBUG=1)
+endif()
+
 if (EXISTS ${YM_ExtLibsDir}/build/_deps/fmt-build/libfmt.so)
    target_link_directories(   YMRootIntLib INTERFACE ${YM_ExtLibsDir}/build/_deps/fmt-build)
    target_include_directories(YMRootIntLib INTERFACE ${YM_ExtLibsDir}/build/_deps/fmt-src/include)
@@ -55,8 +59,8 @@ set_target_properties(YMRootIntLib PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_Cust
 
 target_link_directories(YMRootIntLib INTERFACE ${YM_CustomLibsDir})
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/common)
+add_subdirectory(${YM_UnitTestDir}/common)
 target_link_libraries(YMRootIntLib INTERFACE ut.common)
 
-include(ym/build.cmake)
-cmake_language(CALL ym ${Ctx_JSON})
+include(${YM_UnitTestDir}/ym/build.cmake)
+cmake_language(CALL utbuild-ym ${Ctx_JSON})

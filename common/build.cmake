@@ -6,15 +6,15 @@
 
 cmake_minimum_required(VERSION 3.27)
 
-## ym.common
+## srcbuild-ym.common
 #
 # @brief Defines target to build ym.common shared library.
 #
 # @param Ctx_JSON -- Context object.
 #
-function(ym.common Ctx_JSON)
+function(srcbuild-ym.common Ctx_JSON)
 
-   set(Target ${CMAKE_CURRENT_FUNCTION})
+   set(Target ym.common)
    add_library(${Target} SHARED)
 
    set(Srcs
