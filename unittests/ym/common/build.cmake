@@ -28,8 +28,13 @@ function(utbuild-ym.common Ctx_JSON)
 
    include(${ProjRootDir}/ym/common/build.cmake)
    cmake_language(CALL srcbuild-ym.common ${Ctx_JSON})
+   target_link_libraries(${TargetInt} INTERFACE ym.common)
 
    set(SubTargets logger textlogger timer ymassert ymdefs ymutils)
+   foreach(SubTarget ${SubTargets})
+      include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/${SubTarget}/build.cmake)
+      cmake_language(CALL utbuild-ym.common.${SubTarget} ${Ctx_JSON})
+   endforeach()
 
    foreach(SrcFileName ${SrcFileNames})
       if(EXISTS                           ${SrcFilesPath}/${SrcFileName}.cpp)
@@ -50,19 +55,7 @@ function(utbuild-ym.common Ctx_JSON)
 
          target_sources(${SubTarget} PRIVATE ${SubBuildUTPath}/testsuite.cpp)
 
-         target_include_directories(${SubTarget} PRIVATE
-            ${SrcFilesPath}
-            ${CMAKE_SOURCE_DIR}/common/)
-
-         target_link_directories(${SubTarget} PRIVATE ${UTLibDir})
-
-         target_link_libraries(${SubTarget} PRIVATE ut.common)
-         target_link_libraries(${SubTarget} PRIVATE ${Target})
-
-         set_target_properties(${SubTarget} PROPERTIES
-            VERSION ${PROJECT_VERSION}
-            LIBRARY_OUTPUT_DIRECTORY ${UTLibDir}
-            OUTPUT_NAME ${SubTarget}-unittest)
+         set_target_properties(${SubTarget} PROPERTIES OUTPUT_NAME ${SubTarget}-unittest)
       endif()
 
       add_dependencies(${TargetAll} ${SubTarget})

@@ -28,6 +28,11 @@ target_compile_options(YMRootIntLib INTERFACE
    -Wextra
    -Wno-format-security)
 
+target_include_directories(YMRootIntLib INTERFACE
+   ${YM_UnitTestDir}/common
+   ${YM_UnitTestDir}/ym/common
+   ${YM_ProjRootDir}/ym/common)
+
 if (${YM_CovEnabled})
    message("Compiling for coverage...")
    set(YM_CovFlags -fprofile-instr-generate -fcoverage-mapping)
