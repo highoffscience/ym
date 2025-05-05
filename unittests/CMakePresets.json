@@ -11,6 +11,7 @@
          "hidden": true,
          "generator": "Makefiles",
          "cacheVariables": {
+            "YM_Python": "python",
             "YM_ProjRootDir": "${sourceParentDir}/..",
             "YM_UnitTestDir": "${sourceDir}",
             "YM_ExtLibsDir": "${sourceParentDir}/extlibs",

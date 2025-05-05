@@ -16,9 +16,10 @@ cmake_minimum_required(VERSION 3.27)
 #
 function(utbuild-ym Ctx_JSON)
 
-   set(TargetAll ym-unittests)
-   set(TargetRun ym-run)
-   set(TargetInt ym-interface)
+   set(BaseBuild ym)
+   set(TargetAll ${BaseBuild}-unittests)
+   set(TargetRun ${BaseBuild}-run)
+   set(TargetInt ${BaseBuild}-interface)
 
    add_custom_target(${TargetAll})
    add_custom_target(${TargetRun})
@@ -26,10 +27,10 @@ function(utbuild-ym Ctx_JSON)
 
    target_link_libraries(${TargetInt} INTERFACE YMRootIntLib)
 
-   set(SubTargets common)
-   foreach(SubTarget ${SubTargets})
-      include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/${SubTarget}/build.cmake)
-      cmake_language(CALL utbuild-ym.${SubTarget} ${Ctx_JSON})
+   set(SubBuilds common)
+   foreach(SubBuild ${SubBuilds})
+      include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/${SubBuild}/build.cmake)
+      cmake_language(CALL utbuild-${BaseBuild}.${SubBuild} ${Ctx_JSON})
    endforeach()
    
 endfunction()
