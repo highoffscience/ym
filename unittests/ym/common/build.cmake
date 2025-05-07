@@ -31,11 +31,6 @@ function(utbuild-ym.common Ctx_JSON)
    cmake_language(CALL srcbuild-${BaseBuild} ${Ctx_JSON})
    target_link_libraries(${TargetInt} INTERFACE ${BaseBuild})
 
-   add_custom_command(TARGET ${TargetRun}
-      PRE_BUILD
-      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-      COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/check_pyvirtualenv.cmake)
-
    add_custom_command(TARGET ${TargetInt}
       POST_BUILD
       WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -66,6 +61,8 @@ function(utbuild-ym.common Ctx_JSON)
       add_dependencies(${TargetAll} ${SubTarget})
       add_dependencies(${TargetRun} ${SubTargetRun})
       add_custom_target(${SubTargetRun} DEPENDS ${SubTarget})
+
+      add_dependencies(${SubTargetRun} check-venv)
 
       add_custom_command(TARGET ${SubTargetRun}
          POST_BUILD

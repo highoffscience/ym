@@ -1,5 +1,5 @@
 ##
-# @file    check_pyvirtualenv.cmake
+# @file    check_venv.cmake
 # @version 1.0.0
 # @author  Forrest Jablonski
 #

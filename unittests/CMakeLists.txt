@@ -64,6 +64,12 @@ set_target_properties(YMRootIntLib PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_Cust
 
 target_link_directories(YMRootIntLib INTERFACE ${YM_CustomLibsDir})
 
+add_custom_target(check-venv)
+add_custom_command(TARGET check-venv
+   PRE_BUILD
+   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+   COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/check_venv.cmake)
+
 add_subdirectory(${YM_UnitTestDir}/common)
 target_link_libraries(YMRootIntLib INTERFACE ut.common)
 
