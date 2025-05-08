@@ -1,1 +1,0 @@
-YM_USE_EXCEPTIONS - Exceptions disabled by default. Pass this flag to enable. Look in ymerror.h for details.

@@ -4,12 +4,14 @@
 # @author  Forrest Jablonski
 #
 
+import os
 import subprocess as sp
 
-def runCmd(cmd: str,
-           cwd: str             = ".",
-           per_line_action_func = None,
-           quiet                = False):
+def runCmd(
+   cmd: str,
+   cwd: str             = ".",
+   per_line_action_func = None,
+   quiet                = False):
    """
    @brief Runs command and optionally runs an action function on every line of the output.
 
@@ -31,3 +33,16 @@ def runCmd(cmd: str,
       if not quiet:
          print(f"Command '{cmd}' exited with code {p.poll()}")
    return output
+
+def open_into_dir(
+   fullfilename: str,
+   *args,
+   **kwargs) :
+   """
+   TODO
+   """
+
+   dirname = os.path.dirname(fullfilename)
+   if dirname:
+      os.makedirs(dirname, exist_ok=True)
+   return open(fullfilename, *args, **kwargs)

@@ -31,15 +31,6 @@ function(utbuild-ym.common Ctx_JSON)
    cmake_language(CALL srcbuild-${BaseBuild} ${Ctx_JSON})
    target_link_libraries(${TargetInt} INTERFACE ${BaseBuild})
 
-   add_custom_command(TARGET ${TargetInt}
-      POST_BUILD
-      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-      BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles/
-      COMMAND ${CMAKE_COMMAND} -D COV_ENABLED=${YM_CovEnabled}
-                               -D TARGET_NAME=${SubTarget}
-                               -D OBJECT_NAME=lib${Target}.so
-                               -P ${CMAKE_SOURCE_DIR}/run_unittest.cmake)
-
    set(SubBuilds logger textlogger timer ymassert ymdefs ymutils)
    foreach(SubBuild ${SubBuilds})
 
@@ -68,7 +59,12 @@ function(utbuild-ym.common Ctx_JSON)
          POST_BUILD
          WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
          BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles
-         COMMAND ${YM_Python} "run_unittest.py --targetnames=${SubBaseBuild} --libraryname=${BaseBuild}")
+         COMMAND ${YM_Python} "run_unittest.py " \
+            "--unittestdir=${CMAKE_SOURCE_DIR} " \
+            "--binarydir=${CMAKE_BINARY_DIR} "   \
+            "--suitename=${SubTarget} "          \
+            "--libraryname=lib${BaseBuild}.so "  \
+            "--covenabled=${YM_CovEnabled}")
 
    endforeach()
 
