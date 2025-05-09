@@ -4,28 +4,29 @@
 # @author  Forrest Jablonski
 #
 
+"""
+   Script to merge coverage profiles - to be called from cmake.
+"""
+
 import ympyutils
 
 import argparse
-import os
+import json
 
 def main():
    parser = argparse.ArgumentParser()
-   parser.add_argument("--unittestdir", required=True, help="Absolute path to unittest directory",       type=str)
-   parser.add_argument("--binarydir",   required=True, help="Absolute path to build directory",          type=str)
-   parser.add_argument("--suitename",   required=True, help="Qualified testsuite name",                  type=str)
-   parser.add_argument("--libraryname", required=True, help="Library to run test against",               type=str)
-   parser.add_argument("--covenabled",  required=True, help="TRUE/FALSE enables/disables coverage mode", type=str)
+   parser.add_argument("--unittestdir", required=True, help="Absolute path to unittest directory", type=str)
+   parser.add_argument("--binarydir",   required=True, help="Absolute path to build directory",    type=str)
+   parser.add_argument("--libraryname", required=True, help="Library to run test against",         type=str)
    args = parser.parse_args()
 
-   args.covenabled = True if (args.covenabled == "TRUE") else False
+   profile_files = []
+   with open(f"{args.binarydir}/profiles/cache.json", mode="r") as f:
+      cachedata = json.load(f)
+      for prof_file in cachedata[args.libraryname]:
+         profile_files.append(prof_file)
 
-   LLVM_PROFILE_FILE = ""
-   if args.covenabled:
-      LLVM_PROFILE_FILE = f"{args.binarydir}/profiles/{args.suitename}.profraw"
-   os.environ["LLVM_PROFILE_FILE"] = LLVM_PROFILE_FILE
-
-   ympyutils.runCmd(f"python -m unittest {args.suitename}.testsuite", cwd=args.unittestdir)
+   # TODO
 
    if args.covenabled:
       MERGED_PROFILE_FILE = LLVM_PROFILE_FILE.replace(".profraw", ".profdata")

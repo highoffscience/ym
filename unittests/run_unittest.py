@@ -4,6 +4,10 @@
 # @author  Forrest Jablonski
 #
 
+"""
+   Script that controls running unittests - to be called from cmake.
+"""
+
 import ympyutils
 
 import argparse
@@ -14,20 +18,34 @@ def cacheCovProfiles(
    args: argparse.ArgumentParser,
    LLVM_PROFILE_FILE: str):
    """
-   TODO switch to shinx - google style docs
-   https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html
+   Caches all coverage profile names with their associated instrumented library.
+
+   Args:
+      args:              Command line arguments.
+      LLVM_PROFILE_FILE: Name of preprocessed coverage profile file.
    """
-   cachedata = {"files": []}
+
+   cachedata = None
    cachefile = f"{args.binarydir}/profiles/cache.json"
+
    if os.path.isfile(cachefile):
       with open(cachefile, mode="r") as f:
          cachedata = json.load(f)
-   if LLVM_PROFILE_FILE not in cachedata["files"]:
-      cachedata["files"].append(LLVM_PROFILE_FILE)
+
+   if not cachedata:
+      cachedata = {}
+   if args.libraryname not in cachedata:
+      cachedata[args.libraryname] = []
+   if LLVM_PROFILE_FILE not in cachedata[args.libraryname]:
+      cachedata[args.libraryname].append(LLVM_PROFILE_FILE)
+
    with ympyutils.open_into_dir(cachefile, mode="w") as f:
       json.dump(cachedata, f, indent=3)
 
 def main():
+   """
+   Runs the given unittest and conditionally runs coverage.
+   """
    parser = argparse.ArgumentParser()
    parser.add_argument("--unittestdir", required=True, help="Absolute path to unittest directory",       type=str)
    parser.add_argument("--binarydir",   required=True, help="Absolute path to build directory",          type=str)
@@ -41,18 +59,7 @@ def main():
    LLVM_PROFILE_FILE = ""
    if args.covenabled:
       LLVM_PROFILE_FILE = f"{args.binarydir}/profiles/{args.suitename}.profraw"
-      
-      # TODO
-      # {"libname": []}
-      cachedata = {"files": [], "libname": ""}
-      cachefile = f"{args.binarydir}/profiles/cache.json"
-      if os.path.isfile(cachefile):
-         with open(cachefile, mode="r") as f:
-            cachedata = json.load(f)
-      if LLVM_PROFILE_FILE not in cachedata["files"]:
-         cachedata["files"].append(LLVM_PROFILE_FILE)
-      with ympyutils.open_into_dir(cachefile, mode="w") as f:
-         json.dump(cachedata, f, indent=3)
+      cacheCovProfiles(args, LLVM_PROFILE_FILE)
 
    os.environ["LLVM_PROFILE_FILE"] = LLVM_PROFILE_FILE
 

@@ -4,23 +4,29 @@
 # @author  Forrest Jablonski
 #
 
+"""
+   Utility functions.
+"""
+
 import os
 import subprocess as sp
 
 def runCmd(
-      cmd: str,
-      cwd: str             = ".",
-      per_line_action_func = None,
-      quiet: bool          = False):
+   cmd: str,
+   cwd: str             = ".",
+   per_line_action_func = None,
+   quiet: bool          = False) -> str:
    """
-   @brief Runs command and optionally runs an action function on every line of the output.
+   Runs command and optionally runs an action function on every line of the output.
 
-   @param cmd                  -- Command to run.
-   @param cwd                  -- Directory to run command in.
-   @param per_line_action_func -- Action function to run on every line of output.
-   @param quiet                -- Whether or not to suppress the return code.
+   Args:
+      cmd:                  Command to run.
+      cwd:                  Directory to run command in.
+      per_line_action_func: Action function to run on every line of output.
+      quiet:                Whether or not to suppress the return code.
 
-   @returns str -- Output of command (if no action function defined).
+   Returns:
+      Output of command (if no action function defined).
    """
    
    output = None
@@ -37,9 +43,17 @@ def runCmd(
 def open_into_dir(
    fullfilename: str,
    *args,
-   **kwargs) :
+   **kwargs):
    """
-   TODO
+   Opens a file and creates all directories within the qualified path.
+
+   Args:
+      fullfilename: Fully qualified file name.
+      *args:        Self explanatory.
+      **kwargs:     Self explanatory.
+
+   Returns:
+      io: The opened file.
    """
 
    dirname = os.path.dirname(fullfilename)
