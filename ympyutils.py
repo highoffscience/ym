@@ -8,10 +8,10 @@ import os
 import subprocess as sp
 
 def runCmd(
-   cmd: str,
-   cwd: str             = ".",
-   per_line_action_func = None,
-   quiet                = False):
+      cmd: str,
+      cwd: str             = ".",
+      per_line_action_func = None,
+      quiet: bool          = False):
    """
    @brief Runs command and optionally runs an action function on every line of the output.
 

@@ -7,7 +7,25 @@
 import ympyutils
 
 import argparse
+import json
 import os
+
+def cacheCovProfiles(
+   args: argparse.ArgumentParser,
+   LLVM_PROFILE_FILE: str):
+   """
+   TODO switch to shinx - google style docs
+   https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html
+   """
+   cachedata = {"files": []}
+   cachefile = f"{args.binarydir}/profiles/cache.json"
+   if os.path.isfile(cachefile):
+      with open(cachefile, mode="r") as f:
+         cachedata = json.load(f)
+   if LLVM_PROFILE_FILE not in cachedata["files"]:
+      cachedata["files"].append(LLVM_PROFILE_FILE)
+   with ympyutils.open_into_dir(cachefile, mode="w") as f:
+      json.dump(cachedata, f, indent=3)
 
 def main():
    parser = argparse.ArgumentParser()
@@ -24,13 +42,16 @@ def main():
    if args.covenabled:
       LLVM_PROFILE_FILE = f"{args.binarydir}/profiles/{args.suitename}.profraw"
       
-      cachedata = {"files": []}
+      # TODO
+      # {"libname": []}
+      cachedata = {"files": [], "libname": ""}
       cachefile = f"{args.binarydir}/profiles/cache.json"
       if os.path.isfile(cachefile):
          with open(cachefile, mode="r") as f:
             cachedata = json.load(f)
-      cachedata["files"].append(LLVM_PROFILE_FILE)
-      with open_into_dir(cachefile, mode="w") as f:
+      if LLVM_PROFILE_FILE not in cachedata["files"]:
+         cachedata["files"].append(LLVM_PROFILE_FILE)
+      with ympyutils.open_into_dir(cachefile, mode="w") as f:
          json.dump(cachedata, f, indent=3)
 
    os.environ["LLVM_PROFILE_FILE"] = LLVM_PROFILE_FILE
