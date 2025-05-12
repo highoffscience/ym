@@ -72,7 +72,7 @@ def main():
          f"-instr-profile={MERGED_PROFILE_FILE} " \
           "-use-color "                           \
           "-format=html "                         \
-         f"-output-dir={args.binarydir}/profiles/{args.libraryname}-covprofiles ")
+         f"-output-dir={args.binarydir}/profiles/{args.suitename}-covprofiles ")
 
 if __name__ == "__main__":
    main()

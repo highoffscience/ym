@@ -55,28 +55,30 @@ function(utbuild-ym.common Ctx_JSON)
 
       add_dependencies(${SubTargetRun} check-venv)
 
-      add_custom_command(TARGET ${SubTargetRun}
-         POST_BUILD
-         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-         BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles
-         COMMAND ${YM_Python} "run_unittest.py " \
-            "--unittestdir=${CMAKE_SOURCE_DIR} " \
-            "--binarydir=${CMAKE_BINARY_DIR} "   \
-            "--suitename=${SubTarget} "          \
-            "--libraryname=lib${BaseBuild}.so "  \
-            "--covenabled=${YM_CovEnabled}")
+      if (${YM_CovEnabled})
+         add_custom_command(TARGET ${SubTargetRun}
+            POST_BUILD
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles
+            COMMAND ${YM_Python} "run_unittest.py " \
+               "--unittestdir=${CMAKE_SOURCE_DIR} " \
+               "--binarydir=${CMAKE_BINARY_DIR} "   \
+               "--suitename=${SubTarget} "          \
+               "--libraryname=lib${BaseBuild}.so "  \
+               "--covenabled=${YM_CovEnabled}")
+      endif()
 
    endforeach()
 
+   # TODO this target needs to run AFTER run_unittest.py
    if (${YM_CovEnabled})
       add_custom_command(TARGET ${TargetRun}
          POST_BUILD
          WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-         BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles/
-         COMMAND ${CMAKE_COMMAND} -D TARGET_NAME=${Target}
-                                  -D SUBTARGET_NAMES="${SubBuilds}"
-                                  -D OBJECT_NAME=lib${Target}.so
-                                  -P ${CMAKE_SOURCE_DIR}/merge_covdata.cmake)
+         BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles
+         COMMAND ${YM_Python} "merge_cov_profiles.py " \
+            "--binarydir=${CMAKE_BINARY_DIR} "         \
+            "--libraryname=lib${BaseBuild}.so")
    endif()
 
 endfunction()
