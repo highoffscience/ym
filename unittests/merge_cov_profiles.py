@@ -5,7 +5,7 @@
 #
 
 """
-   Script to merge coverage profiles - to be called from cmake.
+Script to merge coverage profiles - to be called from cmake.
 """
 
 import ympyutils

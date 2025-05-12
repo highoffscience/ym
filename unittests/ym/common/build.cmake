@@ -49,11 +49,10 @@ function(utbuild-ym.common Ctx_JSON)
          target_link_libraries(${SubTarget} PRIVATE ${TargetInt})
       endif()
 
+      add_custom_target(${SubTargetRun} DEPENDS ${SubTarget})
+      add_dependencies(${SubTargetRun} check-venv)
       add_dependencies(${TargetAll} ${SubTarget})
       add_dependencies(${TargetRun} ${SubTargetRun})
-      add_custom_target(${SubTargetRun} DEPENDS ${SubTarget})
-
-      add_dependencies(${SubTargetRun} check-venv)
 
       if (${YM_CovEnabled})
          add_custom_command(TARGET ${SubTargetRun}
@@ -63,14 +62,13 @@ function(utbuild-ym.common Ctx_JSON)
             COMMAND ${YM_Python} "run_unittest.py " \
                "--unittestdir=${CMAKE_SOURCE_DIR} " \
                "--binarydir=${CMAKE_BINARY_DIR} "   \
-               "--suitename=${SubTarget} "          \
+               "--suitename=${SubBaseBuild} "       \
                "--libraryname=lib${BaseBuild}.so "  \
                "--covenabled=${YM_CovEnabled}")
       endif()
 
    endforeach()
 
-   # TODO this target needs to run AFTER run_unittest.py
    if (${YM_CovEnabled})
       add_custom_command(TARGET ${TargetRun}
          POST_BUILD

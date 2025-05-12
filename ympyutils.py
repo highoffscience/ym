@@ -5,7 +5,7 @@
 #
 
 """
-   Utility functions.
+Utility functions.
 """
 
 import os

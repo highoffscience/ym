@@ -8,29 +8,36 @@
 
 cmake_minimum_required(VERSION 3.27)
 
-## ym.common.rng
+## utbuild-ym.common.rng
 #
 # @brief Defines target to build the rng unittest.
 #
-function(ym.common.rng)
-   set(Target    ${CMAKE_CURRENT_FUNCTION})
-   set(TargetRun ${Target}_run)
+function(utbuild-ym.common.rng Ctx_JSON)
+
+   set(BaseBuild ym.common.rng)
+   set(Target    ${BaseBuild}-unittest)
+   set(TargetRun ${BaseBuild}-run)
 
    add_library(${Target} SHARED)
-
    target_sources(${Target} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/testsuite.cpp)
+   target_link_libraries(${Target} PRIVATE ym.common-interface)
 
-   target_include_directories(${Target} PRIVATE
-      ${YM_ProjRootDir}/ym/common/
-      ${CMAKE_SOURCE_DIR}/common/)
+   add_custom_target(${TargetRun} DEPENDS ${Target})
+   add_dependencies(${TargetRun} check-venv)
+   add_dependencies(ym.common-unittests ${Target})
+   add_dependencies(ym.common-run       ${TargetRun})
 
-   target_link_directories(${Target} PRIVATE ${YM_UTLibDir})
+   if (${YM_CovEnabled})
+      add_custom_command(TARGET ${TargetRun}
+         POST_BUILD
+         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+         BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles
+         COMMAND ${YM_Python} "run_unittest.py " \
+            "--unittestdir=${CMAKE_SOURCE_DIR} " \
+            "--binarydir=${CMAKE_BINARY_DIR} "   \
+            "--suitename=${BaseBuild} "          \
+            "--libraryname=libym.common.so "     \
+            "--covenabled=${YM_CovEnabled}")
+   endif()
 
-   target_link_libraries(${Target} PRIVATE ut.common)
-   target_link_libraries(${Target} PRIVATE ym.common)
-
-   set_target_properties(${Target} PROPERTIES
-            VERSION ${PROJECT_VERSION}
-            LIBRARY_OUTPUT_DIRECTORY ${YM_UTLibDir}
-            OUTPUT_NAME ${Target}_unittest)
 endfunction()

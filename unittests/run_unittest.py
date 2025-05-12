@@ -5,7 +5,7 @@
 #
 
 """
-   Script that controls running unittests - to be called from cmake.
+Script that controls running unittests - to be called from cmake.
 """
 
 import ympyutils
