@@ -27,17 +27,10 @@ function(utbuild-ym.common.rng Ctx_JSON)
    add_dependencies(ym.common-unittests ${Target})
    add_dependencies(ym.common-run       ${TargetRun})
 
-   if (${YM_CovEnabled})
-      add_custom_command(TARGET ${TargetRun}
-         POST_BUILD
-         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-         BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles
-         COMMAND ${YM_Python} "run_unittest.py "
-            "--unittestdir=${CMAKE_SOURCE_DIR} "
-            "--binarydir=${CMAKE_BINARY_DIR} "
-            "--suitename=${BaseBuild} "
-            "--libraryname=libym.common.so "
-            "--covenabled=${YM_CovEnabled}")
-   endif()
+   add_custom_command(TARGET ${TargetRun}
+      POST_BUILD
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles
+      COMMAND ${YM_Python} run_unittest.py --unittestdir=${CMAKE_SOURCE_DIR} --binarydir=${CMAKE_BINARY_DIR} --suitename=${BaseBuild} --libraryname=libym.common.so --covenabled=${YM_CovEnabled})
 
 endfunction()

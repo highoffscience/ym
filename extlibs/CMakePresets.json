@@ -10,7 +10,7 @@
          "name": "default",
          "displayName": "External Libs",
          "description": "Builds external libraries",
-         "generator": "Makefiles",
+         "generator": "Unix Makefiles",
          "binaryDir": "${sourceDir}/build",
          "toolchainFile": "${sourceDir}/toolchain.cmake",
          "cacheVariables": {

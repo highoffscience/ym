@@ -7,7 +7,6 @@
 #pragma once
 
 #include "utdefs.h"
-
 #include "testsuitebase.h"
 
 namespace ym::ut
@@ -15,7 +14,7 @@ namespace ym::ut
 
 /** TestSuite
  *
- * @brief Test suite for SUT YmError.
+ * @brief Test suite for Logger.
  */
 class TestSuite : public TestSuiteBase
 {
@@ -24,7 +23,6 @@ public:
    virtual ~TestSuite(void) = default;
 
    YM_UT_TESTCASE(InteractiveInspection)
-   YM_UT_TESTCASE(What                 )
 };
 
 } // ym::ut

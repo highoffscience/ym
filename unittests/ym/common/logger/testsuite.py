@@ -24,7 +24,7 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   @brief Collection of all tests for SUT YmError.
+   @brief Collection of all tests for suite Logger.
    """
 
    @classmethod
@@ -33,8 +33,9 @@ class TestSuite(testsuitebase.TestSuiteBase):
       @brief Acting constructor.
       """
 
-      super().setUpBaseClass(filepath="ym/common",
-                             filename="ymerror")
+      super().setUpBaseClass(
+         filepath="ym/common",
+         filename="logger")
 
    @classmethod
    def tearDownClass(cls):
@@ -65,26 +66,13 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
-      results = self.run_test_case("InteractiveInspection")
-
-   def test_What(self):
-      """
-      @brief Analyzes results from test case.
-
-      @param results -- Results from test case.
-      """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
-
-      results = self.run_test_case("What")
-   
-      self.assertTrue(results.get[bool]("GAM"), f"Msg not formatted as unexpected")
+      # uncomment to run test
+      # results = self.run_test_case("InteractiveInspection")
 
 # kick-off
 if __name__ == "__main__":
-   if os.path.basename(os.getcwd()) != "ymerror":
-      print("Needs to be run in the ymerror/ directory")
+   if os.path.basename(os.getcwd()) != "logger":
+      print("Needs to be run in the logger/ directory")
       sys.exit(1)
 
    unittest.main()

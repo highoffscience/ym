@@ -10,7 +10,7 @@
 #include "ymutils.h"
 
 #include "textlogger.h"
-#include "ymerror.h"
+#include "ymassert.h"
 
 /** TestSuite
  *

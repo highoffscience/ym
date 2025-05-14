@@ -59,16 +59,17 @@ else()
    message(FATAL_ERROR "fmt lib not found. Must build external libraries first.")
 endif()
 
-set_target_properties(YMRootIntLib PROPERTIES VERSION ${PROJECT_VERSION})
-set_target_properties(YMRootIntLib PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_CustomLibsDir})
-
 target_link_directories(YMRootIntLib INTERFACE ${YM_CustomLibsDir})
 
 add_custom_target(check-venv)
-add_custom_command(TARGET check-venv
+add_custom_command(TARGET check-venv # specialized command to run at build (run) time, not configure time
    PRE_BUILD
    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/check_venv.cmake)
+
+add_custom_target(distclean
+   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+   COMMAND rm -rf build/*)
 
 add_subdirectory(${YM_UnitTestDir}/common)
 target_link_libraries(YMRootIntLib INTERFACE ut.common)

@@ -11,7 +11,7 @@
          "hidden": true,
          "generator": "Unix Makefiles",
          "cacheVariables": {
-            "YM_Python": "python",
+            "YM_Python": "python3",
             "YM_ProjRootDir": "${sourceParentDir}/..",
             "YM_UnitTestDir": "${sourceDir}",
             "YM_ExtLibsDir": "${sourceParentDir}/extlibs",

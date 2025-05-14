@@ -22,12 +22,9 @@ function(srcbuild-ym.common Ctx_JSON)
       textlogger.cpp
       timer.cpp
       ymassert.cpp
-      ymdefs.cpp
       ymutils.cpp)
    list(TRANSFORM Srcs PREPEND ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/)
    target_sources(${Target} PRIVATE ${Srcs})
-
-   target_link_libraries(${Target} PRIVATE ym-interface)
 
    if (YM_COMMON_DEBUG)
       target_compile_definitions(${Target} PRIVATE YM_DEBUG=1)
