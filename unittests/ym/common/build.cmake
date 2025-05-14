@@ -27,7 +27,7 @@ function(utbuild-ym.common Ctx_JSON)
 
    target_link_libraries(${TargetInt} INTERFACE ym-interface)
 
-   include(${ProjRootDir}/ym/common/build.cmake)
+   include(${YM_ProjRootDir}/ym/common/build.cmake)
    cmake_language(CALL srcbuild-${BaseBuild} ${Ctx_JSON})
    target_link_libraries(${TargetInt} INTERFACE ${BaseBuild})
 
@@ -59,11 +59,11 @@ function(utbuild-ym.common Ctx_JSON)
             POST_BUILD
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
             BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles
-            COMMAND ${YM_Python} "run_unittest.py " \
-               "--unittestdir=${CMAKE_SOURCE_DIR} " \
-               "--binarydir=${CMAKE_BINARY_DIR} "   \
-               "--suitename=${SubBaseBuild} "       \
-               "--libraryname=lib${BaseBuild}.so "  \
+            COMMAND ${YM_Python} "run_unittest.py "
+               "--unittestdir=${CMAKE_SOURCE_DIR} "
+               "--binarydir=${CMAKE_BINARY_DIR} "
+               "--suitename=${SubBaseBuild} "
+               "--libraryname=lib${BaseBuild}.so "
                "--covenabled=${YM_CovEnabled}")
       endif()
 
@@ -74,8 +74,8 @@ function(utbuild-ym.common Ctx_JSON)
          POST_BUILD
          WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
          BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles
-         COMMAND ${YM_Python} "merge_cov_profiles.py " \
-            "--binarydir=${CMAKE_BINARY_DIR} "         \
+         COMMAND ${YM_Python} "merge_cov_profiles.py "
+            "--binarydir=${CMAKE_BINARY_DIR} "
             "--libraryname=lib${BaseBuild}.so")
    endif()
 

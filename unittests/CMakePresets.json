@@ -9,7 +9,7 @@
       {
          "name": "base",
          "hidden": true,
-         "generator": "Makefiles",
+         "generator": "Unix Makefiles",
          "cacheVariables": {
             "YM_Python": "python",
             "YM_ProjRootDir": "${sourceParentDir}/..",

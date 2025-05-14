@@ -32,11 +32,11 @@ function(utbuild-ym.common.rng Ctx_JSON)
          POST_BUILD
          WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
          BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles
-         COMMAND ${YM_Python} "run_unittest.py " \
-            "--unittestdir=${CMAKE_SOURCE_DIR} " \
-            "--binarydir=${CMAKE_BINARY_DIR} "   \
-            "--suitename=${BaseBuild} "          \
-            "--libraryname=libym.common.so "     \
+         COMMAND ${YM_Python} "run_unittest.py "
+            "--unittestdir=${CMAKE_SOURCE_DIR} "
+            "--binarydir=${CMAKE_BINARY_DIR} "
+            "--suitename=${BaseBuild} "
+            "--libraryname=libym.common.so "
             "--covenabled=${YM_CovEnabled}")
    endif()
 

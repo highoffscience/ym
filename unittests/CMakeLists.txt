@@ -17,7 +17,7 @@ project(
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Context objects may be useful for passing state around
+# Context objects are useful for passing state around
 set(YM_Ctx_JSON "{}")
 
 add_library(YMRootIntLib INTERFACE)
@@ -75,6 +75,6 @@ target_link_libraries(YMRootIntLib INTERFACE ut.common)
 
 set(YM_TopLevelSubBuilds ym)
 foreach(SubBuild ${YM_TopLevelSubBuilds})
-   include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/${SubBuild}/build.cmake)
-   cmake_language(CALL utbuild-${SubBuild} ${Ctx_JSON})
+   include(${CMAKE_SOURCE_DIR}/${SubBuild}/build.cmake)
+   cmake_language(CALL utbuild-${SubBuild} ${YM_Ctx_JSON})
 endforeach()
