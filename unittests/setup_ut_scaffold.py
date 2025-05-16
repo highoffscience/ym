@@ -8,11 +8,12 @@ import argparse
 import os
 import sys
 
-def gen_header_file(args):
+def gen_header_file(args: argparse.Namespace):
    """
-   @brief Generates header skeleton file.
+   Generates header skeleton file.
 
-   @param args -- Supplied options.
+   Args:
+      args: Supplied options.
    """
 
    hdr_file = os.path.join(args.filepath, args.filename, "testsuite.h")
@@ -55,11 +56,12 @@ def gen_header_file(args):
       writeln(f"                                           ")
       writeln(f"}} // ym::ut                               ") 
 
-def gen_source_file(args):
+def gen_source_file(args: argparse.Namespace):
    """
-   @brief Generates source skeleton file.
+   Generates source skeleton file.
 
-   @param args -- Supplied options.
+   Args:
+      args: Supplied options.
    """
 
    src_file = os.path.join(args.filepath, args.filename, "testsuite.cpp")
@@ -108,11 +110,12 @@ def gen_source_file(args):
       writeln(f"   return {{}};                                                           ")
       writeln(f"}}                                                                        ")
 
-def gen_runner_file(args):
+def gen_runner_file(args: argparse.Namespace):
    """
-   @brief Generates test suite runner skeleton file.
+   Generates test suite runner skeleton file.
 
-   @param args -- Supplied options.
+   Args:
+      args: Supplied options.
    """
 
    runner_file = os.path.join(args.filepath, args.filename, "testsuite.py")
@@ -137,9 +140,6 @@ def gen_runner_file(args):
       writeln(f"import unittest                                                     ")
       writeln(f"                                                                    ")
       writeln(f"try:                                                                ")
-      writeln(f"   # @note Grabs the first directory in the chain named unittests/. ")
-      writeln(f"   sys.path.append(os.path.join(os.getcwd().split("
-              f"\"unittests\")[0], \"unittests/\"))                                 ")
       writeln(f"   import testsuitebase                                             ")
       writeln(f"except:                                                             ")
       writeln(f"   print(\"Cannot import testsuitebase - path set correctly?\")     ")
@@ -153,15 +153,14 @@ def gen_runner_file(args):
       writeln(f"                                                                    ")
       writeln(f"class TestSuite(testsuitebase.TestSuiteBase):                       ")
       writeln(f"   \"\"\"                                                           ")
-      writeln(f"   @brief Collection of all tests for suite {args.suitename}.       ")
+      writeln(f"   Collection of all tests for suite {args.suitename}.              ")
       writeln(f"   \"\"\"                                                           ")
       writeln(f"                                                                    ")
       writeln(f"   @classmethod                                                     ")
       writeln(f"   def setUpClass(cls):                                             ")
       writeln(f"      \"\"\"                                                        ")
-      writeln(f"      @brief Acting constructor.                                    ")
+      writeln(f"      Acting constructor.                                           ")
       writeln(f"      \"\"\"                                                        ")
-      writeln(f"                                                                    ")
       writeln(f"      super().setUpBaseClass(                                       ")
       writeln(f"         filepath=\"{args.filepath}\",                              ")
       writeln(f"         filename=\"{args.filename}\")                              ")
@@ -169,7 +168,8 @@ def gen_runner_file(args):
       writeln(f"   @classmethod                                                     ")
       writeln(f"   def tearDownClass(cls):                                          ")
       writeln(f"      \"\"\"                                                        ")
-      writeln(f"      @brief Acting destructor.                                     ")
+      #TODO
+      writeln(f"      Acting destructor.                                            ")
       writeln(f"      \"\"\"                                                        ")
       writeln(f"      super().tearDownBaseClass()                                   ")
       writeln(f"                                                                    ")
@@ -208,9 +208,10 @@ def gen_runner_file(args):
 
 def main():
    """
-   @brief Sets up the unittest scaffolding.
+   Sets up the unittest scaffolding.
 
-   @note For example...
+   Notes:
+      For example...
          --filepath  ym/common/
          --filename  ymdefs (w/out extension)
          --suitename YmDefs

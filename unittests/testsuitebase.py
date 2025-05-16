@@ -4,13 +4,11 @@
 # @author  Forrest Jablonski
 #
 
+import ympyutils as ympy
+
 import os
 import sys
 import unittest
-
-# TODO set python path instead!
-sys.path.append("..")
-import ympyutils as ympy
 
 try:
    import cppyy
@@ -20,60 +18,65 @@ except:
 
 class TestSuiteBase(unittest.TestCase):
    """
-   @brief Base class representing a test suite.
+   Base class representing a test suite.
    """
 
    @classmethod
-   def setUpBaseClass(cls, filepath: str,
-                           filename: str):
+   def setUpBaseClass(cls,
+         filepath: str,
+         filename: str):
       """
-      @brief Acting constructor.
+      Acting constructor.
 
-      @param filepath -- Path of suite relative to unittests/ directory.
-      @param filename -- Name of suite file.
+      Args:
+         filepath: Path of suite relative to unittests/ directory.
+         filename: Name of suite file.
       """
 
-      cls.filepath     = filepath
-      cls.filename     = filename
+      cls.filepath    = filepath
+      cls.filename    = filename
 
-      cls.ut_rootpath  = os.path.dirname(os.path.abspath(__file__))
-      cls.rootpath     = os.path.join(cls.ut_rootpath, "../../")
+      cls.unittestdir = os.path.dirname(os.path.abspath(__file__))
+      cls.rootpath    = os.path.join(cls.unittestdir, "../../")
 
-      cls.suitepath    = os.path.join(cls.rootpath,    cls.filepath)
-      cls.ut_suitepath = os.path.join(cls.ut_rootpath, cls.filepath, cls.filename)
+      cls.suitepath   = os.path.join(cls.rootpath,    cls.filepath)
+      cls.utsuitepath = os.path.join(cls.unittestdir, cls.filepath, cls.filename)
 
       cls.configCppyy()
 
    @classmethod
    def tearDownBaseClass(cls):
       """
-      @brief Acting destructor.
+      Acting destructor.
       """
       pass
 
    @classmethod
    def configCppyy(cls):
       """
-      @brief Configures the test suite environment.
+      Configures the test suite environment.
       """
 
-      cppyy.add_include_path(os.path.join(cls.ut_rootpath, "common/"))
-      cppyy.add_include_path(cls.suitepath   )
-      cppyy.add_include_path(cls.ut_suitepath)
+      cppyy.add_include_path(os.path.join(cls.unittestdir, "common/"))
+      cppyy.add_include_path(cls.suitepath  )
+      cppyy.add_include_path(cls.utsuitepath)
 
-      cppyy.include(os.path.join(cls.ut_suitepath, "testsuite.h"))
+      cppyy.include(os.path.join(cls.utsuitepath, "testsuite.h"))
 
       build_path = "covbuild/" if os.environ.get("LLVM_PROFILE_FILE", default=None) else "build/"
-      cppyy.add_library_path(os.path.join(cls.ut_rootpath, build_path, "customlibs/"))
+      cppyy.add_library_path(os.path.join(cls.unittestdir, build_path, "customlibs/"))
       cppyy.load_library(f"lib{os.path.join(cls.filepath, cls.filename).replace('/', '.')}-unittest")
 
-   def run_test_case(self, test_case_name: str):
+   def run_test_case(self,
+         test_case_name: str):
       """
-      @brief Runs the specified test case.
+      Runs the specified test case.
 
-      @param test_case_name -- Name of test case to run.
+      Args:
+         test_case_name: Name of test case to run.
 
-      @returns DataShuttle -- Dictionary containing results of test case.
+      Returns:
+         DataShuttle: Dictionary containing results of test case.
       """
 
       from cppyy.gbl import std

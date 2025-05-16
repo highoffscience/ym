@@ -21,13 +21,15 @@ function(utbuild-ym.common Ctx_JSON)
    set(TargetRun ${BaseBuild}-run)
    set(TargetInt ${BaseBuild}-interface)
 
+   string(REPLACE "." "/" BaseBuildDir ${BaseBuild})
+
    add_custom_target(${TargetAll})
    add_custom_target(${TargetRun})
    add_library(${TargetInt} INTERFACE)
 
    target_link_libraries(${TargetInt} INTERFACE ym-interface)
 
-   include(${YM_ProjRootDir}/ym/common/build.cmake)
+   include(${YM_ProjRootDir}/${BaseBuildDir}/build.cmake)
    cmake_language(CALL srcbuild-${BaseBuild} ${Ctx_JSON})
    target_link_libraries(${TargetInt} INTERFACE ${BaseBuild})
    target_link_libraries(${BaseBuild} PRIVATE ${TargetInt})
@@ -41,14 +43,14 @@ function(utbuild-ym.common Ctx_JSON)
       set(SubTarget    ${BaseBuild}.${SubBuild}-unittest)
       set(SubTargetRun ${BaseBuild}.${SubBuild}-run)
 
-      set(SubBuildPath ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/${SubBuild})
+      set(SubBuildDir ${YM_UnitTestDir}/${BaseBuildDir}/${SubBuild})
 
-      if(EXISTS  ${SubBuildPath}/build.cmake)
-         include(${SubBuildPath}/build.cmake)
+      if(EXISTS  ${SubBuildDir}/build.cmake)
+         include(${SubBuildDir}/build.cmake)
          cmake_language(CALL utbuild-${SubBaseBuild} Ctx_JSON)
       else()
          add_library(${SubTarget} SHARED)
-         target_sources(${SubTarget} PRIVATE ${SubBuildPath}/testsuite.cpp)
+         target_sources(${SubTarget} PRIVATE ${SubBuildDir}/testsuite.cpp)
          target_link_libraries(${SubTarget} PRIVATE ${TargetInt})
          set_target_properties(${SubTarget} PROPERTIES VERSION ${PROJECT_VERSION})
          set_target_properties(${SubTarget} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_CustomLibsDir})
@@ -61,19 +63,19 @@ function(utbuild-ym.common Ctx_JSON)
 
       add_custom_command(TARGET ${SubTargetRun}
          POST_BUILD
-         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-         BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles
+         WORKING_DIRECTORY ${YM_UnitTestDir}
+         BYPRODUCTS        ${YM_UnitTestDir}/covbuild/profiles
          COMMAND ${CMAKE_COMMAND} -E env
             PYTHONPATH=$ENV{PYTHONPATH}
-            ${YM_Python} run_unittest.py --unittestdir=${CMAKE_SOURCE_DIR} --binarydir=${CMAKE_BINARY_DIR} --suitename=${SubBaseBuild} --libraryname=lib${BaseBuild}.so --covenabled=${YM_CovEnabled})
+            ${YM_Python} run_unittest.py --unittestdir=${YM_UnitTestDir} --binarydir=${CMAKE_BINARY_DIR} --suitename=${SubBaseBuild} --libraryname=lib${BaseBuild}.so --covenabled=${YM_CovEnabled})
 
    endforeach()
 
    if (${YM_CovEnabled})
       add_custom_command(TARGET ${TargetRun}
          POST_BUILD
-         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-         BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles
+         WORKING_DIRECTORY ${YM_UnitTestDir}
+         BYPRODUCTS        ${YM_UnitTestDir}/covbuild/profiles
          COMMAND ${YM_Python} merge_cov_profiles.py --binarydir=${CMAKE_BINARY_DIR} --libraryname=lib${BaseBuild}.so)
    endif()
 

@@ -33,11 +33,13 @@ target_include_directories(YMRootIntLib INTERFACE
    ${YM_UnitTestDir}/ym/common
    ${YM_ProjRootDir}/ym/common)
 
+set(YM_UTPYTHONPATHS ${YM_ProjRootDir}/ym:${YM_UnitTestDir})
 if ($ENV{PYTHONPATH})
-   set(ENV{PYTHONPATH} ${CMAKE_SOURCE_DIR}/..:$ENV{PYTHONPATH})
+   set(ENV{PYTHONPATH} ${YM_UTPYTHONPATHS}:$ENV{PYTHONPATH})
 else()
-   set(ENV{PYTHONPATH} ${CMAKE_SOURCE_DIR}/..)
+   set(ENV{PYTHONPATH} ${YM_UTPYTHONPATHS})
 endif()
+unset(YM_UTPYTHONPATHS)
 
 if (${YM_CovEnabled})
    message("Compiling for coverage...")
@@ -70,11 +72,11 @@ target_link_directories(YMRootIntLib INTERFACE ${YM_CustomLibsDir})
 add_custom_target(check-venv)
 add_custom_command(TARGET check-venv # specialized command to run at build (run) time, not configure time
    PRE_BUILD
-   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+   WORKING_DIRECTORY ${YM_UnitTestDir}
    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/check_venv.cmake)
 
 add_custom_target(distclean
-   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+   WORKING_DIRECTORY ${YM_UnitTestDir}
    COMMAND rm -rf build/*)
 
 add_subdirectory(${YM_UnitTestDir}/common)
@@ -82,6 +84,6 @@ target_link_libraries(YMRootIntLib INTERFACE ut.common)
 
 set(YM_TopLevelSubBuilds ym)
 foreach(SubBuild ${YM_TopLevelSubBuilds})
-   include(${CMAKE_SOURCE_DIR}/${SubBuild}/build.cmake)
+   include(${YM_UnitTestDir}/${SubBuild}/build.cmake)
    cmake_language(CALL utbuild-${SubBuild} ${YM_Ctx_JSON})
 endforeach()

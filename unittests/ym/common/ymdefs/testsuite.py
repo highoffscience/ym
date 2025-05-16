@@ -9,10 +9,6 @@ import sys
 import unittest
 
 try:
-   # @note Grabs the first directory in the chain named unittests/.
-   # TODO set python path instead!
-   # TODO modify setup script too
-   sys.path.append(os.path.join(os.getcwd().split("unittests")[0], "unittests/"))
    import testsuitebase
 except:
    print("Cannot import testsuitebase - path set correctly?")

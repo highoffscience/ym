@@ -21,6 +21,8 @@ function(utbuild-ym Ctx_JSON)
    set(TargetRun ${BaseBuild}-run)
    set(TargetInt ${BaseBuild}-interface)
 
+   string(REPLACE "." "/" BaseBuildDir ${BaseBuild})
+
    add_custom_target(${TargetAll})
    add_custom_target(${TargetRun})
    add_library(${TargetInt} INTERFACE)
@@ -29,7 +31,7 @@ function(utbuild-ym Ctx_JSON)
 
    set(SubBuilds common)
    foreach(SubBuild ${SubBuilds})
-      include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/${SubBuild}/build.cmake)
+      include(${YM_UnitTestDir}/${BaseBuildDir}/${SubBuild}/build.cmake)
       cmake_language(CALL utbuild-${BaseBuild}.${SubBuild} ${Ctx_JSON})
    endforeach()
    

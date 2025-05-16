@@ -12,10 +12,10 @@ import os
 import subprocess as sp
 
 def runCmd(
-   cmd: str,
-   cwd: str             = ".",
-   per_line_action_func = None,
-   quiet: bool          = False) -> str:
+      cmd: str,
+      cwd: str             = ".",
+      per_line_action_func = None,
+      quiet: bool          = False) -> str:
    """
    Runs command and optionally runs an action function on every line of the output.
 
@@ -41,9 +41,9 @@ def runCmd(
    return output
 
 def open_into_dir(
-   fullfilename: str,
-   *args,
-   **kwargs):
+      fullfilename: str,
+      *args,
+      **kwargs):
    """
    Opens a file and creates all directories within the qualified path.
 

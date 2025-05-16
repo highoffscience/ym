@@ -8,15 +8,15 @@
 Script that controls running unittests - to be called from cmake.
 """
 
-import ympyutils
+import ympyutils as ympy
 
 import argparse
 import json
 import os
 
 def cacheCovProfiles(
-   args: argparse.ArgumentParser,
-   LLVM_PROFILE_FILE: str):
+      args: argparse.ArgumentParser,
+      LLVM_PROFILE_FILE: str):
    """
    Caches all coverage profile names with their associated instrumented library.
 
@@ -39,7 +39,7 @@ def cacheCovProfiles(
    if LLVM_PROFILE_FILE not in cachedata[args.libraryname]:
       cachedata[args.libraryname].append(LLVM_PROFILE_FILE)
 
-   with ympyutils.open_into_dir(cachefile, mode="w") as f:
+   with ympy.open_into_dir(cachefile, mode="w") as f:
       json.dump(cachedata, f, indent=3)
 
 def main():
@@ -63,12 +63,12 @@ def main():
 
    os.environ["LLVM_PROFILE_FILE"] = LLVM_PROFILE_FILE
 
-   ympyutils.runCmd(f"python -m unittest {args.suitename}.testsuite", cwd=args.unittestdir)
+   ympy.runCmd(f"python -m unittest {args.suitename}.testsuite", cwd=args.unittestdir)
 
    if args.covenabled:
       MERGED_PROFILE_FILE = LLVM_PROFILE_FILE.replace(".profraw", ".profdata")
-      ympyutils.runCmd(f"llvm-profdata merge {LLVM_PROFILE_FILE} -o {MERGED_PROFILE_FILE}")
-      ympyutils.runCmd(f"llvm-cov show {args.binarydir}/customlibs/{args.libraryname} " \
+      ympy.runCmd(f"llvm-profdata merge {LLVM_PROFILE_FILE} -o {MERGED_PROFILE_FILE}")
+      ympy.runCmd(f"llvm-cov show {args.binarydir}/customlibs/{args.libraryname} " \
          f"-instr-profile={MERGED_PROFILE_FILE} " \
           "-use-color "                           \
           "-format=html "                         \

@@ -18,8 +18,10 @@ function(utbuild-ym.common.rng Ctx_JSON)
    set(Target    ${BaseBuild}-unittest)
    set(TargetRun ${BaseBuild}-run)
 
+   string(REPLACE "." "/" BaseBuildDir ${BaseBuild})
+
    add_library(${Target} SHARED)
-   target_sources(${Target} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/testsuite.cpp)
+   target_sources(${Target} PRIVATE ${YM_UnitTestDir}/${BaseBuildDir}/testsuite.cpp)
    target_link_libraries(${Target} PRIVATE ym.common-interface)
 
    add_custom_target(${TargetRun} DEPENDS ${Target})
@@ -29,8 +31,8 @@ function(utbuild-ym.common.rng Ctx_JSON)
 
    add_custom_command(TARGET ${TargetRun}
       POST_BUILD
-      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-      BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles
-      COMMAND ${YM_Python} run_unittest.py --unittestdir=${CMAKE_SOURCE_DIR} --binarydir=${CMAKE_BINARY_DIR} --suitename=${BaseBuild} --libraryname=libym.common.so --covenabled=${YM_CovEnabled})
+      WORKING_DIRECTORY ${YM_UnitTestDir}
+      BYPRODUCTS        ${YM_UnitTestDir}/covbuild/profiles
+      COMMAND ${YM_Python} run_unittest.py --unittestdir=${YM_UnitTestDir} --binarydir=${CMAKE_BINARY_DIR} --suitename=${BaseBuild} --libraryname=libym.common.so --covenabled=${YM_CovEnabled})
 
 endfunction()
