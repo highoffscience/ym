@@ -8,6 +8,7 @@ import os
 import sys
 import unittest
 
+# TODO set python path instead!
 sys.path.append("..")
 import ympyutils as ympy
 
@@ -64,7 +65,7 @@ class TestSuiteBase(unittest.TestCase):
 
       build_path = "covbuild/" if os.environ.get("LLVM_PROFILE_FILE", default=None) else "build/"
       cppyy.add_library_path(os.path.join(cls.ut_rootpath, build_path, "customlibs/"))
-      cppyy.load_library(f"lib{os.path.join(cls.filepath, cls.filename).replace('/', '.')}_unittest")
+      cppyy.load_library(f"lib{os.path.join(cls.filepath, cls.filename).replace('/', '.')}-unittest")
 
    def run_test_case(self, test_case_name: str):
       """

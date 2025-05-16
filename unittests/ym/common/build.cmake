@@ -63,7 +63,9 @@ function(utbuild-ym.common Ctx_JSON)
          POST_BUILD
          WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
          BYPRODUCTS        ${CMAKE_SOURCE_DIR}/covbuild/profiles
-         COMMAND ${YM_Python} run_unittest.py --unittestdir=${CMAKE_SOURCE_DIR} --binarydir=${CMAKE_BINARY_DIR} --suitename=${SubBaseBuild} --libraryname=lib${BaseBuild}.so --covenabled=${YM_CovEnabled})
+         COMMAND ${CMAKE_COMMAND} -E env
+            PYTHONPATH=$ENV{PYTHONPATH}
+            ${YM_Python} run_unittest.py --unittestdir=${CMAKE_SOURCE_DIR} --binarydir=${CMAKE_BINARY_DIR} --suitename=${SubBaseBuild} --libraryname=lib${BaseBuild}.so --covenabled=${YM_CovEnabled})
 
    endforeach()
 

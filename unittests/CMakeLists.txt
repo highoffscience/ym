@@ -33,6 +33,12 @@ target_include_directories(YMRootIntLib INTERFACE
    ${YM_UnitTestDir}/ym/common
    ${YM_ProjRootDir}/ym/common)
 
+if ($ENV{PYTHONPATH})
+   set(ENV{PYTHONPATH} ${CMAKE_SOURCE_DIR}/..:$ENV{PYTHONPATH})
+else()
+   set(ENV{PYTHONPATH} ${CMAKE_SOURCE_DIR}/..)
+endif()
+
 if (${YM_CovEnabled})
    message("Compiling for coverage...")
    set(YM_CovFlags -fprofile-instr-generate -fcoverage-mapping)
