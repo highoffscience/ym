@@ -19,7 +19,7 @@
  * @brief Constructor.
  */
 ym::ut::TestSuite::TestSuite(void)
-   : TestSuiteBase("Ymassert")
+   : TestSuiteBase("YmAssert")
 {
    addTestCase<InteractiveInspection>();
    addTestCase<What                 >();
@@ -45,7 +45,7 @@ auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle 
       "I ({}) is NOT greater than J ({})", I, J);
 
    return {
-      {"True", true}
+      {"True", false}
    };
 }
 
