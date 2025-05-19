@@ -33,7 +33,16 @@ ym::ut::TestSuite::TestSuite(void)
  */
 auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
+   // TODO rename to UnitTest_YmAssert
    auto const SE = ymLogPushEnable(VG::UnitTest_YmError);
+
+   YM_DECL_YMASSERT(Error)
+
+   auto const I = 9;
+   auto const J = 5;
+
+   YMASSERT(I > J, Error, YM_DAH,
+      "I ({}) is NOT greater than J ({})", I, J);
 
    return {
       {"True", true}
