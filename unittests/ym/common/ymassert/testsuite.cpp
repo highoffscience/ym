@@ -41,8 +41,9 @@ auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle 
    auto const I = 9;
    auto const J = 5;
 
-   YMASSERT(I > J, Error, YM_DAH,
-      "I ({}) is NOT greater than J ({})", I, J);
+   // TODO follow logic here - I don't think it prints to console
+   YMASSERT(I < J, Error, YM_DAH,
+      "I ({}) is NOT less than J ({})", I, J);
 
    return {
       {"True", false}

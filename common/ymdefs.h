@@ -28,15 +28,6 @@
 // ----------------------------------------------------------------------------
 
 /**
- * @brief Debug flag.
- */
-#if !defined(YM_DEBUG)
-   #define YM_DEBUG true
-#endif
-
-// ----------------------------------------------------------------------------
-
-/**
  * @brief Helper define's for the current cpp standard.
  */
 #if (__cplusplus >= 201703L)

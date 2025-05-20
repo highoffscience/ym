@@ -16,7 +16,7 @@
             "YM_UnitTestDir": "${sourceDir}",
             "YM_ExtLibsDir": "${sourceParentDir}/extlibs",
             "YM_PRINT_TO_SCREEN": true,
-            "YM_DEBUG": false
+            "YM_DEBUG": true
          }
       },
       {

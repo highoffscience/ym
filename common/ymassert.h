@@ -92,7 +92,7 @@
 #if (YM_DEBUG)
    #define YMASSERTDBG(Cond_, Derived_, Handler_, Format_, ...) YMASSERT(Cond_, Derived_, Handler_, Format_, __VA_ARGS__)
 #else
-   #define YMASSERTDBG(Cond_, Derived_, Handler_, Format_, ...) (void);
+   #define YMASSERTDBG(Cond_, Derived_, Handler_, Format_, ...) (void)0;
 #endif
 
 /** YM_DECL_YMASSERT

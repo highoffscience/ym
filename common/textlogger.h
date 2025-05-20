@@ -71,7 +71,7 @@ public:
       FilenameMode_T const FilenameMode = FilenameMode_T::AppendTimeStamp,
       PrintMode_T    const PrintMode    = PrintMode_T::PrependHumanReadableTimeStamp,
       RedirectMode_T const RedirectMode = 
-         #if (YM_DEBUG)
+         #if (YM_DEBUG || YM_PRINT_TO_SCREEN)
             RedirectMode_T::ToLogAndStdOut
          #else
             RedirectMode_T::ToLog

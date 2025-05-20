@@ -56,7 +56,7 @@ if (${YM_PRINT_TO_SCREEN})
 endif()
 
 if (${YM_DEBUG})
-   target_compile_definitions(YMRootIntLib YM_DEBUG=1)
+   target_compile_definitions(YMRootIntLib INTERFACE YM_DEBUG=1)
 endif()
 
 if (EXISTS ${YM_ExtLibsDir}/build/_deps/fmt-build/libfmt.so)
