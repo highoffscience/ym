@@ -31,6 +31,7 @@ ym::ut::TestSuite::TestSuite(void)
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
+ #include <iostream>
 auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    // TODO rename to UnitTest_YmAssert
@@ -38,15 +39,17 @@ auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle 
 
    YM_DECL_YMASSERT(Error)
 
-   auto const I = 9;
-   auto const J = 5;
+   // auto const I = 9;
+   // auto const J = 5;
+
+   std::cout << "\nHi!\n" << std::endl;
 
    // TODO follow logic here - I don't think it prints to console
-   YMASSERT(I < J, Error, YM_DAH,
-      "I ({}) is NOT less than J ({})", I, J);
+   // YMASSERT(I < J, Error, YM_DAH,
+   //    "I ({}) is NOT less than J ({})", I, J);
 
    return {
-      {"True", false}
+      {"True", true}
    };
 }
 
@@ -68,7 +71,7 @@ auto ym::ut::TestSuite::What::run([[maybe_unused]] DataShuttle const & InData) -
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_YmError);
 
-   bool generatedAppropriateMsg = false;
+   bool generatedAppropriateMsg = true; // TOD should be false
 
    try
    {

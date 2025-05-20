@@ -23,24 +23,25 @@ class TestSuiteBase(unittest.TestCase):
 
    @classmethod
    def setUpBaseClass(cls,
-         filepath: str,
+         rel_path: str,
          filename: str):
       """
       Acting constructor.
 
       Args:
-         filepath: Path of suite relative to unittests/ directory.
+         rel_path: Path of suite relative to unittests/ directory.
          filename: Name of suite file.
       """
 
-      cls.filepath    = filepath
-      cls.filename    = filename
+      #TODO python can parse CMakePresets for this info
+      cls.rel_path = rel_path
+      cls.filename = filename
 
       cls.unittestdir = os.path.dirname(os.path.abspath(__file__))
       cls.rootpath    = os.path.join(cls.unittestdir, "../../")
 
-      cls.suitepath   = os.path.join(cls.rootpath,    cls.filepath)
-      cls.utsuitepath = os.path.join(cls.unittestdir, cls.filepath, cls.filename)
+      cls.abs_ut_path  = os.path.join(cls.unittestdir, cls.rel_path, cls.filename)
+      cls.abs_src_path = os.path.join(cls.rootpath,    cls.rel_path)
 
       cls.configCppyy()
 
@@ -58,10 +59,10 @@ class TestSuiteBase(unittest.TestCase):
       """
 
       cppyy.add_include_path(os.path.join(cls.unittestdir, "common/"))
-      cppyy.add_include_path(cls.suitepath  )
-      cppyy.add_include_path(cls.utsuitepath)
+      cppyy.add_include_path(cls.abs_ut_path)
+      cppyy.add_include_path(cls.abs_src_path)
 
-      cppyy.include(os.path.join(cls.utsuitepath, "testsuite.h"))
+      cppyy.include(os.path.join(cls.abs_ut_path, "testsuite.h"))
 
       build_path = "covbuild/" if os.environ.get("LLVM_PROFILE_FILE", default=None) else "build/"
       cppyy.add_library_path(os.path.join(cls.unittestdir, build_path, "customlibs/"))
