@@ -4,8 +4,6 @@
 # @author  Forrest Jablonski
 #
 
-import ympyutils as ympy
-
 import os
 import sys
 import unittest
@@ -21,6 +19,11 @@ class TestSuiteBase(unittest.TestCase):
    Base class representing a test suite.
    """
 
+   # these to be set before before running suite
+   unittestdir = None
+   projrootdir = None
+   builddir    = None
+
    @classmethod
    def setUpBaseClass(cls,
          rel_path: str,
@@ -33,15 +36,15 @@ class TestSuiteBase(unittest.TestCase):
          filename: Name of suite file.
       """
 
-      #TODO python can parse CMakePresets for this info
+      if not cls.unittestdir or not cls.projrootdir or not cls.builddir:
+         print(f"Testsuite for file {filename} not setup correctly")
+         sys.exit(1)
+
       cls.rel_path = rel_path
       cls.filename = filename
 
-      cls.unittestdir = os.path.dirname(os.path.abspath(__file__))
-      cls.rootpath    = os.path.join(cls.unittestdir, "../../")
-
-      cls.abs_ut_path  = os.path.join(cls.unittestdir, cls.rel_path, cls.filename)
-      cls.abs_src_path = os.path.join(cls.rootpath,    cls.rel_path)
+      cls.abs_ut_suite_path = os.path.join(cls.unittestdir, cls.rel_path, cls.filename)
+      cls.abs_src_path      = os.path.join(cls.projrootdir, cls.rel_path)
 
       cls.configCppyy()
 
@@ -50,7 +53,9 @@ class TestSuiteBase(unittest.TestCase):
       """
       Acting destructor.
       """
-      pass
+      cls.unittestdir = None
+      cls.projrootdir = None
+      cls.builddir    = None
 
    @classmethod
    def configCppyy(cls):
@@ -59,14 +64,13 @@ class TestSuiteBase(unittest.TestCase):
       """
 
       cppyy.add_include_path(os.path.join(cls.unittestdir, "common/"))
-      cppyy.add_include_path(cls.abs_ut_path)
+      cppyy.add_include_path(cls.abs_ut_suite_path)
       cppyy.add_include_path(cls.abs_src_path)
 
-      cppyy.include(os.path.join(cls.abs_ut_path, "testsuite.h"))
+      cppyy.include(os.path.join(cls.abs_ut_suite_path, "testsuite.h"))
 
-      build_path = "covbuild/" if os.environ.get("LLVM_PROFILE_FILE", default=None) else "build/"
-      cppyy.add_library_path(os.path.join(cls.unittestdir, build_path, "customlibs/"))
-      cppyy.load_library(f"lib{os.path.join(cls.filepath, cls.filename).replace('/', '.')}-unittest")
+      cppyy.add_library_path(os.path.join(cls.builddir, "customlibs/"))
+      cppyy.load_library(f"lib{os.path.join(cls.rel_path, cls.filename).replace('/', '.')}-unittest")
 
    def run_test_case(self,
          test_case_name: str):
