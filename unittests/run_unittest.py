@@ -47,11 +47,12 @@ def main():
    Runs the given unittest and conditionally runs coverage.
    """
    parser = argparse.ArgumentParser()
-   parser.add_argument("--unittestdir", required=True, help="Absolute path to unittest directory",       type=str)
-   parser.add_argument("--binarydir",   required=True, help="Absolute path to build directory",          type=str)
-   parser.add_argument("--suitename",   required=True, help="Qualified testsuite name",                  type=str)
-   parser.add_argument("--libraryname", required=True, help="Library to run test against",               type=str)
-   parser.add_argument("--covenabled",  required=True, help="TRUE/FALSE enables/disables coverage mode", type=str)
+   parser.add_argument("--unittestdir", required=True, help="Absolute path to unittest directory")
+   parser.add_argument("--projrootdir", required=True, help="Absolute path of project directory")
+   parser.add_argument("--builddir",    required=True, help="Absolute path to build directory")
+   parser.add_argument("--suitename",   required=True, help="Qualified testsuite name")
+   parser.add_argument("--libraryname", required=True, help="Library to run test against")
+   parser.add_argument("--covenabled",  required=True, help="TRUE/FALSE enables/disables coverage mode")
    args = parser.parse_args()
 
    args.covenabled = True if (args.covenabled == "TRUE") else False
@@ -63,7 +64,9 @@ def main():
 
    os.environ["LLVM_PROFILE_FILE"] = LLVM_PROFILE_FILE
 
-   ympy.runCmd(f"python -m unittest {args.suitename}.testsuite", cwd=args.unittestdir)
+   ympy.runCmd(f"python -m unittest {args.suitename}.testsuite " \
+      f"--unittestdir={args.unittestdir} --projrootdir={args.projrootdir} --builddir={args.builddir}",
+      cwd=args.unittestdir)
 
    if args.covenabled:
       MERGED_PROFILE_FILE = LLVM_PROFILE_FILE.replace(".profraw", ".profdata")

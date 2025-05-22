@@ -221,12 +221,12 @@ def main():
       sys.exit(1)
 
    parser = argparse.ArgumentParser()
-   parser.add_argument("--filepath",  required=True, help="Relative path file exists in")
-   parser.add_argument("--filename",  required=True, help="Name of file (w/out extension)")
-   parser.add_argument("--suitename", required=True, help="Structure(s) under test")
-   parser.add_argument("--hdr", action="store_true", help="Generates/overwrites header")
-   parser.add_argument("--src", action="store_true", help="Generates/overwrites source")
-   parser.add_argument("--run", action="store_true", help="Generates/overwrites runner")
+   parser.add_argument("--filepath",    required=True, help="Relative path file exists in")
+   parser.add_argument("--filename",    required=True, help="Name of file (w/out extension)")
+   parser.add_argument("--suitename",   required=True, help="Structure(s) under test")
+   parser.add_argument("--hdr", action="store_true",   help="Generates/overwrites header")
+   parser.add_argument("--src", action="store_true",   help="Generates/overwrites source")
+   parser.add_argument("--run", action="store_true",   help="Generates/overwrites runner")
    args = parser.parse_args()
 
    os.makedirs(os.path.join(args.filepath, args.filename), exist_ok=True)

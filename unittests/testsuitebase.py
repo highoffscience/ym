@@ -25,6 +25,24 @@ class TestSuiteBase(unittest.TestCase):
    builddir    = None
 
    @classmethod
+   def customBaseInit(cls,
+         unittestdir: str,
+         projrootdir: str,
+         builddir: str)
+      """
+      Initializes variables.
+
+      Args:
+         unittestdir: Absolute path of unittest directory.
+         projrootdir: Absolute path of project directory.
+         builddir:    Absolute path to build directory.
+      """
+
+      cls.unittestdir = unittestdir
+      cls.projrootdir = projrootdir
+      cls.builddir    = builddir
+
+   @classmethod
    def setUpBaseClass(cls,
          rel_path: str,
          filename: str):
@@ -72,8 +90,7 @@ class TestSuiteBase(unittest.TestCase):
       cppyy.add_library_path(os.path.join(cls.builddir, "customlibs/"))
       cppyy.load_library(f"lib{os.path.join(cls.rel_path, cls.filename).replace('/', '.')}-unittest")
 
-   def run_test_case(self,
-         test_case_name: str):
+   def run_test_case(self, test_case_name: str):
       """
       Runs the specified test case.
 
