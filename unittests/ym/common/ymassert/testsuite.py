@@ -32,7 +32,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       Acting constructor.
       """
       super().setUpBaseClass(
-         filepath="ym/common",
+         rel_path="ym/common",
          filename="ymasssert")
 
    @classmethod
@@ -86,6 +86,9 @@ if __name__ == "__main__":
    parser.add_argument("--builddir",    required=True, help="Absolute path to build directory")
    args = parser.parse_args()
 
-   testsuitebase.TestSuiteBase.customBaseInit(args.unittestdir, args.projrootdir, args.builddir)
+   # testsuitebase.TestSuiteBase.customBaseInit(args.unittestdir, args.projrootdir, args.builddir)
+   testsuitebase.TestSuiteBase.customBaseInit(
+      "/home/forrest/code/ym/unittests",
+      "/home/forrest/code", "/home/forrest/code/ym/unittests/build")
 
    unittest.main()

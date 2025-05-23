@@ -28,7 +28,7 @@ class TestSuiteBase(unittest.TestCase):
    def customBaseInit(cls,
          unittestdir: str,
          projrootdir: str,
-         builddir: str)
+         builddir: str):
       """
       Initializes variables.
 
