@@ -59,6 +59,7 @@ if (${YM_DEBUG})
    target_compile_definitions(YMRootIntLib INTERFACE YM_DEBUG=1)
 endif()
 
+# TODO use find_library()
 if (EXISTS ${YM_ExtLibsDir}/build/_deps/fmt-build/libfmt.so)
    target_link_directories(   YMRootIntLib INTERFACE ${YM_ExtLibsDir}/build/_deps/fmt-build)
    target_include_directories(YMRootIntLib INTERFACE ${YM_ExtLibsDir}/build/_deps/fmt-src/include)

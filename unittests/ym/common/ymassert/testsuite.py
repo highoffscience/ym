@@ -33,7 +33,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       super().setUpBaseClass(
          rel_path="ym/common",
-         filename="ymasssert")
+         filename="ymassert")
 
    @classmethod
    def tearDownClass(cls):
@@ -76,19 +76,24 @@ class TestSuite(testsuitebase.TestSuiteBase):
    
       self.assertTrue(results.get[bool]("GAM"), f"Msg not formatted as unexpected")
 
-# kick-off
-if __name__ == "__main__":
-   print("DEBUG 1")
+def main():
+   """
+   Setup.
+   """
 
-   parser = argparse.ArgumentParser()
-   parser.add_argument("--unittestdir", required=True, help="Absolute path of unittest directory")
-   parser.add_argument("--projrootdir", required=True, help="Absolute path of project directory")
-   parser.add_argument("--builddir",    required=True, help="Absolute path to build directory")
-   args = parser.parse_args()
+   # parser = argparse.ArgumentParser()
+   # parser.add_argument("--unittestdir", required=True, help="Absolute path of unittest directory")
+   # parser.add_argument("--projrootdir", required=True, help="Absolute path of project directory")
+   # parser.add_argument("--builddir",    required=True, help="Absolute path to build directory")
+   # args = parser.parse_args()
 
    # testsuitebase.TestSuiteBase.customBaseInit(args.unittestdir, args.projrootdir, args.builddir)
    testsuitebase.TestSuiteBase.customBaseInit(
       "/home/forrest/code/ym/unittests",
       "/home/forrest/code", "/home/forrest/code/ym/unittests/build")
 
+main()
+
+# kick-off
+if __name__ == "__main__":
    unittest.main()

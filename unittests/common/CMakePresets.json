@@ -12,11 +12,12 @@
          "description": "Unit test common communication functionality",
          "generator": "Unix Makefiles",
          "binaryDir": "${sourceDir}/build",
-         "toolchainFile": "${sourceDir}/../toolchain.cmake",
+         "toolchainFile": "${sourceParentDir}/toolchain.cmake",
          "cacheVariables": {
             "YM_UT_COMMON_DEBUG": false,
-            "YM_UnitTestDir": "${sourceDir}/..",
-            "YM_CustomLibsDir": "${sourceDir}/../customlibs"
+            "YM_ExtLibsDir": "${sourceParentDir}/../extlibs",
+            "YM_UnitTestDir": "${sourceParentDir}",
+            "YM_CustomLibsDir": "${sourceParentDir}/customlibs"
          }
       }
    ]

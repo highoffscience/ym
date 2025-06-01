@@ -22,7 +22,7 @@ function(srcbuild-ym.common Ctx_JSON)
       textlogger.cpp
       timer.cpp
       ymassert.cpp
-      ymutils.cpp)
+      ymutils.cpp) # TODO need to link libfmt
    list(TRANSFORM Srcs PREPEND ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/)
    target_sources(${Target} PRIVATE ${Srcs})
 
