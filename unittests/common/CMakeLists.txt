@@ -30,16 +30,13 @@ if (${YM_UT_COMMON_DEBUG})
    target_compile_definitions(ut.common PRIVATE YM_DEBUG=1)
 endif()
 
-message(STATUS ">${YM_ExtLibsDir}/build/_deps/fmt-build<")
-
 find_library(YM_FMT_LIB
    NAMES fmt
    PATHS ${YM_ExtLibsDir}/build/_deps/fmt-build)
 
-message(STATUS ">${YM_FMT_LIB}<")
-
 if (YM_FMT_LIB)
    target_link_libraries(ut.common PRIVATE ${YM_FMT_LIB})
+   target_include_directories(ut.common PRIVATE ${YM_ExtLibsDir}/build/_deps/fmt-src/include)
 else()
    message(FATAL_ERROR "fmt lib not found. Must build external libraries first.")
 endif()

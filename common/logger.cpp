@@ -136,7 +136,7 @@ bool ym::Logger::openOutfile_appendTimeStamp(std::string_view const Filename)
    }
    catch (std::out_of_range const & E)
    { // logic error
-      YMASSERTDBG(false, OpenError, YM_DAH, "Error finding extension. {}", E.what())
+      // YMASSERTDBG(false, OpenError, YM_DAH, "Error finding extension. {}", E.what())
    }
 
    constexpr std::string_view TimeStamp("_YYYY_mm_dd_HH_MM_SS");
@@ -165,8 +165,8 @@ bool ym::Logger::openOutfile_appendTimeStamp(std::string_view const Filename)
       "{}",
       ext);
 
-   YMASSERTDBG(result.out == &*timeStampedFilename.end(), OpenError, YM_DAH,
-      "Error printing time stamp. {} -- {}", (void*)result.out, (void*)&*timeStampedFilename.end())
+   // YMASSERTDBG(result.out == &*timeStampedFilename.end(), OpenError, YM_DAH,
+   //    "Error printing time stamp. {} -- {}", (void*)result.out, (void*)&*timeStampedFilename.end())
 
    return openOutfile(timeStampedFilename);
 }

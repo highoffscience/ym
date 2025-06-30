@@ -59,11 +59,19 @@ if (${YM_DEBUG})
    target_compile_definitions(YMRootIntLib INTERFACE YM_DEBUG=1)
 endif()
 
-# TODO use find_library()
-if (EXISTS ${YM_ExtLibsDir}/build/_deps/fmt-build/libfmt.so)
-   target_link_directories(   YMRootIntLib INTERFACE ${YM_ExtLibsDir}/build/_deps/fmt-build)
+if (${YM_ENABLE_EXCEPTIONS})
+   target_compile_definitions(YMRootIntLib INTERFACE YM_YES_EXCEPTIONS=1)
+else()
+   target_compile_definitions(YMRootIntLib INTERFACE YM_NO_EXCEPTIONS=1)
+endif()
+
+find_library(YM_FMT_LIB
+   NAMES fmt
+   PATHS ${YM_ExtLibsDir}/build/_deps/fmt-build)
+
+if (YM_FMT_LIB)
+   target_link_libraries(YMRootIntLib INTERFACE ${YM_FMT_LIB})
    target_include_directories(YMRootIntLib INTERFACE ${YM_ExtLibsDir}/build/_deps/fmt-src/include)
-   target_link_libraries(     YMRootIntLib INTERFACE fmt)
 else()
    message(FATAL_ERROR "fmt lib not found. Must build external libraries first.")
 endif()

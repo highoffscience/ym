@@ -139,7 +139,7 @@ public:
    implicit constexpr BoundedPtr(T * const t_Ptr)
       : TrustedBoundedPtr<T>(t_Ptr)
    {
-      YMASSERT(this->get(), NullPtrError, YM_DAH, "Bounded pointer cannot be null");
+      // YMASSERT(this->get(), NullPtrError, YM_DAH, "Bounded pointer cannot be null");
    }
 
    /** BoundedPtr

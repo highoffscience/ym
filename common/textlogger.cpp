@@ -71,15 +71,16 @@ auto ym::TextLogger::getGlobalInstancePtr(void) -> bptr<TextLogger>
    { // file not already opened - open it
 
       _s_globalInstance_ptr = new TextLogger("global.txt");
-      YMASSERT(_s_globalInstance_ptr, GlobalError, YM_DAH, "Global instance failed to be created");
+      // YMASSERT(_s_globalInstance_ptr, GlobalError, YM_DAH, "Global instance failed to be created");
 
       auto const Opened = _s_globalInstance_ptr->open();
-      YMASSERT(Opened, GlobalError,
-         [](auto const & E) -> void {
-            delete _s_globalInstance_ptr;
-            _s_globalInstance_ptr = nullptr;
-            throw E;
-         }, "Global instance failed to open");
+      (void)Opened;
+      // YMASSERT(Opened, GlobalError,
+      //    [](auto const & E) -> void {
+      //       delete _s_globalInstance_ptr;
+      //       _s_globalInstance_ptr = nullptr;
+      //       throw E;
+      //    }, "Global instance failed to open");
    }
 
    return tbptr(_s_globalInstance_ptr); // guaranteed not null

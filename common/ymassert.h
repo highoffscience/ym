@@ -38,7 +38,7 @@
  * @param Cond_    -- Condition - true for happy path, false triggers the assert.
  * @param Derived_ -- Ymassert class to handle assert.
  * @param Handler_ -- Callback function if assert fails.
- * @param Format_  -- Format string.
+ * @param Format_  -- Format string. Must be a string literal.
  * @param ...      -- Arguments.
  */
 #define YMASSERT(                                                   \
@@ -56,26 +56,10 @@
    if (!(Cond_))                                                    \
    {                                                                \
       Derived_ e__;                                                 \
-      e__.write("Assert @ \"{}:{}\": ",                             \
+      e__.write("Assert @ \"{}:{}\": " Format_,                     \
          __FILE__, __LINE__, ## __VA_ARGS__);                       \
+      Handler_(e__);                                                \
    }
-
-   // if (!(Cond_))                                                    
-   // {                                                                
-   //    Derived_ e__;                                                 
-   //    e__.write("Assert @ \"{}:{}\": "##Format_,                    
-   //       __FILE__, __LINE__, ## __VA_ARGS__);                       
-   //    constexpr YmassertHandlerWrapper_Helper F__(Handler_);        
-   //    if constexpr (F__.isReturnVoid())                             
-   //    {                                                             
-   //       F__.returnVoidFunc(e__);                                   
-   //       return;                                                    
-   //    }                                                             
-   //    else                                                          
-   //    {                                                             
-   //       return F__.returnResultFunc(e__);                          
-   //    }                                                             
-   // }
 
 /** YMASSERTDBG
  *
@@ -143,34 +127,6 @@ public:
 
 private:
    char _msg[_s_MaxMsgSize_bytes]{};
-};
-
-/**
- *
- */
-template <typename F>
-struct YmassertHandlerWrapper_Helper
-{
-   using ReturnResult_T = std::invoke_result_t<F, ymassert_Base>;
-   static constexpr bool isReturnVoid(void) { return std::is_void_v<ReturnResult_T>; }
-
-   using ReturnVoidFunc_T   = void(*)(ymassert_Base);
-   using ReturnResultFunc_T = std::conditional_t<isReturnVoid(), int, ReturnResult_T>(*)(ymassert_Base const &);
-
-   ReturnVoidFunc_T   returnVoidFunc  {};
-   ReturnResultFunc_T returnResultFunc{};
-
-   constexpr YmassertHandlerWrapper_Helper(F && f_uref)
-   {
-      if constexpr (isReturnVoid())
-      { // init the function that returns void
-         returnVoidFunc = f_uref;
-      }
-      else
-      { // init the function that returns a value
-         returnResultFunc = f_uref;
-      }
-   }
 };
 
 } // ym

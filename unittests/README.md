@@ -1,6 +1,10 @@
 Install instructions for unittest directory
 (cppyy doesn't work with python3.11, continue with 3.10)
 
+sudo apt install python3.13
+sudo apt install python3.13-venv
+sudo apt install python3.13-dev
+
 can experiment with "$jupyter lab <name-of-file>" after activating venv
 
 $ python -m venv venv/

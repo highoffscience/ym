@@ -31,25 +31,28 @@ ym::ut::TestSuite::TestSuite(void)
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
- #include <iostream>
 auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   // TODO rename to UnitTest_YmAssert
-   auto const SE = ymLogPushEnable(VG::UnitTest_YmError);
+   auto const SE = ymLogPushEnable(VG::UnitTest_YmAssert);
 
    YM_DECL_YMASSERT(Error)
 
-   // auto const I = 9;
-   // auto const J = 5;
+   auto const I = 9;
+   auto const J = 5;
 
-   std::cout << "\nHi!\n" << std::endl;
+   auto errored = false; // until told otherwise
 
-   // TODO follow logic here - I don't think it prints to console
-   // YMASSERT(I < J, Error, YM_DAH,
-   //    "I ({}) is NOT less than J ({})", I, J);
+   try
+   {
+      YMASSERT(I < J, Error, YM_DAH, "I ({}) is NOT less than J ({})", I, J);
+   }
+   catch (ymassert_Base const & E)
+   {
+      errored = true;
+   }
 
    return {
-      {"True", true}
+      {"Errored", errored}
    };
 }
 
@@ -69,9 +72,9 @@ auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle 
  */
 auto ym::ut::TestSuite::What::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_YmError);
+   auto const SE = ymLogPushEnable(VG::UnitTest_YmAssert);
 
-   bool generatedAppropriateMsg = true; // TOD should be false
+   bool generatedAppropriateMsg = true; // TODO should be false
 
    try
    {
@@ -82,7 +85,7 @@ auto ym::ut::TestSuite::What::run([[maybe_unused]] DataShuttle const & InData) -
       // TODO
       // str const ExpectedMsg =
       //    "Ym_UT_YmError_What_Error \"/home/forrest/code/ym/unittests/ym/common/ymerror/testsuite.cpp:65\": Go! Torchic!";
-      // ymLog(VG::UnitTest_YmError, "--> %s", E.what());
+      // ymLog(VG::UnitTest_YmAssert, "--> %s", E.what());
       // generatedAppropriateMsg = std::strcmp(E.what(), ExpectedMsg) == 0;
    }
 

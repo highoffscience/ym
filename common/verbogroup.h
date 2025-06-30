@@ -47,8 +47,8 @@ struct VerboGroup
       Ops,             UnitTest_Ops,
       Rng,             UnitTest_Rng,
       Timer,           UnitTest_Timer,
+      YmAssert,        UnitTest_YmAssert,
       YmDefs,          UnitTest_YmDefs,
-      YmError,         UnitTest_YmError,
       YmUtils,         UnitTest_YmUtils,
       
       NGroups
@@ -122,9 +122,10 @@ struct VerboGroupMask
          Rng_Prng = YM_FMT_MSK(Rng, 0b0000'0001),
          Rng_Trng = YM_FMT_MSK(Rng, 0b0000'0010),
       YM_MAKE_MSK_AND_UNIT_MSK(Timer          ),
+      YM_MAKE_MSK_AND_UNIT_MSK(YmAssert       ),
+         YmAssert_Strong = YM_FMT_MSK(YmAssert, 0b0000'0001),
+         YmAssert_Weak   = YM_FMT_MSK(YmAssert, 0b0000'0010),
       YM_MAKE_MSK_AND_UNIT_MSK(YmDefs         ),
-      YM_MAKE_MSK_AND_UNIT_MSK(YmError        ),
-         YmError_Assert = YM_FMT_MSK(YmError, 0b0000'0001),
       YM_MAKE_MSK_AND_UNIT_MSK(YmUtils        ),
 
    // don't pollute namespace
