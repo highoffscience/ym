@@ -64,6 +64,8 @@ class TestSuiteBase(unittest.TestCase):
       cls.abs_ut_suite_path = os.path.join(cls.unittestdir, cls.rel_path, cls.filename)
       cls.abs_src_path      = os.path.join(cls.projrootdir, cls.rel_path)
 
+      # TODO parse through cls.builddir/compile_commands and find ymdefs.h - use those #defines
+
       cls.configCppyy()
 
    @classmethod
