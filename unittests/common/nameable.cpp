@@ -6,8 +6,6 @@
 
 #include "nameable.h"
 
-#include <utility>
-
 /** Nameable
  * 
  * @brief Constructor.

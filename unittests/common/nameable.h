@@ -6,7 +6,8 @@
 
 #pragma once
 
-#include "utdefs.h"
+// #include "utdefs.h"
+#include "../../common/ymdefs.h"
 
 #include <string>
 #include <utility>
@@ -22,7 +23,6 @@ class Nameable
 {
 public:
    explicit Nameable(std::string name);
-   virtual ~Nameable(void) = default;
 
    inline auto const & getName(void) const { return _name; }
 

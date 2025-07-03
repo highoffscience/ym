@@ -35,9 +35,15 @@
  *
  * @note ", ## __VA_ARGS__" eats the comma when __VA_ARGS__ is empty.
  * 
+ * @note A static assert with std::is_invocable_v<decltype(Handler_), Derived_> doesn't work
+ *       when Handler_ is a template function because unless the compiler knows it's
+ *       specialized type decltype will fail, and providing the machinery to test the proper
+ *       invocableness is too messy. If the user provides an invalid Handler function then
+ *       the compile error will lead them to this note...hopefully.
+ * 
  * @param Cond_    -- Condition - true for happy path, false triggers the assert.
  * @param Derived_ -- Ymassert class to handle assert.
- * @param Handler_ -- Callback function if assert fails.
+ * @param Handler_ -- Callback function if assert fails. Must be callable with Ymassert_Base.
  * @param Format_  -- Format string. Must be a string literal.
  * @param ...      -- Arguments.
  */
@@ -51,8 +57,6 @@
       "Condition must be convertible to bool");                     \
    static_assert(std::is_base_of_v<ymassert_Base, Derived_>,        \
       "Assert class must be of type ymassert_Base");                \
-   static_assert(std::is_invocable_v<decltype(Handler_), Derived_>, \
-      "Handler must be a function of the form Handler_(Derived)");  \
    if (!(Cond_))                                                    \
    {                                                                \
       Derived_ e__;                                                 \

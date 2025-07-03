@@ -14,6 +14,8 @@ project(
    VERSION     1.0.0
    DESCRIPTION "Builds unittest shared libraries and runs them")
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS True)
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
@@ -61,7 +63,9 @@ endif()
 
 if (${YM_ENABLE_EXCEPTIONS})
    target_compile_definitions(YMRootIntLib INTERFACE YM_YES_EXCEPTIONS=1)
+   target_compile_definitions(YMRootIntLib INTERFACE YM_NO_EXCEPTIONS=0)
 else()
+   target_compile_definitions(YMRootIntLib INTERFACE YM_YES_EXCEPTIONS=0)
    target_compile_definitions(YMRootIntLib INTERFACE YM_NO_EXCEPTIONS=1)
 endif()
 

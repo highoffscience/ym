@@ -30,6 +30,14 @@ if (${YM_UT_COMMON_DEBUG})
    target_compile_definitions(ut.common PRIVATE YM_DEBUG=1)
 endif()
 
+if (${YM_ENABLE_EXCEPTIONS})
+   target_compile_definitions(ut.common PRIVATE YM_YES_EXCEPTIONS=1)
+   target_compile_definitions(ut.common PRIVATE YM_NO_EXCEPTIONS=0)
+else()
+   target_compile_definitions(ut.common PRIVATE YM_YES_EXCEPTIONS=0)
+   target_compile_definitions(ut.common PRIVATE YM_NO_EXCEPTIONS=1)
+endif()
+
 find_library(YM_FMT_LIB
    NAMES fmt
    PATHS ${YM_ExtLibsDir}/build/_deps/fmt-build)
@@ -44,3 +52,5 @@ endif()
 set_target_properties(ut.common PROPERTIES
    VERSION ${PROJECT_VERSION}
    LIBRARY_OUTPUT_DIRECTORY ${YM_CustomLibsDir})
+
+add_custom_target(dist-clean ${CMAKE_COMMAND} -E rm -rf ${CMAKE_BINARY_DIR}/*)
