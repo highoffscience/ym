@@ -4,6 +4,7 @@
 # @author  Forrest Jablonski
 #
 
+import json
 import os
 import sys
 import unittest
@@ -65,6 +66,7 @@ class TestSuiteBase(unittest.TestCase):
       cls.abs_src_path      = os.path.join(cls.projrootdir, cls.rel_path)
 
       # TODO parse through cls.builddir/compile_commands and find ymdefs.h - use those #defines
+      
 
       cls.configCppyy()
 
@@ -76,6 +78,19 @@ class TestSuiteBase(unittest.TestCase):
       cls.unittestdir = None
       cls.projrootdir = None
       cls.builddir    = None
+
+   @classmethod
+   def processCompileCommands(cls):
+      """
+      TODO describe where compile_commands.json comes from.
+      """
+      with open(os.path.join(cls.builddir, "compile_commands.json"), "r") as ccfile:
+         data = json.load(ccfile)
+         for d in data:
+            if d["file"].endswith(os.path.join("ymdefs", "testsuite.cpp")):
+               for arg in d["command"].split():
+                  if args.startswith("-D")
+                     cppyy.cppdef(...) # TODO
 
    @classmethod
    def configCppyy(cls):
