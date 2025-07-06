@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "utdefs.h"
 #include "testsuitebase.h"
+#include "ymdefs.h"
 
 namespace ym::ut
 {

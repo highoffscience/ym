@@ -64,11 +64,10 @@ def main():
 
    os.environ["LLVM_PROFILE_FILE"] = LLVM_PROFILE_FILE
 
-   # TODO
-   # ympy.runCmd(f"python -m unittest {args.suitename}.testsuite -v " \
-   #    f"--unittestdir={args.unittestdir} --projrootdir={args.projrootdir} --builddir={args.builddir}",
-   #    cwd=args.unittestdir, per_line_action_func=print)
-   ympy.runCmd(f"python -m unittest {args.suitename}.testsuite",
+   ympy.runCmd(f"python -m {args.suitename}.testsuite -v " \
+      f"--unittestdir={args.unittestdir} " \
+      f"--projrootdir={args.projrootdir} " \
+      f"--builddir={args.builddir}",
       cwd=args.unittestdir, per_line_action_func=print)
 
    if args.covenabled:

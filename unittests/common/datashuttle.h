@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "utdefs.h"
+#include "ymdefs.h"
 
 #include <any>
 #include <initializer_list>
@@ -27,26 +27,28 @@ class DataShuttle
 public:
    using Data_T = std::unordered_map<std::string, std::any>;
 
-   /*implicit*/ DataShuttle(void) = default;
-   /*implicit*/ DataShuttle(std::initializer_list<Data_T::value_type> && data_uref);
+   implicit DataShuttle(void) = default;
+   implicit DataShuttle(std::initializer_list<Data_T::value_type> && data_uref);
 
    inline auto * operator -> (void) { return &_data; }
 
-   // TODO can these be const?
-   template <typename T> T get(std::string const & Name);
-   template <typename T> T get(std::string const & Name,
-                               T           const   DefaultValue);
+   template <typename T>
+   inline T get(std::string const & Name);
+
+   template <typename T>
+   T get(
+      std::string const & Name,
+      T           const   DefaultValue);
 
 private:
-   Data_T _data;
+   Data_T _data{};
 };
 
 /** get
  * 
  * @brief Returns value of named variable.
  * 
- * @throws std::out_of_range -- If variable doesn't exist.
- * @throws std::bad_any_cast -- If casting variable to desired type fails.
+ * @throws Whatever std::any_cast() throws.
  * 
  * @tparam T -- Type to cast named variable to.
  * 
@@ -55,7 +57,7 @@ private:
  * @returns Value of named variable as type T.
  */
 template <typename T>
-T DataShuttle::get(std::string const & Name)
+inline T DataShuttle::get(std::string const & Name)
 {
    return std::any_cast<T>(_data.at(Name));
 }
@@ -65,7 +67,7 @@ T DataShuttle::get(std::string const & Name)
  * @brief Returns value of named variable. If the variable doesn't exists return the
  *        specified default value.
  * 
- * @throws std::bad_any_cast -- If casting variable to desired type fails.
+ * @throws Whatever std::any_cast() throws.
  * 
  * @tparam T -- Type to cast named variable to.
  * 
@@ -75,8 +77,9 @@ T DataShuttle::get(std::string const & Name)
  * @returns Value of named variable as type T.
  */
 template <typename T>
-T DataShuttle::get(std::string const & Name,
-                   T           const   DefaultValue)
+T DataShuttle::get(
+   std::string const & Name,
+   T           const   DefaultValue)
 {
    auto val = DefaultValue;
 

@@ -18,13 +18,12 @@ add_library(ut.common SHARED)
 
 set(Srcs
    datashuttle.cpp
-   nameable.cpp
-   testcase.cpp
-   testsuitebase.cpp
-   utception.cpp)
+   testsuitebase.cpp)
 list(TRANSFORM Srcs PREPEND ${YM_UnitTestDir}/common/)
 target_sources(ut.common PRIVATE ${Srcs})
 unset(Srcs)
+
+target_include_directories(ut.common PRIVATE ${YM_ProjRootDir}/ym/common/)
 
 if (${YM_UT_COMMON_DEBUG})
    target_compile_definitions(ut.common PRIVATE YM_DEBUG=1)

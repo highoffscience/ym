@@ -4,16 +4,19 @@
  * @author  Forrest Jablonski
  */
 
-#include "ymglobals.h"
 #include "testsuite.h"
+
 #include "textlogger.h"
+#include "ymglobals.h"
+
+#include "ymdefs.h" // Structures under test
 
 /** TestSuite
  *
  * @brief Constructor.
  */
-ym::ut::TestSuite::TestSuite(void)
-   : TestSuiteBase("YmDefs")
+ym::ut::TestSuite::TestSuite(void) :
+   TestSuiteBase("YmDefs")
 {
    addTestCase<InteractiveInspection>();
    addTestCase<BigFiveDeleteMacros  >();

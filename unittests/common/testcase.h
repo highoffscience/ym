@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include "utdefs.h"
+#include "nameable.h"
+#include "ymdefs.h"
 
 #include "datashuttle.h"
-#include "nameable.h"
 
 #include <string>
 
@@ -24,11 +24,7 @@ namespace ym::ut
    class Name_ : public TestCase                                         \
    {                                                                     \
    public:                                                               \
-      explicit Name_(void)                                               \
-         : TestCase(#Name_)                                              \
-      { }                                                                \
-      virtual ~Name_(void) = default;                                    \
-                                                                         \
+      explicit Name_(void) : TestCase(#Name_) {}                         \
       virtual DataShuttle run(DataShuttle const & InData = {}) override; \
    };
 
@@ -36,10 +32,12 @@ namespace ym::ut
  * 
  * @brief Represents a test case.
  */
-class TestCase : public Nameable
+class TestCase : public PermaNameable_NV<>
 {
 public:
-   explicit TestCase(std::string name);
+   explicit inline TestCase(std::string name) :
+      PermaNameable_NV(std::move(name))
+   {}
    virtual ~TestCase(void) = default;
 
    virtual DataShuttle run(DataShuttle const & InData = {}) = 0;

@@ -6,6 +6,8 @@
  * @note This file should be included in every file of the project. It provides
  *       standard declarations to be shared throughout.
  * 
+ * @note File used in unittests - maximum standard C++20.
+ * 
  * @note Macros are prefixed "YM_".
  * @note Macros used for a particular purpose are prefixed "YM_SPECIAL_".
  * @note Macros used as helper functions are prefixed "YM_HELPER_".

@@ -32,7 +32,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       Acting constructor.
       """
       super().setUpBaseClass(
-         rel_path="ym/common",
+         filepath="ym/common/",
          filename="ymassert")
 
    @classmethod
@@ -93,8 +93,8 @@ def main():
       "/home/forrest/code/ym/unittests",
       "/home/forrest/code", "/home/forrest/code/ym/unittests/build")
 
-main()
+   unittest.main()
 
 # kick-off
 if __name__ == "__main__":
-   unittest.main()
+   main()

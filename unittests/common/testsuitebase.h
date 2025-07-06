@@ -6,14 +6,12 @@
 
 #pragma once
 
-#include "utdefs.h"
+#include "nameable.h"
+#include "ymdefs.h"
 
 #include "datashuttle.h"
-#include "nameable.h"
 #include "testcase.h"
-#include "utception.h"
 
-#include <exception>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -27,26 +25,25 @@ namespace ym::ut
  *
  * @brief Base class for unit test suites.
  */
-class TestSuiteBase : public Nameable
+class TestSuiteBase : public PermaNameable_NV<>
 {
 public:
-   using TCContainer_T = std::vector<std::unique_ptr<TestCase>>;
+   using TCArray_T = std::vector<std::unique_ptr<TestCase>>;
 
    explicit TestSuiteBase(std::string name);
    virtual ~TestSuiteBase(void) = default;
 
-   template <typename    DerivedTestCase_T,
-             typename... Args_T>
+   template <
+      typename    DerivedTestCase_T,
+      typename... Args_T>
    void addTestCase(Args_T &&... args_uref);
 
-   DataShuttle runTestCase(std::string const & Name,
-                           DataShuttle const & InData = {});
-
-   YM_UT_DEFN_UTCEPTION(TSBError_TestCaseFailure )
-   YM_UT_DEFN_UTCEPTION(TSBError_TestCaseNotFound)
+   DataShuttle runTestCase(
+      std::string const & Name,
+      DataShuttle const & InData = {});
 
 private:
-   TCContainer_T _testCases;
+   TCArray_T _testCases{};
 };
 
 /** addTestCase
@@ -58,8 +55,9 @@ private:
  * 
  * @param args_uref -- Additional arguments to test case.
  */
-template <typename    DerivedTestCase_T,
-          typename... Args_T>
+template <
+   typename    DerivedTestCase_T,
+   typename... Args_T>
 void TestSuiteBase::addTestCase(Args_T &&... args_uref)
 {
    static_assert(std::is_base_of_v<TestCase, DerivedTestCase_T>, "Can only add TestCase types");

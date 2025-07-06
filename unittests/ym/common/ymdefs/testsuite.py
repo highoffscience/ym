@@ -4,9 +4,7 @@
 # @author  Forrest Jablonski
 #
 
-import os
 import sys
-import unittest
 
 try:
    import testsuitebase
@@ -22,15 +20,14 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   @brief Collection of all tests for suite YmDefs.
+   Collection of all tests for suite YmDefs.
    """
 
    @classmethod
    def setUpClass(cls):
       """
-      @brief Acting constructor.
+      Acting constructor.
       """
-
       super().setUpBaseClass(
          filepath="ym/common/",
          filename="ymdefs")
@@ -38,39 +35,36 @@ class TestSuite(testsuitebase.TestSuiteBase):
    @classmethod
    def tearDownClass(cls):
       """
-      @brief Acting destructor.
+      Acting destructor.
       """
       super().tearDownBaseClass()
 
    def setUp(self):
       """
-      @brief Set up logic that is run before each test.
+      Set up logic that is run before each test.
       """
       pass
 
    def tearDown(self):
       """
-      @brief Tear down logic that is run after each test.
+      Tear down logic that is run after each test.
       """
       pass
 
    def test_InteractiveInspection(self):
       """
-      @brief Analyzes results from test case.
-
-      @param results -- Results from test case.
+      Analyzes results from test case.
       """
 
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
       # results = self.run_test_case("InteractiveInspection")
+      pass
 
    def test_BigFiveDeleteMacros(self):
       """
-      @brief Analyzes results from test case.
-
-      @param results -- Results from test case.
+      Analyzes results from test case.
       """
 
       from cppyy.gbl import std
@@ -82,9 +76,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
    def test_OverloadMacros(self):
       """
-      @brief Analyzes results from test case.
-
-      @param results -- Results from test case.
+      Analyzes results from test case.
       """
 
       from cppyy.gbl import std
@@ -96,8 +88,6 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
 # kick-off
 if __name__ == "__main__":
-   if os.path.basename(os.getcwd()) != "ymdefs":
-      print("Needs to be run in the ymdefs/ directory")
-      sys.exit(1)
-
-   unittest.main()
+   TestSuite.runSuite()
+else:
+   TestSuite.runSuite()
