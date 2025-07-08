@@ -4,22 +4,22 @@
  * @author  Forrest Jablonski
  */
 
-#include "ymdefs.h"
 #include "testsuite.h"
 
-#include "ymassert.h"
-
 #include "textlogger.h"
-#include "ymassert.h"
+#include "ymglobals.h"
+
+#include "ymassert.h" // Structures under test
 
 #include <cstring>
+#include <string>
 
 /** TestSuite
  *
  * @brief Constructor.
  */
-ym::ut::TestSuite::TestSuite(void)
-   : TestSuiteBase("YmAssert")
+ym::ut::TestSuite::TestSuite(void) :
+   TestSuiteBase("YmAssert")
 {
    addTestCase<InteractiveInspection>();
    addTestCase<What                 >();
@@ -27,7 +27,7 @@ ym::ut::TestSuite::TestSuite(void)
 
 /** run
  *
- * @brief TODO.
+ * @brief Sandbox.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
@@ -56,14 +56,6 @@ auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle 
    };
 }
 
-// namespace ym
-// {
-//    struct Test
-//    {
-//       YM_DECL_YMERROR(Ym_UT_YmError_What_Error)
-//    };
-// } // ym
-
 /** run
  *
  * @brief TODO.
@@ -74,22 +66,22 @@ auto ym::ut::TestSuite::What::run([[maybe_unused]] DataShuttle const & InData) -
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_YmAssert);
 
-   bool generatedAppropriateMsg = true; // TODO should be false
+   bool expectedMsg = false;
+
+   YM_DECL_YMASSERT(Error)
 
    try
    {
-      // Test::Ym_UT_YmError_What_Error::check(false, "Go! Torchic!");
+      YMASSERT(false, Error, YM_DAH, "Go! {}!", "Torchic");
    }
    catch (std::exception const & E)
    {
-      // TODO
-      // str const ExpectedMsg =
-      //    "Ym_UT_YmError_What_Error \"/home/forrest/code/ym/unittests/ym/common/ymerror/testsuite.cpp:65\": Go! Torchic!";
-      // ymLog(VG::UnitTest_YmAssert, "--> %s", E.what());
-      // generatedAppropriateMsg = std::strcmp(E.what(), ExpectedMsg) == 0;
+      str const ExpectedMsg =
+         "Assert @ \"/home/forrest/code/ym/unittests/ym/common/ymassert/testsuite.cpp:75\": Go! Torchic!";
+      expectedMsg = std::strcmp(E.what(), ExpectedMsg) == 0;
    }
 
    return {
-      {"GAM", generatedAppropriateMsg}
+      {"ExpectedMsg", expectedMsg}
    };
 }

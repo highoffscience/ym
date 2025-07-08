@@ -6,16 +6,15 @@
 
 #pragma once
 
-#include "utdefs.h"
-
 #include "testsuitebase.h"
+#include "ymdefs.h"
 
 namespace ym::ut
 {
 
 /** TestSuite
  *
- * @brief Test suite for SUT ymassert_Base.
+ * @brief Test suite for YmAssert.
  */
 class TestSuite : public TestSuiteBase
 {

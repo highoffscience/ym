@@ -25,7 +25,7 @@ ym::ut::TestSuite::TestSuite(void) :
 
 /** run
  *
- * @brief Interactive inspection - for debug purposes.
+ * @brief Sandbox.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */

@@ -62,8 +62,9 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
-      results = self.run_test_case("InteractiveInspection")
-      self.assertTrue(results.get[bool]("Errored"), "Exception was not thrown as expected")
+      # results = self.run_test_case("InteractiveInspection")
+      # self.assertTrue(results.get[bool]("Errored"), "Exception was not thrown as expected")
+      pass
 
    def test_What(self):
       """
@@ -73,28 +74,12 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
-      # results = self.run_test_case("What")
+      results = self.run_test_case("What")
    
-      # self.assertTrue(results.get[bool]("GAM"), f"Msg not formatted as unexpected")
-
-def main():
-   """
-   Setup.
-   """
-
-   # parser = argparse.ArgumentParser()
-   # parser.add_argument("--unittestdir", required=True, help="Absolute path of unittest directory")
-   # parser.add_argument("--projrootdir", required=True, help="Absolute path of project directory")
-   # parser.add_argument("--builddir",    required=True, help="Absolute path to build directory")
-   # args = parser.parse_args()
-
-   # testsuitebase.TestSuiteBase.customBaseInit(args.unittestdir, args.projrootdir, args.builddir)
-   testsuitebase.TestSuiteBase.customBaseInit(
-      "/home/forrest/code/ym/unittests",
-      "/home/forrest/code", "/home/forrest/code/ym/unittests/build")
-
-   unittest.main()
+      self.assertTrue(results.get[bool]("ExpectedMsg"), f"Msg not formatted as unexpected")
 
 # kick-off
 if __name__ == "__main__":
-   main()
+   TestSuite.runSuite()
+else:
+   TestSuite.runSuite()
