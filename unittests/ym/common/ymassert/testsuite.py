@@ -78,6 +78,19 @@ class TestSuite(testsuitebase.TestSuiteBase):
    
       self.assertTrue(results.get[bool]("ExpectedMsg"), f"Msg not formatted as unexpected")
 
+   def test_Assertion(self):
+      """
+      Analyzes results from test case.
+      """
+
+      from cppyy.gbl import std
+      from cppyy.gbl import ym
+
+      results = self.run_test_case("Assertion")
+   
+      self.assertTrue(results.get[bool]("ExpectedFalseAssert"), f"Expected assert")
+      self.assertTrue(results.get[bool]("ExpectedTrueAssert" ), f"Did not expect assert")
+
 # kick-off
 if __name__ == "__main__":
    TestSuite.runSuite()

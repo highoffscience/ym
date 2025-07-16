@@ -51,7 +51,8 @@ auto ym::ut::TestSuiteBase::runTestCase(
    else
    { // test case not found
       using namespace std::string_literals;
-      throw std::runtime_error("Test case"s + Name + " not found"s);
+      throw std::runtime_error("Test case \""s + Name + "\" not found. "\
+         "Perhaps you forgot to call addTestCase() in TestSuite constructor?"s);
    }
 
    return ds;

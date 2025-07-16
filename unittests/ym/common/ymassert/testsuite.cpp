@@ -23,6 +23,7 @@ ym::ut::TestSuite::TestSuite(void) :
 {
    addTestCase<InteractiveInspection>();
    addTestCase<What                 >();
+   addTestCase<Assertion            >();
 }
 
 /** run
@@ -77,11 +78,50 @@ auto ym::ut::TestSuite::What::run([[maybe_unused]] DataShuttle const & InData) -
    catch (std::exception const & E)
    {
       str const ExpectedMsg =
-         "Assert @ \"/home/forrest/code/ym/unittests/ym/common/ymassert/testsuite.cpp:75\": Go! Torchic!";
+         "Assert @ \"/home/forrest/code/ym/unittests/ym/common/ymassert/testsuite.cpp:76\": Go! Torchic!";
       expectedMsg = std::strcmp(E.what(), ExpectedMsg) == 0;
    }
 
    return {
       {"ExpectedMsg", expectedMsg}
+   };
+}
+
+/** run
+ *
+ * @brief TODO.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::ut::TestSuite::Assertion::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VG::UnitTest_YmAssert);
+
+   bool expectedFalseAssert = false;
+   bool expectedTrueAssert  = true;
+
+   YM_DECL_YMASSERT(Error)
+
+   try
+   {
+      YMASSERT(false, Error, YM_DAH, "");
+   }
+   catch (std::exception const & E)
+   {
+      expectedFalseAssert = true;
+   }
+
+   try
+   {
+      YMASSERT(true, Error, YM_DAH, "");
+   }
+   catch (std::exception const & E)
+   {
+      expectedTrueAssert = false;
+   }
+
+   return {
+      {"ExpectedFalseAssert", expectedFalseAssert},
+      {"ExpectedTrueAssert",  expectedTrueAssert }
    };
 }

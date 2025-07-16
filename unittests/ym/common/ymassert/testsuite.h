@@ -24,6 +24,7 @@ public:
 
    YM_UT_TESTCASE(InteractiveInspection)
    YM_UT_TESTCASE(What                 )
+   YM_UT_TESTCASE(Assertion            )
 };
 
 } // ym::ut
