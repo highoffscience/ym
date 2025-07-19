@@ -214,12 +214,12 @@ static_assert(std::is_same<intptr, std::intptr_t>::value, "Unexpected intptr typ
  * 
  * @returns auto -- Input casted to TypeToCastTo_.
  */
-#define YM_HELPER_LITERAL_DECL(UDL_, TypeToCastTo_)                                                                       \
-   constexpr inline auto operator"" _##UDL_(unsigned long long int    u) { return static_cast<TypeToCastTo_>(u); } \
-   constexpr inline auto operator"" _##UDL_(              long double d) { return static_cast<TypeToCastTo_>(d); } \
-                                                                                                                   \
-   static_assert(std::is_same<decltype(  0_##UDL_), TypeToCastTo_>::value &&                                       \
-                 std::is_same<decltype(0.0_##UDL_), TypeToCastTo_>::value,                                         \
+#define YM_HELPER_LITERAL_DECL(UDL_, TypeToCastTo_)                                                               \
+   constexpr inline auto operator""_##UDL_(unsigned long long int    u) { return static_cast<TypeToCastTo_>(u); } \
+   constexpr inline auto operator""_##UDL_(              long double d) { return static_cast<TypeToCastTo_>(d); } \
+                                                                                                                  \
+   static_assert(std::is_same<decltype(  0_##UDL_), TypeToCastTo_>::value &&                                      \
+                 std::is_same<decltype(0.0_##UDL_), TypeToCastTo_>::value,                                        \
                  "User defined literal "#UDL_" failed to cast");
 
 YM_HELPER_LITERAL_DECL(i8,   int8    )

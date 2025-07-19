@@ -30,6 +30,7 @@ public:
    YM_UT_TESTCASE(BoundedPtrClass      )
    YM_UT_TESTCASE(BinarySearch         )
    YM_UT_TESTCASE(BoundedStr           )
+   YM_UT_TESTCASE(PtrCast              )
 };
 
 } // ym::ut

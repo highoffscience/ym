@@ -25,6 +25,7 @@ ym::ut::TestSuite::TestSuite(void) :
    addTestCase<BoundedPtrClass      >();
    addTestCase<BinarySearch         >();
    addTestCase<BoundedStr           >();
+   addTestCase<PtrCast              >();
 }
 
 /** run
@@ -125,8 +126,34 @@ auto ym::ut::TestSuite::BoundedStr::run([[maybe_unused]] DataShuttle const & InD
 
    using namespace std::string_literals;
 
-   // str a = "Hello";
+   return {
+   };
+}
+
+/** run
+ *
+ * @brief Interactive inspection - for debug purposes.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::ut::TestSuite::PtrCast::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
+
+   int i = 9;
+   int * p1 = &i;
+   int const * p2 = &i;
+
+   auto * bytes1 = ymCastPtrTo<uint8>(p1);
+   auto * bytes2 = ymCastPtrTo<uint8 const>(p2);
+
+   // compile error (expected)
+   // auto * bytes3 = ymCastPtrTo<uint8>(p2);
+
+   static_assert(!std::is_const_v<std::remove_pointer_t<decltype(bytes1)>>, "bytes1 expected to be non-const");
+   static_assert( std::is_const_v<std::remove_pointer_t<decltype(bytes2)>>, "bytes2 expected to be const");
 
    return {
+      {"True", true}
    };
 }

@@ -90,34 +90,13 @@ public:
    constexpr TrustedBoundedPtr              (std::nullptr_t) = delete;
    constexpr TrustedBoundedPtr & operator = (std::nullptr_t) = delete;
 
-   // constexpr auto * get          (this auto && self) { return  self._t_ptr; }
-   // constexpr        operator T * (this auto && self) { return  self.get();  }
-   // constexpr auto & operator *   (this auto && self) { return *self.get();  }
-   // constexpr auto * operator ->  (this auto && self) { return  self.get();  }
-
-   constexpr T const * get                (void) const { return  _t_ptr; }
-   constexpr T       * get                (void)       { return  _t_ptr; }
-   
-   constexpr           operator T const * (void) const { return  get();  }
-   constexpr           operator T       * (void)       { return  get();  }
-
-   constexpr T const & operator *         (void) const { return *get();  }
-   constexpr T       & operator *         (void)       { return *get();  }
-
-   constexpr T const * operator ->        (void) const { return  get();  }
-   constexpr T       * operator ->        (void)       { return  get();  }
+   constexpr auto * get          (this auto && self) { return  self._t_ptr; }
+   constexpr        operator T * (this auto && self) { return  self.get();  }
+   constexpr auto & operator *   (this auto && self) { return *self.get();  }
+   constexpr auto * operator ->  (this auto && self) { return  self.get();  }
 
 private:
    T * _t_ptr;
-};
-
-struct TestWrapper
-{
-   int* my_ptr;
-
-   constexpr auto* get(this TestWrapper&& self) {
-      return self.my_ptr;
-   }
 };
 
 /** BoundedPtr
@@ -195,7 +174,7 @@ using bptr = BoundedPtr<T>;
 using str = bptr<char const>;
 
 /// @brief Convenience user-defined literal
-constexpr inline auto operator"" _str(rawstr const S, std::size_t) { return tbptr(S); }
+constexpr inline auto operator""_str(rawstr const S, std::size_t) { return tbptr(S); }
 
 // ----------------------------------------------------------------------------
 
@@ -210,32 +189,26 @@ constexpr inline auto operator"" _str(rawstr const S, std::size_t) { return tbpt
  *       to void first. We can avoid an explicit cast to void by just accepting a void * since
  *       pointers can be implicitely cast to void.
  * 
- * @tparam T -- Data type to cast to.
- * 
- * @param Data_Ptr -- Pointer to object(s).
- * 
- * @returns T const * -- Pointer to object(s) represented as an array of T.
- */
-template <typename T>
-constexpr auto const * ymCastPtrTo(void const * const Data_Ptr)
-{
-   return static_cast<T const *>(Data_Ptr);
-}
-
-/** ymCastPtrTo
- * 
- * @brief Non-const version of above.
+ * @note U will be either const or non-const.
  * 
  * @tparam T -- Data type to cast to.
+ * @tparam U -- Deduced data type (implicit).
  * 
  * @param data_Ptr -- Pointer to object(s).
  * 
- * @returns T * -- Pointer to object(s) represented as an array of T.
+ * @returns T (const) * -- Pointer to object(s) represented as an array of T.
  */
-template <typename T>
-constexpr auto * ymCastPtrTo(void * const data_Ptr)
+template <
+   typename T,
+   typename U>
+constexpr auto * ymCastPtrTo(U * const data_Ptr)
 {
-   return static_cast<T *>(data_Ptr);
+   return static_cast<T *>(
+      static_cast<typename std::conditional_t<
+         std::is_const_v<U>,
+            void const *,
+            void *>
+         >(data_Ptr));
 }
 
 /** ymEmpty

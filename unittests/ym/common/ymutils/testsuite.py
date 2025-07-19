@@ -97,6 +97,17 @@ class TestSuite(testsuitebase.TestSuiteBase):
       results = self.run_test_case("BinarySearch")
       self.assertTrue(results.get[bool]("ElementFound"), "Search failed to find correct element")
 
+   def test_PtrCast(self):
+      """
+      Analyzes results from test case.
+      """
+
+      from cppyy.gbl import std
+      from cppyy.gbl import ym
+
+      results = self.run_test_case("PtrCast")
+      self.assertTrue(results.get[bool]("True"), "Failed to compile")
+
 # kick-off
 if __name__ == "__main__":
    TestSuite.runSuite()
