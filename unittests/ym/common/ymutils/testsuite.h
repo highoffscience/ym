@@ -6,7 +6,9 @@
 
 #pragma once
 
-#include "utdefs.h"
+#define YM_FORCE_CPP_STANDARD_20_DEFINED
+#include "ymdefs.h"
+#undef YM_FORCE_CPP_STANDARD_20_DEFINED
 
 #include "testsuitebase.h"
 
@@ -27,6 +29,7 @@ public:
    YM_UT_TESTCASE(PtrToIntConversion   )
    YM_UT_TESTCASE(BoundedPtrClass      )
    YM_UT_TESTCASE(BinarySearch         )
+   YM_UT_TESTCASE(BoundedStr           )
 };
 
 } // ym::ut

@@ -32,18 +32,20 @@
 /**
  * @brief Helper define's for the current cpp standard.
  */
-#if (__cplusplus >= 201703L)
-   #if (__cplusplus >= 202002L)
-      #if (__cplusplus >= 202302L)
-         #define YM_CPP_STANDARD 23
-      #else
-         #define YM_CPP_STANDARD 20
-      #endif
+#if (__cplusplus >= 202002L)
+   #if (__cplusplus >= 202302L)
+      // #if defined(YM_FORCE_CPP_STANDARD_20_DEFINED) // unittest active
+         #if (__cplusplus > 202302L)
+            #define YM_CPP_STANDARD 99
+         #else
+            #define YM_CPP_STANDARD 23
+         #endif
+      // #endif
    #else
-      #define YM_CPP_STANDARD 17
+      #define YM_CPP_STANDARD 20
    #endif
 #else
-   #error "At least C++17 standard required"
+   #error "At least C++20 standard required"
 #endif
 
 // ----------------------------------------------------------------------------

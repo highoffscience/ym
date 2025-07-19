@@ -11,7 +11,7 @@ project(
    VERSION     1.0.0
    DESCRIPTION "Builds common unittest framework and communication functionalities")
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20) # for cppyy compatibility keep at 20
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_library(ut.common SHARED)

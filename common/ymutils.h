@@ -44,9 +44,7 @@ YM_DECL_YMASSERT(NullPtrError)
  * @tparam T -- Pointer type.
  */
 template <typename T>
-   #if (YM_CPP_STANDARD >= 20)
-      requires (!std::is_member_function_pointer<T>::value)
-   #endif
+requires (!std::is_member_function_pointer<T>::value)
 union PtrToInt_T
 {
    T       * ptr_val;
@@ -84,20 +82,19 @@ public:
     * 
     * @param t_Ptr -- Pointer to bind.
     */
-   explicit constexpr TrustedBoundedPtr(T * const t_Ptr)
-      : _t_ptr {t_Ptr}
-   { }
+   explicit constexpr TrustedBoundedPtr(T * const t_Ptr) :
+      _t_ptr {t_Ptr}
+   {}
 
    /// @brief Compile time non-nullness checks.
    constexpr TrustedBoundedPtr              (std::nullptr_t) = delete;
    constexpr TrustedBoundedPtr & operator = (std::nullptr_t) = delete;
 
-#if (YM_CPP_STANDARD >= 23)
-   constexpr auto * get          (this auto && self) { return  self._t_ptr; }
-   constexpr        operator T * (this auto && self) { return  self.get();  }
-   constexpr auto & operator *   (this auto && self) { return *self.get();  }
-   constexpr auto * operator ->  (this auto && self) { return  self.get();  }
-#else
+   // constexpr auto * get          (this auto && self) { return  self._t_ptr; }
+   // constexpr        operator T * (this auto && self) { return  self.get();  }
+   // constexpr auto & operator *   (this auto && self) { return *self.get();  }
+   // constexpr auto * operator ->  (this auto && self) { return  self.get();  }
+
    constexpr T const * get                (void) const { return  _t_ptr; }
    constexpr T       * get                (void)       { return  _t_ptr; }
    
@@ -109,10 +106,18 @@ public:
 
    constexpr T const * operator ->        (void) const { return  get();  }
    constexpr T       * operator ->        (void)       { return  get();  }
-#endif
 
 private:
    T * _t_ptr;
+};
+
+struct TestWrapper
+{
+   int* my_ptr;
+
+   constexpr auto* get(this TestWrapper&& self) {
+      return self.my_ptr;
+   }
 };
 
 /** BoundedPtr
@@ -139,7 +144,7 @@ public:
    implicit constexpr BoundedPtr(T * const t_Ptr)
       : TrustedBoundedPtr<T>(t_Ptr)
    {
-      // YMASSERT(this->get(), NullPtrError, YM_DAH, "Bounded pointer cannot be null");
+      YMASSERT(this->get(), NullPtrError, YM_DAH, "Bounded pointer cannot be null");
    }
 
    /** BoundedPtr
@@ -155,7 +160,7 @@ public:
     */
    implicit constexpr BoundedPtr(TrustedBoundedPtr<T> tbp)
       : BoundedPtr(tbp.get())
-   { }
+   {}
 
    /// @brief Compile time non-nullness checks.
    constexpr BoundedPtr              (std::nullptr_t) = delete;

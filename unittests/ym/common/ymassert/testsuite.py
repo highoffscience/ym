@@ -4,10 +4,7 @@
 # @author  Forrest Jablonski
 #
 
-import argparse
-import os
 import sys
-import unittest
 
 try:
    import testsuitebase
@@ -23,7 +20,7 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   Collection of all tests for SUT ymassert_Base.
+   Collection of all tests for suite YmAssert.
    """
 
    @classmethod
@@ -62,6 +59,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
+      # uncomment to run test
       # results = self.run_test_case("InteractiveInspection")
       # self.assertTrue(results.get[bool]("Errored"), "Exception was not thrown as expected")
       pass
