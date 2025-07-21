@@ -4,18 +4,19 @@
  * @author  Forrest Jablonski
  */
 
-#include "ymglobals.h"
 #include "testsuite.h"
-#include "textlogger.h"
 
-#include "logger.h"
+#include "textlogger.h"
+#include "ymglobals.h"
+
+#include "logger.h" // Structures under test
 
 /** TestSuite
  *
  * @brief Constructor.
  */
-ym::ut::TestSuite::TestSuite(void)
-   : TestSuiteBase("Logger")
+ym::ut::TestSuite::TestSuite(void) :
+   TestSuiteBase("Logger")
 {
    addTestCase<InteractiveInspection>();
 }

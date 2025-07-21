@@ -40,7 +40,7 @@ inline bool ymLogDisable(VG const VG);
 
 /** TextLogger
  *
- * @brief Logs text to the given outfile - similary to fmt::printf.
+ * @brief Logs text to the given outfile - similary to std::printf.
  */
 class TextLogger : public Logger
 {

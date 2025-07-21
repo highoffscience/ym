@@ -6,7 +6,9 @@
 
 #pragma once
 
-#include "utdefs.h"
+#define YM_FORCE_CPP_STANDARD_20_DEFINED
+#include "ymdefs.h"
+#undef YM_FORCE_CPP_STANDARD_20_DEFINED
 
 #include "testsuitebase.h"
 
@@ -23,7 +25,8 @@ public:
    explicit TestSuite(void);
    virtual ~TestSuite(void) = default;
 
-   YM_UT_TESTCASE(OpenAndClose)
+   YM_UT_TESTCASE(InteractiveInspection)
+   YM_UT_TESTCASE(OpenAndClose         )
 };
 
 } // ym::ut

@@ -9,10 +9,9 @@
 #include "textlogger.h"
 #include "timer.h"
 
-#include "fmt/core.h"
-
 #include <exception>
 #include <filesystem>
+#include <format>
 #include <string>
 #include <system_error>
 
@@ -97,14 +96,15 @@ bool ym::Logger::openOutfile(std::string_view const Filename)
    std::error_code ec;
    if (std::filesystem::exists(Filename, ec))
    { // file we are attempting to create already exists
-      ymLog(VG::Logger, "WARNING: File (or directory) '{}' already exists"_str, Filename);
+      ymLog(VG::Logger, "WARNING: File (or directory) '{}' already exists", Filename);
    }
    else if (ec)
    { // filesystem failure 
-      ymLog(VG::Logger, "WARNING: Filesystem error when attempting to open '{}' with error code {}"_str, Filename, ec.value());
+      ymLog(VG::Logger, "WARNING: Filesystem error when attempting to open '{}' with error code {}", Filename, ec.value());
    }
    else
    { // open!
+
       _outfile_uptr.reset(std::fopen(Filename.data(), "w"));
       opened = isOutfileOpened();
    }
@@ -136,7 +136,7 @@ bool ym::Logger::openOutfile_appendTimeStamp(std::string_view const Filename)
    }
    catch (std::out_of_range const & E)
    { // logic error
-      // YMASSERTDBG(false, OpenError, YM_DAH, "Error finding extension. {}", E.what())
+      YMASSERT(false, OpenError, YM_DAH, "Error finding extension. {}", E.what())
    }
 
    constexpr std::string_view TimeStamp("_YYYY_mm_dd_HH_MM_SS");
@@ -145,28 +145,28 @@ bool ym::Logger::openOutfile_appendTimeStamp(std::string_view const Filename)
    std::string timeStampedFilename(Filename.size() + TimeStamp.size(), '\0');
 
    // write stem
-   auto result = fmt::format_to_n(
+   auto result = std::format_to_n(
       timeStampedFilename.data(),
       Filename.size() - ext.size(),
       "{}",
       Filename);
 
    // write time stamp
-   // result = fmt::format_to_n(
-   //    result.out,
-   //    TimeStamp.size(),
-   //    "_{:%Y_%m_%d_%H_%M_%S}",
-   //    Timer::Clock_T::now());
+   result = std::format_to_n(
+      result.out,
+      TimeStamp.size(),
+      "_{:%Y_%m_%d_%H_%M_%S}",
+      Timer::Clock_T::now());
 
    // write extension
-   result = fmt::format_to_n(
+   result = std::format_to_n(
       result.out,
       ext.size(),
       "{}",
       ext);
 
-   // YMASSERTDBG(result.out == &*timeStampedFilename.end(), OpenError, YM_DAH,
-   //    "Error printing time stamp. {} -- {}", (void*)result.out, (void*)&*timeStampedFilename.end())
+   YMASSERT(result.out == &*timeStampedFilename.end(), OpenError, YM_DAH,
+      "Error printing time stamp. {} -- {}", (void*)result.out, (void*)&*timeStampedFilename.end())
 
    return openOutfile(timeStampedFilename);
 }

@@ -4,19 +4,34 @@
  * @author  Forrest Jablonski
  */
 
-#include "ymdefs.h"
 #include "testsuite.h"
 
 #include "textlogger.h"
+#include "ymglobals.h"
+
+#include "textlogger.h" // Structures under test
 
 /** TestSuite
  *
  * @brief Constructor.
  */
-ym::ut::TestSuite::TestSuite(void)
-   : TestSuiteBase("TextLogger")
+ym::ut::TestSuite::TestSuite(void) :
+   TestSuiteBase("TextLogger")
 {
-   addTestCase<OpenAndClose>();
+   addTestCase<InteractiveInspection>();
+   addTestCase<OpenAndClose         >();
+}
+
+/** run
+ *
+ * @brief Opens and closes the text logger.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VG::UnitTest_TextLogger);
+   return {};
 }
 
 /** run
@@ -29,21 +44,18 @@ auto ym::ut::TestSuite::OpenAndClose::run([[maybe_unused]] DataShuttle const & I
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_TextLogger);
 
-   // TODO
-   // TextLogger t;
-   // // t.openToStdout();
-   // t.enable(VG::TextLogger);
-   // t.printf(VG::TextLogger, "Go! Torchic!");
+   TextLogger t("ym/common/textlogger/log.txt");
+   auto const IsOpen = t.open();
+   t.enable(VG::UnitTest_TextLogger);
+   t.printf(VG::UnitTest_TextLogger, "Go! Torchic!");
 
-   // auto const IsOpen = t.isOpen();
+   ymLog(VG::UnitTest_TextLogger, "Go! Pumpkaboo!");
 
-   // t.close(); // writer thread is joined with the thread that calls this
-   // auto const IsClosed = !t.isOpen();
+   t.close(); // writer thread is joined with the thread that calls this
+   auto const IsClosed = !t.isOpen();
 
-   // return {
-   //    {"IsOpen",   IsOpen},
-   //    {"IsClosed", IsClosed}
-   // };
-
-   return {};
+   return {
+      {"IsOpen",   IsOpen},
+      {"IsClosed", IsClosed}
+   };
 }

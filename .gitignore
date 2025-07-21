@@ -35,6 +35,8 @@ __pycache__/
 # unittest test generated files
 data*.txt
 data*.csv
+log*.txt
+global*.txt
 
 # libraries
 *.so

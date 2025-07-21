@@ -4,13 +4,9 @@
 # @author  Forrest Jablonski
 #
 
-import os
 import sys
-import unittest
 
 try:
-   # @note Grabs the first directory in the chain named unittests/.
-   sys.path.append(os.path.join(os.getcwd().split("unittests")[0], "unittests/"))
    import testsuitebase
 except:
    print("Cannot import testsuitebase - path set correctly?")
@@ -24,43 +20,40 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   @brief Collection of all tests for suite Logger.
+   Collection of all tests for suite Logger.
    """
 
    @classmethod
    def setUpClass(cls):
       """
-      @brief Acting constructor.
+      Acting constructor.
       """
-
       super().setUpBaseClass(
-         filepath="ym/common",
+         filepath="ym/common/",
          filename="logger")
 
    @classmethod
    def tearDownClass(cls):
       """
-      @brief Acting destructor.
+      Acting destructor.
       """
       super().tearDownBaseClass()
 
    def setUp(self):
       """
-      @brief Set up logic that is run before each test.
+      Set up logic that is run before each test.
       """
       pass
 
    def tearDown(self):
       """
-      @brief Tear down logic that is run after each test.
+      Tear down logic that is run after each test.
       """
       pass
 
    def test_InteractiveInspection(self):
       """
-      @brief Analyzes results from test case.
-
-      @param results -- Results from test case.
+      Analyzes results from test case.
       """
 
       from cppyy.gbl import std
@@ -71,8 +64,6 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
 # kick-off
 if __name__ == "__main__":
-   if os.path.basename(os.getcwd()) != "logger":
-      print("Needs to be run in the logger/ directory")
-      sys.exit(1)
-
-   unittest.main()
+   TestSuite.runSuite()
+else:
+   TestSuite.runSuite()

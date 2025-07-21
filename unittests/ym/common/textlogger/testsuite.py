@@ -4,13 +4,13 @@
 # @author  Forrest Jablonski
 #
 
+import glob
 import os
 import sys
-import unittest
+
+import ympyutils as ympy
 
 try:
-   # @note Grabs the first directory in the chain named unittests/.
-   sys.path.append(os.path.join(os.getcwd().split("unittests")[0], "unittests/"))
    import testsuitebase
 except:
    print("Cannot import testsuitebase - path set correctly?")
@@ -24,50 +24,59 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   @brief Collection of all tests for SUT TextLogger.
+   Collection of all tests for SUT TextLogger.
    """
 
    @classmethod
    def setUpClass(cls):
       """
-      @brief Acting constructor.
+      Acting constructor.
       """
-
-      super().setUpBaseClass(filepath="ym/common/",
-                             filename="textlogger")
+      super().setUpBaseClass(
+         filepath="ym/common/",
+         filename="textlogger")
 
    @classmethod
    def tearDownClass(cls):
       """
-      @brief Acting destructor.
+      Acting destructor.
       """
       pass
 
    def setUp(self):
       """
-      @brief Set up logic that is run before each test.
+      Set up logic that is run before each test.
       """
-      pass
+      prev_files = glob.glob(os.path.join(self.abs_ut_suite_path, "log*.txt"))
+      if prev_files:
+         ympy.runCmd(f"rm -rf {' '.join(prev_files)}")
 
    def tearDown(self):
       """
-      @brief Tear down logic that is run after each test.
+      Tear down logic that is run after each test.
       """
       pass
 
+   def test_InteractiveInspection(self):
+      """
+      Analyzes results from test case.
+      """
+
+      from cppyy.gbl import std
+      from cppyy.gbl import ym
+
+      # uncomment to run test
+      # results = self.run_test_case("InteractiveInspection")
+
    def test_OpenAndClose(self):
       """
-      @brief Analyzes results from test case.
-
-      @param results -- Results from test case.
+      Analyzes results from test case.
       """
 
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
       results = self.run_test_case("OpenAndClose")
-
-      self.assertTrue(results, "results is None")
 
       isOpen = results.get[bool]("IsOpen")
       self.assertTrue(isOpen, "text logger failed to open")
@@ -77,8 +86,6 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
 # kick-off
 if __name__ == "__main__":
-   if os.path.basename(os.getcwd()) != "textlogger":
-      print("Needs to be run in the textlogger/ directory")
-      sys.exit(1)
-
-   unittest.main()
+   TestSuite.runSuite()
+else:
+   TestSuite.runSuite()

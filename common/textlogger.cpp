@@ -6,12 +6,10 @@
 
 #include "textlogger.h"
 
+#include "fmt/core.h"
+
 #include <chrono>
 #include <cstdio>
-
-#if (YM_CPP_STANDARD < 20)
-   #include <thread>
-#endif
 
 /** TextLogger
  *
@@ -70,17 +68,16 @@ auto ym::TextLogger::getGlobalInstancePtr(void) -> bptr<TextLogger>
    if (!_s_globalInstance_ptr)
    { // file not already opened - open it
 
-      _s_globalInstance_ptr = new TextLogger("global.txt");
-      // YMASSERT(_s_globalInstance_ptr, GlobalError, YM_DAH, "Global instance failed to be created");
+      _s_globalInstance_ptr = new TextLogger("logs/global.txt");
+      YMASSERT(_s_globalInstance_ptr, GlobalError, YM_DAH, "Global instance failed to be created");
 
       auto const Opened = _s_globalInstance_ptr->open();
-      (void)Opened;
-      // YMASSERT(Opened, GlobalError,
-      //    [](auto const & E) -> void {
-      //       delete _s_globalInstance_ptr;
-      //       _s_globalInstance_ptr = nullptr;
-      //       throw E;
-      //    }, "Global instance failed to open");
+      YMASSERT(Opened, GlobalError,
+         [](auto const & E) -> void {
+            delete _s_globalInstance_ptr;
+            _s_globalInstance_ptr = nullptr;
+            throw E;
+         }, "Global instance failed to open");
    }
 
    return tbptr(_s_globalInstance_ptr); // guaranteed not null
@@ -179,11 +176,7 @@ void ym::TextLogger::acquireWriteAccess(void)
 {
    while (_writeFlag.test_and_set(std::memory_order_acquire))
    { // wait until the other thread is done
-   #if (YM_CPP_STANDARD >= 20)
       _writeFlag.wait(true, std::memory_order_relaxed);
-   #else
-      std::this_thread::yield();
-   #endif
    }
 }
 
@@ -194,10 +187,7 @@ void ym::TextLogger::acquireWriteAccess(void)
 void ym::TextLogger::releaseWriteAccess(void)
 {
    _writeFlag.clear(std::memory_order_release);
-
-#if (YM_CPP_STANDARD >= 20)
    _writeFlag.notify_one();
-#endif
 }
 
 /** printf_Handler
@@ -243,14 +233,14 @@ void ym::TextLogger::printf_Handler(
    char buffer[getMaxMsgSize_bytes()]{};
    auto * const write_Ptr = populateFormattedTime(buffer); // conditionally
 
-   // YMASSERTDBG(write_Ptr >= buffer, PrintError, YM_DAH,
-   //    "populateFormattedTime not returning as expected")
+   YMASSERT(write_Ptr >= buffer, PrintError, YM_DAH,
+      "populateFormattedTime not returning as expected")
 
    auto const TimeStampSize_bytes = static_cast<std::size_t>(write_Ptr - buffer);
 
-   // YMASSERTDBG(getMaxMsgSize_bytes() >= TimeStampSize_bytes, PrintError, YM_DAH,
-   //    "Buffer ({} bytes) not large enough to hold time stamp ({} bytes)",
-   //    getMaxMsgSize_bytes(), TimeStampSize_bytes)
+   YMASSERT(getMaxMsgSize_bytes() >= TimeStampSize_bytes, PrintError, YM_DAH,
+      "Buffer ({} bytes) not large enough to hold time stamp ({} bytes)",
+      getMaxMsgSize_bytes(), TimeStampSize_bytes)
    
    auto const HasTimeStamp =
       getPrintMode() == PrintMode_T::PrependTimeStamp ||
@@ -269,21 +259,24 @@ void ym::TextLogger::printf_Handler(
       *result.out = '\n';
    }
 
-   // following logic technically belongs in the below if statement but I don't want the assert,
-   // which alters control flow, to leave the atomic write flag in an undesirable state
-   // YMASSERTDBG(result.out >= buffer, PrintError, YM_DAH, "Format to buffer did not behave as expected")
-   auto const TotalWritten_bytes = static_cast<std::size_t>(result.out - buffer) + NewlineSize_bytes;
-
    acquireWriteAccess();
 
    if (_state.load(std::memory_order_relaxed) == State_T::Open)
    { // ok to print
 
+      YMASSERT(result.out >= buffer, PrintError,
+         [this](auto const & E) -> void {
+            this->releaseWriteAccess();
+            throw E;
+         }, "Format to buffer did not behave as expected")
+
+      auto const TotalWritten_bytes = static_cast<std::size_t>(result.out - buffer) + NewlineSize_bytes;
+
       // It is possible to ship this block to another thread/process,
       // but if no need for it just write it here. It blocks, but if
-      // you're printing it's probably not a high performance task.
+      // you're printing it's probably not a high performance task
+      // anyways (see DataLogger).
 
-      // TODO does fwrite wait until it has BUFSIZ data before writing to disk?
       std::fwrite(buffer, sizeof(char), TotalWritten_bytes, _outfile_uptr.get());
 
       if (getRedirectMode() == RedirectMode_T::ToLogAndStdOut)
