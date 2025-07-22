@@ -2,14 +2,14 @@
  * @file    testsuitebase.h
  * @version 1.0.0
  * @author  Forrest Jablonski
+ * 
+ * @note File used in unittests - maximum standard C++20.
  */
 
 #pragma once
 
-#define YM_FORCE_CPP_STANDARD_20_DEFINED
 #include "nameable.h"
 #include "ymdefs.h"
-#undef YM_FORCE_CPP_STANDARD_20_DEFINED
 
 #include "datashuttle.h"
 #include "testcase.h"

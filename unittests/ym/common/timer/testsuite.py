@@ -4,13 +4,9 @@
 # @author  Forrest Jablonski
 #
 
-import os
 import sys
-import unittest
 
 try:
-   # @note Grabs the first directory in the chain named unittests/.
-   sys.path.append(os.path.join(os.getcwd().split("unittests")[0], "unittests/"))
    import testsuitebase
 except:
    print("Cannot import testsuitebase - path set correctly?")
@@ -24,53 +20,62 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   @brief Collection of all tests for SUT Timer.
+   Collection of all tests for SUT Timer.
    """
 
    @classmethod
    def setUpClass(cls):
       """
-      @brief Acting constructor.
+      Acting constructor.
       """
-
-      super().setUpBaseClass(filepath="ym/common",
-                             filename="timer")
+      super().setUpBaseClass(
+         filepath="ym/common/",
+         filename="timer")
 
    @classmethod
    def tearDownClass(cls):
       """
-      @brief Acting destructor.
+      Acting destructor.
       """
       pass
 
    def setUp(self):
       """
-      @brief Set up logic that is run before each test.
+      Set up logic that is run before each test.
       """
       pass
 
    def tearDown(self):
       """
-      @brief Tear down logic that is run after each test.
+      Tear down logic that is run after each test.
       """
       pass
 
+   def test_InteractiveInspection(self):
+      """
+      Analyzes results from test case.
+      """
+
+      from cppyy.gbl import std
+      from cppyy.gbl import ym
+
+      # uncomment to run test
+      # results = self.run_test_case("InteractiveInspection")
+
    def test_VerifyTimer(self):
       """
-      @brief Analyzes results from test case.
-
-      @param results -- Results from test case.
+      Analyzes results from test case.
       """
 
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
       results = self.run_test_case("VerifyTimer")
+      cond = results.get[bool]("True")
+      self.assertTrue(cond, "todo should be true")
 
 # kick-off
 if __name__ == "__main__":
-   if os.path.basename(os.getcwd()) != "timer":
-      print("Needs to be run in the timer/ directory")
-      sys.exit(1)
-
-   unittest.main()
+   TestSuite.runSuite()
+else:
+   TestSuite.runSuite()

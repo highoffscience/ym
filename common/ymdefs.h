@@ -34,13 +34,11 @@
  */
 #if (__cplusplus >= 202002L)
    #if (__cplusplus >= 202302L)
-      // #if defined(YM_FORCE_CPP_STANDARD_20_DEFINED) // unittest active
-         #if (__cplusplus > 202302L)
-            #define YM_CPP_STANDARD 99
-         #else
-            #define YM_CPP_STANDARD 23
-         #endif
-      // #endif
+      #if (__cplusplus > 202302L)
+         #define YM_CPP_STANDARD 99
+      #else
+         #define YM_CPP_STANDARD 23
+      #endif
    #else
       #define YM_CPP_STANDARD 20
    #endif

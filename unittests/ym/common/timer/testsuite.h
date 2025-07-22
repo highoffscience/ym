@@ -2,11 +2,13 @@
  * @file    testsuite.h
  * @version 1.0.0
  * @author  Forrest Jablonski
+ * 
+ * @note File used in unittests - maximum standard C++20.
  */
 
 #pragma once
 
-#include "utdefs.h"
+#include "ymdefs.h"
 
 #include "testsuitebase.h"
 
@@ -23,7 +25,8 @@ public:
    explicit TestSuite(void);
    virtual ~TestSuite(void) = default;
 
-   YM_UT_TESTCASE(VerifyTimer)
+   YM_UT_TESTCASE(InteractiveInspection)
+   YM_UT_TESTCASE(VerifyTimer          )
 };
 
 } // ym::ut

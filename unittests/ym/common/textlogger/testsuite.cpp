@@ -24,7 +24,7 @@ ym::ut::TestSuite::TestSuite(void) :
 
 /** run
  *
- * @brief Opens and closes the text logger.
+ * @brief Interactive inspection - for debug purposes.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
