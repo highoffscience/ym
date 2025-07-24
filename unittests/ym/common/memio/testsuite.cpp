@@ -4,23 +4,35 @@
  * @author  Forrest Jablonski
  */
 
-#include "ymdefs.h"
 #include "testsuite.h"
 
-#include "memio.h"
-
 #include "textlogger.h"
-#include "ymerror.h"
+#include "ymglobals.h"
+
+#include "memio.h" // Structures under test
 
 /** TestSuite
  *
  * @brief Constructor.
  */
-ym::ut::TestSuite::TestSuite(void)
-   : TestSuiteBase("MemIO")
+ym::ut::TestSuite::TestSuite(void) :
+   TestSuiteBase("MemIO")
 {
-   addTestCase<StackAlloc>();
-   addTestCase<PoolAlloc >();
+   addTestCase<InteractiveInspection>();
+   addTestCase<StackAlloc           >();
+   addTestCase<PoolAlloc            >();
+}
+
+/** run
+ *
+ * @brief Interactive inspection - for debug purposes.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VG::UnitTest_Logger);
+   return {};
 }
 
 /** run

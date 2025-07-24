@@ -24,13 +24,13 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   @brief Collection of all tests for SUT ThreadSafeProxy.
+   Collection of all tests for ThreadSafeProxy.
    """
 
    @classmethod
    def setUpClass(cls):
       """
-      @brief Acting constructor.
+      Acting constructor.
       """
 
       super().setUpBaseClass(filepath="ym/common",
@@ -39,27 +39,25 @@ class TestSuite(testsuitebase.TestSuiteBase):
    @classmethod
    def tearDownClass(cls):
       """
-      @brief Acting destructor.
+      Acting destructor.
       """
       pass
 
    def setUp(self):
       """
-      @brief Set up logic that is run before each test.
+      Set up logic that is run before each test.
       """
       pass
 
    def tearDown(self):
       """
-      @brief Tear down logic that is run after each test.
+      Tear down logic that is run after each test.
       """
       pass
 
    def test_InteractiveInspection(self):
       """
-      @brief Analyzes results from test case.
-
-      @param results -- Results from test case.
+      Analyzes results from test case.
       """
 
       from cppyy.gbl import std

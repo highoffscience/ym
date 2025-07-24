@@ -24,7 +24,7 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   Collection of all tests for SUT TextLogger.
+   Collection of all tests for TextLogger.
    """
 
    @classmethod

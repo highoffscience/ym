@@ -17,7 +17,7 @@ namespace ym::ut
 
 /** TestSuite
  *
- * @brief Test suite for SUT Timer.
+ * @brief Test suite for Timer.
  */
 class TestSuite : public TestSuiteBase
 {

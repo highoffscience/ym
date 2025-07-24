@@ -2,11 +2,13 @@
  * @file    testsuite.h
  * @version 1.0.0
  * @author  Forrest Jablonski
+ * 
+ * @note File used in unittests - maximum standard C++20.
  */
 
 #pragma once
 
-#include "utdefs.h"
+#include "ymdefs.h"
 
 #include "testsuitebase.h"
 
@@ -15,7 +17,7 @@ namespace ym::ut
 
 /** TestSuite
  *
- * @brief Test suite for SUT MemIO.
+ * @brief Test suite for MemIO.
  */
 class TestSuite : public TestSuiteBase
 {
@@ -23,8 +25,9 @@ public:
    explicit TestSuite(void);
    virtual ~TestSuite(void) = default;
 
-   YM_UT_TESTCASE(StackAlloc)
-   YM_UT_TESTCASE(PoolAlloc )
+   YM_UT_TESTCASE(InteractiveInspection)
+   YM_UT_TESTCASE(StackAlloc           )
+   YM_UT_TESTCASE(PoolAlloc            )
 };
 
 } // ym::ut

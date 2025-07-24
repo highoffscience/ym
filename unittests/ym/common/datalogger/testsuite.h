@@ -15,7 +15,7 @@ namespace ym::ut
 
 /** TestSuite
  *
- * @brief Test suite for SUT DataLogger.
+ * @brief Test suite for DataLogger.
  */
 class TestSuite : public TestSuiteBase
 {

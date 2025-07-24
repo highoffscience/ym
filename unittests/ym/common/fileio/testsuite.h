@@ -15,7 +15,7 @@ namespace ym::ut
 
 /** TestSuite
  *
- * @brief Test suite for SUT FileIO.
+ * @brief Test suite for FileIO.
  */
 class TestSuite : public TestSuiteBase
 {

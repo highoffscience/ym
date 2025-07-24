@@ -15,7 +15,7 @@ namespace ym::ut
 
 /** TestSuite
  *
- * @brief Test suite for SUT ThreadSafeProxy.
+ * @brief Test suite for ThreadSafeProxy.
  */
 class TestSuite : public TestSuiteBase
 {

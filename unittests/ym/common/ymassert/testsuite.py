@@ -20,7 +20,7 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   Collection of all tests for suite YmAssert.
+   Collection of all tests for YmAssert.
    """
 
    @classmethod

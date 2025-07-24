@@ -20,7 +20,7 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   Collection of all tests for SUT Timer.
+   Collection of all tests for Timer.
    """
 
    @classmethod

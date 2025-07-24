@@ -15,7 +15,7 @@ namespace ym::ut
 
 /** TestSuite
  *
- * @brief Test suite for SUT Ops.
+ * @brief Test suite for Ops.
  */
 class TestSuite : public TestSuiteBase
 {

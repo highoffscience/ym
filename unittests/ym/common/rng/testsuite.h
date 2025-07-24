@@ -15,7 +15,7 @@ namespace ym::ut
 
 /** TestSuite
  *
- * @brief Test suite for SUT Random.
+ * @brief Test suite for Random.
  */
 class TestSuite : public TestSuiteBase
 {

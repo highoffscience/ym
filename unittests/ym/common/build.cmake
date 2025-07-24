@@ -36,7 +36,7 @@ function(utbuild-ym.common Ctx_JSON)
    set_target_properties(${BaseBuild} PROPERTIES VERSION ${PROJECT_VERSION})
    set_target_properties(${BaseBuild} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_CustomLibsDir})
 
-   set(SubBuilds logger textlogger timer ymassert ymdefs ymutils)
+   set(SubBuilds argparser logger textlogger timer ymassert ymdefs ymutils)
    foreach(SubBuild ${SubBuilds})
 
       set(SubBaseBuild ${BaseBuild}.${SubBuild})
