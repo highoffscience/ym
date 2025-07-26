@@ -9,9 +9,11 @@
 #include "textlogger.h"
 #include "timer.h"
 
+#include <array>
 #include <exception>
 #include <filesystem>
 #include <format>
+#include <memory_resource>
 #include <string>
 #include <system_error>
 
@@ -141,8 +143,9 @@ bool ym::Logger::openOutfile_appendTimeStamp(std::string_view const Filename)
 
    constexpr std::string_view TimeStamp("_YYYY_mm_dd_HH_MM_SS");
 
-   // TODO use custom allocator
-   std::string timeStampedFilename(Filename.size() + TimeStamp.size(), '\0');
+   std::array<char, 256u> buffer{'\0'};
+   std::pmr::monotonic_buffer_resource mbr{buffer.data(), buffer.size(), std::pmr::null_memory_resource()};
+   std::pmr::string timeStampedFilename(Filename.size() + TimeStamp.size(), '\0', &mbr);
 
    // write stem
    auto result = std::format_to_n(

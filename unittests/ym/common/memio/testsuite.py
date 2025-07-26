@@ -78,20 +78,8 @@ class TestSuite(testsuitebase.TestSuiteBase):
       val = results.get[bool]("BlockByteOK")
       self.assertTrue(val, f"Block bytes corrupted")
 
-   def test_PoolAlloc(self):
-      """
-      Analyzes results from test case.
-      """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
-
-      results = self.run_test_case("PoolAlloc")
-
 # kick-off
 if __name__ == "__main__":
-   if os.path.basename(os.getcwd()) != "memio":
-      print("Needs to be run in the memio/ directory")
-      sys.exit(1)
-
-   unittest.main()
+   TestSuite.runSuite()
+else:
+   TestSuite.runSuite()

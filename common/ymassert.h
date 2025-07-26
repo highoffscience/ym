@@ -91,8 +91,8 @@
 * @param BaseName_ -- Name of base class.
 */
 #define YM_DECL_YMASSERT(...) YM_MACRO_OVERLOAD(YM_HELPER_DECL_YMASSERT, __VA_ARGS__)
-#define YM_HELPER_DECL_YMASSERT1(Name_) YM_HELPER_DECL_YMASSERT2(Name_, ymassert_Base)
-#define YM_HELPER_DECL_YMASSERT2(Name_, BaseName_) class Name_ : public BaseName_ {};
+#define YM_HELPER_DECL_YMASSERT1(Name_) YM_HELPER_DECL_YMASSERT2(ymassert_Base, Name_)
+#define YM_HELPER_DECL_YMASSERT2(BaseName_, Name_) class Name_ : public BaseName_ {};
 
 namespace ym
 {

@@ -6,8 +6,6 @@
 
 #include "textlogger.h"
 
-#include "fmt/core.h"
-
 #include <chrono>
 #include <cstdio>
 
@@ -248,6 +246,7 @@ void ym::TextLogger::printf_Handler(
 
    auto const NewlineSize_bytes = std::size_t((HasTimeStamp) ? 1u : 0u);
 
+   // std::vformat_to_n does not exist - so continue to use fmt
    auto result = fmt::vformat_to_n(
       write_Ptr,
       getMaxMsgSize_bytes() - TimeStampSize_bytes - NewlineSize_bytes,

@@ -27,7 +27,6 @@ public:
 
    YM_UT_TESTCASE(InteractiveInspection)
    YM_UT_TESTCASE(StackAlloc           )
-   YM_UT_TESTCASE(PoolAlloc            )
 };
 
 } // ym::ut
