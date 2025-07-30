@@ -48,7 +48,14 @@ auto ym::ut::TestSuiteBase::runTestCase(
 
    if (It != _testCases.end())
    { // test case found
-      ds = (*It)->run(InData);
+      try
+      { // catch stray exceptions
+         ds = (*It)->run(InData);
+      }
+      catch (std::exception const & E)
+      { // repackage exception cppyy can understand and throw
+         throw std::runtime_error(E.what());
+      }
    }
    else
    { // test case not found

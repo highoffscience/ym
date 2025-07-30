@@ -27,6 +27,7 @@ public:
 
    YM_UT_TESTCASE(BasicParse   )
    YM_UT_TESTCASE(FlagIntegrity)
+   YM_UT_TESTCASE(SizeOfArg    )
 };
 
 } // ym::ut

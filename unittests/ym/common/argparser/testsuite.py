@@ -4,13 +4,9 @@
 # @author  Forrest Jablonski
 #
 
-import os
 import sys
-import unittest
 
 try:
-   # @note grabs the first directory in the chain named unittests/
-   sys.path.append(os.path.join(os.getcwd().split("unittests")[0], "unittests/"))
    import testsuitebase
 except:
    print("Cannot import testsuitebase - path set correctly?")
@@ -32,9 +28,9 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Acting constructor.
       """
-
-      super().setUpBaseClass(filepath="ym/common/",
-                             filename="argparser")
+      super().setUpBaseClass(
+         filepath="ym/common/",
+         filename="argparser")
 
    @classmethod
    def tearDownClass(cls):
@@ -93,10 +89,21 @@ class TestSuite(testsuitebase.TestSuiteBase):
          val = results.get[bool](arg)
          self.assertTrue(val, f"{arg} arg failed to parse")
 
+   def test_SizeOfArg(self):
+      """
+      Analyzes results from test case.
+      """
+
+      from cppyy.gbl import std
+      from cppyy.gbl import ym
+
+      results = self.run_test_case("SizeOfArg")
+
+      size = results.get[std.size_t]("Size")
+      self.assertEqual(size, 32, "Unexpected Arg size")
+
 # kick-off
 if __name__ == "__main__":
-   if os.path.basename(os.getcwd()) != "argparser":
-      print("Needs to be run in the argparser/ directory")
-      sys.exit(1)
-
-   unittest.main()
+   TestSuite.runSuite()
+else:
+   TestSuite.runSuite()

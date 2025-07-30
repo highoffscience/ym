@@ -4,12 +4,13 @@
  * @author  Forrest Jablonski
  */
 
-#include "ymdefs.h"
 #include "testsuite.h"
 
-#include "argparser.h"
 #include "ops.h"
 #include "textlogger.h"
+#include "ymglobals.h"
+
+#include "argparser.h" // Structures under test
 
 #include <array>
 #include <cstring>
@@ -18,11 +19,12 @@
  *
  * @brief Constructor.
  */
-ym::ut::TestSuite::TestSuite(void)
-   : TestSuiteBase("ArgParser")
+ym::ut::TestSuite::TestSuite(void) :
+   TestSuiteBase("ArgParser")
 {
    addTestCase<BasicParse   >();
    addTestCase<FlagIntegrity>();
+   addTestCase<SizeOfArg    >();
 }
 
 /** run
@@ -37,7 +39,7 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_ArgParser);
 
-   str const Argv[] = {"testsuite",
+   strlit const Argv[] = {"testsuite",
       "--input",  "settings.json",
       "--output", "data.csv",
       "-cb",
@@ -69,16 +71,16 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
    {
       ap.parse();
 
-      val_input  = std::strcmp(ap["input"    ]->getVal(), "settings.json") == 0_i32;
-      val_output = std::strcmp(ap["output"   ]->getVal(), "data.csv"     ) == 0_i32;
+      val_input  = std::strcmp(ap["input"    ]->getVal(), "settings.json") == 0;
+      val_output = std::strcmp(ap["output"   ]->getVal(), "data.csv"     ) == 0;
       val_clean  =             ap["clean"    ]->isEnbl();
       val_build  =             ap["build"    ]->isEnbl();
-      val_key    = std::strcmp(ap["key"      ]->getVal(), "Torchic1234"  ) == 0_i32;
+      val_key    = std::strcmp(ap["key"      ]->getVal(), "Torchic1234"  ) == 0;
       val_denial =             ap["in-denial"]->isEnbl();
    }
-   catch (ArgParser::ArgParserError const & E)
+   catch (ArgParser::Error const & E)
    {
-      ymLog(VG::UnitTest_ArgParser, "--> %s", E.what());
+      ymLog(VG::UnitTest_ArgParser, "--> {}", E.what());
       excHappened = true;
    }
 
@@ -105,7 +107,7 @@ auto ym::ut::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const & 
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_ArgParser);
 
-   str const Argv[] = {"testsuite",
+   strlit const Argv[] = {"testsuite",
       "--verbose",
       "--width", "1"
    };
@@ -129,9 +131,9 @@ auto ym::ut::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const & 
       val_verbose = ap["verbose"]->isFlag();
       val_width   = ap["width"  ]->isFlag() == false;
    }
-   catch (ArgParser::ArgParserError const & E)
+   catch (ArgParser::Error const & E)
    {
-      ymLog(VG::UnitTest_ArgParser, "--> %s", E.what());
+      ymLog(VG::UnitTest_ArgParser, "--> {}", E.what());
       excHappened = true;
    }
 
@@ -139,5 +141,24 @@ auto ym::ut::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const & 
       {"Exc",     excHappened},
       {"Verbose", val_verbose},
       {"Width",   val_width  }
+   };
+}
+
+/** run
+ *
+ * @brief Tests if ArgParser can parse.
+ * 
+ * @throws TODO
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::ut::TestSuite::SizeOfArg::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VG::UnitTest_ArgParser);
+
+   constexpr auto Size = sizeof(ym::ArgParser::Arg);
+
+   return {
+      {"Size", Size}
    };
 }
