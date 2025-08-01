@@ -18,11 +18,12 @@ function(srcbuild-ym.common Ctx_JSON)
    add_library(${Target} SHARED)
 
    set(Srcs
+      argparser.cpp
       logger.cpp
       textlogger.cpp
       timer.cpp
       ymassert.cpp
-      ymutils.cpp) # TODO need to link libfmt
+      ymutils.cpp)
    list(TRANSFORM Srcs PREPEND ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/)
    target_sources(${Target} PRIVATE ${Srcs})
 

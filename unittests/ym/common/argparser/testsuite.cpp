@@ -56,7 +56,7 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
       ArgParser::Arg("key"      ).desc("Passkey"     ).abbr('k'),      
       ArgParser::Arg("in-denial").desc("My existence")          .enbl()
    };
-   
+
    ArgParser ap(Argc, Argv, argHandlers);
 
    auto excHappened = false;

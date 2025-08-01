@@ -13,7 +13,8 @@
 
 #include <cstddef>
 #include <cstdlib>
-#include <exception>
+#include <exception> // TODO if yes exceptions
+#include <iterator>
 #include <type_traits>
 
 namespace ym
@@ -57,6 +58,31 @@ union PtrToInt_T
 
 // ----------------------------------------------------------------------------
 
+/** Bitset
+ * 
+ * TODO
+ */
+template <typename T = uint8>
+class Bitset
+{
+public:
+   explicit constexpr Bitset(void) = default;
+
+   constexpr bool test  (T const Idx) const { return _bits &   (T(1u) << Idx); }
+   constexpr void clear (T const Idx)       {        _bits &= ~(T(1u) << Idx); }
+   constexpr void toggle(T const Idx)       {        _bits ^=  (T(1u) << Idx); }
+   constexpr void set   (T const Idx)       {        _bits |=  (T(1u) << Idx); }
+   constexpr void set   (T const Idx, bool const Val) {
+      clear(Idx); _bits |= (T(Val) << Idx);
+   }
+
+   constexpr auto   getUnderlying   (void) const { return  _bits; }
+   constexpr auto * getUnderlyingPtr(void) const { return &_bits; }
+
+// private: TODO
+   T _bits{};
+};
+
 /** TrustedBoundedPtr
  *
  * @brief Non-null pointer. There is no null check upon construction - pointers
@@ -94,6 +120,10 @@ public:
    constexpr        operator T * (this auto && self) { return  self.get();  }
    constexpr auto & operator *   (this auto && self) { return *self.get();  }
    constexpr auto * operator ->  (this auto && self) { return  self.get();  }
+
+   constexpr auto operator [] (this auto && self, auto const Idx) {
+      return self.get()[Idx];
+   }
 
 private:
    T * _t_ptr;

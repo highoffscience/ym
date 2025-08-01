@@ -8,7 +8,7 @@
 
 #include "ymdefs.h"
 
-#include "fmt/format.h"
+#include "fmt/base.h"
 
 #include <type_traits>
 
@@ -92,7 +92,7 @@
 */
 #define YM_DECL_YMASSERT(...) YM_MACRO_OVERLOAD(YM_HELPER_DECL_YMASSERT, __VA_ARGS__)
 #define YM_HELPER_DECL_YMASSERT1(Name_) YM_HELPER_DECL_YMASSERT2(ymassert_Base, Name_)
-#define YM_HELPER_DECL_YMASSERT2(BaseName_, Name_) class Name_ : public BaseName_ {};
+#define YM_HELPER_DECL_YMASSERT2(BaseName_, Name_) class Name_ : public BaseName_ { };
 
 namespace ym
 {
@@ -111,7 +111,7 @@ public:
 #if (YM_YES_EXCEPTIONS)
    virtual rawstr what(void) const noexcept override;
    static inline void defaultYesExceptHandler(auto const & E) { throw E; }
-#else
+#else // YM_NO_EXCEPTIONS
    rawstr what(void) const noexcept;
    static void defaultNoExceptHandler(ymassert_Base const & E);
 #endif
@@ -125,12 +125,13 @@ public:
          write_Helper(Format, fmt::make_format_args(args_uref...));
    }
 
+   // delay calling format to avoid including fmt/format.h in the header file
    void write_Helper(
       rawstr const     Format,
       fmt::format_args args);
 
 private:
-   char _msg[_s_MaxMsgSize_bytes]{};
+   char _msg[_s_MaxMsgSize_bytes]{'\0'};
 };
 
 } // ym

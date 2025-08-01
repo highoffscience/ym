@@ -9,14 +9,8 @@
 #include "ymglobals.h"
 
 #include <array>
+#include <span>
 #include <type_traits>
-
-#if (YM_CPP_STANDARD >= 23)
-   #include <span>
-   #define YM_ARGPARSER_USE_STD_SPAN true
-#else
-#define YM_ARGPARSER_USE_STD_SPAN false
-#endif
 
 namespace ym
 {
@@ -59,6 +53,14 @@ public:
    {
       friend ArgParser;
       
+   private:
+      enum Flags_T : uint8 {
+         FFlag = 0u,
+         FEnbl,
+         FList,
+         FReqd
+      };
+
    public:
       explicit Arg(str const Name);
 
@@ -68,32 +70,29 @@ public:
       inline auto   getAbbr (void) const { return _abbr;  }
       inline auto   getNVals(void) const { return _nvals; }
 
-      inline auto isFlag (void) const { return _flag; }
-      inline auto isEnbl (void) const { return _enbl; }
-      inline auto isList (void) const { return _list; }
+      inline auto isFlag (void) const { return _flags.test(FFlag); }
+      inline auto isEnbl (void) const { return _flags.test(FEnbl); }
+      inline auto isList (void) const { return _flags.test(FList); }
+      inline auto isReqd (void) const { return _flags.test(FReqd); }
 
-      inline Arg & desc  (rawstr const Desc       ) { _desc = Desc;       return *this; }
-      inline Arg & defval(rawstr const DefaultVal ) { _val  = DefaultVal; return *this; }
-      inline Arg & abbr  (char   const Abbr       ) { _abbr = Abbr;       return *this; }
-      inline Arg & enbl  (bool   const Enbl = true) { _flag = true;
-                                                      _enbl = Enbl;
-                                                      _val  = _enbl ? "1" : "0";
-                                                                          return *this; }
-      inline Arg & list  (bool const List = true  ) { _list = List;       return *this; }
+      inline Arg & desc  (rawstr const Desc       ) { _desc = Desc;            return *this; }
+      inline Arg & defval(rawstr const DefaultVal ) { _val  = DefaultVal;      return *this; }
+      inline Arg & abbr  (char   const Abbr       ) { _abbr = Abbr;            return *this; }
+      inline Arg & enbl  (bool   const Enbl = true) { _flags.set(FFlag);
+                                                      _flags.set(FEnbl, Enbl);
+                                                      _val  = Enbl ? "1":"0";  return *this; }
+      inline Arg & list  (bool   const List = true) { _flags.set(FList, List); return *this; }
 
       YM_DECL_YMASSERT(Error)
 
-   private:
+   // private:
       // no consts - see static assert below
-      str    _name {""}; // arg name (used as the key)
-      str    _desc {""}; // description
-      rawstr _val  {  }; // value
-      uint32 _nvals{  }; // number of values, if list
-      char   _abbr {  }; // abbreviation
-      bool   _flag {  }; // flag
-      bool   _enbl {  }; // enabled
-      bool   _list {  }; // list
-      bool   _reqd {  }; // required
+      str      _name {""}; // arg name (used as the key)
+      str      _desc {""}; // description
+      rawstr   _val  {  }; // value
+      uint32   _nvals{  }; // number of values, if list
+      char     _abbr {  }; // abbreviation
+      Bitset<> _flags{  }; // Flags_T
    };
 
    // copyable to load Arg params into vector
@@ -108,29 +107,15 @@ public:
       HelpMenuCalled
    };
 
-// std::span is defined in c++20, but useless without const_iterator,
-//  which is defined in c++23.
-#if (YM_ARGPARSER_USE_STD_SPAN)
-   using ArgHandlers_T = std::span<Arg>;
-#else
-   using ArgHandlers_T = Arg * const;
-#endif
-
    explicit ArgParser(
       int            const Argc,       // command line arg count
       strlit const * const Argv_Ptr,   // command line args
-      ArgHandlers_T        argHandlers // user-defined arg handlers
-   #if (!YM_ARGPARSER_USE_STD_SPAN)
-      , uint32       const NHandlers   // number of arg handlers
-   #endif
+      std::span<Arg>       argHandlers // user-defined arg handlers
    );
 
    explicit ArgParser(
       str      const Argv,       // command line args
-      ArgHandlers_T  argHandlers // user-defined arg handlers
-   #if (!YM_ARGPARSER_USE_STD_SPAN)
-      , uint32 const NHandlers   // number of arg handlers
-   #endif
+      std::span<Arg> argHandlers // user-defined arg handlers
    );
 
    YM_NO_COPY  (ArgParser)
@@ -142,9 +127,9 @@ public:
    inline Arg const * operator[](str const Key) const { return get(Key); }
 
    YM_DECL_YMASSERT(Error)
-   YM_DECL_YMASSERT(ParseError,  Error)
-   YM_DECL_YMASSERT(ArgError,    Error)
-   YM_DECL_YMASSERT(AccessError, Error)
+   YM_DECL_YMASSERT(Error, ParseError )
+   YM_DECL_YMASSERT(Error, ArgError   )
+   YM_DECL_YMASSERT(Error, AccessError)
 
 private:
    static constexpr auto s_NValidChars = static_cast<uint32>('~' - '!' + 1); // 126 - 33 + 1
@@ -195,14 +180,11 @@ private:
       rawstr str_idx; // used for one string
    };
            
-   AbbrSet_T     _abbrs      {       };
-   ArgHandlers_T _argHandlers{       };
-   int    const  _Argc       {       };
-   Argv_T const  _Argv       {nullptr};
-   Idx_T         _tidx       {nullptr};
-#if (!YM_ARGPARSER_USE_STD_SPAN)
-   uint32  const _NHandlers  {       };
-#endif
+   AbbrSet_T      _abbrs      {       };
+   std::span<Arg> _argHandlers{       };
+   int    const   _Argc       {       };
+   Argv_T const   _Argv       {nullptr};
+   Idx_T          _tidx       {nullptr};
 };
 
 } // ym

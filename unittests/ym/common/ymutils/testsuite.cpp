@@ -26,6 +26,7 @@ ym::ut::TestSuite::TestSuite(void) :
    addTestCase<BinarySearch         >();
    addTestCase<BoundedStr           >();
    addTestCase<PtrCast              >();
+   addTestCase<BitSet               >();
 }
 
 /** run
@@ -43,7 +44,7 @@ auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle 
 
 /** run
  *
- * @brief Interactive inspection - for debug purposes.
+ * @brief TODO
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
@@ -63,7 +64,7 @@ auto ym::ut::TestSuite::PtrToIntConversion::run([[maybe_unused]] DataShuttle con
 
 /** run
  *
- * @brief Interactive inspection - for debug purposes.
+ * @brief TODO
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
@@ -82,7 +83,7 @@ auto ym::ut::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle const 
 
    bptr name_b = name;
 
-   ymLog(VG::UnitTest_YmUtils, "sizeof(TBP) %lu; sizeof(BP) %lu", sizeof(name), sizeof(a_bptr));
+   ymLog(VG::UnitTest_YmUtils, "sizeof(TBP) {}; sizeof(BP) {}", sizeof(name), sizeof(a_bptr));
 
    return {
       {"Ptr_1", *b_ptr},
@@ -92,7 +93,7 @@ auto ym::ut::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle const 
 
 /** run
  *
- * @brief Interactive inspection - for debug purposes.
+ * @brief TODO
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
@@ -116,7 +117,7 @@ auto ym::ut::TestSuite::BinarySearch::run([[maybe_unused]] DataShuttle const & I
 
 /** run
  *
- * @brief Interactive inspection - for debug purposes.
+ * @brief TODO
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
@@ -132,7 +133,7 @@ auto ym::ut::TestSuite::BoundedStr::run([[maybe_unused]] DataShuttle const & InD
 
 /** run
  *
- * @brief Interactive inspection - for debug purposes.
+ * @brief TODO
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
@@ -152,6 +153,34 @@ auto ym::ut::TestSuite::PtrCast::run([[maybe_unused]] DataShuttle const & InData
 
    static_assert(!std::is_const_v<std::remove_pointer_t<decltype(bytes1)>>, "bytes1 expected to be non-const");
    static_assert( std::is_const_v<std::remove_pointer_t<decltype(bytes2)>>, "bytes2 expected to be const");
+
+   return {
+      {"True", true}
+   };
+}
+
+/** run
+ *
+ * @brief TODO
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::ut::TestSuite::BitSet::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
+
+   Bitset b{};
+   ymLog(VG::UnitTest_YmUtils, "1) TODO --> {}", b.getUnderlying());
+   b.set(0);
+   ymLog(VG::UnitTest_YmUtils, "2) TODO --> {}", b.getUnderlying());
+   b.set(1);
+   ymLog(VG::UnitTest_YmUtils, "3) TODO --> {}", b.getUnderlying());
+   b.clear(1);
+   ymLog(VG::UnitTest_YmUtils, "4) TODO --> {}", b.getUnderlying());
+   b.set(1, true);
+   ymLog(VG::UnitTest_YmUtils, "5) TODO --> {}", b.getUnderlying());
+   auto b2 = b;
+   ymLog(VG::UnitTest_YmUtils, "6) TODO --> {}", b2.getUnderlying());
 
    return {
       {"True", true}

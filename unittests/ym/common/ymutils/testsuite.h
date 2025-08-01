@@ -31,6 +31,7 @@ public:
    YM_UT_TESTCASE(BinarySearch         )
    YM_UT_TESTCASE(BoundedStr           )
    YM_UT_TESTCASE(PtrCast              )
+   YM_UT_TESTCASE(BitSet               )
 };
 
 } // ym::ut

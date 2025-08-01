@@ -6,6 +6,8 @@
 
 #include "ymassert.h"
 
+#include "fmt/format.h"
+
 #if (YM_NO_EXCEPTIONS)
    #include "textlogger.h"
    #include <csignal>
@@ -32,6 +34,8 @@ void ym::ymassert_Base::write_Helper(
    *Result.out = '\0';
 }
 
+#if (YM_YES_EXCEPTIONS)
+
 /** what
  *
  * @brief Returns an identifying message.
@@ -41,7 +45,7 @@ auto ym::ymassert_Base::what(void) const noexcept -> rawstr
    return _msg;
 }
 
-#if (YM_NO_EXCEPTIONS)
+#else // YM_NO_EXCEPTIONS
 
 /** defaultNoExceptHandler
  *

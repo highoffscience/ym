@@ -9,10 +9,12 @@
 #include "textlogger.h"
 #include "timer.h"
 
+#include "fmt/chrono.h"
+#include "fmt/format.h"
+
 #include <array>
 #include <exception>
 #include <filesystem>
-#include <format>
 #include <memory_resource>
 #include <string>
 #include <system_error>
@@ -148,21 +150,21 @@ bool ym::Logger::openOutfile_appendTimeStamp(std::string_view const Filename)
    std::pmr::string timeStampedFilename(Filename.size() + TimeStamp.size(), '\0', &mbr);
 
    // write stem
-   auto result = std::format_to_n(
+   auto result = fmt::format_to_n(
       timeStampedFilename.data(),
       Filename.size() - ext.size(),
       "{}",
       Filename);
 
    // write time stamp
-   result = std::format_to_n(
+   result = fmt::format_to_n(
       result.out,
       TimeStamp.size(),
       "_{:%Y_%m_%d_%H_%M_%S}",
       Timer::Clock_T::now());
 
    // write extension
-   result = std::format_to_n(
+   result = fmt::format_to_n(
       result.out,
       ext.size(),
       "{}",

@@ -32,22 +32,15 @@
  * @param argHandlers -- Array of argument handlers.
  */
 ym::ArgParser::ArgParser(
-   int            const Argc,
-   strlit const * const Argv_Ptr,
-   ArgHandlers_T        argHandlers
-#if (!YM_ARGPARSER_USE_STD_SPAN)
-   , uint32       const NHandlers
-#endif
-) :
-   _abbrs       {/*default*/},
+      int            const Argc,
+      strlit const * const Argv_Ptr,
+      std::span<Arg>       argHandlers) :
+   _abbrs       {nullptr    },
    _argHandlers {argHandlers},
    _Argc        {Argc       },
    _Argv        {Argv_Ptr   },
    _tidx        {0          }
-#if (!YM_ARGPARSER_USE_STD_SPAN)
-   , _NHandlers {NHandlers  }
-#endif
-{ }
+{}
 
 /** ArgParser
  * 
@@ -60,20 +53,14 @@ ym::ArgParser::ArgParser(
  * @param argHandlers -- Array of argument handlers.
  */
 ym::ArgParser::ArgParser(
-   str      const  Argv,
-   ArgHandlers_T   argHandlers
-#if (!YM_ARGPARSER_USE_STD_SPAN)
-   , uint32 const  NHandlers
-#endif
-) : _abbrs      {/*default*/},
+      str      const  Argv,
+      std::span<Arg>  argHandlers) :
+   _abbrs       {nullptr    },
    _argHandlers {argHandlers},
    _Argc        {-1         },
    _Argv        {Argv       },
    _tidx        {nullptr    }
-#if (!YM_ARGPARSER_USE_STD_SPAN)
-   , _NHandlers {NHandlers  }
-#endif
-{ }
+{}
 
 /** parse
  *
@@ -92,7 +79,7 @@ auto ym::ArgParser::parse(void) -> ParseResult_T
    for (rawstr token = nullptr; (token = getNextToken()); /*nothing*/)
    { // go through all command line arguments
 
-      if (token[0] == '-')
+      if (token[0u] == '-')
       { // arg found
 
          if (token[1] == '-')
@@ -192,7 +179,7 @@ auto ym::ArgParser::parseShorthand(rawstr token) -> ParseResult_T
    return result;
 }
 
-/** parse
+/** parseLonghand
  * 
  * @brief Sets the value depending on the type of argument.
  * 
@@ -233,9 +220,9 @@ auto ym::ArgParser::parseLonghand(
 
             arg_Ptr->_nvals = static_cast<uint32>(NExpectedVals);
 
-            for (auto i = 0_u32; (i < arg_Ptr->_nvals) && (token = getNextToken()); i++)
+            for (auto i = 0u; (i < arg_Ptr->_nvals) && (token = getNextToken()); i++)
             { // fast forward the number of items in list
-               if (i == 0_u32)
+               if (i == 0u)
                { // record starting point of list
                   arg_Ptr->defval(token);
                }
@@ -300,20 +287,9 @@ auto ym::ArgParser::parseShorthand(
  */
 auto ym::ArgParser::get(str const Key) const -> Arg const *
 {
-   auto const BeginIt =
-#if (YM_ARGPARSER_USE_STD_SPAN)
-      _argHandlers.cbegin();
-#else
-      _argHandlers;
-#endif
-
-   auto const EndIt =
-#if (YM_ARGPARSER_USE_STD_SPAN)
-      _argHandlers.cend();
-#else
-      _argHandlers + _NHandlers;
-#endif
-
+   auto const BeginIt = _argHandlers.cbegin();
+   auto const EndIt   = _argHandlers.cend();
+   
    auto const It = ymBinarySearch(BeginIt, EndIt, Key,
       [](str const Key, auto const & Arg) -> int32 {
          return std::strcmp(Key, Arg->getName());
@@ -361,6 +337,11 @@ auto ym::ArgParser::getNextToken(void) -> rawstr
    else
    { // cmd line args as passed into main()
 
+      if (_tidx.vec_idx == 0)
+      { // ignore the first argument
+         _tidx.vec_idx++;
+      }
+
       if (_tidx.vec_idx < _Argc)
       { // there is a next element
          token = _Argv.Vec[_tidx.vec_idx];
@@ -385,19 +366,8 @@ auto ym::ArgParser::getNextToken(void) -> rawstr
  */
 void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 {
-   auto const BeginIt =
-#if (YM_ARGPARSER_USE_STD_SPAN)
-      _argHandlers.cbegin();
-#else
-      _argHandlers;
-#endif
-
-   auto const EndIt =
-#if (YM_ARGPARSER_USE_STD_SPAN)
-      _argHandlers.cend();
-#else
-      _argHandlers + _NHandlers;
-#endif
+   auto BeginIt = _argHandlers.begin();
+   auto EndIt   = _argHandlers.end();
 
    // --- --- --- --- organize --- --- --- ---
 
@@ -438,15 +408,9 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
       // --- --- validate key name --- ---
 
       YMASSERT(*Key, ArgError, YM_DAH, "Name must be non-empty");
+      YMASSERT(Key[0u] != '-', ArgError, YM_DAH, "Name '{}' cannot begin with '-'", Key);
       YMASSERT(std::strcmp(Key, "help") != 0, ArgError, YM_DAH,
          "Arg cannot be named the reserved word 'help'");
-
-      // dereference here is safe, we just checked that above
-      for (auto currChar = Key.get(); *currChar != '\0'; currChar++)
-      { // go through all chars in proposed name
-         YMASSERT(isValidChar(*currChar), ArgError, YM_DAH,
-            "Name '{}' cannot contain '{}'", Key, *currChar);
-      }
 
       // --- --- validate description --- ---
 
@@ -460,9 +424,9 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 
       if (Abbr != '\0')
       { // assigned abbr
-         YMASSERT(isValidChar(Abbr), ArgError, YM_DAH, "Abbr 0x{0:x} not valid for arg '{}'", Abbr, Key);
-         YMASSERT(_abbrs[getAbbrIdx(Abbr)] == &*EndIt, ArgError, YM_DAH, "Abbr '{}' already occupied", Abbr);
-
+         YMASSERT(isValidChar(Abbr), ArgError, YM_DAH, "Abbr 0x{:x} not valid for arg '{}'", Abbr, Key);
+         YMASSERT(!_abbrs[getAbbrIdx(Abbr)], ArgError, YM_DAH,
+            "Key '{}' tried to take already occupied Abbr '{}'", Key, Abbr);
          _abbrs[getAbbrIdx(Abbr)] = &*it;
       }
 
@@ -506,19 +470,8 @@ void ym::ArgParser::displayHelpMenu(void) const
 {
    auto const SE = ymLogPushEnable(VG::ArgParser);
 
-   auto const BeginIt =
-#if (YM_ARGPARSER_USE_STD_SPAN)
-      _argHandlers.cbegin();
-#else
-      _argHandlers;
-#endif
-
-   auto const EndIt =
-#if (YM_ARGPARSER_USE_STD_SPAN)
-      _argHandlers.cend();
-#else
-      _argHandlers + _NHandlers;
-#endif
+   auto const BeginIt = _argHandlers.cbegin();
+   auto const EndIt   = _argHandlers.cend();
 
    auto maxKeyLen = std::size_t(0u);
 
@@ -530,7 +483,10 @@ void ym::ArgParser::displayHelpMenu(void) const
       }
    }
 
-   auto spaces_bptr = bptr<char>(YM_STACK_ALLOC(char, maxKeyLen + std::size_t(1u)));
+   // TODO create the overloads for pointer types to make this work with bptr<T>
+   char * spaces_bptr = YM_STACK_ALLOC(char, maxKeyLen + std::size_t(1u));
+   YMASSERT(spaces_bptr, Error, YM_DAH, "Failed to alloc room for spaces")
+
    for (auto i = std::size_t(0u); i < maxKeyLen; ++i)
    { // init all elements to spaces
       spaces_bptr[i] = ' ';
@@ -569,19 +525,8 @@ auto ym::ArgParser::getArgPtrFromPrefix(rawstr const Prefix) -> Arg *
    if (Prefix)
    { // valid prefix
 
-      auto const BeginIt =
-   #if (YM_ARGPARSER_USE_STD_SPAN)
-         _argHandlers.cbegin();
-   #else
-         _argHandlers;
-   #endif
-
-      auto const EndIt =
-   #if (YM_ARGPARSER_USE_STD_SPAN)
-         _argHandlers.cend();
-   #else
-         _argHandlers + _NHandlers;
-   #endif
+      auto BeginIt = _argHandlers.begin();
+      auto EndIt   = _argHandlers.end();
 
       std::string_view const PrefixSV(Prefix);
 
@@ -637,7 +582,7 @@ auto ym::ArgParser::getArgPtrFromPrefix(rawstr const Prefix) -> Arg *
  */
 auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> Arg *
 {
-   YMASSERT(isValidChar(Abbr), ParseError, YM_DAH, "Abbr 0x{0:x} not valid", Abbr);
+   YMASSERT(isValidChar(Abbr), ParseError, YM_DAH, "Abbr 0x{:x} not valid", Abbr);
 
    auto * const arg_Ptr = _abbrs[getAbbrIdx(Abbr)];
 
@@ -656,9 +601,9 @@ auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> Arg *
  * 
  * @param Name -- Name of argument.
  */
-ym::ArgParser::Arg::Arg(str const Name)
-   : _name {Name}
-{ }
+ym::ArgParser::Arg::Arg(str const Name) :
+   _name {Name}
+{}
 
 /** getVal
  * 

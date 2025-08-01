@@ -11,7 +11,7 @@
 #include "verbogroup.h"
 #include "ymglobals.h"
 
-#include "fmt/format.h"
+#include "fmt/base.h"
 
 #include <array>
 #include <atomic>
