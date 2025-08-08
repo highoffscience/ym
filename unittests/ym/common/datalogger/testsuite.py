@@ -4,13 +4,13 @@
 # @author  Forrest Jablonski
 #
 
+import glob
 import os
 import sys
-import unittest
+
+import ympyutils as ympy
 
 try:
-   # @note Grabs the first directory in the chain named unittests/.
-   sys.path.append(os.path.join(os.getcwd().split("unittests")[0], "unittests/"))
    import testsuitebase
 except:
    print("Cannot import testsuitebase - path set correctly?")
@@ -26,15 +26,14 @@ class TestSuite(testsuitebase.TestSuiteBase):
    """
    Collection of all tests for DataLogger.
    """
-
    @classmethod
    def setUpClass(cls):
       """
       Acting constructor.
       """
-
-      super().setUpBaseClass(filepath="ym/common",
-                             filename="datalogger")
+      super().setUpBaseClass(
+         filepath="ym/common",
+         filename="datalogger")
 
    @classmethod
    def tearDownClass(cls):
@@ -47,7 +46,9 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Set up logic that is run before each test.
       """
-      pass
+      prev_files = glob.glob(os.path.join(self.abs_ut_suite_path, "data*.csv"))
+      if prev_files:
+         ympy.runCmd(f"rm -rf {' '.join(prev_files)}")
 
    def tearDown(self):
       """
@@ -63,12 +64,11 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
+      # uncomment to run test
       results = self.run_test_case("InteractiveInspection")
 
 # kick-off
 if __name__ == "__main__":
-   if os.path.basename(os.getcwd()) != "datalogger":
-      print("Needs to be run in the datalogger/ directory")
-      sys.exit(1)
-
-   unittest.main()
+   TestSuite.runSuite()
+else:
+   TestSuite.runSuite()

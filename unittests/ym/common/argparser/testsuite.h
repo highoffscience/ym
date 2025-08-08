@@ -25,9 +25,10 @@ public:
    explicit TestSuite(void);
    virtual ~TestSuite(void) = default;
 
-   YM_UT_TESTCASE(BasicParse   )
-   YM_UT_TESTCASE(FlagIntegrity)
-   YM_UT_TESTCASE(SizeOfArg    )
+   YM_UT_TESTCASE(InteractiveInspection)
+   YM_UT_TESTCASE(BasicParse           )
+   YM_UT_TESTCASE(FlagIntegrity        )
+   YM_UT_TESTCASE(SizeOfArg            )
 };
 
 } // ym::ut

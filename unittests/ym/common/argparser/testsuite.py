@@ -51,6 +51,17 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       pass
 
+   def test_InteractiveInspection(self):
+      """
+      Analyzes results from test case.
+      """
+
+      from cppyy.gbl import std
+      from cppyy.gbl import ym
+
+      # uncomment to run test
+      # results = self.run_test_case("InteractiveInspection")
+
    def test_BasicParse(self):
       """
       Analyzes results from test case.

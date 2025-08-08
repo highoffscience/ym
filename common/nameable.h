@@ -41,8 +41,8 @@ public:
     * 
     * @param name -- Initial name.
     */
-   explicit inline Nameable_NV(String_T name)
-      : _name {std::move(name)}
+   explicit inline Nameable_NV(String_T name) :
+      _name {std::move(name)}
    { }
 
    /** getName
@@ -83,8 +83,8 @@ public:
     * 
     * @param name -- Initial name.
     */
-   explicit inline PermaNameable_NV(String_T name)
-      : _Name {std::move(name)}
+   explicit inline PermaNameable_NV(String_T name) :
+      _Name {std::move(name)}
    { }
 
    /** getName

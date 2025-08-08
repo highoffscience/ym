@@ -4,27 +4,26 @@
  * @author  Forrest Jablonski
  */
 
-#include "ymdefs.h"
 #include "testsuite.h"
 
-#include "datalogger.h"
-
 #include "textlogger.h"
-#include "ymerror.h"
+#include "ymglobals.h"
+
+#include "datalogger.h" // Structures under test
 
 /** TestSuite
  *
  * @brief Constructor.
  */
-ym::ut::TestSuite::TestSuite(void)
-   : TestSuiteBase("DataLogger")
+ym::ut::TestSuite::TestSuite(void) :
+   TestSuiteBase("DataLogger")
 {
    addTestCase<InteractiveInspection>();
 }
 
 /** run
  *
- * @brief TODO.
+ * @brief Interactive inspection - for debug purposes.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */

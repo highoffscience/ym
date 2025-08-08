@@ -6,7 +6,6 @@
 
 #include "testsuite.h"
 
-#include "ops.h"
 #include "textlogger.h"
 #include "ymglobals.h"
 
@@ -22,9 +21,22 @@
 ym::ut::TestSuite::TestSuite(void) :
    TestSuiteBase("ArgParser")
 {
-   addTestCase<BasicParse   >();
-   addTestCase<FlagIntegrity>();
-   addTestCase<SizeOfArg    >();
+   addTestCase<InteractiveInspection>();
+   addTestCase<BasicParse           >();
+   addTestCase<FlagIntegrity        >();
+   addTestCase<SizeOfArg            >();
+}
+
+/** run
+ *
+ * @brief Interactive inspection - for debug purposes.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VG::UnitTest_TextLogger);
+   return {};
 }
 
 /** run
