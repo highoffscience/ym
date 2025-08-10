@@ -41,6 +41,11 @@ public:
    inline auto getMaxNDataEntries(void) const { return _MaxNDataEntries; }
 
    template <typename T>
+   inline void addEntry(
+      str const Name,
+      T * const read_Ptr) { return addEntry(Name, bptr(read_Ptr)); }
+
+   template <typename T>
    void addEntry(
       str     const Name,
       bptr<T> const Read_BPtr);
@@ -61,7 +66,7 @@ private:
          void const * const DataEntry_Ptr,
          char       * const buffer_Ptr) const = 0;
 
-   private:
+   protected:
       void toStr_Handler(
          char * const     buffer_Ptr,
          fmt::format_args args) const;
@@ -79,7 +84,7 @@ private:
          char       * const buffer_Ptr) const override;
    };
 
-   /** ColumnEntry
+   /** ColumnEntryBase
     * 
     * @brief Meta data carrier.
     * 
@@ -99,23 +104,44 @@ private:
     * 
     * @note This class does *not* own any of the pointers it has.
     */
-   struct ColumnEntry : public Nameable_NV<str>
+   struct ColumnEntryBase : public Nameable_NV<str>
    {
-      template <typename T>
-      explicit inline ColumnEntry(
+      explicit inline ColumnEntryBase(
          str                const Name,
-         uint8            * const dataEntries_Ptr,
-         T          const * const Read_Ptr,
+         bptr<T>            const dataEntries_Ptr,
+         bptr<T const>      const Read_Ptr,
          IStringify const * const Stringify_Ptr);
 
-      uint8            * const _dataEntries_Ptr{};
-      void       const * const _Read_Ptr       {};
+      bptr<T>            const _dataEntries_Ptr;
+      bptr<void const>   const _Read_Ptr;
       IStringify const * const _Stringify_Ptr  {};
-      uint64             const _DataSize_bytes {};
+      uint64             const _DataSize_bytes {}; // TODO we won't need this if allocation is
+                                                   // controlled in this class (it knows the type!)
+   };
+
+   template <typename T>
+   struct ColumnEntry : public ColumnEntryBase
+   {
+      explicit inline ColumnEntry(
+         str                const Name,
+         bptr<T>                  dataEntries,
+         T          const * const Read_Ptr,
+         IStringify const * const Stringify_Ptr) {
+         
+         // allocate dataEntries
+      }
+
+      virtual ~ColumnEntry(void) {
+         // delete dataEntries
+      }
+
+      virtual void toStr(
+         void const * const DataEntry_Ptr,
+         char       * const buffer_Ptr) const override;
    };
 
    std::vector<ColumnEntry> _columnEntries    {};
-   uint64 const             _MaxNDataEntries  {};
+   uint64 const             _MaxNDataEntries  {}; // TODO this is just the size of _columnEntries
    uint64                   _nextDataEntry_idx{};
    bool                     _rollover         {};
 };
@@ -126,17 +152,20 @@ private:
  * 
  * @tparam T -- Data type to add.
  * 
- * @param Name     -- Name of variable.
- * @param Read_Ptr -- Pointer to variable to be read.
+ * @param Name      -- Name of variable.
+ * @param Read_BPtr -- Pointer to variable to be read.
  */
 template <typename T>
 void DataLogger::addEntry(
-   str     const Name,
-   bptr<T> const Read_BPtr)
+   [[maybe_unused]] str     const Name,
+   [[maybe_unused]] bptr<T> const Read_BPtr)
 {
    // not alloc<T> because the deallocator needs the type and we lose the type after this call
-   auto const dataEntries_BPtr = bptr(MemIO::alloc<uint8>(getMaxNDataEntries() * sizeof(T)));
-   _columnEntries.emplace_back(Name, dataEntries_BPtr, Read_BPtr, new Stringify<T>());
+   // The above statement could be solved by moving the destructor into Stringify.
+   // auto const dataEntries_BPtr = bptr(MemIO::alloc<uint8>(getMaxNDataEntries() * sizeof(T)));
+   // auto ce = ColumnEntry(Name, dataEntries_BPtr, Read_BPtr.get(), new Stringify<T>());
+   // _columnEntries.emplace_back(ce);
+   // _columnEntries.emplace_back(Name, draw, Read_BPtr.get(), new Stringify<T>());
 }
 
 /** Stringify
@@ -165,8 +194,8 @@ void DataLogger::Stringify<T>::toStr(
 template <typename T>
 inline DataLogger::ColumnEntry::ColumnEntry(
    str                const Name,
-   uint8            * const dataEntries_Ptr,
-   T          const * const Read_Ptr,
+   bptr<T>            const dataEntries_Ptr,
+   bptr<T const>      const Read_Ptr,
    IStringify const * const Stringify_Ptr) :
       Nameable_NV(Name),
       _dataEntries_Ptr {dataEntries_Ptr},

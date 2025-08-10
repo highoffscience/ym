@@ -110,7 +110,7 @@ public:
     */
    explicit constexpr TrustedBoundedPtr(T * const t_Ptr) :
       _t_ptr {t_Ptr}
-   {}
+   { }
 
    /// @brief Compile time non-nullness checks.
    constexpr TrustedBoundedPtr              (std::nullptr_t) = delete;
@@ -150,8 +150,8 @@ public:
     * 
     * @throws BoundedPtrNullError -- If the parameter is null.
     */
-   implicit constexpr BoundedPtr(T * const t_Ptr)
-      : TrustedBoundedPtr<T>(t_Ptr)
+   implicit constexpr BoundedPtr(T * const t_Ptr) :
+      TrustedBoundedPtr<T>(t_Ptr)
    {
       YMASSERT(this->get(), NullPtrError, YM_DAH, "Bounded pointer cannot be null");
    }
@@ -167,9 +167,9 @@ public:
     * 
     * @throws Whatever BoundedPtr() throws.
     */
-   implicit constexpr BoundedPtr(TrustedBoundedPtr<T> tbp)
-      : BoundedPtr(tbp.get())
-   {}
+   implicit constexpr BoundedPtr(TrustedBoundedPtr<T> tbp) :
+      BoundedPtr(tbp.get())
+   { }
 
    /// @brief Compile time non-nullness checks.
    constexpr BoundedPtr              (std::nullptr_t) = delete;
