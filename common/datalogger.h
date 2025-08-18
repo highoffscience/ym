@@ -14,6 +14,7 @@
 
 #include "fmt/base.h"
 
+#include <memory_resource>
 #include <vector>
 
 namespace ym
@@ -30,16 +31,21 @@ namespace ym
 class DataLogger : public Logger
 {
 public:
-   explicit DataLogger(uint64 const MaxNDataEntries);
-   ~DataLogger(void);
+   explicit DataLogger(sizet const HintNEntries = 0uz); // TODO rename (Data)Entries variable to something else
+   // (Data)Entries (used below) should be called (Data)Points.
 
    YM_NO_COPY  (DataLogger)
    YM_NO_ASSIGN(DataLogger)
 
    YM_DECL_YMASSERT(Error)
 
-   inline auto getMaxNDataEntries(void) const { return _MaxNDataEntries; }
+   bool ready(
+      sizet                           const MaxNEntries,
+      bptr<std::pmr::memory_resource> const MemSrc = std::pmr::get_default_resource());
 
+   inline auto getMaxNDataEntries(void) const { return _blackBoxBuffer.size() / _columnHeaders.size(); }
+
+   /// @brief Forwarding function.
    template <typename T>
    inline void addEntry(
       str const Name,
@@ -51,40 +57,11 @@ public:
       bptr<T> const Read_BPtr);
 
    void acquireAll(void);
-   void clear(void);
+   void reset(void);
    bool dump(str const Filename);
 
 private:
-   /** IStringify
-    * 
-    * @brief Base class for stringying arbitrary data types.
-    */
-   struct IStringify
-   {
-      virtual ~IStringify(void) = default;
-      virtual void toStr(
-         void const * const DataEntry_Ptr,
-         char       * const buffer_Ptr) const = 0;
-
-   protected:
-      void toStr_Handler(
-         char * const     buffer_Ptr,
-         fmt::format_args args) const;
-   };
-
-   /** Stringify
-    * 
-    * @brief Concrete class for stringying arbitrary data types.
-    */
-   template <typename T>
-   struct Stringify : public IStringify
-   {
-      virtual void toStr(
-         void const * const DataEntry_Ptr,
-         char       * const buffer_Ptr) const override;
-   };
-
-   /** ColumnEntryBase
+   /** ColumnHeaderBase
     * 
     * @brief Meta data carrier.
     * 
@@ -102,48 +79,53 @@ private:
     *       pointers don't really make sense because they might point to things on the
     *       stack. Care must be taken the data logger doesn't outlive the tracked variables.
     * 
-    * @note This class does *not* own any of the pointers it has.
+    * @note This class does *not* own the read pointer.
     */
-   struct ColumnEntryBase : public Nameable_NV<str>
+   class ColumnHeaderBase : public Nameable_NV<str>
    {
-      explicit inline ColumnEntryBase(
-         str                const Name,
-         bptr<T>            const dataEntries_Ptr,
-         bptr<T const>      const Read_Ptr,
-         IStringify const * const Stringify_Ptr);
+   public:
+      explicit inline ColumnHeaderBase(
+         str              const Name,
+         bptr<void const> const Read_BPtr,
+         sizet            const Size_bytes);
 
-      bptr<T>            const _dataEntries_Ptr;
-      bptr<void const>   const _Read_Ptr;
-      IStringify const * const _Stringify_Ptr  {};
-      uint64             const _DataSize_bytes {}; // TODO we won't need this if allocation is
-                                                   // controlled in this class (it knows the type!)
-   };
-
-   template <typename T>
-   struct ColumnEntry : public ColumnEntryBase
-   {
-      explicit inline ColumnEntry(
-         str                const Name,
-         bptr<T>                  dataEntries,
-         T          const * const Read_Ptr,
-         IStringify const * const Stringify_Ptr) {
-         
-         // allocate dataEntries
-      }
-
-      virtual ~ColumnEntry(void) {
-         // delete dataEntries
-      }
+      virtual ~ColumnHeaderBase(void) = default;
 
       virtual void toStr(
-         void const * const DataEntry_Ptr,
-         char       * const buffer_Ptr) const override;
+         bptr<void const> const Entry_BPtr,
+         bptr<char>       const buffer_BPtr) const = 0;
+
+      bptr<void const> const _Read_BPtr;
+      sizet            const _Size_bytes;
+
+   protected:
+      void toStr_Handler(
+         bptr<char> const buffer_BPtr,
+         fmt::format_args args) const;
    };
 
-   std::vector<ColumnEntry> _columnEntries    {};
-   uint64 const             _MaxNDataEntries  {}; // TODO this is just the size of _columnEntries
-   uint64                   _nextDataEntry_idx{};
-   bool                     _rollover         {};
+   /**
+    * TODO
+    */
+   template <typename T>
+   class ColumnHeader : public ColumnHeaderBase
+   {
+   public:
+      explicit inline ColumnHeader(
+         str           const Name,
+         bptr<T const> const Read_BPtr);
+
+      virtual void toStr(
+         bptr<void const> const Entry_BPtr,
+         bptr<char>       const buffer_BPtr) const override;
+   };
+
+   static_assert(sizeof(ColumnHeaderBase) == sizeof(ColumnHeader<int>), "Potential slicing hazard");
+
+   std::pmr::vector<
+      ColumnHeaderBase>    _columnHeaders {   };
+   std::pmr::vector<uint8> _blackBoxBuffer{   };
+   sizet                   _nextEntry_idx {0uz};
 };
 
 /** addEntry
@@ -168,7 +150,31 @@ void DataLogger::addEntry(
    // _columnEntries.emplace_back(Name, draw, Read_BPtr.get(), new Stringify<T>());
 }
 
-/** Stringify
+/** ColumnHeaderBase
+ * 
+ * @brief Constructor.
+ */
+inline DataLogger::ColumnHeaderBase::ColumnHeaderBase(
+   str              const Name,
+   bptr<void const> const Read_BPtr,
+   sizet            const Size_bytes) :
+      Nameable_NV(Name),
+      _Read_BPtr  {Read_BPtr },
+      _Size_bytes {Size_bytes}
+{ }
+
+/**
+ * TODO
+ * 
+ */
+template <typename T>
+DataLogger::ColumnHeader<T>::ColumnHeader(
+   str           const Name,
+   bptr<T const> const Read_BPtr) :
+      ColumnHeaderBase(Name, Read_BPtr, sizeof(T))
+{ }
+
+/** toStr
  * 
  * @brief Stringifies the given data type.
  * 
@@ -180,28 +186,11 @@ void DataLogger::addEntry(
  * @param DataEntry_Ptr -- Pointer to data to stringify.
  */
 template <typename T>
-void DataLogger::Stringify<T>::toStr(
-   void const * const DataEntry_Ptr,
-   char       * const buffer_Ptr) const
+void DataLogger::ColumnHeader<T>::toStr(
+   bptr<void const> const Entry_BPtr,
+   bptr<char>       const buffer_BPtr) const
 {
-   toStr_Handler(buffer_Ptr, fmt::make_format_args(*static_cast<T const *>(DataEntry_Ptr)));
+   toStr_Handler(buffer_BPtr, fmt::make_format_args(*static_cast<T const *>(Entry_BPtr.get())));
 }
-
-/** ColumnEntry
- * 
- * @brief Constructor.
- */
-template <typename T>
-inline DataLogger::ColumnEntry::ColumnEntry(
-   str                const Name,
-   bptr<T>            const dataEntries_Ptr,
-   bptr<T const>      const Read_Ptr,
-   IStringify const * const Stringify_Ptr) :
-      Nameable_NV(Name),
-      _dataEntries_Ptr {dataEntries_Ptr},
-      _Read_Ptr        {Read_Ptr       },
-      _Stringify_Ptr   {Stringify_Ptr  },
-      _DataSize_bytes  {sizeof(T)      }
-{ }
 
 } // ym

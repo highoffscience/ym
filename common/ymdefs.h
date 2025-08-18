@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <type_traits>
@@ -192,12 +193,22 @@ using floatext = long double; static_assert(std::numeric_limits<floatext>::digit
 
 /// @brief Convenience alias.
 using uintptr = std::uintptr_t;
-static_assert(std::is_same<uintptr, uint64>::value, "Unexpected uintptr type");
+static_assert(std::is_same<uintptr, uint64>::value, "Unexpected uintptr type"); // TODO this is bad practice
 
 /// @brief Convenience alias.
 using intptr = std::ptrdiff_t;
-static_assert(std::is_same<intptr, int64        >::value, "Unexpected intptr type");
+static_assert(std::is_same<intptr, int64        >::value, "Unexpected intptr type"); // TODO this is bad practice
 static_assert(std::is_same<intptr, std::intptr_t>::value, "Unexpected intptr type");
+
+static_assert(sizeof(uint64) >= sizeof(std::size_t), "Unexpected sizes"); // TODO this is bad practice
+
+/** sizet
+ * 
+ * @brief Convenience alias.
+ * 
+ * @note Used for std::size_t. See <https://en.cppreference.com/w/cpp/types/size_t.html>.
+ */
+using sizet = std::size_t;
 
 // ----------------------------------------------------------------------------
 

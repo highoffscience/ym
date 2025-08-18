@@ -6,10 +6,11 @@
 
 #include "ymassert.h"
 
+#include "textlogger.h"
+
 #include "fmt/format.h"
 
 #if (YM_NO_EXCEPTIONS)
-   #include "textlogger.h"
    #include <csignal>
 #endif
 
@@ -55,8 +56,16 @@ auto ym::ymassert_Base::what(void) const noexcept -> rawstr
  */
 void ym::ymassert_Base::defaultNoExceptHandler(ymassert_Base const & E)
 {
-   ymLog(E.what());
+   logAssert(E);
    std::raise(SIGTERM);
+}
+
+/**
+ * TODO
+ */
+void ym::ymassert_Base::logAssert(ymassert_Base const & E)
+{
+   ymLog(VG::Error, E.what());
 }
 
 #endif

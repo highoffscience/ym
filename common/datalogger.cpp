@@ -9,25 +9,43 @@
 #include "fmt/format.h"
 
 #include <cstring>
+#include <numeric>
+#include <utility>
 
-/** DataLogger
- *
- * @brief Constructor.
+/**
+ * TODO
  */
-ym::DataLogger::DataLogger(uint64 const MaxNDataEntries) :
-   Logger(""), // TODO
-   _MaxNDataEntries{MaxNDataEntries}
+ym::DataLogger::DataLogger(sizet const HintNEntries)
 {
-   YMASSERT(_MaxNDataEntries > 0_u64, Error, YM_DAH, "Depth of data logger must be > 0");
+   if (HintNEntries > 0uz)
+   { // hint on how many entries this datalogger will hold
+      // TODO issue warning if hint is used and datalogger has more entries than expected
+      _columnHeaders.reserve(HintNEntries);
+   }
 }
 
-/** ~DataLogger
- *
- * @brief Cleans up resources owned by the data logger.
+/**
+ * TODO
  */
-ym::DataLogger::~DataLogger(void)
+bool ym::DataLogger::ready(
+   sizet                           const MaxNEntries,
+   bptr<std::pmr::memory_resource> const MemSrc)
 {
-   clear();
+   YMASSERT(MaxNEntries > 0uz, Error, YM_DAH, "Depth of data logger must be > 0");
+
+   auto const SumOfAllDataSizes_bytes = std::accumulate(
+      _columnHeaders.cbegin(),
+      _columnHeaders.cend(),
+      0uz,
+      [](sizet const Acc, ColumnHeaderBase const & CHB) {
+         return Acc + CHB._Size_bytes;
+      }
+   );
+
+   auto const SizeOfBlackBoxBuffer_bytes = _columnHeaders.size() * SumOfAllDataSizes_bytes;
+   auto newBlackBoxBuffer = decltype(_blackBoxBuffer)(MemSrc.get());
+   newBlackBoxBuffer.reserve(SizeOfBlackBoxBuffer_bytes);
+   _blackBoxBuffer = std::move(newBlackBoxBuffer);
 }
 
 /** acquireAll
@@ -50,18 +68,18 @@ void ym::DataLogger::acquireAll(void)
    // }
 }
 
-/** clear
+/** reset
  *
- * @brief Cleans up resources owned by the data logger.
+ * @brief Resets to initial empty state.
  */
-void ym::DataLogger::clear(void)
+void ym::DataLogger::reset(void)
 {
-   // for (auto const & Entry : _columnEntries)
-   // { // iterates through all registered entries and clears the resources
-   //    MemIO::dealloc<uint8>(Entry._dataEntries_Ptr, getMaxNDataEntries() * Entry._DataSize_bytes);
-   //    delete Entry._Stringify_Ptr;
-   // }
-   // _columnEntries.clear();
+   for (auto const & Entry : _columnEntries)
+   { // iterates through all registered entries and clears the resources
+      MemIO::dealloc<uint8>(Entry._dataEntries_Ptr, getMaxNDataEntries() * Entry._DataSize_bytes);
+      delete Entry._Stringify_Ptr;
+   }
+   _columnEntries.clear();
 }
 
 /** dump

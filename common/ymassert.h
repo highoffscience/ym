@@ -17,13 +17,15 @@
 #endif
 
 #if (YM_YES_EXCEPTIONS)
-   #define YM_DEFAULT_ASSERT_HANDLER ymassert_Base::defaultYesExceptHandler
+   /// @brief Convenience macro. Default Assert Handler.
+   #define YM_DAH ymassert_Base::defaultYesExceptHandler(e__)
 #else
-   #define YM_DEFAULT_ASSERT_HANDLER ymassert_Base::defaultNoExceptHandler
+   /// @brief Convenience macro. Default Assert Handler.
+   #define YM_DAH ymassert_Base::defaultNoExceptHandler(e__)
 #endif
 
-/// @brief Convenience macro.
-#define YM_DAH YM_DEFAULT_ASSERT_HANDLER
+/// @brief Convenience macro. Default Assert Handler - Return Error Value.
+#define YM_DAH_REV(ReturnVal_) return ymassert_Base::logAndReturn(e__, ReturnVal_)
 
 /** YMASSERT
  *
@@ -41,9 +43,24 @@
  *       invocableness is too messy. If the user provides an invalid Handler function then
  *       the compile error will lead them to this note...hopefully.
  * 
+ * @note Handler_ will typically be YM_DAH or YM_DAH_REV (defined above). To install your own handler:
+ * 
+ *       [](ymassert_Base const & E) {
+ *          ...
+ *       }(e__)
+ * 
+ *       or
+ * 
+ *       [](ymassert_Base const & E, auto && v) -> auto {
+ *          ...
+ *          return v;
+ *       }(e__, <value-to-return>)
+ * 
+ *       Note here the lambdas are called, not just defined. e__ is the name of the instantiated error.
+ * 
  * @param Cond_    -- Condition - true for happy path, false triggers the assert.
  * @param Derived_ -- Ymassert class to handle assert.
- * @param Handler_ -- Callback function if assert fails. Must be callable with Ymassert_Base.
+ * @param Handler_ -- Evaluated callback function if assert fails. Must be callable with Ymassert_Base.
  * @param Format_  -- Format string. Must be a string literal.
  * @param ...      -- Arguments.
  */
@@ -62,21 +79,9 @@
       Derived_ e__;                                                 \
       e__.write("Assert @ \"{}:{}\": " Format_,                     \
          __FILE__, __LINE__, ## __VA_ARGS__);                       \
-      Handler_(e__);                                                \
+      Handler_;                                                     \
    }
 
-/** YMASSERTDBG
- *
- * @brief Macro to assert on a condition. Enabled only if YM_DEBUG is enabled.
- *        This version should be used for logic errors, as it is meant to be
- *        disabled for production.
- *
- * @param Cond_    -- Condition - true for happy path, false triggers the assert.
- * @param Derived_ -- Ymassert class to handle assert.
- * @param Handler_ -- Callback function if assert fails.
- * @param Format_  -- Format string.
- * @param ...      -- Arguments.
- */
 #if (YM_DEBUG)
    #define YMASSERTDBG(Cond_, Derived_, Handler_, Format_, ...) YMASSERT(Cond_, Derived_, Handler_, Format_, __VA_ARGS__)
 #else
@@ -115,6 +120,11 @@ public:
    rawstr what(void) const noexcept;
    static void defaultNoExceptHandler(ymassert_Base const & E);
 #endif
+
+   static void logAssert(ymassert_Base const & E);
+   static inline auto logAndReturn(ymassert_Base const & E, auto && v_uref) {
+      logAssert(E); return v_uref;
+   }
 
    static constexpr auto _s_MaxMsgSize_bytes = std::size_t(128u);
 

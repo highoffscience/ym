@@ -42,6 +42,7 @@ public:
    YM_DECL_YMASSERT(OpenError)
 
 protected:
+   explicit inline Logger(void);
    explicit Logger(
       str            const Filename,
       FilenameMode_T const FilenameMode = FilenameMode_T::AppendTimeStamp);
@@ -68,5 +69,13 @@ private:
    str            const _Filename    {""_str                         };
    FilenameMode_T const _FilenameMode{FilenameMode_T::AppendTimeStamp};
 };
+
+/** Logger
+ *
+ * @brief Constructor.
+ */
+Logger::Logger(void) :
+   Logger(""_str)
+{ }
 
 } // ym

@@ -9,11 +9,8 @@
 #include "ymglobals.h"
 
 #include <alloca.h>
-#include <cstdint>
 #include <exception>
-#include <forward_list>
 #include <memory>
-#include <type_traits>
 
 namespace ym
 {
