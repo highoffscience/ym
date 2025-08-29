@@ -32,6 +32,7 @@ public:
    YM_UT_TESTCASE(BoundedStr           )
    YM_UT_TESTCASE(PtrCast              )
    YM_UT_TESTCASE(BitSet               )
+   YM_UT_TESTCASE(PolyRawTest          )
 };
 
 } // ym::ut

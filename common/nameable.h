@@ -31,7 +31,7 @@ namespace ym
  * 
  * @tparam String_T -- String-like class.
  */
-template <typename String_T = std::string>
+template <typename String_T = std::pmr::string>
 class Nameable_NV
 {
 public:

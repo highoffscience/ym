@@ -9,12 +9,12 @@
 #include "ymglobals.h"
 
 #include "logger.h"
-#include "memio.h"
 #include "nameable.h"
 
 #include "fmt/base.h"
 
 #include <memory_resource>
+#include <span>
 #include <vector>
 
 namespace ym
@@ -31,28 +31,29 @@ namespace ym
 class DataLogger : public Logger
 {
 public:
-   explicit DataLogger(sizet const HintNEntries = 0uz); // TODO rename (Data)Entries variable to something else
-   // (Data)Entries (used below) should be called (Data)Points.
+   explicit DataLogger(sizet const NTrackedValsHint = 0uz);
 
    YM_NO_COPY  (DataLogger)
    YM_NO_ASSIGN(DataLogger)
 
    YM_DECL_YMASSERT(Error)
 
-   bool ready(
-      sizet                           const MaxNEntries,
-      bptr<std::pmr::memory_resource> const MemSrc = std::pmr::get_default_resource());
+   bool ready(sizet const MaxNEntries);
 
-   inline auto getMaxNDataEntries(void) const { return _blackBoxBuffer.size() / _columnHeaders.size(); }
+   /// @note Only useful after a call to ready().
+   inline auto getMaxNDataEntries(void) const {
+      return (_trackedVals.size() > 0uz) ?
+         (_blackBoxBuffer.size() / _trackedVals.size()) : 0uz;
+   }
 
    /// @brief Forwarding function.
    template <typename T>
-   inline void addEntry(
+   inline void trackValue(
       str const Name,
-      T * const read_Ptr) { return addEntry(Name, bptr(read_Ptr)); }
+      T * const read_Ptr) { return trackValue(Name, bptr(read_Ptr)); }
 
    template <typename T>
-   void addEntry(
+   void trackValue(
       str     const Name,
       bptr<T> const Read_BPtr);
 
@@ -61,7 +62,7 @@ public:
    bool dump(str const Filename);
 
 private:
-   /** ColumnHeaderBase
+   /** TrackedValBase
     * 
     * @brief Meta data carrier.
     * 
@@ -81,26 +82,30 @@ private:
     * 
     * @note This class does *not* own the read pointer.
     */
-   class ColumnHeaderBase : public Nameable_NV<str>
+   class TrackedValBase : public Nameable_NV<str>
    {
    public:
-      explicit inline ColumnHeaderBase(
+      explicit inline TrackedValBase(
          str              const Name,
          bptr<void const> const Read_BPtr,
          sizet            const Size_bytes);
 
-      virtual ~ColumnHeaderBase(void) = default;
+      virtual ~TrackedValBase(void) = default;
+
+      virtual void cloneAt(
+         bptr<void> const val_BPtr,
+         sizet      const Size_bytes) const = 0;
 
       virtual void toStr(
          bptr<void const> const Entry_BPtr,
-         bptr<char>       const buffer_BPtr) const = 0;
+         std::span<char>        buffer) const = 0;
 
       bptr<void const> const _Read_BPtr;
       sizet            const _Size_bytes;
 
    protected:
       void toStr_Handler(
-         bptr<char> const buffer_BPtr,
+         std::span<char>  buffer,
          fmt::format_args args) const;
    };
 
@@ -108,27 +113,33 @@ private:
     * TODO
     */
    template <typename T>
-   class ColumnHeader : public ColumnHeaderBase
+   class TrackedVal : public TrackedValBase
    {
    public:
-      explicit inline ColumnHeader(
+      explicit inline TrackedVal(
          str           const Name,
          bptr<T const> const Read_BPtr);
 
+      virtual void cloneAt(
+         bptr<void> const val_BPtr,
+         sizet      const Size_bytes) const override;
+
       virtual void toStr(
          bptr<void const> const Entry_BPtr,
-         bptr<char>       const buffer_BPtr) const override;
+         std::span<char>        buffer) const override;
    };
 
-   static_assert(sizeof(ColumnHeaderBase) == sizeof(ColumnHeader<int>), "Potential slicing hazard");
+   using RawTrackedVal_T = PolyRaw<TrackedValBase, sizeof(TrackedVal<int>)>;
 
-   std::pmr::vector<
-      ColumnHeaderBase>    _columnHeaders {   };
-   std::pmr::vector<uint8> _blackBoxBuffer{   };
-   sizet                   _nextEntry_idx {0uz};
+   std::pmr::vector<RawTrackedVal_T> _trackedVals   {};
+   std::pmr::vector<uint8>          _blackBoxBuffer{}; // TODO std::byte instead?
+   union {
+      sizet                         _nTrackedValsHint{0uz};
+      sizet                         _nextEntry_idx;
+   };
 };
 
-/** addEntry
+/** trackValue
  * 
  * @brief Adds a data variable to be tracked.
  * 
@@ -138,23 +149,20 @@ private:
  * @param Read_BPtr -- Pointer to variable to be read.
  */
 template <typename T>
-void DataLogger::addEntry(
-   [[maybe_unused]] str     const Name,
-   [[maybe_unused]] bptr<T> const Read_BPtr)
+void DataLogger::trackValue(
+   str     const Name,
+   bptr<T> const Read_BPtr)
 {
-   // not alloc<T> because the deallocator needs the type and we lose the type after this call
-   // The above statement could be solved by moving the destructor into Stringify.
-   // auto const dataEntries_BPtr = bptr(MemIO::alloc<uint8>(getMaxNDataEntries() * sizeof(T)));
-   // auto ce = ColumnEntry(Name, dataEntries_BPtr, Read_BPtr.get(), new Stringify<T>());
-   // _columnEntries.emplace_back(ce);
-   // _columnEntries.emplace_back(Name, draw, Read_BPtr.get(), new Stringify<T>());
+   static_assert(sizeof(TrackedVal<T>) <= sizeof(RawTrackedVal_T), "Unexpected size");
+   _trackedVals.emplace_back(); // push allocated memory
+   _trackedVals.back().construct<T>(Name, Read_BPtr);
 }
 
-/** ColumnHeaderBase
+/** TrackedValBase
  * 
  * @brief Constructor.
  */
-inline DataLogger::ColumnHeaderBase::ColumnHeaderBase(
+inline DataLogger::TrackedValBase::TrackedValBase(
    str              const Name,
    bptr<void const> const Read_BPtr,
    sizet            const Size_bytes) :
@@ -168,11 +176,27 @@ inline DataLogger::ColumnHeaderBase::ColumnHeaderBase(
  * 
  */
 template <typename T>
-DataLogger::ColumnHeader<T>::ColumnHeader(
+DataLogger::TrackedVal<T>::TrackedVal(
    str           const Name,
    bptr<T const> const Read_BPtr) :
-      ColumnHeaderBase(Name, Read_BPtr, sizeof(T))
+      TrackedValBase(Name, Read_BPtr, sizeof(T))
 { }
+
+/**
+ * TODO
+ * 
+ */
+template <typename T>
+void DataLogger::TrackedVal<T>::cloneAt(
+   bptr<void> const val_BPtr,
+   sizet      const Size_bytes) const
+{
+   YMASSERT(sizeof(*this) <= Size_bytes, Error, YM_DAH,
+      "Not enough room to clone (obj {} bytes, buffer {} bytes)",
+      sizeof(*this), Size_bytes)
+   
+   ::new (val_BPtr.get()) TrackedVal<T>(getName(), _Read_BPtr);
+}
 
 /** toStr
  * 
@@ -186,11 +210,11 @@ DataLogger::ColumnHeader<T>::ColumnHeader(
  * @param DataEntry_Ptr -- Pointer to data to stringify.
  */
 template <typename T>
-void DataLogger::ColumnHeader<T>::toStr(
+void DataLogger::TrackedVal<T>::toStr(
    bptr<void const> const Entry_BPtr,
-   bptr<char>       const buffer_BPtr) const
+   std::span<char>        buffer) const
 {
-   toStr_Handler(buffer_BPtr, fmt::make_format_args(*static_cast<T const *>(Entry_BPtr.get())));
+   toStr_Handler(buffer, fmt::make_format_args(*static_cast<T const *>(Entry_BPtr.get())));
 }
 
 } // ym

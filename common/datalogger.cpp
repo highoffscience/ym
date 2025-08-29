@@ -6,46 +6,57 @@
 
 #include "datalogger.h"
 
+#include "textlogger.h"
+
 #include "fmt/format.h"
 
 #include <cstring>
 #include <numeric>
-#include <utility>
 
 /**
  * TODO
  */
-ym::DataLogger::DataLogger(sizet const HintNEntries)
+ym::DataLogger::DataLogger(sizet const NTrackedValsHint) :
+   _nTrackedValsHint {NTrackedValsHint}
 {
-   if (HintNEntries > 0uz)
-   { // hint on how many entries this datalogger will hold
-      // TODO issue warning if hint is used and datalogger has more entries than expected
-      _columnHeaders.reserve(HintNEntries);
+   if (_nTrackedValsHint > 0uz)
+   { // hint on how many tracked values - preallocate room for that many headers
+      _trackedVals.reserve(_nTrackedValsHint);
+      _nTrackedValsHint = _trackedVals.capacity(); // space it *actually* allocated
    }
 }
 
 /**
  * TODO
  */
-bool ym::DataLogger::ready(
-   sizet                           const MaxNEntries,
-   bptr<std::pmr::memory_resource> const MemSrc)
+bool ym::DataLogger::ready(sizet const MaxNEntries)
 {
    YMASSERT(MaxNEntries > 0uz, Error, YM_DAH, "Depth of data logger must be > 0");
 
-   auto const SumOfAllDataSizes_bytes = std::accumulate(
-      _columnHeaders.cbegin(),
-      _columnHeaders.cend(),
-      0uz,
-      [](sizet const Acc, ColumnHeaderBase const & CHB) {
-         return Acc + CHB._Size_bytes;
+   if (_nTrackedValsHint > 0uz)
+   { // supplied a hint
+      if (_trackedVals.capacity() > _nTrackedValsHint)
+      { // underestimated hint
+         ymLog(VG::DataLogger, "Underestimated hint of {} - capacity is {}",
+            _nTrackedValsHint, _trackedVals.capacity());
       }
-   );
+   }
 
-   auto const SizeOfBlackBoxBuffer_bytes = _columnHeaders.size() * SumOfAllDataSizes_bytes;
-   auto newBlackBoxBuffer = decltype(_blackBoxBuffer)(MemSrc.get());
-   newBlackBoxBuffer.reserve(SizeOfBlackBoxBuffer_bytes);
-   _blackBoxBuffer = std::move(newBlackBoxBuffer);
+   // auto const SumOfAllDataSizes_bytes = std::accumulate(
+   //    _trackedVals.cbegin(),
+   //    _trackedVals.cend(),
+   //    0uz,
+   //    [](sizet const Acc, TrackedValBase const & TVB) {
+   //       return Acc + TVB._Size_bytes;
+   //    }
+   // );
+
+   // auto const SizeOfBlackBoxBuffer_bytes = _trackedVals.size() * SumOfAllDataSizes_bytes;
+   // _blackBoxBuffer.reserve(SizeOfBlackBoxBuffer_bytes);
+
+   _nextEntry_idx = 0uz; // may no longer use _nTrackedValsHint (union)
+
+   return true;
 }
 
 /** acquireAll
@@ -54,7 +65,7 @@ bool ym::DataLogger::ready(
  */
 void ym::DataLogger::acquireAll(void)
 {
-   // for (auto const & Entry : _columnEntries)
+   // for (auto const & Val : _trackedVals)
    // { // iterates through all registered entries and reads the associate variables
    //    auto * const write_Ptr = Entry._dataEntries_Ptr + (Entry._DataSize_bytes * _nextDataEntry_idx);
    //    std::memcpy(write_Ptr, Entry._Read_Ptr, Entry._DataSize_bytes);
@@ -70,16 +81,12 @@ void ym::DataLogger::acquireAll(void)
 
 /** reset
  *
- * @brief Resets to initial empty state.
+ * @brief Resets black box buffer.
  */
 void ym::DataLogger::reset(void)
 {
-   for (auto const & Entry : _columnEntries)
-   { // iterates through all registered entries and clears the resources
-      MemIO::dealloc<uint8>(Entry._dataEntries_Ptr, getMaxNDataEntries() * Entry._DataSize_bytes);
-      delete Entry._Stringify_Ptr;
-   }
-   _columnEntries.clear();
+   _blackBoxBuffer.clear();
+   _nextEntry_idx = 0uz;
 }
 
 /** dump
@@ -133,14 +140,17 @@ bool ym::DataLogger::dump(str const Filename)
    return false;
 }
 
-void ym::DataLogger::IStringify::toStr_Handler(
-   char * const     buffer_Ptr,
+void ym::DataLogger::TrackedValBase::toStr_Handler(
+   std::span<char>  buffer,
    fmt::format_args args) const
 {
-   auto result = fmt::vformat_to_n(
-      buffer_Ptr,
-      100,
-      "{}",
-      args);
-   *result.out = '\0';
+   if (!buffer.empty())
+   { // room to write
+      auto result = fmt::vformat_to_n(
+         buffer.data(),
+         buffer.size() - 1uz,
+         "{}",
+         args);
+      *result.out = '\0';
+   }
 }

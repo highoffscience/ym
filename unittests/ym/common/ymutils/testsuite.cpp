@@ -12,6 +12,7 @@
 #include "ymutils.h" // Structures under test
 
 #include <string>
+#include <vector>
 
 /** TestSuite
  *
@@ -27,6 +28,7 @@ ym::ut::TestSuite::TestSuite(void) :
    addTestCase<BoundedStr           >();
    addTestCase<PtrCast              >();
    addTestCase<BitSet               >();
+   addTestCase<PolyRawTest          >();
 }
 
 /** run
@@ -181,6 +183,45 @@ auto ym::ut::TestSuite::BitSet::run([[maybe_unused]] DataShuttle const & InData)
    ymLog(VG::UnitTest_YmUtils, "5) TODO --> {}", b.getUnderlying());
    auto b2 = b;
    ymLog(VG::UnitTest_YmUtils, "6) TODO --> {}", b2.getUnderlying());
+
+   return {
+      {"True", true}
+   };
+}
+
+/** run
+ *
+ * @brief TODO
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::ut::TestSuite::PolyRawTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
+
+   struct Base
+   {
+      virtual ~Base(void) = default;
+      virtual void cloneAt(bptr<void> const val_BPtr, sizet const Size_bytes) const = 0;
+      int _i{};
+   };
+
+   struct Derived : public Base
+   {
+      virtual void cloneAt(bptr<void> const val_BPtr, [[maybe_unused]] sizet const Size_bytes) const override
+      {
+         ::new (val_BPtr.get()) Derived();
+      }
+   };
+
+   std::vector<PolyRaw<Base, sizeof(Derived)>> v;
+   v.reserve(1);
+   ymLog(VG::UnitTest_YmUtils, "Vector capacity is {}", v.capacity());
+   auto const OldCapacity = v.capacity();
+   for (auto i = 0uz; i < OldCapacity + 1uz; i++)
+   { // force reallocation
+      v.emplace_back();
+   }
 
    return {
       {"True", true}
