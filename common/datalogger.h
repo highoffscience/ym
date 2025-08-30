@@ -48,14 +48,14 @@ public:
 
    /// @brief Forwarding function.
    template <typename T>
-   inline void trackValue(
-      str const Name,
-      T * const read_Ptr) { return trackValue(Name, bptr(read_Ptr)); }
+   inline void track(
+      str       const Name,
+      T const * const Read_Ptr) { return track(Name, bptr(Read_Ptr)); }
 
    template <typename T>
-   void trackValue(
-      str     const Name,
-      bptr<T> const Read_BPtr);
+   void track(
+      str           const Name,
+      bptr<T const> const Read_BPtr);
 
    void acquireAll(void);
    void reset(void);
@@ -131,15 +131,16 @@ private:
 
    using RawTrackedVal_T = PolyRaw<TrackedValBase, sizeof(TrackedVal<int>)>;
 
-   std::pmr::vector<RawTrackedVal_T> _trackedVals   {};
-   std::pmr::vector<uint8>          _blackBoxBuffer{}; // TODO std::byte instead?
+   std::pmr::vector<
+      RawTrackedVal_T>    _trackedVals   {};
+   std::pmr::vector<byte> _blackBoxBuffer{};
    union {
-      sizet                         _nTrackedValsHint{0uz};
-      sizet                         _nextEntry_idx;
+      sizet               _nTrackedValsHint{0uz};
+      sizet               _nextEntry_idx;
    };
 };
 
-/** trackValue
+/** track
  * 
  * @brief Adds a data variable to be tracked.
  * 
@@ -149,13 +150,12 @@ private:
  * @param Read_BPtr -- Pointer to variable to be read.
  */
 template <typename T>
-void DataLogger::trackValue(
-   str     const Name,
-   bptr<T> const Read_BPtr)
+void DataLogger::track(
+   str           const Name,
+   bptr<T const> const Read_BPtr)
 {
-   static_assert(sizeof(TrackedVal<T>) <= sizeof(RawTrackedVal_T), "Unexpected size");
    _trackedVals.emplace_back(); // push allocated memory
-   _trackedVals.back().construct<T>(Name, Read_BPtr);
+   _trackedVals.back().construct<TrackedVal<T>>(Name, Read_BPtr);
 }
 
 /** TrackedValBase

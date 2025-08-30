@@ -35,7 +35,7 @@ auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle 
 
    auto a = 0;
    // auto b = 0.0;
-   blackbox.addEntry("a", &a);
+   blackbox.track("a", &a);
    // blackbox.addEntry("b", &b);
 
    for (auto i = 0u; i < 15u; ++i)

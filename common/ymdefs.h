@@ -210,6 +210,9 @@ static_assert(sizeof(uint64) >= sizeof(std::size_t), "Unexpected sizes"); // TOD
  */
 using sizet = std::size_t;
 
+/// @brief Convenience alias.
+using byte = std::byte;
+
 // ----------------------------------------------------------------------------
 
 /** YM_HELPER_LITERAL_DECL

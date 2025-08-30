@@ -216,6 +216,12 @@ public:
       _t_ptr {t_Ptr}
    { }
 
+   template <typename U>
+   requires (std::is_convertible_v<U*, T*>)
+   implicit constexpr TrustedBoundedPtr(TrustedBoundedPtr<U> const & Other) :
+      TrustedBoundedPtr<T>(static_cast<void*>(Other.get())) // TODO worry about void cont *, too
+   { }
+
    /// @brief Compile time non-nullness checks.
    constexpr TrustedBoundedPtr              (std::nullptr_t) = delete;
    constexpr TrustedBoundedPtr & operator = (std::nullptr_t) = delete;
@@ -261,6 +267,18 @@ public:
    {
       YMASSERT(this->get(), NullPtrError, YM_DAH, "Bounded pointer cannot be null");
    }
+
+   // TODO
+   // Disallow dropping const when converting to void
+      //   !(std::is_void_v<T> &&
+      //     std::is_const_v<U> &&
+      //     !std::is_const_v<T>)
+
+   template <typename U>
+   requires (std::is_convertible_v<U*, T*>)
+   implicit constexpr BoundedPtr(BoundedPtr<U> const & Other) :
+      BoundedPtr<T>(static_cast<void*>(Other.get())) // TODO worry about void cont *, too
+   { }
 
    /** BoundedPtr
     * 
@@ -357,13 +375,15 @@ public:
    template <
       typename    Derived_T,
       typename... Args_T>
-   requires (std::is_base_of_v<Base_T, Derived_T>)
+   requires (
+      std::is_base_of_v<Base_T, Derived_T> &&
+      sizeof(Derived_T) <= N)
    constexpr void construct(Args_T &&... args_uref) {
       ::new (_buffer.data()) Derived_T(std::forward<Args_T>(args_uref)...);
    }
 
 private:
-   std::array<std::byte, N> _buffer; // no inline initialization intended
+   std::array<byte, N> _buffer; // no inline initialization intended
 };
 
 } // ym

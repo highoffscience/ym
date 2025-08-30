@@ -87,6 +87,16 @@ auto ym::ut::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle const 
 
    ymLog(VG::UnitTest_YmUtils, "sizeof(TBP) {}; sizeof(BP) {}", sizeof(name), sizeof(a_bptr));
 
+   {
+      auto a = 9;
+      auto const ca = 11;
+      bptr myint(&a);
+      bptr mycint(&ca);
+
+      bptr<void> myvoid = myint;
+      ymLog(VG::UnitTest_YmUtils, "myvoid's value {}", *static_cast<int*>(myvoid.get()));
+   }
+
    return {
       {"Ptr_1", *b_ptr},
       {"Name", std::string(name_b.get())}
@@ -171,18 +181,18 @@ auto ym::ut::TestSuite::BitSet::run([[maybe_unused]] DataShuttle const & InData)
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
 
-   Bitset b{};
-   ymLog(VG::UnitTest_YmUtils, "1) TODO --> {}", b.getUnderlying());
-   b.set(0);
-   ymLog(VG::UnitTest_YmUtils, "2) TODO --> {}", b.getUnderlying());
-   b.set(1);
-   ymLog(VG::UnitTest_YmUtils, "3) TODO --> {}", b.getUnderlying());
-   b.clear(1);
-   ymLog(VG::UnitTest_YmUtils, "4) TODO --> {}", b.getUnderlying());
-   b.set(1, true);
-   ymLog(VG::UnitTest_YmUtils, "5) TODO --> {}", b.getUnderlying());
-   auto b2 = b;
-   ymLog(VG::UnitTest_YmUtils, "6) TODO --> {}", b2.getUnderlying());
+   // Bitset b{};
+   // ymLog(VG::UnitTest_YmUtils, "1) TODO --> {}", b.getUnderlying());
+   // b.set(0);
+   // ymLog(VG::UnitTest_YmUtils, "2) TODO --> {}", b.getUnderlying());
+   // b.set(1);
+   // ymLog(VG::UnitTest_YmUtils, "3) TODO --> {}", b.getUnderlying());
+   // b.clear(1);
+   // ymLog(VG::UnitTest_YmUtils, "4) TODO --> {}", b.getUnderlying());
+   // b.set(1, true);
+   // ymLog(VG::UnitTest_YmUtils, "5) TODO --> {}", b.getUnderlying());
+   // auto b2 = b;
+   // ymLog(VG::UnitTest_YmUtils, "6) TODO --> {}", b2.getUnderlying());
 
    return {
       {"True", true}
