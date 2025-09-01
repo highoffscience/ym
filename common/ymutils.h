@@ -241,6 +241,9 @@ private:
 
 YM_DECL_YMASSERT(NullPtrError)
 
+/// @brief Enables users to cast pointer to anything.
+struct BPtrCastingPassKey { explicit constexpr BPtrCastingPassKey(void) = default; };
+
 /** BoundedPtr
  *
  * @brief Non-null pointer.
@@ -268,16 +271,22 @@ public:
       YMASSERT(this->get(), NullPtrError, YM_DAH, "Bounded pointer cannot be null");
    }
 
-   // TODO
-   // Disallow dropping const when converting to void
-      //   !(std::is_void_v<T> &&
-      //     std::is_const_v<U> &&
-      //     !std::is_const_v<T>)
-
+   /// @brief Casting constructor.
    template <typename U>
-   requires (std::is_convertible_v<U*, T*>)
+   requires (
+      std::is_convertible_v<U*, T*> && // enforce legal casting
+      (std::is_const_v<T>           || // can always convert to const
+      !std::is_const_v<U>))            // else neither should be const
    implicit constexpr BoundedPtr(BoundedPtr<U> const & Other) :
-      BoundedPtr<T>(static_cast<void*>(Other.get())) // TODO worry about void cont *, too
+      TrustedBoundedPtr<T>(Other.get())
+   { }
+
+   /// @brief Casting constructor. Anything goes.
+   template <typename U>
+   implicit constexpr BoundedPtr(
+      BoundedPtr<U>      const & Other,
+      BPtrCastingPassKey const &) :
+         TrustedBoundedPtr<T>(ymCastPtrTo<T>(Other.get()))
    { }
 
    /** BoundedPtr
@@ -292,7 +301,7 @@ public:
     * @throws Whatever BoundedPtr() throws.
     */
    implicit constexpr BoundedPtr(TrustedBoundedPtr<T> tbp) :
-      BoundedPtr(tbp.get())
+      TrustedBoundedPtr<T>(tbp.get())
    { }
 
    /// @brief Compile time non-nullness checks.
