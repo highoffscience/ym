@@ -216,12 +216,6 @@ public:
       _t_ptr {t_Ptr}
    { }
 
-   template <typename U>
-   requires (std::is_convertible_v<U*, T*>)
-   implicit constexpr TrustedBoundedPtr(TrustedBoundedPtr<U> const & Other) :
-      TrustedBoundedPtr<T>(static_cast<void*>(Other.get())) // TODO worry about void cont *, too
-   { }
-
    /// @brief Compile time non-nullness checks.
    constexpr TrustedBoundedPtr              (std::nullptr_t) = delete;
    constexpr TrustedBoundedPtr & operator = (std::nullptr_t) = delete;

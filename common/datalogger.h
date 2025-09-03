@@ -117,8 +117,8 @@ private:
    {
    public:
       explicit inline TrackedVal(
-         str           const Name,
-         bptr<T const> const Read_BPtr);
+         str              const Name,
+         bptr<void const> const Read_BPtr);
 
       virtual void cloneAt(
          bptr<void> const val_BPtr,
@@ -177,8 +177,8 @@ inline DataLogger::TrackedValBase::TrackedValBase(
  */
 template <typename T>
 DataLogger::TrackedVal<T>::TrackedVal(
-   str           const Name,
-   bptr<T const> const Read_BPtr) :
+   str              const Name,
+   bptr<void const> const Read_BPtr) :
       TrackedValBase(Name, Read_BPtr, sizeof(T))
 { }
 
