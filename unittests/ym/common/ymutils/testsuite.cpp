@@ -99,7 +99,7 @@ auto ym::ut::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle const 
       // [[maybe_unused]] bptr<void>       myvoid_2  = mycint; // compile error (expected)
 
       [[maybe_unused]] auto mybyte_1 = bptr<byte>(myint, BPtrCastingPassKey());
-      // [[maybe_unused]] auto myvoid_3 = bptr<void>(mycint);
+      // [[maybe_unused]] auto myvoid_3 = bptr<void>(mycint); // compile error (expected)
 
       // ymLog(VG::UnitTest_YmUtils, "myvoid's value {}", *static_cast<int const*>(myvoid.get()));
    }

@@ -42,17 +42,17 @@ bool ym::DataLogger::ready(sizet const MaxNEntries)
       }
    }
 
-   // auto const SumOfAllDataSizes_bytes = std::accumulate(
-   //    _trackedVals.cbegin(),
-   //    _trackedVals.cend(),
-   //    0uz,
-   //    [](sizet const Acc, TrackedValBase const & TVB) {
-   //       return Acc + TVB._Size_bytes;
-   //    }
-   // );
+   auto const SumOfAllDataSizes_bytes = std::accumulate(
+      _trackedVals.cbegin(),
+      _trackedVals.cend(),
+      0uz,
+      [](sizet const Acc, RawTrackedVal_T const & RTV) {
+         return Acc + RTV->_Size_bytes;
+      }
+   );
 
-   // auto const SizeOfBlackBoxBuffer_bytes = _trackedVals.size() * SumOfAllDataSizes_bytes;
-   // _blackBoxBuffer.reserve(SizeOfBlackBoxBuffer_bytes);
+   auto const SizeOfBlackBoxBuffer_bytes = MaxNEntries * SumOfAllDataSizes_bytes;
+   _blackBoxBuffer.resize(SizeOfBlackBoxBuffer_bytes);
 
    _nextEntry_idx = 0uz; // may no longer use _nTrackedValsHint (union)
 
@@ -65,18 +65,21 @@ bool ym::DataLogger::ready(sizet const MaxNEntries)
  */
 void ym::DataLogger::acquireAll(void)
 {
-   // for (auto const & Val : _trackedVals)
-   // { // iterates through all registered entries and reads the associate variables
-   //    auto * const write_Ptr = Entry._dataEntries_Ptr + (Entry._DataSize_bytes * _nextDataEntry_idx);
-   //    std::memcpy(write_Ptr, Entry._Read_Ptr, Entry._DataSize_bytes);
-   // }
+   for (auto const & Val : _trackedVals)
+   { // iterate through all registered values and read the associate variables
+      std::memcpy(
+         _blackBoxBuffer.data() + _nextEntry_idx, // dst
+         Val->_Read_BPtr.get(),                   // src
+         Val->_Size_bytes);
+      _nextEntry_idx += Val->_Size_bytes;
+   }
 
-   // _nextDataEntry_idx = (_nextDataEntry_idx + 1_u64) % getMaxNDataEntries();
+   _nextEntry_idx %= _blackBoxBuffer.size();
 
-   // if (_nextDataEntry_idx == 0_u64)
-   // { // rollover happened
-   //    _rollover = true;
-   // }
+   if (_nextEntry_idx == 0uz)
+   { // rollover happened
+      _rollover = true;
+   }
 }
 
 /** reset
@@ -85,8 +88,8 @@ void ym::DataLogger::acquireAll(void)
  */
 void ym::DataLogger::reset(void)
 {
-   _blackBoxBuffer.clear();
    _nextEntry_idx = 0uz;
+   _rollover      = false;
 }
 
 /** dump
@@ -101,43 +104,49 @@ void ym::DataLogger::reset(void)
  */
 bool ym::DataLogger::dump(str const Filename)
 {
-   (void)Filename;
-   // bool const Opened = openOutfile(Filename);
+   bool const Opened = openOutfile(Filename.get());
 
-   // if (Opened)
-   // { // file opened
-   //    for (auto j = 0_u64; j < _columnEntries.size(); ++j)
-   //    { // print all the headers
-   //       if (j > 0_u64)
-   //       { // prevent printing trailing comma
-   //          fmt::fprintf(_outfile_uptr.get(), ",");
-   //       }
-   //       auto const & Entry = _columnEntries[j];
-   //       fmt::fprintf(_outfile_uptr.get(), "{}", Entry.getName().get());
-   //    }
-   //    fmt::fprintf(_outfile_uptr.get(), "\n");
+   if (Opened)
+   { // file opened
+      for (auto i = 0uz; i < _trackedVals.size(); i++)
+      { // print all the headers
+         if (i > 0uz)
+         { // prevent printing trailing comma
+            fmt::print(_outfile_uptr.get(), ",");
+         }
+         fmt::print(_outfile_uptr.get(), "{}", _trackedVals[i]->getName().get());
+      }
+      fmt::print(_outfile_uptr.get(), "\n");
 
-   //    auto const Start_idx = _rollover ?
-   //       (_nextDataEntry_idx + 1_u64) % getMaxNDataEntries() : 0_u64;
+      auto start_idx = 0uz;
+      auto stop_idx  = _nextEntry_idx; // actual size of blackbox (not reserved size)
 
-   //    for (auto i = Start_idx; i != _nextDataEntry_idx; i = (i + 1_u64) % getMaxNDataEntries())
-   //    { // print data from oldest to newest
-   //       for (auto j = 0_u64; j < _columnEntries.size(); ++j)
-   //       { // print row
-   //          if (j > 0_u64)
-   //          { // prevent printing trailing comma
-   //             fmt::fprintf(_outfile_uptr.get(), ",");
-   //          }
-   //          auto const & Entry = _columnEntries[j];
-   //          void const * const Data_Ptr = Entry._dataEntries_Ptr + (Entry._DataSize_bytes * i);
-   //          fmt::fprintf(_outfile_uptr.get(), "{}", Entry._Stringify_Ptr->toStr(Data_Ptr).c_str());
-   //       }
-   //       fmt::fprintf(_outfile_uptr.get(), "\n");
-   //    }
-   // }
+      if (_rollover)
+      {
+         start_idx = _nextEntry_idx;
+         stop_idx  = start_idx + _blackBoxBuffer.size();
+      }
 
-   // return Opened;
-   return false;
+      char buffer[100uz]{'\0'};
+
+      for (auto i = start_idx; i < stop_idx; )
+      { // print data from oldest to newest
+         for (auto j = 0uz; j < _trackedVals.size(); j++)
+         { // print row
+            if (j > 0uz)
+            { // prevent printing trailing comma
+               fmt::print(_outfile_uptr.get(), ",");
+            }
+
+            _trackedVals[j]->toStr(_blackBoxBuffer.data() + _nextEntry_idx, buffer);
+            _nextEntry_idx = _trackedVals[j]->_Size_bytes;
+            fmt::print(_outfile_uptr.get(), "{}", buffer);
+         }
+         fmt::print(_outfile_uptr.get(), "\n");
+      }
+   }
+
+   return Opened;
 }
 
 void ym::DataLogger::TrackedValBase::toStr_Handler(

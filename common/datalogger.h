@@ -138,6 +138,7 @@ private:
       sizet               _nTrackedValsHint{0uz};
       sizet               _nextEntry_idx;
    };
+   bool                   _rollover{false};
 };
 
 /** track

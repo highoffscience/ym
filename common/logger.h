@@ -30,7 +30,7 @@ public:
     *
     * @brief Mode to determine how to mangle the filename.
     */
-   enum class FilenameMode_T : uint32
+   enum class FilenameMode_T
    {
       KeepOriginal,
       AppendTimeStamp
@@ -62,10 +62,11 @@ protected:
    using FileDeleter_T = void(*)(std::FILE * const);
    std::unique_ptr<std::FILE, FileDeleter_T> _outfile_uptr;
 
-private:
+protected:
    bool openOutfile                (std::string_view const Filename);
    bool openOutfile_appendTimeStamp(std::string_view const Filename);
 
+private:
    str            const _Filename    {""_str                         };
    FilenameMode_T const _FilenameMode{FilenameMode_T::AppendTimeStamp};
 };

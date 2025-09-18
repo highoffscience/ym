@@ -38,14 +38,14 @@ auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle 
    blackbox.track("a", &a);
    // blackbox.addEntry("b", &b);
 
-   for (auto i = 0u; i < 15u; ++i)
+   for (auto i = 0u; i < 1u; ++i)
    {
-      // blackbox.acquireAll();
+      blackbox.acquireAll();
       a++;
       // b++;
    }
 
-   // auto const DataDumpSuccessful = blackbox.dump("ym/common/datalogger/data.csv");
+   // auto const DataDumpSuccessful = blackbox.dump("logs/data.csv");
 
    return {
       {"Success", true /*DataDumpSuccessful*/}
