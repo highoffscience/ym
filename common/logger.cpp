@@ -100,11 +100,11 @@ bool ym::Logger::openOutfile(std::string_view const Filename)
    std::error_code ec;
    if (std::filesystem::exists(Filename, ec))
    { // file we are attempting to create already exists
-      ymLog(VG::Logger, "WARNING: File (or directory) '{}' already exists", Filename);
+      ymLog(VG::Error, "WARNING: File (or directory) '{}' already exists", Filename);
    }
    else if (ec)
-   { // filesystem failure 
-      ymLog(VG::Logger, "WARNING: Filesystem error when attempting to open '{}' with error code {}", Filename, ec.value());
+   { // filesystem failure
+      ymLog(VG::Error, "WARNING: Filesystem error when attempting to open '{}' with error code {}", Filename, ec.value());
    }
    else
    { // open!

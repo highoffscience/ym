@@ -16,9 +16,14 @@
 /**
  * TODO
  */
-ym::DataLogger::DataLogger(sizet const NTrackedValsHint) :
-   _nTrackedValsHint {NTrackedValsHint}
+ym::DataLogger::DataLogger(
+   sizet const MaxNEntries,
+   sizet const NTrackedValsHint) :
+      _nTrackedValsHint {NTrackedValsHint},
+      _MaxNDataEntries  {MaxNEntries     }
 {
+   YMASSERT(getMaxNDataEntries() > 0uz, Error, YM_DAH, "Depth of data logger must be > 0");
+
    if (_nTrackedValsHint > 0uz)
    { // hint on how many tracked values - preallocate room for that many headers
       _trackedVals.reserve(_nTrackedValsHint);
@@ -29,10 +34,8 @@ ym::DataLogger::DataLogger(sizet const NTrackedValsHint) :
 /**
  * TODO
  */
-bool ym::DataLogger::ready(sizet const MaxNEntries)
+bool ym::DataLogger::ready(void)
 {
-   YMASSERT(MaxNEntries > 0uz, Error, YM_DAH, "Depth of data logger must be > 0");
-
    if (_nTrackedValsHint > 0uz)
    { // supplied a hint
       if (_trackedVals.capacity() > _nTrackedValsHint)
@@ -51,12 +54,13 @@ bool ym::DataLogger::ready(sizet const MaxNEntries)
       }
    );
 
-   auto const SizeOfBlackBoxBuffer_bytes = MaxNEntries * SumOfAllDataSizes_bytes;
+   auto const SizeOfBlackBoxBuffer_bytes = getMaxNDataEntries() * SumOfAllDataSizes_bytes;
    _blackBoxBuffer.resize(SizeOfBlackBoxBuffer_bytes);
 
    _nextEntry_idx = 0uz; // may no longer use _nTrackedValsHint (union)
+   _initialized   = true;
 
-   return true;
+   return _initialized;
 }
 
 /** acquireAll
@@ -65,6 +69,11 @@ bool ym::DataLogger::ready(sizet const MaxNEntries)
  */
 void ym::DataLogger::acquireAll(void)
 {
+   if (!isInitialized())
+   { // get the logger ready
+      ready();
+   }
+
    for (auto const & Val : _trackedVals)
    { // iterate through all registered values and read the associate variables
       std::memcpy(
@@ -90,6 +99,7 @@ void ym::DataLogger::reset(void)
 {
    _nextEntry_idx = 0uz;
    _rollover      = false;
+   _initialized   = false;
 }
 
 /** dump
@@ -118,18 +128,23 @@ bool ym::DataLogger::dump(str const Filename)
       }
       fmt::print(_outfile_uptr.get(), "\n");
 
-      auto start_idx = 0uz;
-      auto stop_idx  = _nextEntry_idx; // actual size of blackbox (not reserved size)
+      auto const SumOfAllDataSizes_bytes = _blackBoxBuffer.size() / getMaxNDataEntries();
+      YMASSERT(_nextEntry_idx % SumOfAllDataSizes_bytes == 0uz, Error, YM_DAH,
+         "Data entry index {} expected to be a multiple of sum of entry sizes {}",
+         _nextEntry_idx, SumOfAllDataSizes_bytes);
+
+      auto nEntriesCaptured = _nextEntry_idx / SumOfAllDataSizes_bytes;
+      auto currDatum_idx    = 0uz;
 
       if (_rollover)
-      {
-         start_idx = _nextEntry_idx;
-         stop_idx  = start_idx + _blackBoxBuffer.size();
+      { // re-adjust start and stop indices
+         nEntriesCaptured = getMaxNDataEntries();
+         currDatum_idx    = _nextEntry_idx;
       }
 
       char buffer[100uz]{'\0'};
 
-      for (auto i = start_idx; i < stop_idx; )
+      for (auto i = 0uz; i < nEntriesCaptured; i++)
       { // print data from oldest to newest
          for (auto j = 0uz; j < _trackedVals.size(); j++)
          { // print row
@@ -138,10 +153,11 @@ bool ym::DataLogger::dump(str const Filename)
                fmt::print(_outfile_uptr.get(), ",");
             }
 
-            _trackedVals[j]->toStr(_blackBoxBuffer.data() + _nextEntry_idx, buffer);
-            _nextEntry_idx = _trackedVals[j]->_Size_bytes;
+            _trackedVals[j]->toStr(_blackBoxBuffer.data() + currDatum_idx, buffer);
+            currDatum_idx += _trackedVals[j]->_Size_bytes;
             fmt::print(_outfile_uptr.get(), "{}", buffer);
          }
+         currDatum_idx %= _blackBoxBuffer.size();
          fmt::print(_outfile_uptr.get(), "\n");
       }
    }

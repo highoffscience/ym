@@ -31,20 +31,19 @@ namespace ym
 class DataLogger : public Logger
 {
 public:
-   explicit DataLogger(sizet const NTrackedValsHint = 0uz);
+   explicit DataLogger(
+      sizet const MaxNEntries,
+      sizet const NTrackedValsHint = 0uz);
 
    YM_NO_COPY  (DataLogger)
    YM_NO_ASSIGN(DataLogger)
 
    YM_DECL_YMASSERT(Error)
 
-   bool ready(sizet const MaxNEntries);
+   bool ready(void);
 
-   /// @note Only useful after a call to ready().
-   inline auto getMaxNDataEntries(void) const {
-      return (_trackedVals.size() > 0uz) ?
-         (_blackBoxBuffer.size() / _trackedVals.size()) : 0uz;
-   }
+   inline auto getMaxNDataEntries(void) const { return _MaxNDataEntries; }
+   inline auto isInitialized     (void) const { return _initialized;     }
 
    /// @brief Forwarding function.
    template <typename T>
@@ -138,7 +137,9 @@ private:
       sizet               _nTrackedValsHint{0uz};
       sizet               _nextEntry_idx;
    };
-   bool                   _rollover{false};
+   sizet const            _MaxNDataEntries{10uz };
+   bool                   _rollover       {false};
+   bool                   _initialized    {false};
 };
 
 /** track

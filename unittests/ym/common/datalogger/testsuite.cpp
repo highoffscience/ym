@@ -31,23 +31,27 @@ auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle 
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_DataLogger);
 
-   DataLogger blackbox(10u);
+   auto const SE2 = ymLogPushEnable(VG::Error); // TODO
 
-   auto a = 0;
-   // auto b = 0.0;
+   DataLogger blackbox(30uz, 10u);
+
+   auto a = 1;
+   auto b = 1.0;
    blackbox.track("a", &a);
-   // blackbox.addEntry("b", &b);
+   blackbox.track("b", &b);
 
-   for (auto i = 0u; i < 1u; ++i)
+   blackbox.ready();
+
+   for (auto i = 0u; i < 100u; ++i)
    {
       blackbox.acquireAll();
       a++;
-      // b++;
+      b *= 1.5;
    }
 
-   // auto const DataDumpSuccessful = blackbox.dump("logs/data.csv");
+   auto const DataDumpSuccessful = blackbox.dump("logs/data.csv");
 
    return {
-      {"Success", true /*DataDumpSuccessful*/}
+      {"Success", DataDumpSuccessful}
    };
 }
