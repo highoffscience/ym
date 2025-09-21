@@ -40,13 +40,11 @@ auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle 
    blackbox.track("a", &a);
    blackbox.track("b", &b);
 
-   blackbox.ready();
-
    for (auto i = 0u; i < 100u; ++i)
    {
       blackbox.acquireAll();
       a++;
-      b *= 1.5;
+      b *= 1.1;
    }
 
    auto const DataDumpSuccessful = blackbox.dump("logs/data.csv");

@@ -17,19 +17,14 @@
  *
  * @note Explicitly clear the write flag. <https://en.cppreference.com/w/cpp/atomic/ATOMIC_FLAG_INIT>.
  * 
- * @param Filename     -- Name of file to open.
- * @param FilenameMode -- Mode to determine how to mangle the filename.
- * @param PrintMode    -- Mode to determine how to mangle the printable message.
- * @param RedirectMode -- Specifies what streams to pipe the output to.
+ * @param Filename -- Name of file to open.
+ * @param Options  -- List of optional modes.
  */
 ym::TextLogger::TextLogger(
-   str            const Filename,
-   FilenameMode_T const FilenameMode,
-   PrintMode_T    const PrintMode,
-   RedirectMode_T const RedirectMode) :
-      Logger(Filename, FilenameMode),
-      _PrintMode    {PrintMode   },
-      _RedirectMode {RedirectMode}
+   str       const   Filename,
+   Options_T const & Options) :
+      _Filename {Filename},
+      _Options  {Options }
 {
    _writeFlag.clear();
 }
@@ -99,7 +94,8 @@ bool ym::TextLogger::open(void)
       std::memory_order_relaxed))
    { // file not opened - let's do that
 
-      expectedState = openOutfile() ? State_T::Open : State_T::Closed;
+      auto const Opened = openOutfile(getFilename().get(), _Options);
+      expectedState = Opened ? State_T::Open : State_T::Closed;
       _state.store(expectedState, std::memory_order_relaxed);
    }
 
@@ -243,8 +239,8 @@ void ym::TextLogger::printf_Handler(
       getMaxMsgSize_bytes(), TimeStampSize_bytes)
    
    auto const HasTimeStamp =
-      getPrintMode() == PrintMode_T::PrependTimeStamp ||
-      getPrintMode() == PrintMode_T::PrependHumanReadableTimeStamp;
+      getOptions() == PrintMode_T::PrependTimeStamp ||
+      getOptions() == PrintMode_T::PrependHumanReadableTimeStamp;
 
    auto const NewlineSize_bytes = std::size_t((HasTimeStamp) ? 1u : 0u);
 
@@ -279,7 +275,7 @@ void ym::TextLogger::printf_Handler(
 
       std::fwrite(buffer, sizeof(char), TotalWritten_bytes, _outfile_uptr.get());
 
-      if (getRedirectMode() == RedirectMode_T::ToLogAndStdOut)
+      if (getOptions() == RedirectMode_T::ToLogAndStdOut)
       { // print to console
          buffer[getMaxMsgSize_bytes() - std::size_t(1u)] = '\0';
          fmt::print("{}", buffer);
@@ -328,7 +324,7 @@ void ym::TextLogger::printf_Handler(
  */
 char * ym::TextLogger::populateFormattedTime(char * write_ptr) const
 {
-   if (getPrintMode() == PrintMode_T::PrependHumanReadableTimeStamp)
+   if (getOptions() == PrintMode_T::PrependHumanReadableTimeStamp)
    { // print raw form of the time stamp
    
       auto       elapsed      = _timer.getElapsedTime();
@@ -342,7 +338,7 @@ char * ym::TextLogger::populateFormattedTime(char * write_ptr) const
 
       write_ptr = Result.out;
 
-      if (getPrintMode() == PrintMode_T::PrependHumanReadableTimeStamp)
+      if (getOptions() == PrintMode_T::PrependHumanReadableTimeStamp)
       { // print human readable form of the time stamp
 
          auto const Time_hr   = std::chrono::duration_cast<std::chrono::hours>       (elapsed);

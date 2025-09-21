@@ -107,14 +107,17 @@ void ym::DataLogger::reset(void)
  * @brief Dumps blackbox to file.
  * 
  * @param Filename -- Name of file to dump data to.
+ * @param Options  -- List of optional opening modes.
  *
  * TODO add dump to binary format mode
  * 
  * @returns bool -- If dump was successful.
  */
-bool ym::DataLogger::dump(str const Filename)
+bool ym::DataLogger::dump(
+   str              const   Filename,
+   OpeningOptions_T const & Options)
 {
-   bool const Opened = openOutfile(Filename.get());
+   bool const Opened = openOutfile(Filename.get(), Options);
 
    if (Opened)
    { // file opened

@@ -66,17 +66,46 @@ public:
       ToLogAndStdOut // for debugging
    };
 
-   explicit TextLogger(
-      str            const Filename,
-      FilenameMode_T const FilenameMode = FilenameMode_T::AppendTimeStamp,
-      PrintMode_T    const PrintMode    = PrintMode_T::PrependHumanReadableTimeStamp,
-      RedirectMode_T const RedirectMode = 
+   /** Options_T
+    * 
+    * @brief Options surrounding opening and writing to a file.
+    */
+   struct Options_T
+   {
+      /// @brief Opening options (defined in base Logger).
+      OpeningOptions_T const _OpeningOptions{};
+
+      /// @brief Mode to determine how to mangle the printable message.
+      PrintMode_T const _PrintMode{PrintMode_T::PrependHumanReadableTimeStamp};
+
+      /// @brief Mode to specify what streams to pipe the output to.
+      RedirectMode_T const _RedirectMode{
          #if (YM_DEBUG || YM_PRINT_TO_SCREEN)
             RedirectMode_T::ToLogAndStdOut
          #else
             RedirectMode_T::ToLog
          #endif
-   );
+      };
+
+      /// @brief Convenience cast to pass to base Logger functions.
+      constexpr operator OpeningOptions_T(void) const { return _OpeningOptions; }
+
+      /// @brief Allows direct comparison between Options_T and specified field type.
+      constexpr friend bool operator == (Options_T const & Opts, PrintMode_T const Mode) {
+         return Opts._PrintMode == Mode;
+      }
+
+      /// @brief Allows direct comparison between OpeningOptions_T and specified field type.
+      constexpr friend bool operator == (Options_T const & Opts, RedirectMode_T const Mode) {
+         return Opts._RedirectMode == Mode;
+      }
+   };
+
+   static constexpr Options_T getDefaultOptions(void) { return {}; }
+
+   explicit TextLogger(
+      str       const   Filename,
+      Options_T const & Options = getDefaultOptions());
    ~TextLogger(void);
 
    YM_NO_COPY  (TextLogger)
@@ -87,8 +116,8 @@ public:
 
    static bptr<TextLogger> getGlobalInstancePtr(void);
 
-   inline auto getPrintMode   (void) const { return _PrintMode;    }
-   inline auto getRedirectMode(void) const { return _RedirectMode; }
+   inline auto         getFilename(void) const { return _Filename; }
+   inline auto const & getOptions (void) const { return _Options;  }
 
    bool isOpen(void) const;
 
@@ -171,12 +200,12 @@ private:
 
    static inline TextLogger * _s_globalInstance_ptr{nullptr};
 
-   PrintMode_T    const _PrintMode   {PrintMode_T::KeepOriginal};
-   RedirectMode_T const _RedirectMode{RedirectMode_T::ToLog    };
-   VGroups_T            _vGroups     {      /* default */      };
-   Timer                _timer       {      /* default */      };
-   std::atomic<State_T> _state       {State_T::Closed          };
-   std::atomic_flag     _writeFlag   {ATOMIC_FLAG_INIT         };
+   str       const      _Filename {""_str          };
+   Options_T const      _Options  { /* default */  };
+   VGroups_T            _vGroups  { /* default */  };
+   Timer                _timer    { /* default */  };
+   std::atomic<State_T> _state    {State_T::Closed };
+   std::atomic_flag     _writeFlag{ATOMIC_FLAG_INIT};
 };
 
 /** printf

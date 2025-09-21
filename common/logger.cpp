@@ -22,83 +22,67 @@
 /** Logger
  *
  * @brief Constructor.
- * 
- * @param Filename     -- Name of file to open.
- * @param FilenameMode -- Mode whether to append time stamps to filename.
  *
  * @note _outfile_uptr is set to null to serve as a flag that the logger is uninitialized.
  */
-ym::Logger::Logger(
-   str            const Filename,
-   FilenameMode_T const FilenameMode) :
-      _outfile_uptr {nullptr,
-         [] (std::FILE * const file_Ptr) {
-            if (file_Ptr != stdout &&
-               file_Ptr != stderr) { // don't try to close standard streams
-               [[maybe_unused]]
-               auto const RetVal = std::fclose(file_Ptr);
-            }
+ym::Logger::Logger(void) :
+   _outfile_uptr {nullptr,
+      [] (std::FILE * const file_Ptr) {
+         if (file_Ptr != stdout &&
+             file_Ptr != stderr) { // don't try to close standard streams
+            [[maybe_unused]]
+            auto const RetVal = std::fclose(file_Ptr);
          }
-      },
-      _Filename     {Filename    },
-      _FilenameMode {FilenameMode}
+      }
+   }
 { }
 
 /** openOutfile
  *
  * @brief Attempts to open a write-file.
  *
+ * @param Filename -- Name of file.
+ * @param Options  -- List of optional modes.
+ * 
  * @note We open the file here instead of the constructor to allow flexibility with
  *       derived classes handling the file operations. Also it's awkward to code
  *       constructors that throw.
  *
- * @note The conditional assures the logger is only associated with one file.
- *
- * @returns bool -- True if the file was opened, false otherwise.
+ * @returns bool -- True if the file is/was opened, false otherwise.
  */
-bool ym::Logger::openOutfile(void)
+bool ym::Logger::openOutfile(
+   std::string_view const   Filename,
+   OpeningOptions_T const & Options)
 {
-   // don't rely on isOutfileOpened(), since we want to return if the file
-   // was opened, which is a no if the file already exists, but isOutfileOpened()
-   // would return true - not the behaviour we desire
-
-   auto opened = false; // until told otherwise
-
    if (!isOutfileOpened())
    { // file not opened
-      if (getFilenameMode() == FilenameMode_T::AppendTimeStamp)
+      if (Options == FilenameMode_T::AppendTimeStamp)
       { // append file stamp
-         opened = openOutfile_appendTimeStamp(getFilename().get());
+         openOutfile_appendTimeStamp(Filename, Options);
       }
       else
       { // do not append file stamp (default fallthrough)
-         opened = openOutfile(getFilename().get());
+         openOutfile_core(Filename, Options);
       }
    }
 
-   return opened;
+   return isOutfileOpened();
 }
 
-/** openOutfile
+/** openOutfile_core
  *
  * @brief Attempts to open a write-file.
- *
- * @note We open the file here instead of the constructor to allow flexibility with
- *       derived classes handling the file operations. Also it's awkward to code
- *       constructors that throw.
- *
- * @note The conditional assures the logger is only associated with one file.
  * 
  * @param Filename -- Name of file.
- *
- * @returns bool -- True if the file was opened, false otherwise.
+ * @param Options  -- List of optional opening modes.
  */
-bool ym::Logger::openOutfile(std::string_view const Filename)
+void ym::Logger::openOutfile_core(
+   std::string_view const   Filename,
+   OpeningOptions_T const & Options)
 {
-   auto opened = false; // until told otherwise
-
    std::error_code ec;
-   if (std::filesystem::exists(Filename, ec))
+   if (Options == OverwriteMode_T::Disallow &&
+      std::filesystem::exists(Filename, ec))
    { // file we are attempting to create already exists
       ymLog(VG::Error, "WARNING: File (or directory) '{}' already exists", Filename);
    }
@@ -108,12 +92,8 @@ bool ym::Logger::openOutfile(std::string_view const Filename)
    }
    else
    { // open!
-
       _outfile_uptr.reset(std::fopen(Filename.data(), "w"));
-      opened = isOutfileOpened();
    }
-
-   return opened;
 }
 
 /** openOutfile_appendTimeStamp
@@ -121,10 +101,11 @@ bool ym::Logger::openOutfile(std::string_view const Filename)
  * @brief Attempts to open the file with the current time appended to the file name.
  * 
  * @param Filename -- Name of file.
- *
- * @returns bool -- True if file was opened, false otherwise.
+ * @param Options  -- List of optional modes.
  */
-bool ym::Logger::openOutfile_appendTimeStamp(std::string_view const Filename)
+void ym::Logger::openOutfile_appendTimeStamp(
+   std::string_view const   Filename,
+   OpeningOptions_T const & Options)
 {
    auto extPos = Filename.find_last_of('.');
    if (extPos == std::size_t(0u) ||      // hidden files
@@ -173,7 +154,7 @@ bool ym::Logger::openOutfile_appendTimeStamp(std::string_view const Filename)
    YMASSERT(result.out == &*timeStampedFilename.end(), OpenError, YM_DAH,
       "Error printing time stamp. {} -- {}", (void*)result.out, (void*)&*timeStampedFilename.end())
 
-   return openOutfile(timeStampedFilename);
+   openOutfile_core(timeStampedFilename, Options);
 }
 
 /** closeOutfile

@@ -36,47 +36,62 @@ public:
       AppendTimeStamp
    };
 
+   /** OverwriteMode
+    * 
+    * @brief Mode to indicate if file can be overwritten.
+    */
+   enum class OverwriteMode_T
+   {
+      Allow,
+      Disallow
+   };
+
+   /** OpeningOptions_T
+    * 
+    * @brief Options surrounding opening a file.
+    */
+   struct OpeningOptions_T
+   {
+      /// @brief Mode to determine how to mangle the filename.
+      FilenameMode_T const _FilenameMode{FilenameMode_T::AppendTimeStamp};
+
+      /// @brief Mode to determine if to overwrite file while opening or not.
+      OverwriteMode_T const _OverwriteMode{OverwriteMode_T::Disallow};
+
+      /// @brief Allows direct comparison between OpeningOptions_T and specified field type.
+      constexpr friend bool operator == (OpeningOptions_T const & Opts, FilenameMode_T const Mode) {
+         return Opts._FilenameMode == Mode;
+      }
+
+      /// @brief Allows direct comparison between OpeningOptions_T and specified field type.
+      constexpr friend bool operator == (OpeningOptions_T const & Opts, OverwriteMode_T const Mode) {
+         return Opts._OverwriteMode == Mode;
+      }
+   };
+
    YM_NO_COPY  (Logger)
    YM_NO_ASSIGN(Logger)
 
    YM_DECL_YMASSERT(OpenError)
 
 protected:
-   explicit inline Logger(void);
-   explicit Logger(
-      str            const Filename,
-      FilenameMode_T const FilenameMode = FilenameMode_T::AppendTimeStamp);
+   explicit Logger(void);
 
    inline auto isOutfileOpened(void) const { return static_cast<bool>(_outfile_uptr); }
-
-   inline auto getFilename    (void) const { return _Filename;     }
-   inline auto getFilenameMode(void) const { return _FilenameMode; }
 
    // Don't name simply "open" or "close" because we want to allow derived
    // classes to implement these functions without the overhead of
    // virtual calls.
 
-   bool openOutfile(void);
+   bool openOutfile(std::string_view const Filename, OpeningOptions_T const & Options);
    void closeOutfile(void);
-
+   
    using FileDeleter_T = void(*)(std::FILE * const);
    std::unique_ptr<std::FILE, FileDeleter_T> _outfile_uptr;
 
-protected:
-   bool openOutfile                (std::string_view const Filename);
-   bool openOutfile_appendTimeStamp(std::string_view const Filename);
-
 private:
-   str            const _Filename    {""_str                         };
-   FilenameMode_T const _FilenameMode{FilenameMode_T::AppendTimeStamp};
+   void openOutfile_core           (std::string_view const Filename, OpeningOptions_T const & Options);
+   void openOutfile_appendTimeStamp(std::string_view const Filename, OpeningOptions_T const & Options);
 };
-
-/** Logger
- *
- * @brief Constructor.
- */
-Logger::Logger(void) :
-   Logger(""_str)
-{ }
 
 } // ym

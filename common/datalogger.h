@@ -58,7 +58,9 @@ public:
 
    void acquireAll(void);
    void reset(void);
-   bool dump(str const Filename);
+   bool dump(
+      str              const   Filename,
+      OpeningOptions_T const & Options = {});
 
 private:
    /** TrackedValBase
