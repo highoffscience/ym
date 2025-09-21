@@ -10,19 +10,23 @@
 
 #include "fmt/format.h"
 
+#include <cstdio>
 #include <cstring>
 #include <numeric>
 
-/**
- * TODO
+/** DataLogger
+ * 
+ * @brief Constructor. See ready().
+ * 
+ * @param MaxDepth -- Max number of entries to store per tracked variable.
  */
 ym::DataLogger::DataLogger(
-   sizet const MaxNEntries,
+   sizet const MaxDepth,
    sizet const NTrackedValsHint) :
-      _nTrackedValsHint {NTrackedValsHint},
-      _MaxNDataEntries  {MaxNEntries     }
+      _MaxDepth         {MaxDepth        },
+      _nTrackedValsHint {NTrackedValsHint}
 {
-   YMASSERT(getMaxNDataEntries() > 0uz, Error, YM_DAH, "Depth of data logger must be > 0");
+   YMASSERT(getMaxDepth() > 0uz, Error, YM_DAH, "Depth of data logger must be > 0");
 
    if (_nTrackedValsHint > 0uz)
    { // hint on how many tracked values - preallocate room for that many headers
@@ -31,8 +35,9 @@ ym::DataLogger::DataLogger(
    }
 }
 
-/**
- * TODO
+/** ready
+ * 
+ * @brief Initializes the data logger.
  */
 bool ym::DataLogger::ready(void)
 {
@@ -45,7 +50,7 @@ bool ym::DataLogger::ready(void)
       }
    }
 
-   auto const SumOfAllDataSizes_bytes = std::accumulate(
+   auto const SizeOfRow_bytes = std::accumulate(
       _trackedVals.cbegin(),
       _trackedVals.cend(),
       0uz,
@@ -54,7 +59,7 @@ bool ym::DataLogger::ready(void)
       }
    );
 
-   auto const SizeOfBlackBoxBuffer_bytes = getMaxNDataEntries() * SumOfAllDataSizes_bytes;
+   auto const SizeOfBlackBoxBuffer_bytes = getMaxDepth() * SizeOfRow_bytes;
    _blackBoxBuffer.resize(SizeOfBlackBoxBuffer_bytes);
 
    _nextEntry_idx = 0uz; // may no longer use _nTrackedValsHint (union)
@@ -63,15 +68,15 @@ bool ym::DataLogger::ready(void)
    return _initialized;
 }
 
-/** acquireAll
+/** acquire
  *
  * @brief Reads all registered variables and stores them in the latest slot in the buffer.
  */
-void ym::DataLogger::acquireAll(void)
+void ym::DataLogger::acquire(void)
 {
    if (!isInitialized())
    { // get the logger ready
-      ready();
+      (void)ready();
    }
 
    for (auto const & Val : _trackedVals)
@@ -108,14 +113,12 @@ void ym::DataLogger::reset(void)
  * 
  * @param Filename -- Name of file to dump data to.
  * @param Options  -- List of optional opening modes.
- *
- * TODO add dump to binary format mode
  * 
  * @returns bool -- If dump was successful.
  */
 bool ym::DataLogger::dump(
-   str              const   Filename,
-   OpeningOptions_T const & Options)
+   str       const   Filename,
+   Options_T const & Options)
 {
    bool const Opened = openOutfile(Filename.get(), Options);
 
@@ -131,37 +134,58 @@ bool ym::DataLogger::dump(
       }
       fmt::print(_outfile_uptr.get(), "\n");
 
-      auto const SumOfAllDataSizes_bytes = _blackBoxBuffer.size() / getMaxNDataEntries();
-      YMASSERT(_nextEntry_idx % SumOfAllDataSizes_bytes == 0uz, Error, YM_DAH,
+      auto const SizeOfRow_bytes = _blackBoxBuffer.size() / getMaxDepth();
+      YMASSERT(_nextEntry_idx % SizeOfRow_bytes == 0uz, Error, YM_DAH,
          "Data entry index {} expected to be a multiple of sum of entry sizes {}",
-         _nextEntry_idx, SumOfAllDataSizes_bytes);
+         _nextEntry_idx, SizeOfRow_bytes);
 
-      auto nEntriesCaptured = _nextEntry_idx / SumOfAllDataSizes_bytes;
-      auto currDatum_idx    = 0uz;
+      auto nRowsCaptured = _nextEntry_idx / SizeOfRow_bytes;
+      auto currEntry_idx = 0uz;
 
       if (_rollover)
       { // re-adjust start and stop indices
-         nEntriesCaptured = getMaxNDataEntries();
-         currDatum_idx    = _nextEntry_idx;
+         nRowsCaptured = getMaxDepth();
+         currEntry_idx = _nextEntry_idx;
       }
 
-      char buffer[100uz]{'\0'};
-
-      for (auto i = 0uz; i < nEntriesCaptured; i++)
-      { // print data from oldest to newest
-         for (auto j = 0uz; j < _trackedVals.size(); j++)
-         { // print row
-            if (j > 0uz)
-            { // prevent printing trailing comma
-               fmt::print(_outfile_uptr.get(), ",");
-            }
-
-            _trackedVals[j]->toStr(_blackBoxBuffer.data() + currDatum_idx, buffer);
-            currDatum_idx += _trackedVals[j]->_Size_bytes;
-            fmt::print(_outfile_uptr.get(), "{}", buffer);
+      if (Options == DumpMode_T::Binary)
+      { // binary format
+         if (_rollover)
+         { // data not contiguous - requires two write blocks
+            (void)std::fwrite(
+               _blackBoxBuffer.data() + currEntry_idx,
+               SizeOfRow_bytes,
+               getMaxDepth() - (currEntry_idx / SizeOfRow_bytes), // # of rows from current entry to end
+               _outfile_uptr.get());
+            (void)std::fwrite(
+               _blackBoxBuffer.data(),
+               SizeOfRow_bytes,
+               currEntry_idx / SizeOfRow_bytes, // # of rows from beginning to current entry
+               _outfile_uptr.get());
          }
-         currDatum_idx %= _blackBoxBuffer.size();
-         fmt::print(_outfile_uptr.get(), "\n");
+         else
+         { // data contiguous - requires single write block
+            (void)std::fwrite(_blackBoxBuffer.data(), SizeOfRow_bytes, nRowsCaptured, _outfile_uptr.get());
+         }
+      }
+      else
+      { // text format
+         char buffer[100uz]{'\0'};
+         for (auto i = 0uz; i < nRowsCaptured; i++)
+         { // print data from oldest to newest
+            for (auto j = 0uz; j < _trackedVals.size(); j++)
+            { // print row
+               if (j > 0uz)
+               { // prevent printing trailing comma
+                  fmt::print(_outfile_uptr.get(), ",");
+               }
+               _trackedVals[j]->toStr(_blackBoxBuffer.data() + currEntry_idx, buffer);
+               currEntry_idx += _trackedVals[j]->_Size_bytes;
+               fmt::print(_outfile_uptr.get(), "{}", buffer);
+            }
+            currEntry_idx %= _blackBoxBuffer.size();
+            fmt::print(_outfile_uptr.get(), "\n");
+         }
       }
    }
 

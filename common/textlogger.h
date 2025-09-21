@@ -73,13 +73,13 @@ public:
    struct Options_T
    {
       /// @brief Opening options (defined in base Logger).
-      OpeningOptions_T const _OpeningOptions{};
+      OpeningOptions_T _openingOptions{};
 
       /// @brief Mode to determine how to mangle the printable message.
-      PrintMode_T const _PrintMode{PrintMode_T::PrependHumanReadableTimeStamp};
+      PrintMode_T _printMode{PrintMode_T::PrependHumanReadableTimeStamp};
 
       /// @brief Mode to specify what streams to pipe the output to.
-      RedirectMode_T const _RedirectMode{
+      RedirectMode_T _redirectMode{
          #if (YM_DEBUG || YM_PRINT_TO_SCREEN)
             RedirectMode_T::ToLogAndStdOut
          #else
@@ -88,16 +88,16 @@ public:
       };
 
       /// @brief Convenience cast to pass to base Logger functions.
-      constexpr operator OpeningOptions_T(void) const { return _OpeningOptions; }
+      constexpr operator OpeningOptions_T(void) const { return _openingOptions; }
 
       /// @brief Allows direct comparison between Options_T and specified field type.
       constexpr friend bool operator == (Options_T const & Opts, PrintMode_T const Mode) {
-         return Opts._PrintMode == Mode;
+         return Opts._printMode == Mode;
       }
 
       /// @brief Allows direct comparison between OpeningOptions_T and specified field type.
       constexpr friend bool operator == (Options_T const & Opts, RedirectMode_T const Mode) {
-         return Opts._RedirectMode == Mode;
+         return Opts._redirectMode == Mode;
       }
    };
 

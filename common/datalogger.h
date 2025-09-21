@@ -24,15 +24,52 @@ namespace ym
  *
  * @brief A blackbox.
  * 
- * @note Implemented as a circular buffer. Stores the last X data entries.
+ * @note Implemented as a circular buffer. Stores the last X data entries for each tracked variable.
+ *       Each row of the buffer contains all variable values. The names and conversion classes for
+ *       these values are stored in a separate array for efficiency.
+ * 
+ * TODO add @throws to applicable functions
  * 
  * @note *Not* thread-safe.
  */
 class DataLogger : public Logger
 {
 public:
+   /** DumpMode_T
+    * 
+    * @brief Mode to indicate how to format the data when writing.
+    */
+   enum class DumpMode_T
+   {
+      Text,
+      Binary
+   };
+
+   /** Options_T
+    * 
+    * @brief Options surrounding opening and writing to a file.
+    */
+   struct Options_T
+   {
+      /// @brief Opening options (defined in base Logger).
+      OpeningOptions_T _openingOptions{};
+
+      /// @brief Mode to determine the format to write the data in.
+      DumpMode_T _dumpMode{DumpMode_T::Text};
+
+      /// @brief Convenience cast to pass to base Logger functions.
+      constexpr operator OpeningOptions_T(void) const { return _openingOptions; }
+
+      /// @brief Allows direct comparison between Options_T and specified field type.
+      constexpr friend bool operator == (Options_T const & Opts, DumpMode_T const Mode) {
+         return Opts._dumpMode == Mode;
+      }
+   };
+
+   static constexpr Options_T getDefaultOptions(void) { return {}; }
+
    explicit DataLogger(
-      sizet const MaxNEntries,
+      sizet const MaxDepth,
       sizet const NTrackedValsHint = 0uz);
 
    YM_NO_COPY  (DataLogger)
@@ -42,8 +79,8 @@ public:
 
    bool ready(void);
 
-   inline auto getMaxNDataEntries(void) const { return _MaxNDataEntries; }
-   inline auto isInitialized     (void) const { return _initialized;     }
+   inline auto getMaxDepth  (void) const { return _MaxDepth;    }
+   inline auto isInitialized(void) const { return _initialized; }
 
    /// @brief Forwarding function.
    template <typename T>
@@ -56,11 +93,11 @@ public:
       str           const Name,
       bptr<T const> const Read_BPtr);
 
-   void acquireAll(void);
+   void acquire(void);
    void reset(void);
    bool dump(
-      str              const   Filename,
-      OpeningOptions_T const & Options = {});
+      str       const   Filename,
+      Options_T const & Options = getDefaultOptions());
 
 private:
    /** TrackedValBase
@@ -110,8 +147,9 @@ private:
          fmt::format_args args) const;
    };
 
-   /**
-    * TODO
+   /** TrackedVal
+    * 
+    * @brief Stores a reference to a variable and provides stringification.
     */
    template <typename T>
    class TrackedVal : public TrackedValBase
@@ -133,15 +171,15 @@ private:
    using RawTrackedVal_T = PolyRaw<TrackedValBase, sizeof(TrackedVal<int>)>;
 
    std::pmr::vector<
-      RawTrackedVal_T>    _trackedVals   {};
-   std::pmr::vector<byte> _blackBoxBuffer{};
+      RawTrackedVal_T>    _trackedVals   {    };
+   std::pmr::vector<byte> _blackBoxBuffer{    };
+   sizet const            _MaxDepth      {10uz};
    union {
       sizet               _nTrackedValsHint{0uz};
       sizet               _nextEntry_idx;
    };
-   sizet const            _MaxNDataEntries{10uz };
-   bool                   _rollover       {false};
-   bool                   _initialized    {false};
+   bool                   _rollover   {false};
+   bool                   _initialized{false};
 };
 
 /** track
@@ -175,9 +213,9 @@ inline DataLogger::TrackedValBase::TrackedValBase(
       _Size_bytes {Size_bytes}
 { }
 
-/**
- * TODO
+/** TrackedVal
  * 
+ * @brief Constructor.
  */
 template <typename T>
 DataLogger::TrackedVal<T>::TrackedVal(
@@ -186,9 +224,12 @@ DataLogger::TrackedVal<T>::TrackedVal(
       TrackedValBase(Name, Read_BPtr, sizeof(T))
 { }
 
-/**
- * TODO
+/** cloneAt
  * 
+ * @brief Clones class at specified location (copy idiom for polymorphic types).
+ * 
+ * @param val_BPtr   -- Pointer to variable to bbe tracked.
+ * @param Size_bytes -- Size of variable in bytes.
  */
 template <typename T>
 void DataLogger::TrackedVal<T>::cloneAt(

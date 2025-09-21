@@ -53,21 +53,23 @@ public:
    struct OpeningOptions_T
    {
       /// @brief Mode to determine how to mangle the filename.
-      FilenameMode_T const _FilenameMode{FilenameMode_T::AppendTimeStamp};
+      FilenameMode_T _filenameMode{FilenameMode_T::AppendTimeStamp};
 
       /// @brief Mode to determine if to overwrite file while opening or not.
-      OverwriteMode_T const _OverwriteMode{OverwriteMode_T::Disallow};
+      OverwriteMode_T _overwriteMode{OverwriteMode_T::Disallow};
 
       /// @brief Allows direct comparison between OpeningOptions_T and specified field type.
       constexpr friend bool operator == (OpeningOptions_T const & Opts, FilenameMode_T const Mode) {
-         return Opts._FilenameMode == Mode;
+         return Opts._filenameMode == Mode;
       }
 
       /// @brief Allows direct comparison between OpeningOptions_T and specified field type.
       constexpr friend bool operator == (OpeningOptions_T const & Opts, OverwriteMode_T const Mode) {
-         return Opts._OverwriteMode == Mode;
+         return Opts._overwriteMode == Mode;
       }
    };
+
+   static constexpr OpeningOptions_T getDefaultOpeningOptions(void) { return {}; }
 
    YM_NO_COPY  (Logger)
    YM_NO_ASSIGN(Logger)
