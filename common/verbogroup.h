@@ -33,9 +33,10 @@ struct VerboGroup
    /// @brief Verbosity groups.
    enum class T : uint32
    {
-      Debug,
-      Error,
       General,
+      Debug,
+      Warning,
+      Error,
 
       ArgParser,       UnitTest_ArgParser,
       DataLogger,      UnitTest_DataLogger,
@@ -101,12 +102,14 @@ struct VerboGroupMask
    #define YM_FMT_MSK2(Group_, Mask_) ((std::to_underlying(VerboGroup::T::Group_) << 8_u32) | Mask_##_u32)
    #define YM_FMT_MSK1(Group_       ) YM_FMT_MSK2(Group_, 0xff)
 
-   #define YM_MAKE_MSK_AND_UNIT_MSK(Name_)            Name_ = YM_FMT_MSK(           Name_), \
-                                           UnitTest_##Name_ = YM_FMT_MSK(UnitTest_##Name_)
+   #define YM_MAKE_MSK_AND_UNIT_MSK(Name_)             \
+                 Name_ = YM_FMT_MSK(           Name_), \
+      UnitTest_##Name_ = YM_FMT_MSK(UnitTest_##Name_)
 
-      Debug   = YM_FMT_MSK(Debug  ),
-      Error   = YM_FMT_MSK(Error  ),
       General = YM_FMT_MSK(General),
+      Debug   = YM_FMT_MSK(Debug  ),
+      Warning = YM_FMT_MSK(Warning),
+      Error   = YM_FMT_MSK(Error  ),
 
       YM_MAKE_MSK_AND_UNIT_MSK(ArgParser      ),
       YM_MAKE_MSK_AND_UNIT_MSK(DataLogger     ),

@@ -41,6 +41,8 @@ ym::Logger::Logger(void) :
  *
  * @brief Attempts to open a write-file.
  *
+ * @throws Whatever openOutfile_appendTimeStamp() throws.
+ * 
  * @param Filename -- Name of file.
  * @param Options  -- List of optional modes.
  * 
@@ -84,21 +86,24 @@ void ym::Logger::openOutfile_core(
    if (Options == OverwriteMode_T::Disallow &&
       std::filesystem::exists(Filename, ec))
    { // file we are attempting to create already exists
-      ymLog(VG::Error, "WARNING: File (or directory) '{}' already exists", Filename);
+      ymLog(VG::Warning, "WARNING: File (or directory) '{}' already exists", Filename);
    }
    else if (ec)
    { // filesystem failure
-      ymLog(VG::Error, "WARNING: Filesystem error when attempting to open '{}' with error code {}", Filename, ec.value());
+      ymLog(VG::Warning, "WARNING: Filesystem error when attempting to open '{}' with error code {}", Filename, ec.value());
    }
    else
    { // open!
-      _outfile_uptr.reset(std::fopen(Filename.data(), "w"));
+      _outfile_uptr.reset(std::fopen(Filename.data(), "w")); // status of failure handled at call site
    }
 }
 
 /** openOutfile_appendTimeStamp
  *
  * @brief Attempts to open the file with the current time appended to the file name.
+ * 
+ * @throws OpenError -- If a logic error occurs.
+ * @throws OpenError -- Error printing time stamp.
  * 
  * @param Filename -- Name of file.
  * @param Options  -- List of optional modes.

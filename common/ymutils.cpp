@@ -14,5 +14,5 @@
  */
 auto fmt::formatter<ym::str>::format(ym::str s, fmt::format_context & ctx_ref) const -> fmt::format_context::iterator
 {
-   return fmt::formatter<fmt::string_view>::format(fmt::string_view(s.get()), ctx_ref);
+   return fmt::formatter<fmt::string_view>::format(s.get(), ctx_ref);
 }

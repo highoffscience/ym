@@ -46,7 +46,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Set up logic that is run before each test.
       """
-      prev_files = glob.glob(os.path.join(self.abs_ut_suite_path, "data*.csv"))
+      prev_files = glob.glob(os.path.join(self.unittestdir, "logs/data*.csv"))
       if prev_files:
          ympy.runCmd(f"rm -rf {' '.join(prev_files)}")
 
@@ -63,6 +63,8 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
       from cppyy.gbl import std
       from cppyy.gbl import ym
+
+      ym.ymLogPushEnable(ym.VG.Error)
 
       # uncomment to run test
       results = self.run_test_case("InteractiveInspection")

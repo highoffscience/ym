@@ -18,6 +18,8 @@
  * 
  * @brief Constructor. See ready().
  * 
+ * @throws Error -- If requested depth is 0.
+ * 
  * @param MaxDepth -- Max number of entries to store per tracked variable.
  */
 ym::DataLogger::DataLogger(
@@ -38,6 +40,8 @@ ym::DataLogger::DataLogger(
 /** ready
  * 
  * @brief Initializes the data logger.
+ * 
+ * @throws Whatever std::vector::resize() throws.
  */
 bool ym::DataLogger::ready(void)
 {
@@ -71,6 +75,8 @@ bool ym::DataLogger::ready(void)
 /** acquire
  *
  * @brief Reads all registered variables and stores them in the latest slot in the buffer.
+ * 
+ * @throws Whatever ready() throws.
  */
 void ym::DataLogger::acquire(void)
 {
@@ -110,6 +116,8 @@ void ym::DataLogger::reset(void)
 /** dump
  *
  * @brief Dumps blackbox to file.
+ * 
+ * @throws Error - If a logic error occurs.
  * 
  * @param Filename -- Name of file to dump data to.
  * @param Options  -- List of optional opening modes.
