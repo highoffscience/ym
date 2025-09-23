@@ -288,7 +288,7 @@ inline bool ymLogDisable(VG const VG)
  * 
  * @param VG -- Verbosity group.
  * 
- * @returns ScopedEnable -- RAII mechanism that only keeps the enable VG while in scope.
+ * @returns ScopedEnable -- RAII mechanism that only keeps the enabled VG while in scope.
  */
 inline TextLogger::ScopedEnable ymLogPushEnable(VG const VG)
 {

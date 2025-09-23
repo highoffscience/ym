@@ -64,8 +64,6 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std
       from cppyy.gbl import ym
 
-      ym.ymLogPushEnable(ym.VG.Error)
-
       # uncomment to run test
       results = self.run_test_case("InteractiveInspection")
 

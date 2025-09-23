@@ -2,11 +2,11 @@
  * @file    testsuitebase.cpp
  * @version 1.0.0
  * @author  Forrest Jablonski
- * 
- * @note File used in unittests - maximum standard C++20.
  */
 
 #include "testsuitebase.h"
+
+#include "textlogger.h"
 
 #include <algorithm>
 #include <stdexcept>
@@ -20,7 +20,9 @@
 ym::ut::TestSuiteBase::TestSuiteBase(std::string name) :
    PermaNameable_NV(std::move(name)),
    _testCases {/*default*/}
-{}
+{
+   ymLogEnable(VG::Error); // TODO add more setup logic
+}
 
 /** runTestCase
  *

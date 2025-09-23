@@ -20,11 +20,11 @@ class TestSuiteBase(unittest.TestCase):
    """
    Base class representing a test suite.
    """
-
-   # these to be set before before running suite
-   unittestdir = None
-   projrootdir = None
-   builddir    = None
+   # these to be set before running suite
+   unittestdir   = None
+   projrootdir   = None
+   builddir      = None
+   suiteinstance = None # TODO init after cppyy, ym.ut.TestSuite()
 
    @classmethod
    def customBaseInit(cls,
@@ -39,7 +39,6 @@ class TestSuiteBase(unittest.TestCase):
          projrootdir: Absolute path of project directory.
          builddir:    Absolute path to build directory.
       """
-
       cls.unittestdir = unittestdir
       cls.projrootdir = projrootdir
       cls.builddir    = builddir
@@ -55,7 +54,6 @@ class TestSuiteBase(unittest.TestCase):
          filepath: Path of suite relative to unittests/ directory.
          filename: Name of suite file.
       """
-
       if not cls.unittestdir or not cls.projrootdir or not cls.builddir:
          print(f"Testsuite for file {filename} not setup correctly")
          sys.exit(1)
@@ -148,7 +146,7 @@ class TestSuiteBase(unittest.TestCase):
          def what(self):
             return None
 
-      ts = ym.ut.TestSuite()
+      ts = ym.ut.TestSuite() # TODO I am creating this every test case!
       results = None
       saved_exc = NullExc() # NullExc is so the format string can be parsed (parsed does not mean executed)
       try:
