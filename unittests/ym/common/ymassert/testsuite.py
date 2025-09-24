@@ -55,10 +55,9 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Analyzes results from test case.
       """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
-
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+      
       # uncomment to run test
       # results = self.run_test_case("InteractiveInspection")
       # self.assertTrue(results.get[bool]("Errored"), "Exception was not thrown as expected")
@@ -68,21 +67,18 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Analyzes results from test case.
       """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
 
       results = self.run_test_case("What")
-   
       self.assertTrue(results.get[bool]("ExpectedMsg"), f"Msg not formatted as unexpected")
 
    def test_Assertion(self):
       """
       Analyzes results from test case.
       """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
 
       results = self.run_test_case("Assertion")
    

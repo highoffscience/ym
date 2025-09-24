@@ -55,20 +55,19 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Analyzes results from test case.
       """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
-
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+      
       # uncomment to run test
       # results = self.run_test_case("InteractiveInspection")
+      pass
 
    def test_PtrToIntConversion(self):
       """
       Analyzes results from test case.
       """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
 
       results = self.run_test_case("PtrToIntConversion")
       self.assertEqual(results.get[int]("Val"), 7, "Ptr to int yielded unexpected value")
@@ -77,9 +76,8 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Analyzes results from test case.
       """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
 
       results = self.run_test_case("BoundedPtrClass")
 
@@ -90,9 +88,8 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Analyzes results from test case.
       """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
 
       results = self.run_test_case("BinarySearch")
       self.assertTrue(results.get[bool]("ElementFound"), "Search failed to find correct element")
@@ -101,9 +98,8 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Analyzes results from test case.
       """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
 
       results = self.run_test_case("PtrCast")
       self.assertTrue(results.get[bool]("True"), "Failed to compile")
@@ -112,9 +108,8 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Analyzes results from test case.
       """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
 
       results = self.run_test_case("BitSet")
       self.assertTrue(results.get[bool]("True"), "Failed to compile")
@@ -123,9 +118,8 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Analyzes results from test case.
       """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
 
       results = self.run_test_case("PolyRawTest")
       self.assertTrue(results.get[bool]("True"), "Failed to compile")

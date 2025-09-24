@@ -55,20 +55,19 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Analyzes results from test case.
       """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
-
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+      
       # uncomment to run test
       # results = self.run_test_case("InteractiveInspection")
+      pass
 
    def test_StackAlloc(self):
       """
       Analyzes results from test case.
       """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
 
       results = self.run_test_case("StackAlloc")
 

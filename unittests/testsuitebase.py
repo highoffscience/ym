@@ -21,10 +21,14 @@ class TestSuiteBase(unittest.TestCase):
    Base class representing a test suite.
    """
    # these to be set before running suite
-   unittestdir   = None
-   projrootdir   = None
-   builddir      = None
-   suiteinstance = None # TODO init after cppyy, ym.ut.TestSuite()
+   unittestdir         = None
+   projrootdir         = None
+   builddir            = None
+   filepath            = None
+   filename            = None
+   abs_unit_suite_path = None
+   abs_src_path        = None
+   cpp_suite_instance  = None
 
    @classmethod
    def customBaseInit(cls,
@@ -61,20 +65,29 @@ class TestSuiteBase(unittest.TestCase):
       cls.filepath = filepath
       cls.filename = filename
 
-      cls.abs_ut_suite_path = os.path.join(cls.unittestdir, cls.filepath, cls.filename)
-      cls.abs_src_path      = os.path.join(cls.projrootdir, cls.filepath)
+      cls.abs_unit_suite_path = os.path.join(cls.unittestdir, cls.filepath, cls.filename)
+      cls.abs_src_path        = os.path.join(cls.projrootdir, cls.filepath)
 
       cls.processCompileCommands()
       cls.configCppyy()
+
+      from cppyy.gbl import ym # type: ignore
+      cls.cpp_suite_instance = ym.ut.TestSuite()
 
    @classmethod
    def tearDownBaseClass(cls):
       """
       Acting destructor.
       """
-      cls.unittestdir = None
-      cls.projrootdir = None
-      cls.builddir    = None
+      cls.unittestdir         = None
+      cls.projrootdir         = None
+      cls.builddir            = None
+      cls.filepath            = None
+      cls.filename            = None
+      cls.abs_unit_suite_path = None
+      cls.abs_src_path        = None
+      cls.cpp_suite_instance  = None
+      # TODO I don't think this function ever gets called!
 
    @classmethod
    def processCompileCommands(cls):
@@ -99,18 +112,20 @@ class TestSuiteBase(unittest.TestCase):
       """
       Configures the test suite environment.
       """
-
       cppyy.add_include_path(os.path.join(cls.unittestdir, "common/"))
-      cppyy.add_include_path(cls.abs_ut_suite_path)
+      cppyy.add_include_path(cls.abs_unit_suite_path)
       cppyy.add_include_path(cls.abs_src_path)
 
-      cppyy.include(os.path.join(cls.abs_ut_suite_path, "testsuite.h"))
+      cppyy.include(os.path.join(cls.abs_unit_suite_path, "testsuite.h"))
 
       cppyy.add_library_path(os.path.join(cls.builddir, "customlibs/"))
       cppyy.load_library(f"lib{os.path.join(cls.filepath, cls.filename).replace('/', '.')}-unittest")
 
    @classmethod
    def runSuite(cls):
+      """
+      Runs this test suite instance.
+      """
       parser = argparse.ArgumentParser()
       parser.add_argument("--unittestdir", required=True, help="Absolute path of unittest directory")
       parser.add_argument("--projrootdir", required=True, help="Absolute path of project directory")
@@ -138,19 +153,14 @@ class TestSuiteBase(unittest.TestCase):
       Returns:
          DataShuttle: Dictionary containing results of test case.
       """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
-
       class NullExc:
          def what(self):
             return None
 
-      ts = ym.ut.TestSuite() # TODO I am creating this every test case!
       results = None
       saved_exc = NullExc() # NullExc is so the format string can be parsed (parsed does not mean executed)
       try:
-         results = ts.runTestCase(test_case_name)
+         results = self.cpp_suite_instance.runTestCase(test_case_name)
       except Exception as exc:
          saved_exc = exc
       except: # catch non-std based exceptions (not guaranteed to have what())

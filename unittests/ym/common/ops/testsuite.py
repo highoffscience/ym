@@ -59,10 +59,9 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Analyzes results from test case.
       """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
-
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+      
       results = self.run_test_case("Casting")
 
       self.assertTrue(results.get[bool]("Val_char"), "char cast failed")
@@ -85,9 +84,8 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Analyzes results from test case.
       """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
 
       results = self.run_test_case("BadCasting")
 

@@ -47,7 +47,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Set up logic that is run before each test.
       """
-      prev_files = glob.glob(os.path.join(self.abs_ut_suite_path, "log*.txt"))
+      prev_files = glob.glob(os.path.join(self.unittestdir, "logs/log*.txt"))
       if prev_files:
          ympy.runCmd(f"rm -rf {' '.join(prev_files)}")
 
@@ -61,20 +61,19 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Analyzes results from test case.
       """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
-
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+      
       # uncomment to run test
       # results = self.run_test_case("InteractiveInspection")
+      pass
 
    def test_OpenAndClose(self):
       """
       Analyzes results from test case.
       """
-
-      from cppyy.gbl import std
-      from cppyy.gbl import ym
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
 
       results = self.run_test_case("OpenAndClose")
 
