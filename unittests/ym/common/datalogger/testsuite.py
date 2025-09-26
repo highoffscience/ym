@@ -40,7 +40,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Acting destructor.
       """
-      pass
+      super().tearDownBaseClass()
 
    def setUp(self):
       """

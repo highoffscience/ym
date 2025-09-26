@@ -87,12 +87,12 @@ public:
 
    // private:
       // no consts - see static assert below
-      str      _name {""}; // arg name (used as the key)
-      str      _desc {""}; // description
-      rawstr   _val  {  }; // value
-      uint32   _nvals{  }; // number of values, if list
-      char     _abbr {  }; // abbreviation
-      Bitset<> _flags{  }; // Flags_T
+      str           _name {""}; // arg name (used as the key)
+      str           _desc {""}; // description
+      rawstr        _val  {  }; // value
+      uint32        _nvals{  }; // number of values, if list
+      char          _abbr {  }; // abbreviation
+      Bitset<uint8> _flags{  }; // Flags_T
    };
 
    // copyable to load Arg params into vector

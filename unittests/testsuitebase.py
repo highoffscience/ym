@@ -87,7 +87,6 @@ class TestSuiteBase(unittest.TestCase):
       cls.abs_unit_suite_path = None
       cls.abs_src_path        = None
       cls.cpp_suite_instance  = None
-      # TODO I don't think this function ever gets called!
 
    @classmethod
    def processCompileCommands(cls):

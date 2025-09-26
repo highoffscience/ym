@@ -129,7 +129,7 @@ auto ym::ArgParser::parseLonghand(rawstr token) -> ParseResult_T
    }
    else
    { // standard arg
-      auto const IsNeg = (std::strncmp(token, "no-", std::size_t(3u)) == 0);
+      auto const IsNeg = (std::strncmp(token, "no-", 3uz) == 0);
       token += (IsNeg) ? 3 : 0;
       auto * const arg_Ptr = getArgPtrFromPrefix(token);
       result = parseLonghand(arg_Ptr, IsNeg);
@@ -157,7 +157,7 @@ auto ym::ArgParser::parseShorthand(rawstr token) -> ParseResult_T
 
    auto const NAbbrs = std::strlen(token); // already tested this has non-zero size
 
-   for (auto i = std::size_t(0u); i < NAbbrs; ++i)
+   for (auto i = 0uz; i < NAbbrs; ++i)
    { // go through all abbrs in pack
 
       auto const Abbr = token[i];
@@ -171,7 +171,7 @@ auto ym::ArgParser::parseShorthand(rawstr token) -> ParseResult_T
       else
       { // standard arg
          auto * const arg_Ptr = getArgPtrFromAbbr(Abbr);
-         auto const MightHaveValue = (NAbbrs == std::size_t(1u));
+         auto const MightHaveValue = (NAbbrs == 1uz);
          result = parseShorthand(arg_Ptr, MightHaveValue);
       }
    }
@@ -473,7 +473,7 @@ void ym::ArgParser::displayHelpMenu(void) const
    auto const BeginIt = _argHandlers.cbegin();
    auto const EndIt   = _argHandlers.cend();
 
-   auto maxKeyLen = std::size_t(0u);
+   auto maxKeyLen = 0uz;
 
    for (auto it = BeginIt; it != EndIt; it++)
    { // go through all registered arguments
@@ -483,11 +483,9 @@ void ym::ArgParser::displayHelpMenu(void) const
       }
    }
 
-   // TODO create the overloads for pointer types to make this work with bptr<T>
-   char * spaces_bptr = YM_STACK_ALLOC(char, maxKeyLen + std::size_t(1u));
-   YMASSERT(spaces_bptr, Error, YM_DAH, "Failed to alloc room for spaces")
+   auto spaces_bptr = bptr(YM_STACK_ALLOC(char, maxKeyLen + 1uz));
 
-   for (auto i = std::size_t(0u); i < maxKeyLen; ++i)
+   for (auto i = 0uz; i < maxKeyLen; ++i)
    { // init all elements to spaces
       spaces_bptr[i] = ' ';
    }

@@ -175,12 +175,12 @@ private:
       Opening
    };
    
-   static constexpr auto _s_MaxMsgSize_bytes = std::size_t(256u);
+   static constexpr auto _s_MaxMsgSize_bytes = 256uz;
    static constexpr auto getMaxMsgSize_bytes(void) { return _s_MaxMsgSize_bytes; }
    static constexpr std::string_view RawTimeStampTemplate{"uuuuuuuuuuuu"};
    static constexpr std::string_view HumanReadableTimeStampTemplate{" HHH:MM:SS.uuuuuu: "};
 
-   static_assert(_s_MaxMsgSize_bytes >= std::size_t(64u), "Too limited room");
+   static_assert(_s_MaxMsgSize_bytes >= 64uz, "Too limited room");
 
    void acquireWriteAccess(void);
    void releaseWriteAccess(void);

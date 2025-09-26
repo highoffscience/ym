@@ -60,8 +60,11 @@ void ym::ymassert_Base::defaultNoExceptHandler(ymassert_Base const & E)
    std::raise(SIGTERM);
 }
 
-/**
- * TODO
+/** logAssert
+ * 
+ * @brief Logs the assert to the global logger.
+ * 
+ * @param E -- Assert to log.
  */
 void ym::ymassert_Base::logAssert(ymassert_Base const & E)
 {

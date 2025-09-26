@@ -21,7 +21,10 @@ ym::ut::TestSuiteBase::TestSuiteBase(std::string name) :
    PermaNameable_NV(std::move(name)),
    _testCases {/*default*/}
 {
-   ymLogEnable(VG::Error); // TODO add more setup logic
+   ymLogEnable(VG::General);
+   ymLogEnable(VG::Debug);
+   ymLogEnable(VG::Warning);
+   ymLogEnable(VG::Error);
 }
 
 /** runTestCase

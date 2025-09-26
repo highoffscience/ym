@@ -14,12 +14,15 @@
 #include <array>
 #include <cstddef>
 #include <cstdlib>
-#include <exception> // TODO if yes exceptions
 #include <iterator>
 #include <memory>
 #include <memory_resource>
 #include <type_traits>
 #include <utility>
+
+#if (YM_YES_EXCEPTIONS)
+   #include <exception>
+#endif
 
 namespace ym
 {
@@ -164,9 +167,11 @@ union PtrToInt_T
 
 /** Bitset
  * 
- * TODO
+ * @brief A more compact version of std::bitset.
+ * 
+ * @tparam T -- Underlying type.
  */
-template <typename T = uint8>
+template <typename T = byte>
 class Bitset
 {
 public:
@@ -180,8 +185,8 @@ public:
       clear(Idx); _bits |= (T(Val) << Idx);
    }
 
-   constexpr auto   getUnderlying   (void) const { return  _bits; }
-   constexpr auto * getUnderlyingPtr(void) const { return &_bits; }
+   constexpr auto const & getUnderlying   (void) const { return  _bits; }
+   constexpr auto       * getUnderlyingPtr(void) const { return &_bits; }
 
 private:
    T _bits{};
@@ -225,8 +230,20 @@ public:
    constexpr auto & operator *   (this auto && self) { return *self.get();  }
    constexpr auto * operator ->  (this auto && self) { return  self.get();  }
 
-   constexpr auto operator [] (this auto && self, auto const Idx) {
+   constexpr auto & operator [] (this auto && self, auto const Idx) {
       return self.get()[Idx];
+   }
+
+   template <typename U>
+   requires (std::is_integral_v<U>)
+   friend constexpr auto operator + (TrustedBoundedPtr<T> const & Lhs, U const Rhs) {
+      return Lhs.get() + Rhs;
+   }
+
+   template <typename U>
+   requires (std::is_integral_v<U>)
+   friend constexpr auto operator - (TrustedBoundedPtr<T> const & Lhs, U const Rhs) {
+      return Lhs.get() - Rhs;
    }
 
 private:
@@ -331,8 +348,12 @@ using str = bptr<char const>;
 /// @brief Convenience user-defined literal
 constexpr inline auto operator""_str(rawstr const S, std::size_t) { return tbptr(S); }
 
-/**
- * @brief TODO
+/** PolyRaw
+ * 
+ * @brief Holds a polymorphic object that share a common base and whose sizes are all equivalent.
+ * 
+ * @tparam Base_T -- Base class.
+ * @tparam N      -- Size of derived classes (in bytes).
  */
 template <
    typename Base_T,

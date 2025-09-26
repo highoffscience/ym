@@ -28,8 +28,6 @@ namespace ym
  *       Each row of the buffer contains all variable values. The names and conversion classes for
  *       these values are stored in a separate array for efficiency.
  * 
- * TODO add @throws to applicable functions
- * 
  * @note *Not* thread-safe.
  */
 class DataLogger : public Logger
