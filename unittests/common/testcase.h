@@ -15,7 +15,7 @@
 
 #include <string>
 
-namespace ym::ut
+namespace ym::unit
 {
 
 /** YM_UT_TESTCASE
@@ -45,4 +45,4 @@ public:
    virtual DataShuttle run(DataShuttle const & InData = {}) = 0;
 };
 
-} // ym::ut
+} // ym::unit

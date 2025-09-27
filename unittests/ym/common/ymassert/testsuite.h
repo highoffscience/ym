@@ -11,7 +11,7 @@
 #include "testsuitebase.h"
 #include "ymdefs.h"
 
-namespace ym::ut
+namespace ym::unit
 {
 
 /** TestSuite
@@ -29,4 +29,4 @@ public:
    YM_UT_TESTCASE(Assertion            )
 };
 
-} // ym::ut
+} // ym::unit

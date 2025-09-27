@@ -4,20 +4,19 @@
  * @author  Forrest Jablonski
  */
 
-#include "ymdefs.h"
 #include "testsuite.h"
 
-#include "fileio.h"
-
 #include "textlogger.h"
-#include "ymerror.h"
+#include "ymglobals.h"
+
+#include "fileio.h" // Structures under test
 
 /** TestSuite
  *
  * @brief Constructor.
  */
-ym::ut::TestSuite::TestSuite(void)
-   : TestSuiteBase("FileIO")
+ym::unit::TestSuite::TestSuite(void) :
+   TestSuiteBase("FileIO")
 {
    addTestCase<InteractiveInspection>();
 }
@@ -28,14 +27,18 @@ ym::ut::TestSuite::TestSuite(void)
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_FileIO);
-   auto const SE2 = ymLogPushEnable(VG::FileIO);
 
+   auto firstChar = '!'; // '!' not in char set for file
    auto buffer = FileIO::createFileBuffer("ym/common/fileio/data.txt");
+   if (buffer) // TODO buffer.or_else(...)? to initialize first char
+   {
+      firstChar = (*buffer)[0];
+   }
 
    return {
-      {"E0", buffer[0]}
+      {"E0", firstChar}
    };
 }

@@ -19,7 +19,7 @@
  *
  * @brief Constructor.
  */
-ym::ut::TestSuite::TestSuite(void)
+ym::unit::TestSuite::TestSuite(void)
    : TestSuiteBase("Ops")
 {
    addTestCase<Casting   >();
@@ -32,7 +32,7 @@ ym::ut::TestSuite::TestSuite(void)
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::Casting::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::Casting::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_Ops);
 
@@ -77,7 +77,7 @@ auto ym::ut::TestSuite::Casting::run([[maybe_unused]] DataShuttle const & InData
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_Ops);
 

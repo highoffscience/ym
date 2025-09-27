@@ -18,7 +18,7 @@
  *
  * @brief Constructor.
  */
-ym::ut::TestSuite::TestSuite(void) :
+ym::unit::TestSuite::TestSuite(void) :
    TestSuiteBase("YmAssert")
 {
    addTestCase<InteractiveInspection>();
@@ -32,7 +32,7 @@ ym::ut::TestSuite::TestSuite(void) :
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_YmAssert);
 
@@ -63,7 +63,7 @@ auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle 
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::What::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::What::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_YmAssert);
 
@@ -93,7 +93,7 @@ auto ym::ut::TestSuite::What::run([[maybe_unused]] DataShuttle const & InData) -
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::Assertion::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::Assertion::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_YmAssert);
 

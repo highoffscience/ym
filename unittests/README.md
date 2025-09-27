@@ -10,8 +10,8 @@ can experiment with "$jupyter lab <name-of-file>" after activating venv
 $ python -m venv venv/
 $ . ./venv/bin/activate
 $ python -m pip install -r requirements.txt
-$ mkdir build/ | covbuild/
-$ cd build/ | covbuild/
+$ mkdir build/ | cov_build/
+$ cd build/ | cov_build/
 $ cmake .. [-DCOV_ENABLED=True|False]
 $ cmake --build . [--target <suite-name>[-run]]
 
@@ -52,7 +52,7 @@ $ python testsuite.py
 <https://llvm.org/docs/CommandGuide/llvm-cov.html>
 
 To prepare testing for coverage do the following:
-$ cd covbuild/
+$ cd cov_build/
 $ cmake .. -DCOV_ENABLED=True
 $ cmake --build . --target clean
 

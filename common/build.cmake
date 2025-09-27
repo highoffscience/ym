@@ -20,6 +20,7 @@ function(srcbuild-ym.common Ctx_JSON)
    set(Srcs
       argparser.cpp
       datalogger.cpp
+      fileio.cpp
       logger.cpp
       textlogger.cpp
       timer.cpp

@@ -6,7 +6,7 @@
 
 cmake_minimum_required(VERSION 3.27)
 
-## utbuild-ym
+## unitbuild-ym
 #
 # @brief Defines target to build all child unittests.
 #
@@ -14,7 +14,7 @@ cmake_minimum_required(VERSION 3.27)
 #
 # @note Container directory (see README for description).
 #
-function(utbuild-ym Ctx_JSON)
+function(unitbuild-ym Ctx_JSON)
 
    set(BaseBuild ym)
    set(TargetAll ${BaseBuild}-unittests)
@@ -32,7 +32,7 @@ function(utbuild-ym Ctx_JSON)
    set(SubBuilds common)
    foreach(SubBuild ${SubBuilds})
       include(${YM_UnitTestDir}/${BaseBuildDir}/${SubBuild}/build.cmake)
-      cmake_language(CALL utbuild-${BaseBuild}.${SubBuild} ${Ctx_JSON})
+      cmake_language(CALL unitbuild-${BaseBuild}.${SubBuild} ${Ctx_JSON})
    endforeach()
    
 endfunction()

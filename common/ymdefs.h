@@ -162,6 +162,7 @@ namespace ym
 using rawstr = char const * ;
 using strlit = rawstr;
 using uchar  = unsigned char;
+using schar  =   signed char;
 
 using int8   = std::int8_t ; static_assert(sizeof(int8 ) == 1u, "int8  not of expected size");
 using int16  = std::int16_t; static_assert(sizeof(int16) == 2u, "int16 not of expected size");

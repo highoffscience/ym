@@ -12,7 +12,7 @@
 
 #include "testsuitebase.h"
 
-namespace ym::ut
+namespace ym::unit
 {
 
 /** TestSuite
@@ -29,4 +29,4 @@ public:
    YM_UT_TESTCASE(StackAlloc           )
 };
 
-} // ym::ut
+} // ym::unit

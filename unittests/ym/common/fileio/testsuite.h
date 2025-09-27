@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include "utdefs.h"
+#include "ymdefs.h"
 
 #include "testsuitebase.h"
 
-namespace ym::ut
+namespace ym::unit // TODO consider renaming namespace unit, YM_UT_TESTCASE -> YM_UNIT_TESTCASE
 {
 
 /** TestSuite
@@ -26,4 +26,4 @@ public:
    YM_UT_TESTCASE(InteractiveInspection)
 };
 
-} // ym::ut
+} // ym::unit

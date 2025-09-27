@@ -18,7 +18,7 @@
  *
  * @brief Constructor.
  */
-ym::ut::TestSuite::TestSuite(void) :
+ym::unit::TestSuite::TestSuite(void) :
    TestSuiteBase("ArgParser")
 {
    addTestCase<InteractiveInspection>();
@@ -33,7 +33,7 @@ ym::ut::TestSuite::TestSuite(void) :
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_TextLogger);
    return {};
@@ -47,7 +47,7 @@ auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle 
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_ArgParser);
 
@@ -115,7 +115,7 @@ auto ym::ut::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InD
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_ArgParser);
 
@@ -164,7 +164,7 @@ auto ym::ut::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const & 
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::SizeOfArg::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::SizeOfArg::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_ArgParser);
 

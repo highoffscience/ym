@@ -67,7 +67,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
       results = self.run_test_case("ZerosAndOnes")
 
-      set_bit_vector = results.get[std.vector[std.pair[ym.utdefs.uint64, ym.utdefs.uint64]]]("SetBitVector")
+      set_bit_vector = results.get[std.vector[std.pair[ym.uint64, ym.uint64]]]("SetBitVector")
       for set_bits in set_bit_vector:
          nTrials    = set_bits.first
          kSuccesses = set_bits.second
@@ -85,7 +85,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       results = self.run_test_case("UniformBins")
 
       for bin_name in ["u32", "u64", "f32", "f64"]:
-         bin_counts = np.array(results.get[std.vector[ym.utdefs.uint64]](f"{bin_name}Bins"))
+         bin_counts = np.array(results.get[std.vector[ym.uint64]](f"{bin_name}Bins"))
          print(f"std of {bin_name} bins {bin_counts.std()}")
          print(f"min of {bin_name} bins {bin_counts.min()}")
          print(f"max of {bin_name} bins {bin_counts.max()}")

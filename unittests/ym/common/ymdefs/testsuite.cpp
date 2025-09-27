@@ -15,7 +15,7 @@
  *
  * @brief Constructor.
  */
-ym::ut::TestSuite::TestSuite(void) :
+ym::unit::TestSuite::TestSuite(void) :
    TestSuiteBase("YmDefs")
 {
    addTestCase<InteractiveInspection>();
@@ -29,7 +29,7 @@ ym::ut::TestSuite::TestSuite(void) :
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_YmDefs);
    return {};
@@ -41,7 +41,7 @@ auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle 
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::BigFiveDeleteMacros::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::BigFiveDeleteMacros::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_YmDefs);
 
@@ -65,7 +65,7 @@ auto ym::ut::TestSuite::BigFiveDeleteMacros::run([[maybe_unused]] DataShuttle co
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::OverloadMacros::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::OverloadMacros::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_YmDefs);
 

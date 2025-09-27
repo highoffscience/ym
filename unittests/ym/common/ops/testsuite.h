@@ -10,7 +10,7 @@
 
 #include "testsuitebase.h"
 
-namespace ym::ut
+namespace ym::unit
 {
 
 /** TestSuite
@@ -27,4 +27,4 @@ public:
    YM_UT_TESTCASE(BadCasting)
 };
 
-} // ym::ut
+} // ym::unit

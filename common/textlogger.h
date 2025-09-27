@@ -284,6 +284,8 @@ inline bool ymLogDisable(VG const VG)
  * 
  * @brief Enables given verbosity group only in the current scope for the global logger.
  * 
+ * TODO use fold expression to allow any number of VG params.
+ * 
  * @throws Whatever getGlobalInstancePtr() throws.
  * 
  * @param VG -- Verbosity group.

@@ -20,7 +20,7 @@
 #include <utility>
 #include <vector>
 
-namespace ym::ut
+namespace ym::unit
 {
 
 /** TestSuiteBase
@@ -67,4 +67,4 @@ void TestSuiteBase::addTestCase(Args_T &&... args_uref)
    _testCases.emplace_back(new DerivedTestCase_T(std::forward<Args_T>(args_uref)...));
 }
 
-} // ym::ut
+} // ym::unit

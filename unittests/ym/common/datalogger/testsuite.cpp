@@ -15,7 +15,7 @@
  *
  * @brief Constructor.
  */
-ym::ut::TestSuite::TestSuite(void) :
+ym::unit::TestSuite::TestSuite(void) :
    TestSuiteBase("DataLogger")
 {
    addTestCase<InteractiveInspection>();
@@ -27,7 +27,7 @@ ym::ut::TestSuite::TestSuite(void) :
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_DataLogger);
 

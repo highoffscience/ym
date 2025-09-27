@@ -17,7 +17,7 @@
  *
  * @brief Constructor.
  */
-ym::ut::TestSuiteBase::TestSuiteBase(std::string name) :
+ym::unit::TestSuiteBase::TestSuiteBase(std::string name) :
    PermaNameable_NV(std::move(name)),
    _testCases {/*default*/}
 {
@@ -39,7 +39,7 @@ ym::ut::TestSuiteBase::TestSuiteBase(std::string name) :
  * 
  * @returns DataShuttle -- Results of test case.
  */
-auto ym::ut::TestSuiteBase::runTestCase(
+auto ym::unit::TestSuiteBase::runTestCase(
    std::string const & Name,
    DataShuttle const & InData) -> DataShuttle
 {

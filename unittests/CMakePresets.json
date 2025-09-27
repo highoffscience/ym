@@ -36,10 +36,10 @@
          "name": "cov",
          "displayName": "cov",
          "description": "Builds unittests for coverage",
-         "binaryDir": "${sourceDir}/covbuild",
+         "binaryDir": "${sourceDir}/cov_build",
          "toolchainFile": "${sourceDir}/cov_toolchain.cmake",
          "cacheVariables": {
-            "YM_CustomLibsDir": "${sourceDir}/covbuild/customlibs",
+            "YM_CustomLibsDir": "${sourceDir}/cov_build/customlibs",
             "YM_CovEnabled": true
          }
       }

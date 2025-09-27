@@ -20,7 +20,7 @@
  *
  * @brief Constructor.
  */
-ym::ut::TestSuite::TestSuite(void)
+ym::unit::TestSuite::TestSuite(void)
    : TestSuiteBase("Rng")
 {
    addTestCase<ZerosAndOnes>();
@@ -37,7 +37,7 @@ ym::ut::TestSuite::TestSuite(void)
  *
  * @returns DataShuttle -- Important values acquired during run of test case.
  */
-auto ym::ut::TestSuite::ZerosAndOnes::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::ZerosAndOnes::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_Rng);
 
@@ -70,7 +70,7 @@ auto ym::ut::TestSuite::ZerosAndOnes::run([[maybe_unused]] DataShuttle const & I
  *
  * @returns DataShuttle -- Important values acquired during run of test case.
  */
-auto ym::ut::TestSuite::UniformBins::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::UniformBins::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_Rng);
 

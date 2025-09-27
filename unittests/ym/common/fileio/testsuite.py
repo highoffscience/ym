@@ -4,13 +4,9 @@
 # @author  Forrest Jablonski
 #
 
-import os
 import sys
-import unittest
 
 try:
-   # @note Grabs the first directory in the chain named unittests/.
-   sys.path.append(os.path.join(os.getcwd().split("unittests")[0], "unittests/"))
    import testsuitebase
 except:
    print("Cannot import testsuitebase - path set correctly?")
@@ -32,21 +28,22 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Acting constructor.
       """
-
-      super().setUpBaseClass(filepath="ym/common",
-                             filename="fileio")
+      super().setUpBaseClass(
+         filepath="ym/common",
+         filename="fileio")
 
    @classmethod
    def tearDownClass(cls):
       """
       Acting destructor.
       """
-      pass
+      super().tearDownBaseClass()
 
    def setUp(self):
       """
       Set up logic that is run before each test.
       """
+      # </dev/urandom tr -dc '[:alnum:]' | head -c 1000 > data.txt
       pass
 
    def tearDown(self):
@@ -64,12 +61,10 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
       results = self.run_test_case("InteractiveInspection")
 
-      print(f"--> {results.get[ym.utdefs.cchar]('E0')}")
+      print(f"--> {results.get[ym.schar]('E0')}")
 
 # kick-off
 if __name__ == "__main__":
-   if os.path.basename(os.getcwd()) != "fileio":
-      print("Needs to be run in the fileio/ directory")
-      sys.exit(1)
-
-   unittest.main()
+   TestSuite.runSuite()
+else:
+   TestSuite.runSuite()

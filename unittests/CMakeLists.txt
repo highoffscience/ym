@@ -93,10 +93,10 @@ add_custom_target(distclean
    COMMAND rm -rf build/*)
 
 add_subdirectory(${YM_UnitTestDir}/common)
-target_link_libraries(YMRootIntLib INTERFACE ut.common)
+target_link_libraries(YMRootIntLib INTERFACE unit.common)
 
 set(YM_TopLevelSubBuilds ym)
 foreach(SubBuild ${YM_TopLevelSubBuilds})
    include(${YM_UnitTestDir}/${SubBuild}/build.cmake)
-   cmake_language(CALL utbuild-${SubBuild} ${YM_Ctx_JSON})
+   cmake_language(CALL unitbuild-${SubBuild} ${YM_Ctx_JSON})
 endforeach()

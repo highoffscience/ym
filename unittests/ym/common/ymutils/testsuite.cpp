@@ -18,7 +18,7 @@
  *
  * @brief Constructor.
  */
-ym::ut::TestSuite::TestSuite(void) :
+ym::unit::TestSuite::TestSuite(void) :
    TestSuiteBase("YmUtils")
 {
    addTestCase<InteractiveInspection>();
@@ -37,7 +37,7 @@ ym::ut::TestSuite::TestSuite(void) :
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
 
@@ -50,7 +50,7 @@ auto ym::ut::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle 
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::PtrToIntConversion::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::PtrToIntConversion::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
 
@@ -70,7 +70,7 @@ auto ym::ut::TestSuite::PtrToIntConversion::run([[maybe_unused]] DataShuttle con
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
 
@@ -116,7 +116,7 @@ auto ym::ut::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle const 
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::BinarySearch::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::BinarySearch::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
 
@@ -140,7 +140,7 @@ auto ym::ut::TestSuite::BinarySearch::run([[maybe_unused]] DataShuttle const & I
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::BoundedStr::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::BoundedStr::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
 
@@ -156,7 +156,7 @@ auto ym::ut::TestSuite::BoundedStr::run([[maybe_unused]] DataShuttle const & InD
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::PtrCast::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::PtrCast::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
 
@@ -184,7 +184,7 @@ auto ym::ut::TestSuite::PtrCast::run([[maybe_unused]] DataShuttle const & InData
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::BitSet::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::BitSet::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
 
@@ -212,7 +212,7 @@ auto ym::ut::TestSuite::BitSet::run([[maybe_unused]] DataShuttle const & InData)
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::ut::TestSuite::PolyRawTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::PolyRawTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
 

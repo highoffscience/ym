@@ -16,7 +16,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace ym::ut
+namespace ym::unit
 {
 
 /** DataShuttle
@@ -97,4 +97,4 @@ T DataShuttle::get(
    return val;
 }
 
-} // ym::ut
+} // ym::unit

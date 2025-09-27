@@ -9,7 +9,7 @@
 
 # build (cmake) specific
 **/build/*
-**/covbuild/*
+**/cov_build/*
 **/customlibs/*
 
 # tmp files

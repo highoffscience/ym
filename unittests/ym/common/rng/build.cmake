@@ -8,11 +8,11 @@
 
 cmake_minimum_required(VERSION 3.27)
 
-## utbuild-ym.common.rng
+## unitbuild-ym.common.rng
 #
 # @brief Defines target to build the rng unittest.
 #
-function(utbuild-ym.common.rng Ctx_JSON)
+function(unitbuild-ym.common.rng Ctx_JSON)
 
    set(BaseBuild ym.common.rng)
    set(Target    ${BaseBuild}-unittest)
@@ -32,7 +32,7 @@ function(utbuild-ym.common.rng Ctx_JSON)
    add_custom_command(TARGET ${TargetRun}
       POST_BUILD
       WORKING_DIRECTORY ${YM_UnitTestDir}
-      BYPRODUCTS        ${YM_UnitTestDir}/covbuild/profiles
+      BYPRODUCTS        ${YM_UnitTestDir}/cov_build/profiles
       COMMAND ${YM_Python} run_unittest.py --unittestdir=${YM_UnitTestDir} --binarydir=${CMAKE_BINARY_DIR} --suitename=${BaseBuild} --libraryname=libym.common.so --covenabled=${YM_CovEnabled})
 
 endfunction()

@@ -72,7 +72,7 @@ class TestSuiteBase(unittest.TestCase):
       cls.configCppyy()
 
       from cppyy.gbl import ym # type: ignore
-      cls.cpp_suite_instance = ym.ut.TestSuite()
+      cls.cpp_suite_instance = ym.unit.TestSuite()
 
    @classmethod
    def tearDownBaseClass(cls):

@@ -6,7 +6,7 @@
 
 cmake_minimum_required(VERSION 3.27)
 
-## utbuild-ym.common
+## unitbuild-ym.common
 #
 # @brief Defines target to build all child unittests.
 #
@@ -14,7 +14,7 @@ cmake_minimum_required(VERSION 3.27)
 #
 # @note Library directory (see README for description).
 #
-function(utbuild-ym.common Ctx_JSON)
+function(unitbuild-ym.common Ctx_JSON)
 
    set(BaseBuild ym.common)
    set(TargetAll ${BaseBuild}-unittests)
@@ -36,7 +36,7 @@ function(utbuild-ym.common Ctx_JSON)
    set_target_properties(${BaseBuild} PROPERTIES VERSION ${PROJECT_VERSION})
    set_target_properties(${BaseBuild} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_CustomLibsDir})
 
-   set(SubBuilds argparser datalogger logger textlogger timer ymassert ymdefs ymutils)
+   set(SubBuilds argparser datalogger fileio logger textlogger timer ymassert ymdefs ymutils)
    foreach(SubBuild ${SubBuilds})
 
       set(SubBaseBuild ${BaseBuild}.${SubBuild})
@@ -47,7 +47,7 @@ function(utbuild-ym.common Ctx_JSON)
 
       if(EXISTS  ${SubBuildDir}/build.cmake)
          include(${SubBuildDir}/build.cmake)
-         cmake_language(CALL utbuild-${SubBaseBuild} Ctx_JSON)
+         cmake_language(CALL unitbuild-${SubBaseBuild} Ctx_JSON)
       else()
          add_library(${SubTarget} SHARED)
          target_sources(${SubTarget} PRIVATE ${SubBuildDir}/testsuite.cpp)
@@ -64,7 +64,7 @@ function(utbuild-ym.common Ctx_JSON)
       add_custom_command(TARGET ${SubTargetRun}
          POST_BUILD
          WORKING_DIRECTORY ${YM_UnitTestDir}
-         BYPRODUCTS        ${YM_UnitTestDir}/covbuild/profiles
+         BYPRODUCTS        ${YM_UnitTestDir}/cov_build/profiles
          COMMAND ${CMAKE_COMMAND} -E env
             PYTHONPATH=$ENV{PYTHONPATH}
             ${YM_Python} run_unittest.py
@@ -81,7 +81,7 @@ function(utbuild-ym.common Ctx_JSON)
       add_custom_command(TARGET ${TargetRun}
          POST_BUILD
          WORKING_DIRECTORY ${YM_UnitTestDir}
-         BYPRODUCTS        ${YM_UnitTestDir}/covbuild/profiles
+         BYPRODUCTS        ${YM_UnitTestDir}/cov_build/profiles
          COMMAND ${YM_Python} merge_cov_profiles.py --binarydir=${CMAKE_BINARY_DIR} --libraryname=lib${BaseBuild}.so)
    endif()
 
