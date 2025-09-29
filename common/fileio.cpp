@@ -6,12 +6,13 @@
 
 #include "fileio.h"
 
-#include "textlogger.h" // TODO
+#include "textlogger.h"
 
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <system_error>
+#include <utility>
 
 /** createFileBuffer
  * 
@@ -23,7 +24,7 @@
  */
 std::optional<std::pmr::string> ym::FileIO::createFileBuffer(str const Filename)
 {
-   std::optional<std::pmr::string> buffer(std::nullopt); // until explicitly constructed
+   std::optional<std::pmr::string> buffer; // default is nullopt
 
    if (std::ifstream infile(Filename.get()); infile.is_open())
    { // file opened
@@ -39,8 +40,22 @@ std::optional<std::pmr::string> ym::FileIO::createFileBuffer(str const Filename)
       }
       else
       { // read in everything all at once
-         buffer.emplace(Size_bytes, '\0');
-         infile.read(buffer->data(), Size_bytes);
+
+         std::pmr::string contents;
+         contents.resize_and_overwrite(Size_bytes, [&infile](char * const buf_Ptr, sizet const N) {
+            infile.read(buf_Ptr, N);
+            return N;
+         });
+
+         if (infile.good())
+         { // file read into memory successful
+            buffer = std::move(contents);
+         }
+         else
+         { // error reading file
+            ymLog(VG::Warning, "Got error {} while attempting to read from {}",
+               infile.rdstate(), Filename);
+         }
       }
    }
 

@@ -279,6 +279,8 @@ public:
    implicit constexpr BoundedPtr(T * const t_Ptr) :
       TrustedBoundedPtr<T>(t_Ptr)
    {
+      // TODO test all of the operations on assigning/creating bptrs and confirm this
+      //      doesn't get unnecessarily triggered.
       YMASSERT(this->get(), NullPtrError, YM_DAH, "Bounded pointer cannot be null");
    }
 

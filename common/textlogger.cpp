@@ -206,7 +206,8 @@ void ym::TextLogger::printf_Handler(
 
    if (IsEnabled)
    { // verbose enough to print this message
-      printf_Handler(Format, args);
+      printf_Handler(Format, args); // TODO should take VG here too and add debug, warning, or error labels,
+                                    // if applicable (rename func of course, it is already overloaded).
    }
 }
 
@@ -226,7 +227,7 @@ void ym::TextLogger::printf_Handler(
    strlit const     Format,
    fmt::format_args args)
 {
-   char buffer[getMaxMsgSize_bytes()]{};
+   char buffer[getMaxMsgSize_bytes()]{}; // unnecessary init?
    auto * const write_Ptr = populateFormattedTime(buffer); // conditionally
 
    YMASSERT(write_Ptr >= buffer, PrintError, YM_DAH,
@@ -255,7 +256,7 @@ void ym::TextLogger::printf_Handler(
       *result.out = '\n';
    }
 
-   acquireWriteAccess();
+   acquireWriteAccess(); // make this RAII
 
    if (_state.load(std::memory_order_relaxed) == State_T::Open)
    { // ok to print

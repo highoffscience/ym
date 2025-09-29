@@ -19,6 +19,11 @@ namespace ym
  *
  * @brief A parsing utility for use for command line arguments.
  * 
+ * TODO add commands, like
+ *      ./a.out status -a (note that status doesn't require a preceeding --).
+ * TODO add completion hints ("--statis" leads to "did you mean --status?")
+ *      of course this functionality will be guarded in a NOT_LITE build.
+ *
  * @note Example usages follow:
  *       --input <value> // long hand arg with desired value
  *       --assert        // long hand flag set to enable
@@ -92,7 +97,7 @@ public:
       rawstr        _val  {  }; // value
       uint32        _nvals{  }; // number of values, if list
       char          _abbr {  }; // abbreviation
-      Bitset<uint8> _flags{  }; // Flags_T
+      Bitset<uint8> _flags{  }; // flags
    };
 
    // copyable to load Arg params into vector
