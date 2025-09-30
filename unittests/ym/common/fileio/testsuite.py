@@ -61,7 +61,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
       results = self.run_test_case("InteractiveInspection")
 
-      print(f"--> {results.get[ym.schar]('E0')}")
+      print(f"--> {results.get[cppyy.gbl.char]('E0')}")
 
 # kick-off
 if __name__ == "__main__":

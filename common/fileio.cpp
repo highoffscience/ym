@@ -43,7 +43,7 @@ std::optional<std::pmr::string> ym::FileIO::createFileBuffer(str const Filename)
 
          std::pmr::string contents;
          contents.resize_and_overwrite(Size_bytes, [&infile](char * const buf_Ptr, sizet const N) {
-            infile.read(buf_Ptr, N);
+            (void)infile.read(buf_Ptr, N);
             return N;
          });
 
@@ -53,8 +53,11 @@ std::optional<std::pmr::string> ym::FileIO::createFileBuffer(str const Filename)
          }
          else
          { // error reading file
-            ymLog(VG::Warning, "Got error {} while attempting to read from {}",
-               infile.rdstate(), Filename);
+            str const Flag =
+               infile.eof () ? "EOF"_str  :
+               infile.fail() ? "FAIL"_str :
+               infile.bad () ? "BAD"_str  : "?"_str;
+            ymLog(VG::Warning, "Got error {} while attempting to read from {}", Flag, Filename);
          }
       }
    }
