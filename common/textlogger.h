@@ -15,6 +15,7 @@
 
 #include <array>
 #include <atomic>
+#include <concepts>
 #include <utility>
 
 namespace ym
@@ -30,11 +31,12 @@ inline void ymLog(
    strlit const Format,
    Args_T &&... args_uref);
 
-inline bool ymLogEnable (VG const VG);
-inline bool ymLogDisable(VG const VG);
+template <std::same_as<VG>... VGs_T> inline void ymLogEnable (VGs_T const... VGs);
+template <std::same_as<VG>... VGs_T> inline void ymLogDisable(VGs_T const... VGs);
 
-// implemented below - ScopedEnable isn't yet defined
-// inline class ScopedEnable ymLogPushEnable(VG const VG);
+// template <std::same_as<VG>... VGs_T>
+// inline class ScopedEnable ymLogPushEnable(VGs_T const... VGs);
+// Above is implemented below - ScopedEnable isn't yet defined.
 
 /* -------------------------------------------------------------------------- */
 
@@ -140,7 +142,7 @@ public:
    public:
       explicit ScopedEnable(
          TextLogger * const logger_Ptr,
-         VG           const VG);
+         VG           const VG); // TODO allow multiple VGs
       ~ScopedEnable(void);
 
       void popEnable(void) const;
@@ -151,10 +153,11 @@ public:
       bool         const _WasEnabled;
    };
 
-   bool enable (VG const VG);
-   bool disable(VG const VG);
+   template <std::same_as<VG>... VGs_T> void enable (VGs_T const... VGs);
+   template <std::same_as<VG>... VGs_T> void disable(VGs_T const... VGs);
 
-   ScopedEnable pushEnable(VG const VG);
+   template <std::same_as<VG>... VGs_T>
+   ScopedEnable pushEnable(VGs_T const... VGs);
 
    template <typename... Args_T>
    inline void printf(
@@ -208,6 +211,46 @@ private:
    std::atomic_flag     _writeFlag{ATOMIC_FLAG_INIT};
 };
 
+/** enable
+ *
+ * @brief Enables specified verbosity group.
+ *
+ * @param VG -- Verbosity group to enable. TODO
+ */
+template <std::same_as<VG>... VGs_T>
+void ym::TextLogger::enable(VGs_T const... VGs)
+{
+   using VGM = VerboGroupMask;
+   (((void)_vGroups[VGM::getGroup(VGs)].fetch_or(VGM::getMaskAsByte(VGs), std::memory_order_relaxed)), ...);
+}
+
+/** disable
+ *
+ * @brief Disables specified verbosity group.
+ *
+ * @param VG -- Verbosity group to disable. TODO
+ */
+template <std::same_as<VG>... VGs_T>
+void ym::TextLogger::disable(VGs_T const... VGs)
+{
+   using VGM = VerboGroupMask;
+   (((void)_vGroups[VGM::getGroup(VGs)].fetch_and(~VGM::getMaskAsByte(VGs), std::memory_order_relaxed)), ...);
+}
+
+/** pushEnable
+ * 
+ * @brief Enables given verbosity group only in the current scope.
+ * 
+ * @param VG -- Verbosity group. TODO
+ * 
+ * @returns ScopedEnable -- RAII mechanism that only keeps the enable VG while in scope.
+ */
+template <std::same_as<VG>... VGs_T>
+auto ym::TextLogger::pushEnable(VGs_T const... VGs) -> ScopedEnable
+{
+   return ScopedEnable(this, VGs...);
+}
+
 /** printf
  *
  * @brief Prints to the active logger.
@@ -255,14 +298,13 @@ inline void ymLog(
  * @brief Enables specified verbosity group for the global logger.
  *
  * @throws Whatever getGlobalInstancePtr() throws.
- *
- * @param VG -- Verbosity group to enable.
  * 
- * @returns bool -- If previously enabled before this call.
+ * @param VG -- Verbosity group to disable. TODO
  */
-inline bool ymLogEnable(VG const VG)
+template <std::same_as<VG>... VGs_T>
+inline void ymLogEnable(VGs_T const... VGs)
 {
-   return TextLogger::getGlobalInstancePtr()->enable(VG);
+   ((TextLogger::getGlobalInstancePtr()->enable(VGs)), ...);
 }
 
 /** ymLogDisable
@@ -271,20 +313,19 @@ inline bool ymLogEnable(VG const VG)
  *
  * @throws Whatever getGlobalInstancePtr() throws.
  *
- * @param VG -- Verbosity group to disable.
- * 
- * @returns bool -- If previously enabled before this call.
+ * @param VG -- Verbosity group to disable. TODO
  */
-inline bool ymLogDisable(VG const VG)
+template <std::same_as<VG>... VGs_T>
+inline void ymLogDisable(VGs_T const... VGs)
 {
-   return TextLogger::getGlobalInstancePtr()->disable(VG);
+   ((TextLogger::getGlobalInstancePtr()->disable(VGs)), ...);
 }
 
 /** ymLogPushEnable
  * 
  * @brief Enables given verbosity group only in the current scope for the global logger.
  * 
- * TODO use fold expression to allow any number of VG params.
+ * TODO add tparam to this and other funcs
  * 
  * @throws Whatever getGlobalInstancePtr() throws.
  * 
@@ -292,9 +333,10 @@ inline bool ymLogDisable(VG const VG)
  * 
  * @returns ScopedEnable -- RAII mechanism that only keeps the enabled VG while in scope.
  */
-inline TextLogger::ScopedEnable ymLogPushEnable(VG const VG)
+template <std::same_as<VG>... VGs_T>
+inline TextLogger::ScopedEnable ymLogPushEnable(VGs_T const... VGs)
 {
-   return TextLogger::getGlobalInstancePtr()->pushEnable(VG);
+   return TextLogger::getGlobalInstancePtr()->pushEnable(VGs...);
 }
 
 } // ym

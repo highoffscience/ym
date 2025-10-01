@@ -123,47 +123,6 @@ void ym::TextLogger::close(void)
    releaseWriteAccess();
 }
 
-/** enable
- *
- * @brief Enables specified verbosity group.
- *
- * @param VG -- Verbosity group to enable.
- * 
- * @returns bool -- If previously enabled before this call.
- */
-bool ym::TextLogger::enable(VG const VG)
-{
-   using VGM = VerboGroupMask;
-   return _vGroups[VGM::getGroup(VG)].fetch_or(VGM::getMaskAsByte(VG), std::memory_order_relaxed);
-}
-
-/** disable
- *
- * @brief Disables specified verbosity group.
- *
- * @param VG -- Verbosity group to disable.
- * 
- * @returns bool -- If previously enabled before this call.
- */
-bool ym::TextLogger::disable(VG const VG)
-{
-   using VGM = VerboGroupMask;
-   return _vGroups[VGM::getGroup(VG)].fetch_and(~VGM::getMaskAsByte(VG), std::memory_order_relaxed);
-}
-
-/** pushEnable
- * 
- * @brief Enables given verbosity group only in the current scope.
- * 
- * @param VG -- Verbosity group.
- * 
- * @returns ScopedEnable -- RAII mechanism that only keeps the enable VG while in scope.
- */
-auto ym::TextLogger::pushEnable(VG const VG) -> ScopedEnable
-{
-   return ScopedEnable(this, VG);
-}
-
 /** acquireWriteAccess
  * 
  * @brief Acquires the write flag.
@@ -383,7 +342,7 @@ ym::TextLogger::ScopedEnable::ScopedEnable(
    VG           const VG) :
       _logger_Ptr {logger_Ptr            },
       _VG         {VG                    },
-      _WasEnabled {logger_Ptr->enable(VG)}
+      _WasEnabled {false} // TODO was logger_Ptr->enable(VG)
 {
 }
 
