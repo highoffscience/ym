@@ -71,12 +71,8 @@ static_assert(VerboGroup::getNGroups() <= (1_u32 << 24_u32),
  *
  * @brief Verbosity Group Mask definitions. Sub-groups represented as masks.
  *
- * @note We can have a maximum of 2^24 groups, and each group can contain a maximum
- *       of 8 flags.
- *
- * @note These masks are a scoped enum so the user cannot accidentally bitwise or
- *       them.
- *
+ * @note We can have a maximum of 2^24 groups, and each group can contain a maximum of 8 flags.
+ * @note These masks are a scoped enum so the user cannot accidentally bitwise-or them.
  * @note                      x = group
  *                            y = mask
  *       -------------------------------------------------

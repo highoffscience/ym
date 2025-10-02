@@ -202,7 +202,7 @@ void ym::TextLogger::printf_Handler(
       getOptions() == PrintMode_T::PrependTimeStamp ||
       getOptions() == PrintMode_T::PrependHumanReadableTimeStamp;
 
-   auto const NewlineSize_bytes = std::size_t((HasTimeStamp) ? 1u : 0u);
+   auto const NewlineSize_bytes = (HasTimeStamp) ? 1uz : 0uz;
 
    auto result = fmt::vformat_to_n(
       write_Ptr,
@@ -215,7 +215,7 @@ void ym::TextLogger::printf_Handler(
       *result.out = '\n';
    }
 
-   acquireWriteAccess(); // make this RAII
+   acquireWriteAccess(); // TODO make this RAII
 
    if (_state.load(std::memory_order_relaxed) == State_T::Open)
    { // ok to print
@@ -226,7 +226,7 @@ void ym::TextLogger::printf_Handler(
             throw E;
          }, "Format to buffer did not behave as expected")
 
-      auto const TotalWritten_bytes = static_cast<std::size_t>(result.out - buffer) + NewlineSize_bytes;
+      auto const TotalWritten_bytes = static_cast<sizet>(result.out - buffer) + NewlineSize_bytes;
 
       // It is possible to ship this block to another thread/process,
       // but if no need for it just write it here. It blocks, but if

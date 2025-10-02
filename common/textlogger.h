@@ -215,7 +215,9 @@ private:
  *
  * @brief Enables specified verbosity group.
  *
- * @param VG -- Verbosity group to enable. TODO
+ * @tparam VGs_T -- VG typename.
+ *
+ * @param VGs -- Verbosity groups to enable.
  */
 template <std::same_as<VG>... VGs_T>
 void ym::TextLogger::enable(VGs_T const... VGs)
@@ -228,7 +230,9 @@ void ym::TextLogger::enable(VGs_T const... VGs)
  *
  * @brief Disables specified verbosity group.
  *
- * @param VG -- Verbosity group to disable. TODO
+ * @tparam VGs_T -- VG typename.
+ *
+ * @param VG -- Verbosity group to disable.
  */
 template <std::same_as<VG>... VGs_T>
 void ym::TextLogger::disable(VGs_T const... VGs)
@@ -240,15 +244,17 @@ void ym::TextLogger::disable(VGs_T const... VGs)
 /** pushEnable
  * 
  * @brief Enables given verbosity group only in the current scope.
- * 
- * @param VG -- Verbosity group. TODO
+ *
+ * @tparam VGs_T -- VG typename.
+ *
+ * @param VG -- Verbosity group.
  * 
  * @returns ScopedEnable -- RAII mechanism that only keeps the enable VG while in scope.
  */
 template <std::same_as<VG>... VGs_T>
 auto ym::TextLogger::pushEnable(VGs_T const... VGs) -> ScopedEnable
 {
-   return ScopedEnable(this, VGs...);
+   return ScopedEnable(this, VGs...); // TODO
 }
 
 /** printf
@@ -298,8 +304,10 @@ inline void ymLog(
  * @brief Enables specified verbosity group for the global logger.
  *
  * @throws Whatever getGlobalInstancePtr() throws.
- * 
- * @param VG -- Verbosity group to disable. TODO
+ *
+ * @tparam VGs_T -- VG typename.
+ *
+ * @param VG -- Verbosity group to disable.
  */
 template <std::same_as<VG>... VGs_T>
 inline void ymLogEnable(VGs_T const... VGs)
@@ -313,7 +321,9 @@ inline void ymLogEnable(VGs_T const... VGs)
  *
  * @throws Whatever getGlobalInstancePtr() throws.
  *
- * @param VG -- Verbosity group to disable. TODO
+ * @tparam VGs_T -- VG typename.
+ *
+ * @param VG -- Verbosity group to disable.
  */
 template <std::same_as<VG>... VGs_T>
 inline void ymLogDisable(VGs_T const... VGs)
@@ -325,10 +335,10 @@ inline void ymLogDisable(VGs_T const... VGs)
  * 
  * @brief Enables given verbosity group only in the current scope for the global logger.
  * 
- * TODO add tparam to this and other funcs
- * 
  * @throws Whatever getGlobalInstancePtr() throws.
- * 
+ *
+ * @tparam VGs_T -- VG typename.
+ *
  * @param VG -- Verbosity group.
  * 
  * @returns ScopedEnable -- RAII mechanism that only keeps the enabled VG while in scope.
