@@ -25,6 +25,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <climits>
 #include <limits>
 #include <type_traits>
 
@@ -45,12 +46,6 @@
    #endif
 #else
    #error "At least C++20 standard required"
-#endif
-
-// ----------------------------------------------------------------------------
-
-#if ((YM_YES_EXCEPTIONS) + (YM_NO_EXCEPTIONS) != 1)
-   #error "Conflicting Exception rule or none specified"
 #endif
 
 // ----------------------------------------------------------------------------
@@ -203,6 +198,22 @@ using sizet = std::size_t;
 
 /// @brief Convenience alias.
 using byte = std::byte;
+
+// ----------------------------------------------------------------------------
+
+/** ymGetNBits
+ * 
+ * @brief Returns number of bits in type T.
+ * 
+ * @tparam T -- Type.
+ * 
+ * @returns std::size_t -- The number of bits in type T.
+ */
+template <typename T>
+constexpr auto ymGetNBits(void)
+{
+   return sizeof(T) * static_cast<std::size_t>(CHAR_BIT);
+}
 
 // ----------------------------------------------------------------------------
 

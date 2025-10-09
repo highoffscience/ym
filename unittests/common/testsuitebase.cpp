@@ -6,8 +6,6 @@
 
 #include "testsuitebase.h"
 
-#include "textlogger.h"
-
 #include <algorithm>
 #include <stdexcept>
 #include <string>
@@ -20,12 +18,7 @@
 ym::unit::TestSuiteBase::TestSuiteBase(std::string name) :
    PermaNameable_NV(std::move(name)),
    _testCases {/*default*/}
-{
-   ymLogEnable(VG::General);
-   ymLogEnable(VG::Debug);
-   ymLogEnable(VG::Warning);
-   ymLogEnable(VG::Error);
-}
+{ }
 
 /** runTestCase
  *

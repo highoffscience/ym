@@ -14,7 +14,6 @@
          "binaryDir": "${sourceDir}/build",
          "toolchainFile": "${sourceParentDir}/toolchain.cmake",
          "cacheVariables": {
-            "YM_UT_COMMON_DEBUG": false,
             "YM_ProjRootDir": "${sourceParentDir}/..",
             "YM_ExtLibsDir": "${sourceParentDir}/../extlibs",
             "YM_UnitTestDir": "${sourceParentDir}",

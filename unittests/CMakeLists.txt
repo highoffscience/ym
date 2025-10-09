@@ -53,13 +53,8 @@ else()
    target_compile_options(YMRootIntLib INTERFACE -O2)
 endif()
 
-if (${YM_PRINT_TO_SCREEN})
-   target_compile_definitions(YMRootIntLib INTERFACE YM_PRINT_TO_SCREEN=1)
-endif()
-
-if (${YM_DEBUG})
-   target_compile_definitions(YMRootIntLib INTERFACE YM_DEBUG=1)
-endif()
+target_compile_definitions(YMRootIntLib INTERFACE YM_PRINT_TO_SCREEN=${YM_PRINT_TO_SCREEN})
+target_compile_definitions(YMRootIntLib INTERFACE YM_DEBUG=${YM_DEBUG})
 
 if (${YM_ENABLE_EXCEPTIONS})
    target_compile_definitions(YMRootIntLib INTERFACE YM_YES_EXCEPTIONS=1)
@@ -68,6 +63,10 @@ else()
    target_compile_definitions(YMRootIntLib INTERFACE YM_YES_EXCEPTIONS=0)
    target_compile_definitions(YMRootIntLib INTERFACE YM_NO_EXCEPTIONS=1)
 endif()
+
+target_compile_definitions(YMRootIntLib INTERFACE YM_LITE=${YM_LITE})
+target_compile_definitions(YMRootIntLib INTERFACE YM_VERBOGROUP_N_MAJOR_BITS=${YM_VERBOGROUP_N_MAJOR_BITS})
+target_compile_definitions(YMRootIntLib INTERFACE YM_VERBOGROUP_N_MINOR_BITS=${YM_VERBOGROUP_N_MINOR_BITS})
 
 find_library(YM_FMT_LIB
    NAMES fmt

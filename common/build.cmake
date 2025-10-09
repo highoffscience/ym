@@ -29,8 +29,4 @@ function(srcbuild-ym.common Ctx_JSON)
    list(TRANSFORM Srcs PREPEND ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/)
    target_sources(${Target} PRIVATE ${Srcs})
 
-   if (YM_COMMON_DEBUG)
-      target_compile_definitions(${Target} PRIVATE YM_DEBUG=1)
-   endif()
-
 endfunction()

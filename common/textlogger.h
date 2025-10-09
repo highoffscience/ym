@@ -130,6 +130,8 @@ public:
     * 
     * @brief Allows managed temporary enabling of a verbosity group.
     * 
+    * TODO
+    * 
     * @note Uses RAII to storing/restoring enabling verbosity groups.
     * 
     * @note The return value from pushEnable will need to be explicitly stored, ie.
@@ -141,15 +143,15 @@ public:
    {
    public:
       explicit ScopedEnable(
-         TextLogger * const logger_Ptr,
-         VG           const VG); // TODO allow multiple VGs
+         TextLogger * const logger_Ptr//,
+         /*VG           const VG*/); // TODO allow multiple VGs
       ~ScopedEnable(void);
 
       void popEnable(void) const;
 
    private:
       TextLogger * const _logger_Ptr;
-      VG           const _VG;
+      VG           const _VG{};
       bool         const _WasEnabled;
    };
 
@@ -252,9 +254,9 @@ void ym::TextLogger::disable(VGs_T const... VGs)
  * @returns ScopedEnable -- RAII mechanism that only keeps the enable VG while in scope.
  */
 template <std::same_as<VG>... VGs_T>
-auto ym::TextLogger::pushEnable(VGs_T const... VGs) -> ScopedEnable
+auto ym::TextLogger::pushEnable([[maybe_unused]] VGs_T const... VGs) -> ScopedEnable
 {
-   return ScopedEnable(this, VGs...); // TODO
+   return ScopedEnable(this/*, VGs...*/); // TODO
 }
 
 /** printf

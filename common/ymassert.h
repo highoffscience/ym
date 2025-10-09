@@ -12,6 +12,10 @@
 
 #include <type_traits>
 
+#if ((YM_YES_EXCEPTIONS) + (YM_NO_EXCEPTIONS) != 1)
+   #error "Conflicting Exception rule or none specified"
+#endif
+
 #if (YM_YES_EXCEPTIONS)
    #include <exception>
 #endif

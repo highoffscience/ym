@@ -338,10 +338,10 @@ char * ym::TextLogger::populateFormattedTime(char * write_ptr) const
  * @param VG         -- Verbosity group.
  */
 ym::TextLogger::ScopedEnable::ScopedEnable(
-   TextLogger * const logger_Ptr,
-   VG           const VG) :
+   TextLogger * const logger_Ptr//,
+   /*VG           const VG*/) :
       _logger_Ptr {logger_Ptr            },
-      _VG         {VG                    },
+      // _VG         {VG                    },
       _WasEnabled {false} // TODO was logger_Ptr->enable(VG)
 {
 }

@@ -8,6 +8,7 @@
 
 #include "ymdefs.h"
 
+#include <bit>
 #include <utility>
 
 namespace ym
@@ -18,8 +19,8 @@ namespace ym
  * @brief Top-level group of registered objects (verbosity group).
  *
  * @note This grouping is a two-tiered mechanism to organize, to a minimal extent,
- *       groups of related functionality. The Grouping_T is used for the higher
- *       level groups and GroupingsMask_T is used for the finer groups within
+ *       groups of related functionality. The Group is used for the higher
+ *       level groups and the Mask is used for the finer groups within
  *       those higher level groups. They occupy different enums to make switching
  *       groups of bits, not just individual bits, easier to implement.
  *
@@ -27,13 +28,110 @@ namespace ym
  *       masks, as this enum represents groups of masks - it is not a mask itself.
  *
  * @note Keep in alphabetical order.
+ * 
+ * @note The size of a verbosity group doesn't really matter - any primitive will do.
+ *       What matters is the size of the mask, ie how many bits the mask has. The
+ *       minimum number of mask bits is one, so the group can be either on or off.
+ *       A mask of at least 4 bits, if you have the space, is recommended because the
+ *       concept of groups and their associated masks can be useful.
+ * 
+ * TODO use case
+ *    VerboGroup vg{};
+ *    vg.enable(VG::TextLogger_UnitTest);
+ *    vg.disable(...);
+ *    vg.isEnabled(...);
+ * 
+ * If in non-lite mode we have...
+ *    enum T : unsigned {
+ *       General,
+ *       TextLogger,
+ * 
+ *       TextLogger_UnitTest
+ *    };
+ *    enum Masks : unsigned {
+ *       Global = (General << getNMaskBits()) | 0b0001,
+ *       Debug  = (General << getNMaskBits()) | 0b0010,
+ *       Warn   = (General << getNMaskBits()) | 0b0100,
+ *       Error  = (General << getNMaskBits()) | 0b1000,
+ * 
+ *       TextLogger =          (TextLogger << getNMaskBits()) | 0b1111,
+ *       TextLogger_Basic    = (TextLogger << getNMaskBits()) | 0b0001,
+ *       TextLogger_Detail   = (TextLogger << getNMaskBits()) | 0b0010
+ *    };
+ * 
+ * enum UnitTestGroups_T : unsigned {
+ *    TextLogger_UnitTest
+ * };
+ * 
+ * For lite builds...
+ *    enum T : unsigned {
+ *       Global,
+ *       Debug,
+ *       Warning,
+ *       Error,
+ * 
+ *       TextLogger,
+ * 
+ *    #if (YM_UNITTEST_ACTIVE)
+ *       TextLogger_UnitTest
+ *    #endif
+ *    };
  */
 struct VerboGroup
 {
-   /// @brief Verbosity groups.
-   enum class T : uint32
+   /// @brief Gets the count of mask bits.
+   static constexpr unsigned getNMaskBits(void)
+   {
+      constexpr auto NMaskBits =
+         #if (YM_LITE)
+            1u
+         #else
+            4u
+         #endif
+         ;
+      static_assert(std::has_single_bit(NMaskBits), "Must be power of 2 (bit packing reasons)");
+      return NMaskBits;
+   }
+
+   /// @brief Gets the count of group bits.
+   static constexpr Base_T getNGroupBits(void)
+   {
+      constexpr auto NTotalBits = static_cast<Base_T>(ymGetNBits<Base_T>());
+      static_assert(NTotalBits > getNMaskBits(), "Not enough room for group bits");
+      return NTotalBits - getNMaskBits();
+   }
+
+#if (YM_LITE)
+   #define YM_TMP_INIT_VGMASK(Group_, Mask_) = ((Groups_T::Group_ << getNMaskBits()) | Mask_)
+#else
+   #define YM_TMP_INIT_VGMASK(Group_, Mask_)
+#endif
+
+   enum class Groups_T : unsigned
    {
       General,
+      TextLogger,
+
+      NGroups
+   };
+
+   enum class GroupMasks_T : unsigned
+   {
+      Global YM_TMP_INIT_VGMASK(General, 0b0001u),
+      Debug,
+      Warning,
+      Error,
+
+      TextLogger,
+   };
+
+   
+
+   /// @brief Verbosity groups.
+   enum class T : Base_T
+   {
+   // #if (YM_LITE)
+      Global,
       Debug,
       Warning,
       Error,
@@ -55,17 +153,9 @@ struct VerboGroup
       NGroups
    };
 
-   /** getNGroups
-    *
-    * @brief Convenience method to get the # of verbosity groups.
-    *
-    * @returns auto -- # of verbosity groups defined.
-    */
+   /// @brief Convenience method to get the # of verbosity groups.
    static constexpr auto getNGroups(void) { return std::to_underlying(T::NGroups); }
 };
-
-static_assert(VerboGroup::getNGroups() <= (1_u32 << 24_u32),
-              "Underlying type cannot support # of desired groups");
 
 /** VerboGroupMask
  *
@@ -78,6 +168,16 @@ static_assert(VerboGroup::getNGroups() <= (1_u32 << 24_u32),
  *       -------------------------------------------------
  *       | xxxx'xxxx | xxxx'xxxx | xxxx'xxxx | yyyy'yyyy |
  *       -------------------------------------------------
+ * 
+ * TODO
+ *       -------------------------
+ *       | xxxx'xxxx | xxxx'yyyy |
+ *       -------------------------
+ * 
+ * TODO
+ *       -------------
+ *       | xxxx'xxxx |
+ *       -------------
  *
  * @note Example use:
  *
@@ -85,18 +185,26 @@ static_assert(VerboGroup::getNGroups() <= (1_u32 << 24_u32),
  */
 struct VerboGroupMask
 {
+   using Base_T = VerboGroup::Base_T;
+
    /**
     * @brief Underlying mask definitions.
     */
-   enum class T : std::underlying_type_t<VerboGroup::T>
+   enum class T : Base_T
    {
+   #if (YM_LITE)
+      
+   #else
+
+   #endif
+
 
    /// @brief Macro to facilitate macro overloading.
    #define YM_FMT_MSK(...) YM_MACRO_OVERLOAD(YM_FMT_MSK, __VA_ARGS__)
 
    /// @brief Convenience macros.
-   #define YM_FMT_MSK2(Group_, Mask_) ((std::to_underlying(VerboGroup::T::Group_) << 8_u32) | Mask_##_u32)
-   #define YM_FMT_MSK1(Group_       ) YM_FMT_MSK2(Group_, 0xff)
+   #define YM_FMT_MSK2(Group_, Mask_) ((std::to_underlying(VerboGroup::T::Group_) << VerboGroup::getNMaskBits()) | static_cast<Base_T>(Mask_))
+   #define YM_FMT_MSK1(Group_       ) YM_FMT_MSK2(Group_, (Base_T(1) << VerboGroup::getNMaskBits()) - Base_T(1))
 
    #define YM_MAKE_MSK_AND_UNIT_MSK(Name_)             \
                  Name_ = YM_FMT_MSK(           Name_), \
@@ -141,9 +249,8 @@ struct VerboGroupMask
     * 
     * @returns auto -- Desired underlying type
     */
-   static constexpr auto getGroup     (T const VG) { return std::to_underlying(VG) >> 8_u32;    }
-   static constexpr auto getMask      (T const VG) { return std::to_underlying(VG) &  0xff_u32; }
-   static constexpr auto getMaskAsByte(T const VG) { return static_cast<uint8>(VG);             }
+   static constexpr auto getGroup(T const VG) { return std::to_underlying(VG) >> VerboGroup::getNMaskBits();    }
+   static constexpr auto getMask (T const VG) { return std::to_underlying(VG) & ((Base_T(1) << VerboGroup::getNMaskBits()) - Base_T(1)); }
 };
 
 /// @brief Convenience alias (no _T suffix because of common usage).
