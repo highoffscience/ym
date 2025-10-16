@@ -20,7 +20,8 @@
             "YM_PRINT_TO_SCREEN": "1",
             "YM_DEBUG": "1",
             "YM_ENABLE_EXCEPTIONS": "1",
-            "YM_LITE": "1"
+            "YM_LITE": "1",
+            "YM_UNITTEST": "1"
          }
       },
       {

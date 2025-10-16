@@ -8,8 +8,9 @@
 
 #include "ymdefs.h"
 
-#include <bit>
-#include <utility>
+#include <array>
+#include <atomic>
+#include <type_traits>
 
 namespace ym
 {
@@ -40,121 +41,74 @@ namespace ym
  *    vg.enable(VG::TextLogger_UnitTest);
  *    vg.disable(...);
  *    vg.isEnabled(...);
- * 
- * If in non-lite mode we have...
- *    enum T : unsigned {
- *       General,
- *       TextLogger,
- * 
- *       TextLogger_UnitTest
- *    };
- *    enum Masks : unsigned {
- *       Global = (General << getNMaskBits()) | 0b0001,
- *       Debug  = (General << getNMaskBits()) | 0b0010,
- *       Warn   = (General << getNMaskBits()) | 0b0100,
- *       Error  = (General << getNMaskBits()) | 0b1000,
- * 
- *       TextLogger =          (TextLogger << getNMaskBits()) | 0b1111,
- *       TextLogger_Basic    = (TextLogger << getNMaskBits()) | 0b0001,
- *       TextLogger_Detail   = (TextLogger << getNMaskBits()) | 0b0010
- *    };
- * 
- * enum UnitTestGroups_T : unsigned {
- *    TextLogger_UnitTest
- * };
- * 
- * For lite builds...
- *    enum T : unsigned {
- *       Global,
- *       Debug,
- *       Warning,
- *       Error,
- * 
- *       TextLogger,
- * 
- *    #if (YM_UNITTEST_ACTIVE)
- *       TextLogger_UnitTest
- *    #endif
- *    };
  */
-struct VerboGroup
+class VerboGroup
 {
-   /// @brief Gets the count of mask bits.
-   static constexpr unsigned getNMaskBits(void)
-   {
-      constexpr auto NMaskBits =
-         #if (YM_LITE)
-            1u
-         #else
-            4u
-         #endif
-         ;
-      static_assert(std::has_single_bit(NMaskBits), "Must be power of 2 (bit packing reasons)");
-      return NMaskBits;
-   }
-
-   /// @brief Gets the count of group bits.
-   static constexpr Base_T getNGroupBits(void)
-   {
-      constexpr auto NTotalBits = static_cast<Base_T>(ymGetNBits<Base_T>());
-      static_assert(NTotalBits > getNMaskBits(), "Not enough room for group bits");
-      return NTotalBits - getNMaskBits();
-   }
-
-#if (YM_LITE)
-   #define YM_TMP_INIT_VGMASK(Group_, Mask_) = ((Groups_T::Group_ << getNMaskBits()) | Mask_)
-#else
-   #define YM_TMP_INIT_VGMASK(Group_, Mask_)
-#endif
-
+public:
+   /// @brief List of verbosity groups.
    enum class Groups_T : unsigned
    {
-      General,
-      TextLogger,
-
-      NGroups
-   };
-
-   enum class GroupMasks_T : unsigned
-   {
-      Global YM_TMP_INIT_VGMASK(General, 0b0001u),
-      Debug,
-      Warning,
-      Error,
-
-      TextLogger,
-   };
-
-   
-
-   /// @brief Verbosity groups.
-   enum class T : Base_T
-   {
-   // #if (YM_LITE)
       Global,
       Debug,
       Warning,
       Error,
 
-      ArgParser,       UnitTest_ArgParser,
-      DataLogger,      UnitTest_DataLogger,
-      FileIO,          UnitTest_FileIO,
-      Logger,          UnitTest_Logger,
-      TextLogger,      UnitTest_TextLogger,
-      ThreadSafeProxy, UnitTest_ThreadSafeProxy,
-      MemIO,           UnitTest_MemIO,
-      Ops,             UnitTest_Ops,
-      Rng,             UnitTest_Rng,
-      Timer,           UnitTest_Timer,
-      YmAssert,        UnitTest_YmAssert,
-      YmDefs,          UnitTest_YmDefs,
-      YmUtils,         UnitTest_YmUtils,
+      ArgParser,
+      DataLogger,
+      FileIO,
+      Logger,
+      TextLogger,
+      ThreadSafeProxy,
+      MemIO,
+      Ops,
+      Rng,
+      Timer,
+      YmAssert,
+      YmDefs,
+      YmUtils,
+
+   #if defined(YM_UNITTEST)
+      UnitTest_ArgParser,
+      UnitTest_DataLogger,
+      UnitTest_FileIO,
+      UnitTest_Logger,
+      UnitTest_TextLogger,
+      UnitTest_ThreadSafeProxy,
+      UnitTest_MemIO,
+      UnitTest_Ops,
+      UnitTest_Rng,
+      UnitTest_Timer,
+      UnitTest_YmAssert,
+      UnitTest_YmDefs,
+      UnitTest_YmUtils,
+   #endif
       
       NGroups
    };
 
    /// @brief Convenience method to get the # of verbosity groups.
-   static constexpr auto getNGroups(void) { return std::to_underlying(T::NGroups); }
+   static constexpr std::underlying_type_t<Groups_T> getNGroups(void) { return std::to_underlying(Groups_T::NGroups); }
+
+   void set(Groups_T const G) {
+      // assert G is not NGroups
+      auto const I = std::to_underlying(G) / ymGetNBits<unsigned>();
+      auto const M = std::to_underlying(G) % ymGetNBits<unsigned>();
+      _flags[I].fetch_or(1u << M);
+   }
+
+   void clear(Groups_T const G);
+   void test(Groups_T const G);
+
+private:
+   static constexpr unsigned getNUnsigned(void) {
+      auto n = getNGroups() / ymGetNBits<unsigned>();
+      if constexpr (getNGroups() % ymGetNBits<unsigned>() != 0u) {
+         n += 1u;
+      }
+      return n;
+   }
+
+   std::array<std::atomic<unsigned>, getNUnsigned()> _flags{};
 };
 
 /** VerboGroupMask
