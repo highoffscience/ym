@@ -13,6 +13,7 @@
 #include <cstdio>
 #include <cstring>
 #include <numeric>
+#include <utility>
 
 /** DataLogger
  * 
@@ -82,7 +83,7 @@ void ym::DataLogger::acquire(void)
 {
    if (!isInitialized())
    { // get the logger ready
-      (void)ready();
+      std::ignore = ready();
    }
 
    for (auto const & Val : _trackedVals)
@@ -160,12 +161,12 @@ bool ym::DataLogger::dump(
       { // binary format
          if (_rollover)
          { // data not contiguous - requires two write blocks
-            (void)std::fwrite(
+            std::ignore = std::fwrite(
                _blackBoxBuffer.data() + currEntry_idx,
                SizeOfRow_bytes,
                getMaxDepth() - (currEntry_idx / SizeOfRow_bytes), // # of rows from current entry to end
                _outfile_uptr.get());
-            (void)std::fwrite(
+            std::ignore = std::fwrite(
                _blackBoxBuffer.data(),
                SizeOfRow_bytes,
                currEntry_idx / SizeOfRow_bytes, // # of rows from beginning to current entry
@@ -173,7 +174,7 @@ bool ym::DataLogger::dump(
          }
          else
          { // data contiguous - requires single write block
-            (void)std::fwrite(_blackBoxBuffer.data(), SizeOfRow_bytes, nRowsCaptured, _outfile_uptr.get());
+            std::ignore = std::fwrite(_blackBoxBuffer.data(), SizeOfRow_bytes, nRowsCaptured, _outfile_uptr.get());
          }
       }
       else

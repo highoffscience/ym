@@ -160,10 +160,7 @@ void ym::TextLogger::printf_Handler(
    strlit const     Format,
    fmt::format_args args)
 {
-   using VGM = VerboGroupMask;
-   auto const IsEnabled = (_vGroups[VGM::getGroup(VG)] & VGM::getMaskAsByte(VG)) > 0_u8;
-
-   if (IsEnabled)
+   if (_vGroups.test(VG))
    { // verbose enough to print this message
       printf_Handler(Format, args); // TODO should take VG here too and add debug, warning, or error labels,
                                     // if applicable (rename func of course, it is already overloaded).
@@ -176,8 +173,8 @@ void ym::TextLogger::printf_Handler(
  *
  * @note The system call to get the timestamp is usually optimized at runtime.
  *
- * @throws PrintError -- If unenexpected pointer manipulation happens.
- * @throws PrintError -- If time stamp cannot fit into the buffer.
+ * @throws Error -- If unenexpected pointer manipulation happens.
+ * @throws Error -- If time stamp cannot fit into the buffer.
  * 
  * @param Format -- Format string.
  * @param args   -- Arguments.
@@ -186,17 +183,17 @@ void ym::TextLogger::printf_Handler(
    strlit const     Format,
    fmt::format_args args)
 {
-   char buffer[getMaxMsgSize_bytes()]{}; // unnecessary init?
+   char buffer[256uz];
    auto * const write_Ptr = populateFormattedTime(buffer); // conditionally
 
-   YMASSERT(write_Ptr >= buffer, PrintError, YM_DAH,
+   YMASSERT(write_Ptr >= buffer, Error, YM_DAH,
       "populateFormattedTime not returning as expected")
 
-   auto const TimeStampSize_bytes = static_cast<std::size_t>(write_Ptr - buffer);
+   auto const TimeStampSize_bytes = static_cast<sizet>(write_Ptr - buffer);
 
-   YMASSERT(getMaxMsgSize_bytes() >= TimeStampSize_bytes, PrintError, YM_DAH,
+   YMASSERT(sizeof(buffer) >= TimeStampSize_bytes, Error, YM_DAH,
       "Buffer ({} bytes) not large enough to hold time stamp ({} bytes)",
-      getMaxMsgSize_bytes(), TimeStampSize_bytes)
+      sizeof(buffer), TimeStampSize_bytes)
    
    auto const HasTimeStamp =
       getOptions() == PrintMode_T::PrependTimeStamp ||
@@ -206,7 +203,7 @@ void ym::TextLogger::printf_Handler(
 
    auto result = fmt::vformat_to_n(
       write_Ptr,
-      getMaxMsgSize_bytes() - TimeStampSize_bytes - NewlineSize_bytes,
+      sizeof(buffer) - TimeStampSize_bytes - NewlineSize_bytes,
       Format,
       args);
 
@@ -220,7 +217,7 @@ void ym::TextLogger::printf_Handler(
    if (_state.load(std::memory_order_relaxed) == State_T::Open)
    { // ok to print
 
-      YMASSERT(result.out >= buffer, PrintError,
+      YMASSERT(result.out >= buffer, Error,
          [this](auto const & E) -> void {
             this->releaseWriteAccess();
             throw E;
@@ -233,16 +230,19 @@ void ym::TextLogger::printf_Handler(
       // you're printing it's probably not a high performance task
       // anyways (see DataLogger).
 
-      std::fwrite(buffer, sizeof(char), TotalWritten_bytes, _outfile_uptr.get());
+      // TODO call a print_intermediate() function. It is pure virtual.
+      // lite logger simply uses std::fwrite and prints to file immediately.
+      // global logger writes to a waiting room buffer which a consumer reads from.
+      std::ignore = std::fwrite(buffer, sizeof(char), TotalWritten_bytes, _outfile_uptr.get());
 
       if (getOptions() == RedirectMode_T::ToLogAndStdOut)
       { // print to console
-         buffer[getMaxMsgSize_bytes() - std::size_t(1u)] = '\0';
+         buffer[sizeof(buffer) - 1uz] = '\0';
          fmt::print("{}", buffer);
       }
 
       if (auto const WantedSize_bytes = (result.size + NewlineSize_bytes);
-         WantedSize_bytes > getMaxMsgSize_bytes())
+         WantedSize_bytes > sizeof(buffer))
       { // overflow
 
          releaseWriteAccess();
@@ -326,45 +326,4 @@ char * ym::TextLogger::populateFormattedTime(char * write_ptr) const
    }
 
    return write_ptr;
-}
-
-/** ScopedEnable
- * 
- * @brief Constructor.
- * 
- * @note Enables upon construction.
- * 
- * @param logger_Ptr -- Logger instance to enable VG for.
- * @param VG         -- Verbosity group.
- */
-ym::TextLogger::ScopedEnable::ScopedEnable(
-   TextLogger * const logger_Ptr//,
-   /*VG           const VG*/) :
-      _logger_Ptr {logger_Ptr            },
-      // _VG         {VG                    },
-      _WasEnabled {false} // TODO was logger_Ptr->enable(VG)
-{
-}
-
-/** ~ScopedEnable
- * 
- * @brief Destructor.
- * 
- * @note Disables upon exit.
- */
-ym::TextLogger::ScopedEnable::~ScopedEnable(void)
-{
-   popEnable();
-}
-
-/** popEnable
- * 
- * @brief Restores the enable state of the stored VG.
- */
-void ym::TextLogger::ScopedEnable::popEnable(void) const
-{
-   if (!_WasEnabled)
-   { // disable
-      _logger_Ptr->disable(_VG);
-   }
 }

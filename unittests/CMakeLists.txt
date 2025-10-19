@@ -65,8 +65,7 @@ else()
 endif()
 
 target_compile_definitions(YMRootIntLib INTERFACE YM_LITE=${YM_LITE})
-target_compile_definitions(YMRootIntLib INTERFACE YM_VERBOGROUP_N_MAJOR_BITS=${YM_VERBOGROUP_N_MAJOR_BITS})
-target_compile_definitions(YMRootIntLib INTERFACE YM_VERBOGROUP_N_MINOR_BITS=${YM_VERBOGROUP_N_MINOR_BITS})
+target_compile_definitions(YMRootIntLib INTERFACE YM_UNITTEST=${YM_UNITTEST})
 
 find_library(YM_FMT_LIB
    NAMES fmt

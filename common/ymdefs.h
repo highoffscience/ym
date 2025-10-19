@@ -34,18 +34,14 @@
 /**
  * @brief Helper define's for the current cpp standard.
  */
-#if (__cplusplus >= 202002L)
-   #if (__cplusplus >= 202302L)
-      #if (__cplusplus > 202302L)
-         #define YM_CPP_STANDARD 99
-      #else
-         #define YM_CPP_STANDARD 23
-      #endif
+#if (__cplusplus >= 202302L)
+   #if (__cplusplus > 202302L)
+      #define YM_CPP_STANDARD 99
    #else
-      #define YM_CPP_STANDARD 20
+      #define YM_CPP_STANDARD 23
    #endif
 #else
-   #error "At least C++20 standard required"
+   #error "At least C++23 standard required"
 #endif
 
 // ----------------------------------------------------------------------------

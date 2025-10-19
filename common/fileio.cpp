@@ -43,7 +43,7 @@ std::optional<std::pmr::string> ym::FileIO::createFileBuffer(str const Filename)
 
          std::pmr::string contents;
          contents.resize_and_overwrite(Size_bytes, [&infile](char * const buf_Ptr, sizet const N) {
-            (void)infile.read(buf_Ptr, N);
+            std::ignore = infile.read(buf_Ptr, N);
             return N;
          });
 

@@ -8,7 +8,6 @@
 
 #include "logger.h"
 #include "timer.h"
-#include "verbogroup.h"
 #include "ymglobals.h"
 
 #include "fmt/base.h"
@@ -21,25 +20,6 @@
 namespace ym
 {
 
-/*
- * Convenience functions.
- * -------------------------------------------------------------------------- */
-
-template <typename... Args_T>
-inline void ymLog(
-   VG     const VG,
-   strlit const Format,
-   Args_T &&... args_uref);
-
-template <std::same_as<VG>... VGs_T> inline void ymLogEnable (VGs_T const... VGs);
-template <std::same_as<VG>... VGs_T> inline void ymLogDisable(VGs_T const... VGs);
-
-// template <std::same_as<VG>... VGs_T>
-// inline class ScopedEnable ymLogPushEnable(VGs_T const... VGs);
-// Above is implemented below - ScopedEnable isn't yet defined.
-
-/* -------------------------------------------------------------------------- */
-
 /** TextLogger
  *
  * @brief Logs text to the given outfile - similary to std::printf.
@@ -51,7 +31,7 @@ public:
     *
     * @brief Mode to determine how to mangle the printable message.
     */
-   enum class PrintMode_T : uint32
+   enum class PrintMode_T
    {
       KeepOriginal,
       PrependTimeStamp,
@@ -62,7 +42,7 @@ public:
     * 
     * @brief Specifies what streams to pipe the output to.
     */
-   enum class RedirectMode_T : uint32
+   enum class RedirectMode_T
    {
       ToLog,
       ToLogAndStdOut // for debugging
@@ -113,10 +93,7 @@ public:
    YM_NO_COPY  (TextLogger)
    YM_NO_ASSIGN(TextLogger)
 
-   YM_DECL_YMASSERT(PrintError)
-   YM_DECL_YMASSERT(GlobalError)
-
-   static bptr<TextLogger> getGlobalInstancePtr(void);
+   YM_DECL_YMASSERT(Error)
 
    inline auto         getFilename(void) const { return _Filename; }
    inline auto const & getOptions (void) const { return _Options;  }
@@ -126,74 +103,33 @@ public:
    bool open(void);
    void close(void);
 
-   /** ScopedEnable
-    * 
-    * @brief Allows managed temporary enabling of a verbosity group.
-    * 
-    * TODO
-    * 
-    * @note Uses RAII to storing/restoring enabling verbosity groups.
-    * 
-    * @note The return value from pushEnable will need to be explicitly stored, ie.
-    *       auto const SE = ymLogPushEnable(VG);
-    *       even if SE is not used, since the destructor has side effects. Simply calling
-    *       pushEnable will result in the ScopedEnable structure being deleted immediately.
-    */
-   class ScopedEnable
-   {
-   public:
-      explicit ScopedEnable(
-         TextLogger * const logger_Ptr//,
-         /*VG           const VG*/); // TODO allow multiple VGs
-      ~ScopedEnable(void);
-
-      void popEnable(void) const;
-
-   private:
-      TextLogger * const _logger_Ptr;
-      VG           const _VG{};
-      bool         const _WasEnabled;
-   };
-
-   template <std::same_as<VG>... VGs_T> void enable (VGs_T const... VGs);
-   template <std::same_as<VG>... VGs_T> void disable(VGs_T const... VGs);
-
-   template <std::same_as<VG>... VGs_T>
-   ScopedEnable pushEnable(VGs_T const... VGs);
-
-   template <typename... Args_T>
+   template <
+      sizet       N,
+      typename... Args_T>
    inline void printf(
-      VG     const VG,
-      strlit const Format,
-      Args_T &&... args_uref);
+         char const (&Format)[N],
+         Args_T &&... args_uref) {
+      printf_Handler(Format, fmt::make_format_args(args_uref...));
+   }
 
 private:
    /** State_T
     *
     * @brief State of the logger.
     */
-   enum class State_T : uint32
+   enum class State_T
    {
       Closed,
       Closing,
       Open,
       Opening
    };
-   
-   static constexpr auto _s_MaxMsgSize_bytes = 256uz;
-   static constexpr auto getMaxMsgSize_bytes(void) { return _s_MaxMsgSize_bytes; }
+
    static constexpr std::string_view RawTimeStampTemplate{"uuuuuuuuuuuu"};
    static constexpr std::string_view HumanReadableTimeStampTemplate{" HHH:MM:SS.uuuuuu: "};
 
-   static_assert(_s_MaxMsgSize_bytes >= 64uz, "Too limited room");
-
    void acquireWriteAccess(void);
    void releaseWriteAccess(void);
-
-   void printf_Handler(
-      VG     const     VG,
-      strlit const     Format, // TODO I really think we can get away with str here
-      fmt::format_args args);
 
    void printf_Handler(
       strlit const     Format,
@@ -201,154 +137,11 @@ private:
 
    char * populateFormattedTime(char * write_ptr) const;
 
-   using VGroups_T = std::array<std::atomic<uint8>, VerboGroup::getNGroups()>;
-
-   static inline TextLogger * _s_globalInstance_ptr{nullptr};
-
-   str       const      _Filename {""_str          };
-   Options_T const      _Options  { /* default */  };
-   VGroups_T            _vGroups  { /* default */  };
+   str       const      _Filename;
+   Options_T const      _Options;
    Timer                _timer    { /* default */  };
    std::atomic<State_T> _state    {State_T::Closed };
    std::atomic_flag     _writeFlag{ATOMIC_FLAG_INIT};
 };
-
-/** enable
- *
- * @brief Enables specified verbosity group.
- *
- * @tparam VGs_T -- VG typename.
- *
- * @param VGs -- Verbosity groups to enable.
- */
-template <std::same_as<VG>... VGs_T>
-void ym::TextLogger::enable(VGs_T const... VGs)
-{
-   using VGM = VerboGroupMask;
-   (((void)_vGroups[VGM::getGroup(VGs)].fetch_or(VGM::getMaskAsByte(VGs), std::memory_order_relaxed)), ...);
-}
-
-/** disable
- *
- * @brief Disables specified verbosity group.
- *
- * @tparam VGs_T -- VG typename.
- *
- * @param VG -- Verbosity group to disable.
- */
-template <std::same_as<VG>... VGs_T>
-void ym::TextLogger::disable(VGs_T const... VGs)
-{
-   using VGM = VerboGroupMask;
-   (((void)_vGroups[VGM::getGroup(VGs)].fetch_and(~VGM::getMaskAsByte(VGs), std::memory_order_relaxed)), ...);
-}
-
-/** pushEnable
- * 
- * @brief Enables given verbosity group only in the current scope.
- *
- * @tparam VGs_T -- VG typename.
- *
- * @param VG -- Verbosity group.
- * 
- * @returns ScopedEnable -- RAII mechanism that only keeps the enable VG while in scope.
- */
-template <std::same_as<VG>... VGs_T>
-auto ym::TextLogger::pushEnable([[maybe_unused]] VGs_T const... VGs) -> ScopedEnable
-{
-   return ScopedEnable(this/*, VGs...*/); // TODO
-}
-
-/** printf
- *
- * @brief Prints to the active logger.
- *
- * @throws Whatever print_Handler() throws.
- *
- * @tparam Args_T -- Constrained argument types.
- *
- * @param VG     -- Verbosity level.
- * @param Format -- Format string.
- * @param Args   -- Arguments.
- */
-template <typename... Args_T>
-inline void TextLogger::printf(
-   VG     const VG,
-   strlit const Format,
-   Args_T &&... args_uref)
-{
-   printf_Handler(VG, Format, fmt::make_format_args(args_uref...));
-}
-
-/** ymLog
- * 
- * @brief Prints to the active logger.
- *
- * @throws Whatever getGlobalInstancePtr() throws.
- * 
- * @tparam Args_T -- Argument types.
- *
- * @param VG     -- Verbosity level.
- * @param Format -- Format string.
- * @param Args   -- Arguments.
- */
-template <typename... Args_T>
-inline void ymLog(
-   VG     const VG,
-   strlit const Format,
-   Args_T &&... args_uref)
-{
-   TextLogger::getGlobalInstancePtr()->printf(VG, Format, std::forward<Args_T>(args_uref)...);
-}
-
-/** ymLogEnable
- * 
- * @brief Enables specified verbosity group for the global logger.
- *
- * @throws Whatever getGlobalInstancePtr() throws.
- *
- * @tparam VGs_T -- VG typename.
- *
- * @param VG -- Verbosity group to disable.
- */
-template <std::same_as<VG>... VGs_T>
-inline void ymLogEnable(VGs_T const... VGs)
-{
-   ((TextLogger::getGlobalInstancePtr()->enable(VGs)), ...);
-}
-
-/** ymLogDisable
- * 
- * @brief Disables specified verbosity group for the global logger.
- *
- * @throws Whatever getGlobalInstancePtr() throws.
- *
- * @tparam VGs_T -- VG typename.
- *
- * @param VG -- Verbosity group to disable.
- */
-template <std::same_as<VG>... VGs_T>
-inline void ymLogDisable(VGs_T const... VGs)
-{
-   ((TextLogger::getGlobalInstancePtr()->disable(VGs)), ...);
-}
-
-/** ymLogPushEnable
- * 
- * @brief Enables given verbosity group only in the current scope for the global logger.
- * 
- * @throws Whatever getGlobalInstancePtr() throws.
- *
- * @tparam VGs_T -- VG typename.
- *
- * @param VG -- Verbosity group.
- * 
- * @returns ScopedEnable -- RAII mechanism that only keeps the enabled VG while in scope.
- */
-template <std::same_as<VG>... VGs_T>
-inline TextLogger::ScopedEnable ymLogPushEnable(VGs_T const... VGs)
-{
-   return TextLogger::getGlobalInstancePtr()->pushEnable(VGs...);
-}
 
 } // ym

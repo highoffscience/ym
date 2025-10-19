@@ -13,6 +13,7 @@
 #include "ymerror.h"
 
 #include <limits>
+#include <utility>
 #include <vector>
 
 /** TestSuite
@@ -82,63 +83,63 @@ auto ym::unit::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & I
    auto const SE = ymLogPushEnable(VG::UnitTest_Ops);
 
    std::vector<bool> badCasts_char{false, false}; // until told otherwise
-   try { (void)Ops::castToChar("");   } catch (Ops::OpsError_BadCast const & E) { badCasts_char[0] = true; }
-   try { (void)Ops::castToChar("it"); } catch (Ops::OpsError_BadCast const & E) { badCasts_char[1] = true; }
+   try { std::ignore = Ops::castToChar("");   } catch (Ops::OpsError_BadCast const & E) { badCasts_char[0] = true; }
+   try { std::ignore = Ops::castToChar("it"); } catch (Ops::OpsError_BadCast const & E) { badCasts_char[1] = true; }
 
    std::vector<bool> badCasts_int8{false, false, false}; // until told otherwise
-   try { (void)Ops::castTo<int8>("");     } catch (Ops::OpsError_BadCast const & E) { badCasts_int8[0] = true; }
-   try { (void)Ops::castTo<int8>("-");    } catch (Ops::OpsError_BadCast const & E) { badCasts_int8[1] = true; }
-   try { (void)Ops::castTo<int8>("-129"); } catch (Ops::OpsError_BadCast const & E) { badCasts_int8[2] = true; }
+   try { std::ignore = Ops::castTo<int8>("");     } catch (Ops::OpsError_BadCast const & E) { badCasts_int8[0] = true; }
+   try { std::ignore = Ops::castTo<int8>("-");    } catch (Ops::OpsError_BadCast const & E) { badCasts_int8[1] = true; }
+   try { std::ignore = Ops::castTo<int8>("-129"); } catch (Ops::OpsError_BadCast const & E) { badCasts_int8[2] = true; }
 
    std::vector<bool> badCasts_int16{false, false, false}; // until told otherwise
-   try { (void)Ops::castTo<int16>("");       } catch (Ops::OpsError_BadCast const & E) { badCasts_int16[0] = true; }
-   try { (void)Ops::castTo<int16>("-");      } catch (Ops::OpsError_BadCast const & E) { badCasts_int16[1] = true; }
-   try { (void)Ops::castTo<int16>("-32769"); } catch (Ops::OpsError_BadCast const & E) { badCasts_int16[2] = true; }
+   try { std::ignore = Ops::castTo<int16>("");       } catch (Ops::OpsError_BadCast const & E) { badCasts_int16[0] = true; }
+   try { std::ignore = Ops::castTo<int16>("-");      } catch (Ops::OpsError_BadCast const & E) { badCasts_int16[1] = true; }
+   try { std::ignore = Ops::castTo<int16>("-32769"); } catch (Ops::OpsError_BadCast const & E) { badCasts_int16[2] = true; }
 
    std::vector<bool> badCasts_int32{false, false, false}; // until told otherwise
-   try { (void)Ops::castTo<int32>("");            } catch (Ops::OpsError_BadCast const & E) { badCasts_int32[0] = true; }
-   try { (void)Ops::castTo<int32>("-");           } catch (Ops::OpsError_BadCast const & E) { badCasts_int32[1] = true; }
-   try { (void)Ops::castTo<int32>("-2147483649"); } catch (Ops::OpsError_BadCast const & E) { badCasts_int32[2] = true; }
+   try { std::ignore = Ops::castTo<int32>("");            } catch (Ops::OpsError_BadCast const & E) { badCasts_int32[0] = true; }
+   try { std::ignore = Ops::castTo<int32>("-");           } catch (Ops::OpsError_BadCast const & E) { badCasts_int32[1] = true; }
+   try { std::ignore = Ops::castTo<int32>("-2147483649"); } catch (Ops::OpsError_BadCast const & E) { badCasts_int32[2] = true; }
 
    std::vector<bool> badCasts_int64{false, false, false}; // until told otherwise
-   try { (void)Ops::castTo<int64>("");                     } catch (Ops::OpsError_BadCast const & E) { badCasts_int64[0] = true; }
-   try { (void)Ops::castTo<int64>("-");                    } catch (Ops::OpsError_BadCast const & E) { badCasts_int64[1] = true; }
-   try { (void)Ops::castTo<int64>("-9223372036854775809"); } catch (Ops::OpsError_BadCast const & E) { badCasts_int64[2] = true; }
+   try { std::ignore = Ops::castTo<int64>("");                     } catch (Ops::OpsError_BadCast const & E) { badCasts_int64[0] = true; }
+   try { std::ignore = Ops::castTo<int64>("-");                    } catch (Ops::OpsError_BadCast const & E) { badCasts_int64[1] = true; }
+   try { std::ignore = Ops::castTo<int64>("-9223372036854775809"); } catch (Ops::OpsError_BadCast const & E) { badCasts_int64[2] = true; }
 
    std::vector<bool> badCasts_uint8{false, false, false}; // until told otherwise
-   try { (void)Ops::castTo<uint8>("");     } catch (Ops::OpsError_BadCast const & E) { badCasts_uint8[0] = true; }
-   try { (void)Ops::castTo<uint8>("+");    } catch (Ops::OpsError_BadCast const & E) { badCasts_uint8[1] = true; }
-   try { (void)Ops::castTo<uint8>("+256"); } catch (Ops::OpsError_BadCast const & E) { badCasts_uint8[2] = true; }
+   try { std::ignore = Ops::castTo<uint8>("");     } catch (Ops::OpsError_BadCast const & E) { badCasts_uint8[0] = true; }
+   try { std::ignore = Ops::castTo<uint8>("+");    } catch (Ops::OpsError_BadCast const & E) { badCasts_uint8[1] = true; }
+   try { std::ignore = Ops::castTo<uint8>("+256"); } catch (Ops::OpsError_BadCast const & E) { badCasts_uint8[2] = true; }
 
    std::vector<bool> badCasts_uint16{false, false, false}; // until told otherwise
-   try { (void)Ops::castTo<uint16>("");       } catch (Ops::OpsError_BadCast const & E) { badCasts_uint16[0] = true; }
-   try { (void)Ops::castTo<uint16>("+");      } catch (Ops::OpsError_BadCast const & E) { badCasts_uint16[1] = true; }
-   try { (void)Ops::castTo<uint16>("+65536"); } catch (Ops::OpsError_BadCast const & E) { badCasts_uint16[2] = true; }
+   try { std::ignore = Ops::castTo<uint16>("");       } catch (Ops::OpsError_BadCast const & E) { badCasts_uint16[0] = true; }
+   try { std::ignore = Ops::castTo<uint16>("+");      } catch (Ops::OpsError_BadCast const & E) { badCasts_uint16[1] = true; }
+   try { std::ignore = Ops::castTo<uint16>("+65536"); } catch (Ops::OpsError_BadCast const & E) { badCasts_uint16[2] = true; }
 
    std::vector<bool> badCasts_uint32{false, false, false}; // until told otherwise
-   try { (void)Ops::castTo<uint32>("");            } catch (Ops::OpsError_BadCast const & E) { badCasts_uint32[0] = true; }
-   try { (void)Ops::castTo<uint32>("+");           } catch (Ops::OpsError_BadCast const & E) { badCasts_uint32[1] = true; }
-   try { (void)Ops::castTo<uint32>("+4294967296"); } catch (Ops::OpsError_BadCast const & E) { badCasts_uint32[2] = true; }
+   try { std::ignore = Ops::castTo<uint32>("");            } catch (Ops::OpsError_BadCast const & E) { badCasts_uint32[0] = true; }
+   try { std::ignore = Ops::castTo<uint32>("+");           } catch (Ops::OpsError_BadCast const & E) { badCasts_uint32[1] = true; }
+   try { std::ignore = Ops::castTo<uint32>("+4294967296"); } catch (Ops::OpsError_BadCast const & E) { badCasts_uint32[2] = true; }
 
    std::vector<bool> badCasts_uint64{false, false, false}; // until told otherwise
-   try { (void)Ops::castTo<uint64>("");                      } catch (Ops::OpsError_BadCast const & E) { badCasts_uint64[0] = true; }
-   try { (void)Ops::castTo<uint64>("+");                     } catch (Ops::OpsError_BadCast const & E) { badCasts_uint64[1] = true; }
-   try { (void)Ops::castTo<uint64>("+18446744073709551616"); } catch (Ops::OpsError_BadCast const & E) { badCasts_uint64[2] = true; }
+   try { std::ignore = Ops::castTo<uint64>("");                      } catch (Ops::OpsError_BadCast const & E) { badCasts_uint64[0] = true; }
+   try { std::ignore = Ops::castTo<uint64>("+");                     } catch (Ops::OpsError_BadCast const & E) { badCasts_uint64[1] = true; }
+   try { std::ignore = Ops::castTo<uint64>("+18446744073709551616"); } catch (Ops::OpsError_BadCast const & E) { badCasts_uint64[2] = true; }
 
    std::vector<bool> badCasts_flt32{false, false, false}; // until told otherwise
-   try { (void)Ops::castTo<float32>("");           } catch (Ops::OpsError_BadCast const & E) { badCasts_flt32[0] = true; }
-   try { (void)Ops::castTo<float32>(".");          } catch (Ops::OpsError_BadCast const & E) { badCasts_flt32[1] = true; }
-   try { (void)Ops::castTo<float32>("+1.175e-38"); } catch (Ops::OpsError_BadCast const & E) { badCasts_flt32[2] = true; }
+   try { std::ignore = Ops::castTo<float32>("");           } catch (Ops::OpsError_BadCast const & E) { badCasts_flt32[0] = true; }
+   try { std::ignore = Ops::castTo<float32>(".");          } catch (Ops::OpsError_BadCast const & E) { badCasts_flt32[1] = true; }
+   try { std::ignore = Ops::castTo<float32>("+1.175e-38"); } catch (Ops::OpsError_BadCast const & E) { badCasts_flt32[2] = true; }
 
    std::vector<bool> badCasts_flt64{false, false, false}; // until told otherwise
-   try { (void)Ops::castTo<float64>("");            } catch (Ops::OpsError_BadCast const & E) { badCasts_flt64[0] = true; }
-   try { (void)Ops::castTo<float64>(".");           } catch (Ops::OpsError_BadCast const & E) { badCasts_flt64[1] = true; }
-   try { (void)Ops::castTo<float64>("+2.225e-308"); } catch (Ops::OpsError_BadCast const & E) { badCasts_flt64[2] = true; }
+   try { std::ignore = Ops::castTo<float64>("");            } catch (Ops::OpsError_BadCast const & E) { badCasts_flt64[0] = true; }
+   try { std::ignore = Ops::castTo<float64>(".");           } catch (Ops::OpsError_BadCast const & E) { badCasts_flt64[1] = true; }
+   try { std::ignore = Ops::castTo<float64>("+2.225e-308"); } catch (Ops::OpsError_BadCast const & E) { badCasts_flt64[2] = true; }
 
    std::vector<bool> badCasts_flt80{false, false, false}; // until told otherwise
-   try { (void)Ops::castTo<floatext>("");             } catch (Ops::OpsError_BadCast const & E) { badCasts_flt80[0] = true; }
-   try { (void)Ops::castTo<floatext>(".");            } catch (Ops::OpsError_BadCast const & E) { badCasts_flt80[1] = true; }
-   try { (void)Ops::castTo<floatext>("+3.362e-4932"); } catch (Ops::OpsError_BadCast const & E) { badCasts_flt80[2] = true; }
+   try { std::ignore = Ops::castTo<floatext>("");             } catch (Ops::OpsError_BadCast const & E) { badCasts_flt80[0] = true; }
+   try { std::ignore = Ops::castTo<floatext>(".");            } catch (Ops::OpsError_BadCast const & E) { badCasts_flt80[1] = true; }
+   try { std::ignore = Ops::castTo<floatext>("+3.362e-4932"); } catch (Ops::OpsError_BadCast const & E) { badCasts_flt80[2] = true; }
 
    return {
       {"BadCasts_char",   badCasts_char  },

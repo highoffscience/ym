@@ -24,6 +24,7 @@ function(srcbuild-ym.common Ctx_JSON)
       logger.cpp
       textlogger.cpp
       timer.cpp
+      verbogroup.cpp
       ymassert.cpp
       ymutils.cpp)
    list(TRANSFORM Srcs PREPEND ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/)
