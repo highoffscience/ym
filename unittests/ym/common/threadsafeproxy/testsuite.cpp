@@ -30,7 +30,7 @@ ym::unit::TestSuite::TestSuite(void)
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_ThreadSafeProxy);
+   auto const SE = ymLogPushEnable(VF::UnitTest_ThreadSafeProxy);
 
    struct A { int _i; };
 

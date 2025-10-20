@@ -39,7 +39,7 @@ ym::unit::TestSuite::TestSuite(void)
  */
 auto ym::unit::TestSuite::ZerosAndOnes::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_Rng);
+   auto const SE = ymLogPushEnable(VF::UnitTest_Rng);
 
    ym::Prng rand;
 
@@ -72,7 +72,7 @@ auto ym::unit::TestSuite::ZerosAndOnes::run([[maybe_unused]] DataShuttle const &
  */
 auto ym::unit::TestSuite::UniformBins::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_Rng);
+   auto const SE = ymLogPushEnable(VF::UnitTest_Rng);
 
    ym::Prng rand;
 

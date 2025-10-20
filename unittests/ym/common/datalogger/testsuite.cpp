@@ -29,7 +29,7 @@ ym::unit::TestSuite::TestSuite(void) :
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_DataLogger);
+   auto const SE = ymLogPushEnable(VF::UnitTest_DataLogger);
 
    DataLogger blackbox(30uz, 10u);
 

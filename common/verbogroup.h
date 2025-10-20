@@ -28,8 +28,8 @@ namespace ym
 class VerboGroup
 {
 public:
-   /// @brief List of verbosity groups.
-   enum class Groups_T : unsigned
+   /// @brief List of verbosity flags.
+   enum class Flags_T : unsigned
    {
       Global,
       Debug,
@@ -68,25 +68,25 @@ public:
       UnitTest_YmUtils,
    #endif
       
-      NGroups
+      NFlags
    };
 
    YM_DECL_YMASSERT(Error)
 
-   void set  (Groups_T const G);
-   void clear(Groups_T const G);
-   bool test (Groups_T const G) const;
+   void set  (Flags_T const F);
+   void clear(Flags_T const F);
+   bool test (Flags_T const F) const;
 
 private:
    std::array<
       std::atomic<unsigned>, // type
       static_cast<unsigned>(
          std::ceil(
-            std::to_underlying(Groups_T::NGroups) / ymGetNBits<unsigned>())) // size
+            std::to_underlying(Flags_T::NFlags) / ymGetNBits<unsigned>())) // size
    > _flags{};
 };
 
 /// @brief Convenience alias (no _T suffix because of common usage).
-using VG = VerboGroup::Groups_T;
+using VF = VerboGroup::Flags_T;
 
 } // ym

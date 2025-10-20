@@ -35,7 +35,7 @@ ym::unit::TestSuite::TestSuite(void) :
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_TextLogger);
+   auto const SE = ymLogPushEnable(VF::UnitTest_TextLogger);
    return {};
 }
 
@@ -49,7 +49,7 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
  */
 auto ym::unit::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_ArgParser);
+   auto const SE = ymLogPushEnable(VF::UnitTest_ArgParser);
 
    strlit const Argv[] = {"testsuite",
       "--input",  "settings.json",
@@ -92,7 +92,7 @@ auto ym::unit::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & I
    }
    catch (ArgParser::Error const & E)
    {
-      ymLog(VG::UnitTest_ArgParser, "--> {}", E.what());
+      ymLog(VF::UnitTest_ArgParser, "--> {}", E.what());
       excHappened = true;
    }
 
@@ -117,7 +117,7 @@ auto ym::unit::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & I
  */
 auto ym::unit::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_ArgParser);
+   auto const SE = ymLogPushEnable(VF::UnitTest_ArgParser);
 
    strlit const Argv[] = {"testsuite",
       "--verbose",
@@ -145,7 +145,7 @@ auto ym::unit::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const 
    }
    catch (ArgParser::Error const & E)
    {
-      ymLog(VG::UnitTest_ArgParser, "--> {}", E.what());
+      ymLog(VF::UnitTest_ArgParser, "--> {}", E.what());
       excHappened = true;
    }
 
@@ -166,7 +166,7 @@ auto ym::unit::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const 
  */
 auto ym::unit::TestSuite::SizeOfArg::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_ArgParser);
+   auto const SE = ymLogPushEnable(VF::UnitTest_ArgParser);
 
    constexpr auto Size = sizeof(ym::ArgParser::Arg);
 

@@ -11,12 +11,12 @@
  * 
  * @param G 
  */
-void ym::VerboGroup::set(Groups_T const G)
+void ym::VerboGroup::set(Flags_T const F)
 {
-   YMASSERT(G != Groups_T::NGroups, Error, YM_DAH, "Invalid verbosity group");
+   YMASSERT(F != Flags_T::NFlags, Error, YM_DAH, "Invalid verbosity group");
 
-   auto const I = std::to_underlying(G) / ymGetNBits<unsigned>();
-   auto const M = std::to_underlying(G) % ymGetNBits<unsigned>();
+   auto const I = std::to_underlying(F) / ymGetNBits<unsigned>();
+   auto const M = std::to_underlying(F) % ymGetNBits<unsigned>();
 
    std::ignore = _flags[I].fetch_or(1u << M, std::memory_order_relaxed);
 }
@@ -26,12 +26,12 @@ void ym::VerboGroup::set(Groups_T const G)
  * 
  * @param G 
  */
-void ym::VerboGroup::clear(Groups_T const G)
+void ym::VerboGroup::clear(Flags_T const F)
 {
-   YMASSERT(G != Groups_T::NGroups, Error, YM_DAH, "Invalid verbosity group");
+   YMASSERT(F != Flags_T::NFlags, Error, YM_DAH, "Invalid verbosity group");
 
-   auto const I = std::to_underlying(G) / ymGetNBits<unsigned>();
-   auto const M = std::to_underlying(G) % ymGetNBits<unsigned>();
+   auto const I = std::to_underlying(F) / ymGetNBits<unsigned>();
+   auto const M = std::to_underlying(F) % ymGetNBits<unsigned>();
 
    std::ignore = _flags[I].fetch_and(~(1u << M), std::memory_order_relaxed);
 }
@@ -41,12 +41,12 @@ void ym::VerboGroup::clear(Groups_T const G)
  * 
  * @param G 
  */
-bool ym::VerboGroup::test(Groups_T const G) const
+bool ym::VerboGroup::test(Flags_T const F) const
 {
-   YMASSERT(G != Groups_T::NGroups, Error, YM_DAH, "Invalid verbosity group");
+   YMASSERT(F != Flags_T::NFlags, Error, YM_DAH, "Invalid verbosity group");
 
-   auto const I = std::to_underlying(G) / ymGetNBits<unsigned>();
-   auto const M = std::to_underlying(G) % ymGetNBits<unsigned>();
+   auto const I = std::to_underlying(F) / ymGetNBits<unsigned>();
+   auto const M = std::to_underlying(F) % ymGetNBits<unsigned>();
 
    return (_flags[I].load(std::memory_order_relaxed) & (1u << M)) != 0u;
 }

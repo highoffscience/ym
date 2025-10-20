@@ -50,7 +50,7 @@ bool ym::DataLogger::ready(void)
    { // supplied a hint
       if (_trackedVals.capacity() > _nTrackedValsHint)
       { // underestimated hint
-         ymLog(VG::DataLogger, "Underestimated hint of {} - capacity is {}",
+         ymLog(VF::DataLogger, "Underestimated hint of {} - capacity is {}",
             _nTrackedValsHint, _trackedVals.capacity());
       }
    }

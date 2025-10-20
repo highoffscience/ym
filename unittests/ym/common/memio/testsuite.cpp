@@ -30,7 +30,7 @@ ym::unit::TestSuite::TestSuite(void) :
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_Logger);
+   auto const SE = ymLogPushEnable(VF::UnitTest_Logger);
    return {};
 }
 
@@ -42,7 +42,7 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
  */
 auto ym::unit::TestSuite::StackAlloc::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_MemIO);
+   auto const SE = ymLogPushEnable(VF::UnitTest_MemIO);
 
    auto const Block0 = 0xCAFEBABE_u32;
 

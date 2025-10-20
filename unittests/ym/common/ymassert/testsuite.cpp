@@ -34,7 +34,7 @@ ym::unit::TestSuite::TestSuite(void) :
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_YmAssert);
+   auto const SE = ymLogPushEnable(VF::UnitTest_YmAssert);
 
    YM_DECL_YMASSERT(Error)
 
@@ -65,7 +65,7 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
  */
 auto ym::unit::TestSuite::What::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_YmAssert);
+   auto const SE = ymLogPushEnable(VF::UnitTest_YmAssert);
 
    bool expectedMsg = false;
 
@@ -95,7 +95,7 @@ auto ym::unit::TestSuite::What::run([[maybe_unused]] DataShuttle const & InData)
  */
 auto ym::unit::TestSuite::Assertion::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_YmAssert);
+   auto const SE = ymLogPushEnable(VF::UnitTest_YmAssert);
 
    bool expectedFalseAssert = false;
    bool expectedTrueAssert  = true;

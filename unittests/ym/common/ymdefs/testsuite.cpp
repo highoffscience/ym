@@ -31,7 +31,7 @@ ym::unit::TestSuite::TestSuite(void) :
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_YmDefs);
+   auto const SE = ymLogPushEnable(VF::UnitTest_YmDefs);
    return {};
 }
 
@@ -43,7 +43,7 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
  */
 auto ym::unit::TestSuite::BigFiveDeleteMacros::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_YmDefs);
+   auto const SE = ymLogPushEnable(VF::UnitTest_YmDefs);
 
    struct Test
    {
@@ -67,7 +67,7 @@ auto ym::unit::TestSuite::BigFiveDeleteMacros::run([[maybe_unused]] DataShuttle 
  */
 auto ym::unit::TestSuite::OverloadMacros::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_YmDefs);
+   auto const SE = ymLogPushEnable(VF::UnitTest_YmDefs);
 
    #define YM_SUM(...) YM_MACRO_OVERLOAD(YM_SUM, __VA_ARGS__)
    #define YM_SUM1(First) (First)

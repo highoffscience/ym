@@ -468,7 +468,7 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
  */
 void ym::ArgParser::displayHelpMenu(void) const
 {
-   auto const SE = ymLogPushEnable(VG::ArgParser);
+   auto const SE = ymLogPushEnable(VF::ArgParser);
 
    auto const BeginIt = _argHandlers.cbegin();
    auto const EndIt   = _argHandlers.cend();
@@ -491,16 +491,16 @@ void ym::ArgParser::displayHelpMenu(void) const
    }
    spaces_bptr[maxKeyLen] = '\0';
 
-   ymLog(VG::ArgParser, "ArgParser help menu:");
+   ymLog(VF::ArgParser, "ArgParser help menu:");
 
    for (auto it = BeginIt; it != EndIt; it++)
    { // go through all registered arguments
       auto const KeyLen = std::strlen(it->getName());
-      ymLog(VG::ArgParser, " --{}{} : {}", it->getName(), spaces_bptr + KeyLen, it->getDesc());
+      ymLog(VF::ArgParser, " --{}{} : {}", it->getName(), spaces_bptr + KeyLen, it->getDesc());
 
       if (auto const Abbr = it->getAbbr(); isValidChar(Abbr))
       { // this arg has an abbreviation
-         ymLog(VG::ArgParser, "   (-{})", Abbr);
+         ymLog(VF::ArgParser, "   (-{})", Abbr);
       }
    }
 }

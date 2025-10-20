@@ -68,7 +68,7 @@ void ym::ymassert_Base::defaultNoExceptHandler(ymassert_Base const & E)
  */
 void ym::ymassert_Base::logAssert(ymassert_Base const & E)
 {
-   ymLog(VG::Error, E.what());
+   ymLog(VF::Error, E.what());
 }
 
 #endif

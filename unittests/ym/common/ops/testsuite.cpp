@@ -35,7 +35,7 @@ ym::unit::TestSuite::TestSuite(void)
  */
 auto ym::unit::TestSuite::Casting::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_Ops);
+   auto const SE = ymLogPushEnable(VF::UnitTest_Ops);
 
    auto const Val_char    = Ops::castToChar   ("A"                      ) == 'A';
 
@@ -80,7 +80,7 @@ auto ym::unit::TestSuite::Casting::run([[maybe_unused]] DataShuttle const & InDa
  */
 auto ym::unit::TestSuite::BadCasting::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_Ops);
+   auto const SE = ymLogPushEnable(VF::UnitTest_Ops);
 
    std::vector<bool> badCasts_char{false, false}; // until told otherwise
    try { std::ignore = Ops::castToChar("");   } catch (Ops::OpsError_BadCast const & E) { badCasts_char[0] = true; }

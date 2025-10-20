@@ -30,7 +30,7 @@ ym::unit::TestSuite::TestSuite(void) :
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_Timer);
+   auto const SE = ymLogPushEnable(VF::UnitTest_Timer);
    return {};
 }
 
@@ -42,7 +42,7 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
  */
 auto ym::unit::TestSuite::VerifyTimer::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_Timer);
+   auto const SE = ymLogPushEnable(VF::UnitTest_Timer);
 
    return {
       {"True", true}

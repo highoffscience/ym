@@ -86,11 +86,11 @@ void ym::Logger::openOutfile_core(
    if (Options == OverwriteMode_T::Disallow &&
       std::filesystem::exists(Filename, ec))
    { // file we are attempting to create already exists
-      ymLog(VG::Warning, "WARNING: File (or directory) '{}' already exists", Filename);
+      ymLog(VF::Warning, "WARNING: File (or directory) '{}' already exists", Filename);
    }
    else if (ec)
    { // filesystem failure
-      ymLog(VG::Warning, "WARNING: Filesystem error when attempting to open '{}' with error code {}", Filename, ec.value());
+      ymLog(VF::Warning, "WARNING: Filesystem error when attempting to open '{}' with error code {}", Filename, ec.value());
    }
    else
    { // open!

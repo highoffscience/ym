@@ -111,7 +111,7 @@ def gen_source_file(args: argparse.Namespace):
       writeln(f"auto ym::unit::TestSuite::InteractiveInspection" \
               f"::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle         ")
       writeln(f"{{                                                                        ")
-      writeln(f"   auto const SE = ymLogPushEnable(VG::UnitTest_{args.suitename});        ")
+      writeln(f"   auto const SE = ymLogPushEnable(VF::UnitTest_{args.suitename});        ")
       writeln(f"   return {{}};                                                           ")
       writeln(f"}}                                                                        ")
 

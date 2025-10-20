@@ -30,7 +30,7 @@ ym::unit::TestSuite::TestSuite(void) :
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_TextLogger);
+   auto const SE = ymLogPushEnable(VF::UnitTest_TextLogger);
    return {};
 }
 
@@ -42,14 +42,14 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
  */
 auto ym::unit::TestSuite::OpenAndClose::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_TextLogger);
+   auto const SE = ymLogPushEnable(VF::UnitTest_TextLogger);
 
    TextLogger t("ym/common/textlogger/log.txt");
    auto const IsOpen = t.open();
-   t.enable(VG::UnitTest_TextLogger);
-   t.printf(VG::UnitTest_TextLogger, "Go! Torchic!");
+   t.enable(VF::UnitTest_TextLogger);
+   t.printf(VF::UnitTest_TextLogger, "Go! Torchic!");
 
-   ymLog(VG::UnitTest_TextLogger, "Go! Pumpkaboo!");
+   ymLog(VF::UnitTest_TextLogger, "Go! Pumpkaboo!");
 
    t.close(); // writer thread is joined with the thread that calls this
    auto const IsClosed = !t.isOpen();

@@ -57,7 +57,7 @@ std::optional<std::pmr::string> ym::FileIO::createFileBuffer(str const Filename)
                infile.eof () ? "EOF"_str  :
                infile.fail() ? "FAIL"_str :
                infile.bad () ? "BAD"_str  : "?"_str;
-            ymLog(VG::Warning, "Got error {} while attempting to read from {}", Flag, Filename);
+            ymLog(VF::Warning, "Got error {} while attempting to read from {}", Flag, Filename);
          }
       }
    }

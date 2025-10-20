@@ -29,7 +29,7 @@ ym::unit::TestSuite::TestSuite(void) :
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_FileIO);
+   auto const SE = ymLogPushEnable(VF::UnitTest_FileIO);
 
    auto firstChar = '!'; // '!' not in char set for file
    auto buffer = FileIO::createFileBuffer("ym/common/fileio/data.txt");

@@ -39,7 +39,7 @@ ym::unit::TestSuite::TestSuite(void) :
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
+   auto const SE = ymLogPushEnable(VF::UnitTest_YmUtils);
 
    return {};
 }
@@ -52,7 +52,7 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
  */
 auto ym::unit::TestSuite::PtrToIntConversion::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
+   auto const SE = ymLogPushEnable(VF::UnitTest_YmUtils);
 
    int32 vals[] {9, 7};
 
@@ -72,7 +72,7 @@ auto ym::unit::TestSuite::PtrToIntConversion::run([[maybe_unused]] DataShuttle c
  */
 auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
+   auto const SE = ymLogPushEnable(VF::UnitTest_YmUtils);
 
    int a = 9;
    int * a_ptr = &a;
@@ -85,7 +85,7 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
 
    bptr name_b = name;
 
-   ymLog(VG::UnitTest_YmUtils, "sizeof(TBP) {}; sizeof(BP) {}", sizeof(name), sizeof(a_bptr));
+   ymLog(VF::UnitTest_YmUtils, "sizeof(TBP) {}; sizeof(BP) {}", sizeof(name), sizeof(a_bptr));
 
    {
       auto a = 9;
@@ -101,7 +101,7 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
       [[maybe_unused]] auto mybyte_1 = bptr<byte>(myint, BPtrCastingPassKey());
       // [[maybe_unused]] auto myvoid_3 = bptr<void>(mycint); // compile error (expected)
 
-      // ymLog(VG::UnitTest_YmUtils, "myvoid's value {}", *static_cast<int const*>(myvoid.get()));
+      // ymLog(VF::UnitTest_YmUtils, "myvoid's value {}", *static_cast<int const*>(myvoid.get()));
    }
 
    return {
@@ -118,7 +118,7 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
  */
 auto ym::unit::TestSuite::BinarySearch::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
+   auto const SE = ymLogPushEnable(VF::UnitTest_YmUtils);
 
    int values[] = {1, 3, 4, 8, 9, 14, 15, 16, 20};
    auto it = ymBinarySearch(values, values + std::size(values), 4,
@@ -142,7 +142,7 @@ auto ym::unit::TestSuite::BinarySearch::run([[maybe_unused]] DataShuttle const &
  */
 auto ym::unit::TestSuite::BoundedStr::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
+   auto const SE = ymLogPushEnable(VF::UnitTest_YmUtils);
 
    using namespace std::string_literals;
 
@@ -158,7 +158,7 @@ auto ym::unit::TestSuite::BoundedStr::run([[maybe_unused]] DataShuttle const & I
  */
 auto ym::unit::TestSuite::PtrCast::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
+   auto const SE = ymLogPushEnable(VF::UnitTest_YmUtils);
 
    int i = 9;
    int * p1 = &i;
@@ -186,20 +186,20 @@ auto ym::unit::TestSuite::PtrCast::run([[maybe_unused]] DataShuttle const & InDa
  */
 auto ym::unit::TestSuite::BitSet::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
+   auto const SE = ymLogPushEnable(VF::UnitTest_YmUtils);
 
    // Bitset b{};
-   // ymLog(VG::UnitTest_YmUtils, "1) TODO --> {}", b.getUnderlying());
+   // ymLog(VF::UnitTest_YmUtils, "1) TODO --> {}", b.getUnderlying());
    // b.set(0);
-   // ymLog(VG::UnitTest_YmUtils, "2) TODO --> {}", b.getUnderlying());
+   // ymLog(VF::UnitTest_YmUtils, "2) TODO --> {}", b.getUnderlying());
    // b.set(1);
-   // ymLog(VG::UnitTest_YmUtils, "3) TODO --> {}", b.getUnderlying());
+   // ymLog(VF::UnitTest_YmUtils, "3) TODO --> {}", b.getUnderlying());
    // b.clear(1);
-   // ymLog(VG::UnitTest_YmUtils, "4) TODO --> {}", b.getUnderlying());
+   // ymLog(VF::UnitTest_YmUtils, "4) TODO --> {}", b.getUnderlying());
    // b.set(1, true);
-   // ymLog(VG::UnitTest_YmUtils, "5) TODO --> {}", b.getUnderlying());
+   // ymLog(VF::UnitTest_YmUtils, "5) TODO --> {}", b.getUnderlying());
    // auto b2 = b;
-   // ymLog(VG::UnitTest_YmUtils, "6) TODO --> {}", b2.getUnderlying());
+   // ymLog(VF::UnitTest_YmUtils, "6) TODO --> {}", b2.getUnderlying());
 
    return {
       {"True", true}
@@ -214,7 +214,7 @@ auto ym::unit::TestSuite::BitSet::run([[maybe_unused]] DataShuttle const & InDat
  */
 auto ym::unit::TestSuite::PolyRawTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VG::UnitTest_YmUtils);
+   auto const SE = ymLogPushEnable(VF::UnitTest_YmUtils);
 
    struct Base
    {
@@ -233,7 +233,7 @@ auto ym::unit::TestSuite::PolyRawTest::run([[maybe_unused]] DataShuttle const & 
 
    std::vector<PolyRaw<Base, sizeof(Derived)>> v;
    v.reserve(1);
-   ymLog(VG::UnitTest_YmUtils, "Vector capacity is {}", v.capacity());
+   ymLog(VF::UnitTest_YmUtils, "Vector capacity is {}", v.capacity());
    auto const OldCapacity = v.capacity();
    for (auto i = 0uz; i < OldCapacity + 1uz; i++)
    { // force reallocation
