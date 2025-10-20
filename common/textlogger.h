@@ -15,6 +15,7 @@
 #include <array>
 #include <atomic>
 #include <concepts>
+#include <string_view>
 #include <utility>
 
 namespace ym
@@ -88,7 +89,7 @@ public:
    explicit TextLogger(
       str       const   Filename,
       Options_T const & Options = getDefaultOptions());
-   ~TextLogger(void);
+   virtual ~TextLogger(void);
 
    YM_NO_COPY  (TextLogger)
    YM_NO_ASSIGN(TextLogger)
@@ -102,6 +103,8 @@ public:
 
    bool open(void);
    void close(void);
+
+   virtual void writer_Handler(std::string_view const Buffer) = 0;
 
    template <
       sizet       N,

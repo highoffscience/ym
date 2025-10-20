@@ -234,6 +234,7 @@ void ym::TextLogger::printf_Handler(
       // lite logger simply uses std::fwrite and prints to file immediately.
       // global logger writes to a waiting room buffer which a consumer reads from.
       std::ignore = std::fwrite(buffer, sizeof(char), TotalWritten_bytes, _outfile_uptr.get());
+      writer_Handler(buffer, TotalWritten_bytes);
 
       if (getOptions() == RedirectMode_T::ToLogAndStdOut)
       { // print to console
