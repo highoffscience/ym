@@ -18,6 +18,7 @@
 #include <memory_resource>
 #include <string>
 #include <system_error>
+#include <utility>
 
 /** Logger
  *
@@ -29,9 +30,9 @@ ym::Logger::Logger(void) :
    _outfile_uptr {nullptr,
       [] (std::FILE * const file_Ptr) {
          if (file_Ptr != stdout &&
-             file_Ptr != stderr) { // don't try to close standard streams
-            [[maybe_unused]]
-            auto const RetVal = std::fclose(file_Ptr);
+             file_Ptr != stderr)
+         { // don't try to close standard streams
+            std::ignore = std::fclose(file_Ptr);
          }
       }
    }
@@ -54,7 +55,7 @@ ym::Logger::Logger(void) :
  */
 bool ym::Logger::openOutfile(
    std::string_view const   Filename,
-   OpeningOptions_T const & Options)
+   Options_T        const & Options)
 {
    if (!isOutfileOpened())
    { // file not opened
@@ -80,7 +81,7 @@ bool ym::Logger::openOutfile(
  */
 void ym::Logger::openOutfile_core(
    std::string_view const   Filename,
-   OpeningOptions_T const & Options)
+   Options_T        const & Options)
 {
    std::error_code ec;
    if (Options == OverwriteMode_T::Disallow &&
@@ -110,7 +111,7 @@ void ym::Logger::openOutfile_core(
  */
 void ym::Logger::openOutfile_appendTimeStamp(
    std::string_view const   Filename,
-   OpeningOptions_T const & Options)
+   Options_T        const & Options)
 {
    auto extPos = Filename.find_last_of('.');
    if (extPos == std::size_t(0u) ||      // hidden files

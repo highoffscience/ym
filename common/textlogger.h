@@ -56,7 +56,7 @@ public:
    struct Options_T
    {
       /// @brief Opening options (defined in base Logger).
-      OpeningOptions_T _openingOptions{};
+      Logger::Options_T _loggerOptions{Logger::getDefaultOptions()};
 
       /// @brief Mode to determine how to mangle the printable message.
       PrintMode_T _printMode{PrintMode_T::PrependHumanReadableTimeStamp};
@@ -71,7 +71,7 @@ public:
       };
 
       /// @brief Convenience cast to pass to base Logger functions.
-      constexpr operator OpeningOptions_T(void) const { return _openingOptions; }
+      constexpr operator Logger::Options_T(void) const { return _loggerOptions; }
 
       /// @brief Allows direct comparison between Options_T and specified field type.
       constexpr friend bool operator == (Options_T const & Opts, PrintMode_T const Mode) {
@@ -86,9 +86,7 @@ public:
 
    static constexpr Options_T getDefaultOptions(void) { return {}; }
 
-   explicit TextLogger(
-      str       const   Filename,
-      Options_T const & Options = getDefaultOptions());
+   explicit TextLogger(str const Filename);
    virtual ~TextLogger(void);
 
    YM_NO_COPY  (TextLogger)
@@ -96,15 +94,12 @@ public:
 
    YM_DECL_YMASSERT(Error)
 
-   inline auto         getFilename(void) const { return _Filename; }
-   inline auto const & getOptions (void) const { return _Options;  }
+   inline auto getFilename(void) const { return _Filename; }
 
    bool isOpen(void) const;
 
    bool open(void);
    void close(void);
-
-   virtual void writer_Handler(std::string_view const Buffer) = 0;
 
    template <
       sizet       N,
@@ -112,8 +107,13 @@ public:
    inline void printf(
          char const (&Format)[N],
          Args_T &&... args_uref) {
-      printf_Handler(Format, fmt::make_format_args(args_uref...));
+      producer(Format, fmt::make_format_args(args_uref...)); // TODO change this to printf_Handler
    }
+
+protected:
+   virtual void producer(
+      str const        Format,
+      fmt::format_args args) = 0;
 
 private:
    /** State_T
@@ -140,11 +140,9 @@ private:
 
    char * populateFormattedTime(char * write_ptr) const;
 
-   str       const      _Filename;
-   Options_T const      _Options;
-   Timer                _timer    { /* default */  };
-   std::atomic<State_T> _state    {State_T::Closed };
-   std::atomic_flag     _writeFlag{ATOMIC_FLAG_INIT};
+   str       const      _Filename{"unnamed.uhoh" };
+   Timer                _timer   { /* default */ };
+   std::atomic<State_T> _state   {State_T::Closed};
 };
 
 } // ym
