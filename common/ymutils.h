@@ -14,6 +14,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdlib>
+#include <concepts>
 #include <iterator>
 #include <memory>
 #include <memory_resource>
@@ -152,7 +153,7 @@ constexpr auto ymBinarySearch(
  * @tparam T -- Pointer type.
  */
 template <typename T>
-requires (!std::is_member_function_pointer<T>::value)
+requires (!std::is_member_function_pointer<T>::value) // TODO no _v overload option?
 union PtrToInt_T
 {
    T       * ptr_val;
@@ -169,9 +170,13 @@ union PtrToInt_T
  * 
  * @brief A more compact version of std::bitset.
  * 
+ * @note This should only be if std::bitset (which uses u64), is too expensive.
+ *       ie, if you only need std::byte, short, or unsigned.
+ *
  * @tparam T -- Underlying type.
  */
 template <typename T = byte>
+requires (sizeof(T) < sizeof(sizet)) // see above doc comment
 class Bitset
 {
 public:
@@ -192,161 +197,151 @@ private:
    T _bits{};
 };
 
-/** TrustedBoundedPtr
+YM_DECL_YMASSERT(NullPtrError)
+
+/** BoundPtr
  *
  * @brief Non-null pointer. There is no null check upon construction - pointers
  *        passed to this class are trusted to be non-null.
  * 
  * @tparam T -- Type of pointer.
+ * @tparam N -- Size of array if pointer to C-style array, 0 otherwise.
+ *
+ * @note Compiling with the pedantic flag is recommended to prevent allowing arrays
+ *       with zero size. If you are using 0-sized arrays, you'll need to modify
+ *       the check conditions of this class.
+ *
+ * @note Throwing in the constructor is preferable because you cannot swallow the
+ *       exception and use BoundPtr in an unacceptable state.
  */
-template <typename T>
-class TrustedBoundedPtr
+template <
+   typename T,
+   sizet    N = 0uz>
+class BoundPtr
 {
 public:
-   /** TrustedBoundedPtr
+   /// @brief Enables users to cast pointer to anything.
+   YM_MAKE_PASSKEY(CastPassKey)
+
+   /** BoundPtr
     * 
-    * @brief Constructs a bounded pointer from an assumed non-null pointer.
-    * 
-    * @note This class is used to skip the null check in BoundedPtr for cases
-    *       where the programmer is guaranteeing non-nullness.
-    * 
-    * @note Constructor is marked explicit to help the compiler disambiguate
-    *       the statement
-    *          BoundedPtr s = "s";
-    *       The assignment operator can take string literal or TrustedBoundedPtr.
+    * @brief Wrapper for non-null pointer.
     * 
     * @param t_Ptr -- Pointer to bind.
     */
-   explicit constexpr TrustedBoundedPtr(T * const t_Ptr) :
+   implicit constexpr BoundPtr(T * const t_Ptr) :
       _t_ptr {t_Ptr}
+   {
+      if constexpr (N == 0uz)
+      { // non-array pointer
+         YMASSERT(this->get(), NullPtrError, YM_DAH, "Bound pointer cannot be null");
+      }
+      else
+      { // pointer to array
+         // arrays are non-null in C++ - see above doc comment for handling 0-sized arrays.
+      }
+   }
+
+   /// @brief Casting constructor.
+   template <typename U>
+   requires (
+      // TODO does is_convertible handle constness? I don't think so
+      std::is_convertible_v<U*, T*> && // enforce legal casting
+      (std::is_const_v<T>           || // can always convert to const
+      !std::is_const_v<U>))            // else neither should be const
+   implicit constexpr BoundPtr(BoundPtr<T, N> const & Other) :
+      BoundPtr<T, N>(Other)
+   { }
+
+   /// @brief Casting constructor. Anything goes.
+   template <typename U>
+   implicit constexpr BoundPtr(
+      BoundPtr<U, N> const & Other,
+      CastPassKey    const &) :
+         BoundPtr<T, N>(ymCastPtrTo<T>(Other))
    { }
 
    /// @brief Compile time non-nullness checks.
-   constexpr TrustedBoundedPtr              (std::nullptr_t) = delete;
-   constexpr TrustedBoundedPtr & operator = (std::nullptr_t) = delete;
+   constexpr BoundPtr              (std::nullptr_t) = delete;
+   constexpr BoundPtr & operator = (std::nullptr_t) = delete;
 
    constexpr auto * get          (this auto && self) { return  self._t_ptr; }
-   constexpr        operator T * (this auto && self) { return  self.get();  }
+   constexpr        operator T * (this auto && self) { return  self.get();  } // TODO can this return T const *?
    constexpr auto & operator *   (this auto && self) { return *self.get();  }
    constexpr auto * operator ->  (this auto && self) { return  self.get();  }
 
-   constexpr auto & operator [] (this auto && self, auto const Idx) {
+   constexpr auto decay(void) const {
+      return BoundPtr<T>(get());
+   }
+
+   /// @brief Decay array pointer - safe.
+   constexpr operator BoundPtr<T> (void) const {
+      return decay();
+   }
+
+   constexpr auto & operator [] (this auto && self, std::integral auto const Idx) {
       return self.get()[Idx];
    }
 
-   template <typename U>
-   requires (std::is_integral_v<U>)
-   friend constexpr auto operator + (TrustedBoundedPtr<T> const & Lhs, U const Rhs) {
-      return Lhs.get() + Rhs;
+   // TODO FreePtr is not yet defined
+   friend constexpr auto operator + (BoundPtr<T, N> const & Lhs, std::integral auto const Rhs) {
+      return FreePtr(Lhs.get() + Rhs);
    }
 
-   template <typename U>
-   requires (std::is_integral_v<U>)
-   friend constexpr auto operator - (TrustedBoundedPtr<T> const & Lhs, U const Rhs) {
-      return Lhs.get() - Rhs;
+   friend constexpr auto operator - (BoundPtr<T, N> const & Lhs, std::integral auto const Rhs) {
+      return FreePtr(Lhs.get() - Rhs);
    }
 
 private:
    T * _t_ptr;
 };
 
-YM_DECL_YMASSERT(NullPtrError)
+/// @brief Deduction guide - prevents pointer to array from decaying.
+template <typename T, sizet N>
+BoundPtr(T (&)[N]) -> BoundPtr<T, N>;
 
-/// @brief Enables users to cast pointer to anything.
-struct BPtrCastingPassKey { explicit constexpr BPtrCastingPassKey(void) = default; };
-
-/** BoundedPtr
+/**
+ * TODO
  *
- * @brief Non-null pointer.
- * 
- * @tparam T -- Type of pointer.
- * 
- * @note Throwing in the constructor is preferable because you cannot swallow the
- *       exception and use BoundedPtr in an unacceptable state.
+ * @note No need to handle pointer to array cases - if it is an array then a BoundPtr will be made instead.
  */
 template <typename T>
-class BoundedPtr : public TrustedBoundedPtr<T>
+class FreePtr
 {
 public:
-   /** BoundedPtr
-    * 
-    * @brief Constructs a bounded pointer from a raw pointer.
-    * 
-    * @param t_Ptr -- Pointer to bind.
-    * 
-    * @throws BoundedPtrNullError -- If the parameter is null.
-    */
-   implicit constexpr BoundedPtr(T * const t_Ptr) :
-      TrustedBoundedPtr<T>(t_Ptr)
-   {
-      // TODO test all of the operations on assigning/creating bptrs and confirm this
-      //      doesn't get unnecessarily triggered.
-      YMASSERT(this->get(), NullPtrError, YM_DAH, "Bounded pointer cannot be null");
+   constexpr FreePtr(T * const t_Ptr) :
+      _t_ptr {t_Ptr}
+   { }
+
+   constexpr bool hasValue(void) const {
+      return _value != nullptr;
    }
 
-   /// @brief Casting constructor.
-   template <typename U>
-   requires (
-      std::is_convertible_v<U*, T*> && // enforce legal casting
-      (std::is_const_v<T>           || // can always convert to const
-      !std::is_const_v<U>))            // else neither should be const
-   implicit constexpr BoundedPtr(BoundedPtr<U> const & Other) :
-      TrustedBoundedPtr<T>(Other.get())
-   { }
-
-   /// @brief Casting constructor. Anything goes.
-   template <typename U>
-   implicit constexpr BoundedPtr(
-      BoundedPtr<U>      const & Other,
-      BPtrCastingPassKey const &) :
-         TrustedBoundedPtr<T>(ymCastPtrTo<T>(Other.get()))
-   { }
-
-   /** BoundedPtr
-    * 
-    * @brief Constructs a bounded pointer from TrustedBoundedPtr.
-    * 
-    * @note Param tbp is marked non-const because it will take non-const pointers
-    *       and incorrectly put them in a const context.
-    * 
-    * @param tbp -- Pointer to bind.
-    * 
-    * @throws Whatever BoundedPtr() throws.
-    */
-   implicit constexpr BoundedPtr(TrustedBoundedPtr<T> tbp) :
-      TrustedBoundedPtr<T>(tbp.get())
-   { }
-
-   /// @brief Compile time non-nullness checks.
-   constexpr BoundedPtr              (std::nullptr_t) = delete;
-   constexpr BoundedPtr & operator = (std::nullptr_t) = delete;
-
-   /** operator =
-    * 
-    * @brief Assigns a bounded pointer from TrustedBoundedPtr.
-    * 
-    * @param TBP -- Pointer to bind.
-    * 
-    * @returns BoundedPtr -- *this.
-    */
-   constexpr auto operator = (TrustedBoundedPtr<T> const TBP)
-   {
-      this->_t_ptr = TBP;
-      return *this;
+   constexpr BoundPtr<T> unwrap(void) {
+      return _value;
    }
+
+   constexpr BoundPtr<T> unwrap_or(BoundPtr<T> const BPtr) {
+      return hasValue() ? unwrap() : BPtr;
+   }
+
+private:
+   T * _t_ptr{};
 };
 
 /// @brief Convenience alias.
 template <typename T>
-using tbptr = TrustedBoundedPtr<T>;
+using btr = BoundPtr<T>; // bound-ter
 
 /// @brief Convenience alias.
 template <typename T>
-using bptr = BoundedPtr<T>;
+using ftr = FreePtr<T>; // free-ter
 
 /// @brief Convenience alias.
-using str = bptr<char const>;
+using str = bptr<char const>; // string
 
+// TODO maybe provide an overload to boundedptr that takes char (&Format)[N]
+//      and static_assert N > 0
 /// @brief Convenience user-defined literal
 constexpr inline auto operator""_str(rawstr const S, std::size_t) { return tbptr(S); }
 
@@ -359,7 +354,7 @@ constexpr inline auto operator""_str(rawstr const S, std::size_t) { return tbptr
  */
 template <
    typename Base_T,
-   sizet N>
+   sizet    N>
 requires (requires(
    Base_T const & Base, bptr<void> const val_BPtr, sizet const Size_bytes) {
       { Base.cloneAt(val_BPtr, Size_bytes) };

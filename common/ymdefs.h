@@ -150,34 +150,32 @@ namespace ym
  *       are structured unorthodoxically so all supported compilers can parse it.
  */
 
-using rawstr = char const * ;
-using strlit = rawstr;
 using uchar  = unsigned char;
 using schar  =   signed char;
 
-using int8   = std::int8_t ; static_assert(sizeof(int8 ) == 1u, "int8  not of expected size");
-using int16  = std::int16_t; static_assert(sizeof(int16) == 2u, "int16 not of expected size");
-using int32  = std::int32_t; static_assert(sizeof(int32) == 4u, "int32 not of expected size");
-using int64  = std::int64_t; static_assert(sizeof(int64) == 8u, "int64 not of expected size");
+using int8   = std::int8_t ; static_assert(sizeof(int8 ) == 1uz, "int8  not of expected size");
+using int16  = std::int16_t; static_assert(sizeof(int16) == 2uz, "int16 not of expected size");
+using int32  = std::int32_t; static_assert(sizeof(int32) == 4uz, "int32 not of expected size");
+using int64  = std::int64_t; static_assert(sizeof(int64) == 8uz, "int64 not of expected size");
 using int128 =
    #if defined(YM_GNU_COMPILER_DEFINED) || defined(YM_CLANG_COMPILER_DEFINED)
       __int128_t
    #else
       void
    #endif
-   ; static_assert(!std::is_void<int128>::value || sizeof(int128) == 16u, "int128 not of expected size");
+   ; static_assert(!std::is_void<int128>::value || sizeof(int128) == 16uz, "int128 not of expected size");
 
-using uint8   = std::uint8_t ; static_assert(sizeof(uint8 ) == 1u, "uint8  not of expected size");
-using uint16  = std::uint16_t; static_assert(sizeof(uint16) == 2u, "uint16 not of expected size");
-using uint32  = std::uint32_t; static_assert(sizeof(uint32) == 4u, "uint32 not of expected size");
-using uint64  = std::uint64_t; static_assert(sizeof(uint64) == 8u, "uint64 not of expected size");
+using uint8   = std::uint8_t ; static_assert(sizeof(uint8 ) == 1uz, "uint8  not of expected size");
+using uint16  = std::uint16_t; static_assert(sizeof(uint16) == 2uz, "uint16 not of expected size");
+using uint32  = std::uint32_t; static_assert(sizeof(uint32) == 4uz, "uint32 not of expected size");
+using uint64  = std::uint64_t; static_assert(sizeof(uint64) == 8uz, "uint64 not of expected size");
 using uint128 =
    #if defined(YM_GNU_COMPILER_DEFINED) || defined(YM_CLANG_COMPILER_DEFINED)
       __uint128_t
    #else
       void
    #endif
-   ; static_assert(!std::is_void<uint128>::value || sizeof(uint128) == 16u, "uint128 not of expected size");
+   ; static_assert(!std::is_void<uint128>::value || sizeof(uint128) == 16uz, "uint128 not of expected size");
 
 using float32  = float      ; static_assert(std::numeric_limits<float32 >::digits == 24, "float32  (mantissa) not of expected size");
 using float64  = double     ; static_assert(std::numeric_limits<float64 >::digits == 53, "float64  (mantissa) not of expected size");
@@ -194,6 +192,14 @@ using sizet = std::size_t;
 
 /// @brief Convenience alias.
 using byte = std::byte;
+
+/** YM_MAKE_PASSKEY
+ *
+ * @brief Template for defining a pass key class.
+ *
+ * @param Name_ -- Name of pass key.
+ */
+#define YM_MAKE_PASSKEY(Name_) struct Name_ { explicit constexpr Name_(void) = default; };
 
 // ----------------------------------------------------------------------------
 

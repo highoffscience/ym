@@ -9,7 +9,6 @@
 #include "ymglobals.h"
 
 #include <cstdio>
-#include <memory>
 #include <string_view>
 
 namespace ym
@@ -77,9 +76,12 @@ public:
    YM_DECL_YMASSERT(OpenError)
 
 protected:
-   explicit Logger(void);
+   explicit Logger(void) = default;
+   inline ~Logger(void) {
+      closeOutfile();
+   }
 
-   inline auto isOutfileOpened(void) const { return static_cast<bool>(_outfile_uptr); }
+   inline auto isOutfileOpened(void) const { return _file_ptr != nullptr; }
 
    // Don't name simply "open" or "close" because we want to allow derived
    // classes to implement these functions without the overhead of
@@ -88,8 +90,7 @@ protected:
    bool openOutfile(std::string_view const Filename, Options_T const & Options);
    void closeOutfile(void);
    
-   using FileDeleter_T = void(*)(std::FILE * const);
-   std::unique_ptr<std::FILE, FileDeleter_T> _outfile_uptr;
+   std::FILE * _file_ptr{};
 
 private:
    void openOutfile_core           (std::string_view const Filename, Options_T const & Options);

@@ -20,24 +20,6 @@
 #include <system_error>
 #include <utility>
 
-/** Logger
- *
- * @brief Constructor.
- *
- * @note _outfile_uptr is set to null to serve as a flag that the logger is uninitialized.
- */
-ym::Logger::Logger(void) :
-   _outfile_uptr {nullptr,
-      [] (std::FILE * const file_Ptr) {
-         if (file_Ptr != stdout &&
-             file_Ptr != stderr)
-         { // don't try to close standard streams
-            std::ignore = std::fclose(file_Ptr);
-         }
-      }
-   }
-{ }
-
 /** openOutfile
  *
  * @brief Attempts to open a write-file.
@@ -169,5 +151,11 @@ void ym::Logger::openOutfile_appendTimeStamp(
  */
 void ym::Logger::closeOutfile(void)
 {
-   _outfile_uptr.reset(nullptr);
+   if (_file_ptr != stdout &&
+       _file_ptr != stderr &&
+       _file_ptr != stdin)
+   {
+      std::ignore = std::fclose(_file_ptr);
+      _file_ptr = nullptr;
+   }
 }
