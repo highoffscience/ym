@@ -199,6 +199,106 @@ private:
 
 YM_DECL_YMASSERT(NullPtrError)
 
+template <
+   typename T>
+class BoundPtr_Base
+{
+public:
+   /** BoundPtr
+    * 
+    * @brief Wrapper for non-null pointer.
+    * 
+    * @param t_Ptr -- Pointer to bind.
+    */
+   constexpr BoundPtr_Base(T * const t_Ptr) :
+      _t_ptr {t_Ptr}
+   {
+      if (!get())
+      {
+         std::terminate();
+      }
+   }
+
+   /// @brief Casting constructor.
+   // template <typename U>
+   // constexpr BoundPtr(BoundPtr<U, N> const & Other) :
+   //    BoundPtr<T, N>(Other)
+   // { }
+
+   /// @brief Compile time non-nullness checks.
+   constexpr BoundPtr_Base              (std::nullptr_t) = delete;
+   constexpr BoundPtr_Base & operator = (std::nullptr_t) = delete;
+
+   constexpr auto * get          (this auto && self) { return  self._t_ptr; }
+   constexpr        operator T * (this auto && self) { return  self.get();  } // TODO can this return T const *?
+   constexpr auto & operator *   (this auto && self) { return *self.get();  }
+   constexpr auto * operator ->  (this auto && self) { return  self.get();  }
+
+   // constexpr auto decay(void) const {
+   //    return BoundPtr<T>(get());
+   // }
+
+   // /// @brief Decay array pointer - safe.
+   // constexpr operator BoundPtr<T> (void) const {
+   //    return decay();
+   // }
+
+   constexpr auto & operator [] (this auto && self, std::integral auto const Idx) {
+      return self.get()[Idx];
+   }
+
+   // friend constexpr auto operator + (BoundPtr<T> const & Lhs, std::integral auto const Rhs) {
+   //    return BoundPtr(Lhs.get() + Rhs);
+   // }
+
+   // friend constexpr auto operator - (BoundPtr<T> const & Lhs, std::integral auto const Rhs) {
+   //    return BoundPtr(Lhs.get() - Rhs);
+   // }
+
+private:
+   T * _t_ptr;
+};
+
+template <
+   typename T>
+class BoundPtr : public BoundPtr_Base<T>
+{
+public:
+   /** BoundPtr
+    * 
+    * @brief Wrapper for non-null pointer.
+    * 
+    * @param t_Ptr -- Pointer to bind.
+    */
+   constexpr BoundPtr(T * const t_Ptr) :
+      BoundPtr_Base<T>(t_Ptr)
+   { }
+
+   constexpr BoundPtr(BoundPtr<T[]> const Other) :
+      BoundPtr_Base<T>(Other)
+   { }
+};
+
+template <typename T>
+class BoundPtr<T[]> : public BoundPtr_Base<T>
+{
+public:
+   /** BoundPtr
+    * 
+    * @brief Wrapper for non-null pointer.
+    * 
+    * @param t_Ptr -- Pointer to bind.
+    */
+   template <std::size_t N>
+   constexpr BoundPtr(T (&t_Ptr) [N]) :
+      BoundPtr_Base<T>(t_Ptr)
+   { }
+};
+
+/// @brief Deduction guide - prevents pointer to array from decaying.
+template <typename T, std::size_t N>
+BoundPtr(T (&)[N]) -> BoundPtr<T[]>;
+
 /** BoundPtr
  *
  * @brief Non-null pointer. There is no null check upon construction - pointers
@@ -214,91 +314,90 @@ YM_DECL_YMASSERT(NullPtrError)
  * @note Throwing in the constructor is preferable because you cannot swallow the
  *       exception and use BoundPtr in an unacceptable state.
  */
-template <
-   typename T,
-   sizet    N = 0uz>
-class BoundPtr
-{
-public:
-   /// @brief Enables users to cast pointer to anything.
-   YM_MAKE_PASSKEY(CastPassKey)
+// template <
+//    typename T,
+//    sizet    N = 0uz>
+// class BoundPtr
+// {
+// public:
+//    /// @brief Enables users to cast pointer to anything.
+//    YM_MAKE_PASSKEY(CastPassKey)
 
-   /** BoundPtr
-    * 
-    * @brief Wrapper for non-null pointer.
-    * 
-    * @param t_Ptr -- Pointer to bind.
-    */
-   implicit constexpr BoundPtr(T * const t_Ptr) :
-      _t_ptr {t_Ptr}
-   {
-      if constexpr (N == 0uz)
-      { // non-array pointer
-         YMASSERT(this->get(), NullPtrError, YM_DAH, "Bound pointer cannot be null");
-      }
-      else
-      { // pointer to array
-         // arrays are non-null in C++ - see above doc comment for handling 0-sized arrays.
-      }
-   }
+//    /** BoundPtr
+//     * 
+//     * @brief Wrapper for non-null pointer.
+//     * 
+//     * @param t_Ptr -- Pointer to bind.
+//     */
+//    implicit constexpr BoundPtr(T * const t_Ptr) :
+//       _t_ptr {t_Ptr}
+//    {
+//       if constexpr (N == 0uz)
+//       { // non-array pointer
+//          YMASSERT(this->get(), NullPtrError, YM_DAH, "Bound pointer cannot be null");
+//       }
+//       else
+//       { // pointer to array
+//          // arrays are non-null in C++ - see above doc comment for handling 0-sized arrays.
+//       }
+//    }
 
-   /// @brief Casting constructor.
-   template <typename U>
-   requires (
-      // TODO does is_convertible handle constness? I don't think so
-      std::is_convertible_v<U*, T*> && // enforce legal casting
-      (std::is_const_v<T>           || // can always convert to const
-      !std::is_const_v<U>))            // else neither should be const
-   implicit constexpr BoundPtr(BoundPtr<T, N> const & Other) :
-      BoundPtr<T, N>(Other)
-   { }
+//    /// @brief Casting constructor.
+//    template <typename U>
+//    requires (
+//       // TODO does is_convertible handle constness? I don't think so
+//       std::is_convertible_v<U*, T*> && // enforce legal casting
+//       (std::is_const_v<T>           || // can always convert to const
+//       !std::is_const_v<U>))            // else neither should be const
+//    implicit constexpr BoundPtr(BoundPtr<U, N> const & Other) :
+//       BoundPtr<T, N>(Other)
+//    { }
 
-   /// @brief Casting constructor. Anything goes.
-   template <typename U>
-   implicit constexpr BoundPtr(
-      BoundPtr<U, N> const & Other,
-      CastPassKey    const &) :
-         BoundPtr<T, N>(ymCastPtrTo<T>(Other))
-   { }
+//    /// @brief Casting constructor. Anything goes.
+//    template <typename U>
+//    implicit constexpr BoundPtr(
+//       BoundPtr<U, N> const & Other,
+//       CastPassKey    const &) :
+//          BoundPtr<T, N>(ymCastPtrTo<T>(Other))
+//    { }
 
-   /// @brief Compile time non-nullness checks.
-   constexpr BoundPtr              (std::nullptr_t) = delete;
-   constexpr BoundPtr & operator = (std::nullptr_t) = delete;
+//    /// @brief Compile time non-nullness checks.
+//    constexpr BoundPtr              (std::nullptr_t) = delete;
+//    constexpr BoundPtr & operator = (std::nullptr_t) = delete;
 
-   constexpr auto * get          (this auto && self) { return  self._t_ptr; }
-   constexpr        operator T * (this auto && self) { return  self.get();  } // TODO can this return T const *?
-   constexpr auto & operator *   (this auto && self) { return *self.get();  }
-   constexpr auto * operator ->  (this auto && self) { return  self.get();  }
+//    constexpr auto * get          (this auto && self) { return  self._t_ptr; }
+//    constexpr        operator T * (this auto && self) { return  self.get();  } // TODO can this return T const *?
+//    constexpr auto & operator *   (this auto && self) { return *self.get();  }
+//    constexpr auto * operator ->  (this auto && self) { return  self.get();  }
 
-   constexpr auto decay(void) const {
-      return BoundPtr<T>(get());
-   }
+//    constexpr auto decay(void) const {
+//       return BoundPtr<T>(get());
+//    }
 
-   /// @brief Decay array pointer - safe.
-   constexpr operator BoundPtr<T> (void) const {
-      return decay();
-   }
+//    /// @brief Decay array pointer - safe.
+//    constexpr operator BoundPtr<T> (void) const {
+//       return decay();
+//    }
 
-   constexpr auto & operator [] (this auto && self, std::integral auto const Idx) {
-      return self.get()[Idx];
-   }
+//    constexpr auto & operator [] (this auto && self, std::integral auto const Idx) {
+//       return self.get()[Idx];
+//    }
 
-   // TODO FreePtr is not yet defined
-   friend constexpr auto operator + (BoundPtr<T, N> const & Lhs, std::integral auto const Rhs) {
-      return FreePtr(Lhs.get() + Rhs);
-   }
+//    friend constexpr auto operator + (BoundPtr<T, N> const & Lhs, std::integral auto const Rhs) {
+//       return BoundPtr(Lhs.get() + Rhs);
+//    }
 
-   friend constexpr auto operator - (BoundPtr<T, N> const & Lhs, std::integral auto const Rhs) {
-      return FreePtr(Lhs.get() - Rhs);
-   }
+//    friend constexpr auto operator - (BoundPtr<T, N> const & Lhs, std::integral auto const Rhs) {
+//       return BoundPtr(Lhs.get() - Rhs);
+//    }
 
-private:
-   T * _t_ptr;
-};
+// private:
+//    T * _t_ptr;
+// };
 
-/// @brief Deduction guide - prevents pointer to array from decaying.
-template <typename T, sizet N>
-BoundPtr(T (&)[N]) -> BoundPtr<T, N>;
+// /// @brief Deduction guide - prevents pointer to array from decaying.
+// template <typename T, sizet N>
+// BoundPtr(T (&)[N]) -> BoundPtr<T, N>;
 
 /**
  * TODO
@@ -314,11 +413,11 @@ public:
    { }
 
    constexpr bool hasValue(void) const {
-      return _value != nullptr;
+      return _t_ptr != nullptr;
    }
 
    constexpr BoundPtr<T> unwrap(void) {
-      return _value;
+      return _t_ptr;
    }
 
    constexpr BoundPtr<T> unwrap_or(BoundPtr<T> const BPtr) {
@@ -331,19 +430,19 @@ private:
 
 /// @brief Convenience alias.
 template <typename T>
-using btr = BoundPtr<T>; // bound-ter
+using bptr = BoundPtr<T>;
 
 /// @brief Convenience alias.
 template <typename T>
-using ftr = FreePtr<T>; // free-ter
+using fptr = FreePtr<T>;
 
 /// @brief Convenience alias.
-using str = bptr<char const>; // string
+using str = BoundPtr<char const>; // string
 
 // TODO maybe provide an overload to boundedptr that takes char (&Format)[N]
 //      and static_assert N > 0
 /// @brief Convenience user-defined literal
-constexpr inline auto operator""_str(rawstr const S, std::size_t) { return tbptr(S); }
+// constexpr inline auto operator""_str(rawstr const S, std::size_t) { return str(S); }
 
 /** PolyRaw
  * 
@@ -365,11 +464,11 @@ public:
    explicit constexpr PolyRaw(void) = default;
 
    constexpr bptr<Base_T> operator -> (void) {
-      return tbptr(ymCastPtrTo<Base_T>(_buffer.data()));
+      return bptr(ymCastPtrTo<Base_T>(_buffer.data()));
    }
 
    constexpr bptr<Base_T const> operator -> (void) const {
-      return tbptr(ymCastPtrTo<Base_T const>(_buffer.data()));
+      return bptr(ymCastPtrTo<Base_T const>(_buffer.data()));
    }
 
    /// @brief Copy constructor.

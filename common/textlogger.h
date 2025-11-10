@@ -135,7 +135,7 @@ private:
    void releaseWriteAccess(void);
 
    void printf_Handler(
-      strlit const     Format,
+      str const        Format,
       fmt::format_args args);
 
    char * populateFormattedTime(char * write_ptr) const;

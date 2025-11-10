@@ -90,7 +90,7 @@ protected:
    bool openOutfile(std::string_view const Filename, Options_T const & Options);
    void closeOutfile(void);
    
-   std::FILE * _file_ptr{};
+   std::FILE * _file_ptr{}; // TODOchange to FreePtr
 
 private:
    void openOutfile_core           (std::string_view const Filename, Options_T const & Options);

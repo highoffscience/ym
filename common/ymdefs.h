@@ -150,6 +150,7 @@ namespace ym
  *       are structured unorthodoxically so all supported compilers can parse it.
  */
 
+using rawstr = char const *;
 using uchar  = unsigned char;
 using schar  =   signed char;
 

@@ -6,8 +6,9 @@
 
 #include "logger.h"
 
-#include "textlogger.h"
+#include "globaltextlogger.h"
 #include "timer.h"
+#include "verbogroup.h"
 
 #include "fmt/chrono.h"
 #include "fmt/format.h"

@@ -143,16 +143,16 @@ void ym::TextLogger::releaseWriteAccess(void)
  *
  * @throws Whatever print_Handler(Format, args) throws.
  * 
- * @param VG     -- Verbosity group.
+ * @param VF     -- Verbosity group.
  * @param Format -- Format string.
  * @param ...    -- Arguments.
  */
 void ym::TextLogger::printf_Handler(
-   VG     const     VG,
+   VF     const     VF,
    strlit const     Format,
    fmt::format_args args)
 {
-   if (_vGroups.test(VG))
+   if (_vFlags.test(VF))
    { // verbose enough to print this message
       printf_Handler(Format, args); // TODO should take VG here too and add debug, warning, or error labels,
                                     // if applicable (rename func of course, it is already overloaded).
@@ -172,7 +172,7 @@ void ym::TextLogger::printf_Handler(
  * @param args   -- Arguments.
  */
 void ym::TextLogger::printf_Handler(
-   strlit const     Format,
+   str const        Format,
    fmt::format_args args)
 {
    char buffer[256uz];
@@ -196,7 +196,7 @@ void ym::TextLogger::printf_Handler(
    auto result = fmt::vformat_to_n(
       write_Ptr,
       sizeof(buffer) - TimeStampSize_bytes - NewlineSize_bytes,
-      Format,
+      Format.get(),
       args);
 
    if (HasTimeStamp)
