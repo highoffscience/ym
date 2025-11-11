@@ -190,8 +190,7 @@ public:
       clear(Idx); _bits |= (T(Val) << Idx);
    }
 
-   constexpr auto const & getUnderlying   (void) const { return  _bits; }
-   constexpr auto       * getUnderlyingPtr(void) const { return &_bits; }
+   constexpr auto const & getUnderlying(void) const { return _bits; }
 
 private:
    T _bits{};
@@ -199,68 +198,68 @@ private:
 
 YM_DECL_YMASSERT(NullPtrError)
 
-template <
-   typename T>
+template <typename T>
 class BoundPtr_Base
 {
 public:
-   /** BoundPtr
+   /** BoundPtr_Base
     * 
     * @brief Wrapper for non-null pointer.
     * 
-    * @param t_Ptr -- Pointer to bind.
+    * @param value_ptr -- Pointer to bind.
     */
-   constexpr BoundPtr_Base(T * const t_Ptr) :
-      _t_ptr {t_Ptr}
+   constexpr BoundPtr_Base(T * const value_ptr) :
+      _value_ptr {value_ptr}
    {
-      if (!get())
-      {
-         std::terminate();
-      }
+      YMASSERT(get(), NullPtrError, YM_DAH, "Bound pointer cannot be null");
    }
 
+   /// @brief Enables users to cast pointer to anything.
+   YM_MAKE_PASSKEY(CastPassKey)
+
    /// @brief Casting constructor.
-   // template <typename U>
-   // constexpr BoundPtr(BoundPtr<U, N> const & Other) :
-   //    BoundPtr<T, N>(Other)
-   // { }
+   template <typename U>
+   requires (std::is_convertible_v<U*, T*>) // enforce legal casting
+   implicit constexpr BoundPtr(BoundPtr<U> const & Other) :
+      BoundPtr<T>(Other)
+   { }
+
+   /// @brief Casting constructor. Anything goes.
+   template <typename U>
+   implicit constexpr BoundPtr(
+      BoundPtr<U> const & Other,
+      CastPassKey const) :
+         BoundPtr<T>(ymCastPtrTo<T>(Other))
+   { }
 
    /// @brief Compile time non-nullness checks.
    constexpr BoundPtr_Base              (std::nullptr_t) = delete;
    constexpr BoundPtr_Base & operator = (std::nullptr_t) = delete;
 
-   constexpr auto * get          (this auto && self) { return  self._t_ptr; }
-   constexpr        operator T * (this auto && self) { return  self.get();  } // TODO can this return T const *?
-   constexpr auto & operator *   (this auto && self) { return *self.get();  }
-   constexpr auto * operator ->  (this auto && self) { return  self.get();  }
+   // TODO document functions
 
-   // constexpr auto decay(void) const {
-   //    return BoundPtr<T>(get());
-   // }
-
-   // /// @brief Decay array pointer - safe.
-   // constexpr operator BoundPtr<T> (void) const {
-   //    return decay();
-   // }
+   constexpr auto * get          (this auto && self) { return  self._value_ptr; }
+   constexpr        operator T * (this auto && self) { return  self.get(); }
+   constexpr auto & operator *   (this auto && self) { return *self.get(); }
+   constexpr auto * operator ->  (this auto && self) { return  self.get(); }
 
    constexpr auto & operator [] (this auto && self, std::integral auto const Idx) {
       return self.get()[Idx];
    }
 
-   // friend constexpr auto operator + (BoundPtr<T> const & Lhs, std::integral auto const Rhs) {
-   //    return BoundPtr(Lhs.get() + Rhs);
-   // }
+   friend constexpr auto operator + (BoundPtr<T> const & Lhs, std::integral auto const Rhs) {
+      return BoundPtr(Lhs.get() + Rhs);
+   }
 
-   // friend constexpr auto operator - (BoundPtr<T> const & Lhs, std::integral auto const Rhs) {
-   //    return BoundPtr(Lhs.get() - Rhs);
-   // }
+   friend constexpr auto operator - (BoundPtr<T> const & Lhs, std::integral auto const Rhs) {
+      return BoundPtr(Lhs.get() - Rhs);
+   }
 
 private:
-   T * _t_ptr;
+   T * _value_ptr;
 };
 
-template <
-   typename T>
+template <typename T>
 class BoundPtr : public BoundPtr_Base<T>
 {
 public:
