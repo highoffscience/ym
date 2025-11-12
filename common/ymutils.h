@@ -180,6 +180,7 @@ requires (sizeof(T) < sizeof(sizet)) // see above doc comment
 class Bitset
 {
 public:
+   /// @brief Constructor.
    explicit constexpr Bitset(void) = default;
 
    constexpr bool test  (T const Idx) const { return _bits &   (T(1u) << Idx); }
@@ -198,22 +199,36 @@ private:
 
 YM_DECL_YMASSERT(NullPtrError)
 
+/** BoundPtr
+ *
+ * @brief Non-null pointer. There is no null check upon construction - pointers
+ *        passed to this class are trusted to be non-null.
+ * 
+ * @tparam T -- Type of pointer.
+ * @tparam N -- Size of array if pointer to C-style array, 0 otherwise.
+ *
+ * @note Compiling with the pedantic flag is recommended to prevent allowing arrays
+ *       with zero size. If you are using 0-sized arrays, you'll need to modify
+ *       the check conditions of this class.
+ *
+ * @note Throwing in the constructor is preferable because you cannot swallow the
+ *       exception and use BoundPtr in an unacceptable state.
+ */
 template <typename T>
 class BoundPtr_Base
 {
-public:
+protected:
    /** BoundPtr_Base
     * 
     * @brief Wrapper for non-null pointer.
     * 
     * @param value_ptr -- Pointer to bind.
     */
-   constexpr BoundPtr_Base(T * const value_ptr) :
-      _value_ptr {value_ptr}
-   {
-      YMASSERT(get(), NullPtrError, YM_DAH, "Bound pointer cannot be null");
-   }
+   implicit constexpr BoundPtr_Base(T * const value_Ptr) :
+      _value_ptr {value_Ptr}
+   { }
 
+public:
    /// @brief Enables users to cast pointer to anything.
    YM_MAKE_PASSKEY(CastPassKey)
 
@@ -236,27 +251,29 @@ public:
    constexpr BoundPtr_Base              (std::nullptr_t) = delete;
    constexpr BoundPtr_Base & operator = (std::nullptr_t) = delete;
 
-   // TODO document functions
-
+   /// @brief Getters.
    constexpr auto * get          (this auto && self) { return  self._value_ptr; }
    constexpr        operator T * (this auto && self) { return  self.get(); }
    constexpr auto & operator *   (this auto && self) { return *self.get(); }
    constexpr auto * operator ->  (this auto && self) { return  self.get(); }
 
+   /// @brief Grabs the element at the specified index. No bounds checking.
    constexpr auto & operator [] (this auto && self, std::integral auto const Idx) {
       return self.get()[Idx];
    }
 
+   /// @brief Pointer addition.
    friend constexpr auto operator + (BoundPtr<T> const & Lhs, std::integral auto const Rhs) {
       return BoundPtr(Lhs.get() + Rhs);
    }
 
+   /// @brief Pointer subtraction.
    friend constexpr auto operator - (BoundPtr<T> const & Lhs, std::integral auto const Rhs) {
       return BoundPtr(Lhs.get() - Rhs);
    }
 
-private:
-   T * _value_ptr;
+protected:
+   T * _value_ptr{};
 };
 
 template <typename T>
@@ -267,15 +284,24 @@ public:
     * 
     * @brief Wrapper for non-null pointer.
     * 
-    * @param t_Ptr -- Pointer to bind.
+    * @param value_Ptr -- Pointer to bind.
     */
-   constexpr BoundPtr(T * const t_Ptr) :
-      BoundPtr_Base<T>(t_Ptr)
-   { }
+   implicit constexpr BoundPtr(T * const value_Ptr) :
+      BoundPtr_Base<T>(value_Ptr)
+   {
+      YMASSERT(get(), NullPtrError, YM_DAH, "Bound pointer cannot be null");
+   }
 
-   constexpr BoundPtr(BoundPtr<T[]> const Other) :
+   /// @brief Decaying constructor. Pointer to array to pointer is safe.
+   implicit constexpr BoundPtr(BoundPtr<T[]> const Other) :
       BoundPtr_Base<T>(Other)
    { }
+
+   /// @brief Assignment.
+   constexpr auto & operator = (T * const value_Ptr) {
+      _value_ptr = BoundPtr(value_Ptr);
+      return *this;
+   }
 };
 
 template <typename T>
@@ -286,120 +312,28 @@ public:
     * 
     * @brief Wrapper for non-null pointer.
     * 
-    * @param t_Ptr -- Pointer to bind.
+    * @param array -- Pointer to array to bind.
     */
-   template <std::size_t N>
-   constexpr BoundPtr(T (&t_Ptr) [N]) :
-      BoundPtr_Base<T>(t_Ptr)
+   template <sizet N>
+   implicit constexpr BoundPtr(T (&array) [N]) :
+      BoundPtr_Base<T>(array)
    { }
+
+   /// @brief Assignment.
+   constexpr auto & operator = (T (&array) [N]) {
+      _value_ptr = array;
+      return *this;
+   }
 };
 
 /// @brief Deduction guide - prevents pointer to array from decaying.
-template <typename T, std::size_t N>
+template <typename T, sizet N>
 BoundPtr(T (&)[N]) -> BoundPtr<T[]>;
 
-/** BoundPtr
- *
- * @brief Non-null pointer. There is no null check upon construction - pointers
- *        passed to this class are trusted to be non-null.
+/** FreePtr
  * 
- * @tparam T -- Type of pointer.
- * @tparam N -- Size of array if pointer to C-style array, 0 otherwise.
- *
- * @note Compiling with the pedantic flag is recommended to prevent allowing arrays
- *       with zero size. If you are using 0-sized arrays, you'll need to modify
- *       the check conditions of this class.
- *
- * @note Throwing in the constructor is preferable because you cannot swallow the
- *       exception and use BoundPtr in an unacceptable state.
- */
-// template <
-//    typename T,
-//    sizet    N = 0uz>
-// class BoundPtr
-// {
-// public:
-//    /// @brief Enables users to cast pointer to anything.
-//    YM_MAKE_PASSKEY(CastPassKey)
-
-//    /** BoundPtr
-//     * 
-//     * @brief Wrapper for non-null pointer.
-//     * 
-//     * @param t_Ptr -- Pointer to bind.
-//     */
-//    implicit constexpr BoundPtr(T * const t_Ptr) :
-//       _t_ptr {t_Ptr}
-//    {
-//       if constexpr (N == 0uz)
-//       { // non-array pointer
-//          YMASSERT(this->get(), NullPtrError, YM_DAH, "Bound pointer cannot be null");
-//       }
-//       else
-//       { // pointer to array
-//          // arrays are non-null in C++ - see above doc comment for handling 0-sized arrays.
-//       }
-//    }
-
-//    /// @brief Casting constructor.
-//    template <typename U>
-//    requires (
-//       // TODO does is_convertible handle constness? I don't think so
-//       std::is_convertible_v<U*, T*> && // enforce legal casting
-//       (std::is_const_v<T>           || // can always convert to const
-//       !std::is_const_v<U>))            // else neither should be const
-//    implicit constexpr BoundPtr(BoundPtr<U, N> const & Other) :
-//       BoundPtr<T, N>(Other)
-//    { }
-
-//    /// @brief Casting constructor. Anything goes.
-//    template <typename U>
-//    implicit constexpr BoundPtr(
-//       BoundPtr<U, N> const & Other,
-//       CastPassKey    const &) :
-//          BoundPtr<T, N>(ymCastPtrTo<T>(Other))
-//    { }
-
-//    /// @brief Compile time non-nullness checks.
-//    constexpr BoundPtr              (std::nullptr_t) = delete;
-//    constexpr BoundPtr & operator = (std::nullptr_t) = delete;
-
-//    constexpr auto * get          (this auto && self) { return  self._t_ptr; }
-//    constexpr        operator T * (this auto && self) { return  self.get();  } // TODO can this return T const *?
-//    constexpr auto & operator *   (this auto && self) { return *self.get();  }
-//    constexpr auto * operator ->  (this auto && self) { return  self.get();  }
-
-//    constexpr auto decay(void) const {
-//       return BoundPtr<T>(get());
-//    }
-
-//    /// @brief Decay array pointer - safe.
-//    constexpr operator BoundPtr<T> (void) const {
-//       return decay();
-//    }
-
-//    constexpr auto & operator [] (this auto && self, std::integral auto const Idx) {
-//       return self.get()[Idx];
-//    }
-
-//    friend constexpr auto operator + (BoundPtr<T, N> const & Lhs, std::integral auto const Rhs) {
-//       return BoundPtr(Lhs.get() + Rhs);
-//    }
-
-//    friend constexpr auto operator - (BoundPtr<T, N> const & Lhs, std::integral auto const Rhs) {
-//       return BoundPtr(Lhs.get() - Rhs);
-//    }
-
-// private:
-//    T * _t_ptr;
-// };
-
-// /// @brief Deduction guide - prevents pointer to array from decaying.
-// template <typename T, sizet N>
-// BoundPtr(T (&)[N]) -> BoundPtr<T, N>;
-
-/**
- * TODO
+ * @brief Wrapper class that represents a possibly null pointer. No access is allowed without first
+ *        converting to a BoundPtr.
  *
  * @note No need to handle pointer to array cases - if it is an array then a BoundPtr will be made instead.
  */
@@ -407,24 +341,34 @@ template <typename T>
 class FreePtr
 {
 public:
-   constexpr FreePtr(T * const t_Ptr) :
-      _t_ptr {t_Ptr}
+   /// @brief Constructor.
+   implicit constexpr FreePtr(T * const value_Ptr) :
+      _value_ptr {value_Ptr}
    { }
 
+   /// @brief Assignment.
+   constexpr auto & operator = (T * const value_Ptr) {
+      *this = FreePtr(value_Ptr);
+      return *this;
+   }
+
+   /// @brief True if contained pointer is not null, false otherwise.
    constexpr bool hasValue(void) const {
-      return _t_ptr != nullptr;
+      return _value_ptr != nullptr;
    }
 
+   /// @brief Returns a BoundPtr to the contained pointer.
    constexpr BoundPtr<T> unwrap(void) {
-      return _t_ptr;
+      return _value_ptr;
    }
 
+   /// @brief Returns a BoundPtr to the contained pointer, or a default value if the contained pointer is null.
    constexpr BoundPtr<T> unwrap_or(BoundPtr<T> const BPtr) {
       return hasValue() ? unwrap() : BPtr;
    }
 
 private:
-   T * _t_ptr{};
+   T * _value_ptr{};
 };
 
 /// @brief Convenience alias.
