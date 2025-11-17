@@ -262,16 +262,6 @@ public:
       return self.get()[Idx];
    }
 
-   /// @brief Pointer addition.
-   friend constexpr auto operator + (BoundPtr<T> const & Lhs, std::integral auto const Rhs) {
-      return BoundPtr(Lhs.get() + Rhs);
-   }
-
-   /// @brief Pointer subtraction.
-   friend constexpr auto operator - (BoundPtr<T> const & Lhs, std::integral auto const Rhs) {
-      return BoundPtr(Lhs.get() - Rhs);
-   }
-
 protected:
    T * _value_ptr{};
 };
@@ -342,19 +332,25 @@ class FreePtr
 {
 public:
    /// @brief Constructor.
+   implicit constexpr FreePtr(void) = default;
+
+   /// @brief Constructor.
    implicit constexpr FreePtr(T * const value_Ptr) :
       _value_ptr {value_Ptr}
    { }
 
    /// @brief Assignment.
    constexpr auto & operator = (T * const value_Ptr) {
-      *this = FreePtr(value_Ptr);
+      _value_ptr = value_Ptr;
       return *this;
    }
 
+   /// @brief Comparison operations.
+   constexpr auto operator <=> (FreePtr<T> const &) const noexcept = default;
+
    /// @brief True if contained pointer is not null, false otherwise.
-   constexpr bool hasValue(void) const {
-      return _value_ptr != nullptr;
+   constexpr operator bool(void) const noexcept {
+      return *this != nullptr;
    }
 
    /// @brief Returns a BoundPtr to the contained pointer.
@@ -364,7 +360,7 @@ public:
 
    /// @brief Returns a BoundPtr to the contained pointer, or a default value if the contained pointer is null.
    constexpr BoundPtr<T> unwrap_or(BoundPtr<T> const BPtr) {
-      return hasValue() ? unwrap() : BPtr;
+      return (*this) ? unwrap() : BPtr;
    }
 
 private:
@@ -372,20 +368,13 @@ private:
 };
 
 /// @brief Convenience alias.
-template <typename T>
-using bptr = BoundPtr<T>;
-
-/// @brief Convenience alias.
-template <typename T>
-using fptr = FreePtr<T>;
-
-/// @brief Convenience alias.
 using str = BoundPtr<char const>; // string
 
-// TODO maybe provide an overload to boundedptr that takes char (&Format)[N]
-//      and static_assert N > 0
-/// @brief Convenience user-defined literal
-// constexpr inline auto operator""_str(rawstr const S, std::size_t) { return str(S); }
+/// @brief Convenience alias.
+using strlit = BoundPtr<char const[]>; // string literal
+
+/// @brief Convenience alias.
+using mutstr = BoundPtr<char>; // mutable string
 
 /** PolyRaw
  * 

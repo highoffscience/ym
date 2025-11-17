@@ -315,7 +315,7 @@ char * ym::TextLogger::populateFormattedTime(char * write_ptr) const
          auto const Result = fmt::format_to_n(
             write_ptr,
             HumanReadableTimeStampTemplate.size(),
-            " {:03}:{:02}:{:02}.{:06}: ",
+            "{:03}:{:02}:{:02}.{:06}",
             Time_hr.count(),
             Time_min.count(),
             Time_sec.count(),

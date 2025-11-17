@@ -56,7 +56,7 @@ public:
    struct Options_T
    {
       /// @brief Opening options (defined in base Logger).
-      Logger::Options_T _loggerOptions{Logger::getDefaultOptions()};
+      Logger::Options_T _baseOptions{Logger::getDefaultOptions()};
 
       /// @brief Mode to determine how to mangle the printable message.
       PrintMode_T _printMode{PrintMode_T::PrependHumanReadableTimeStamp};
@@ -71,15 +71,15 @@ public:
       };
 
       /// @brief Convenience cast to pass to base Logger functions.
-      constexpr operator Logger::Options_T(void) const { return _loggerOptions; }
+      constexpr operator Logger::Options_T(void) const { return _baseOptions; }
 
       /// @brief Allows direct comparison between Options_T and specified field type.
-      constexpr friend bool operator == (Options_T const & Opts, PrintMode_T const Mode) {
+      friend constexpr bool operator == (Options_T const & Opts, PrintMode_T const Mode) {
          return Opts._printMode == Mode;
       }
 
       /// @brief Allows direct comparison between OpeningOptions_T and specified field type.
-      constexpr friend bool operator == (Options_T const & Opts, RedirectMode_T const Mode) {
+      friend constexpr bool operator == (Options_T const & Opts, RedirectMode_T const Mode) {
          return Opts._redirectMode == Mode;
       }
    };
@@ -94,25 +94,24 @@ public:
 
    YM_DECL_YMASSERT(Error)
 
-   inline auto getFilename(void) const { return _Filename; }
+   inline auto         getFilename(void) const { return _Filename; }
+   inline auto const & getOptions (void) const { return _options;  }
 
    bool isOpen(void) const;
 
    bool open(void);
    void close(void);
 
-   template <
-      sizet       N,
-      typename... Args_T>
+   template <typename... Args_T>
    inline void printf(
-         char const (&Format)[N],
+         strlit       Format,
          Args_T &&... args_uref) {
-      producer(Format, fmt::make_format_args(args_uref...)); // TODO change this to printf_Handler
+      producer(Format, fmt::make_format_args(args_uref...));
    }
 
 protected:
    virtual void producer(
-      str const        Format,
+      strlit const     Format,
       fmt::format_args args) = 0;
 
 private:
@@ -129,20 +128,14 @@ private:
    };
 
    static constexpr std::string_view RawTimeStampTemplate{"uuuuuuuuuuuu"};
-   static constexpr std::string_view HumanReadableTimeStampTemplate{" HHH:MM:SS.uuuuuu: "};
+   static constexpr std::string_view HumanReadableTimeStampTemplate{" HHH:MM:SS.uuuuuu"};
 
-   void acquireWriteAccess(void);
-   void releaseWriteAccess(void);
+   mutstr populateFormattedTime(mutstr writePtr) const;
 
-   void printf_Handler(
-      str const        Format,
-      fmt::format_args args);
-
-   char * populateFormattedTime(char * write_ptr) const;
-
-   str       const      _Filename{"unnamed.uhoh" };
-   Timer                _timer   { /* default */ };
-   std::atomic<State_T> _state   {State_T::Closed};
+   str       const      _Filename{"unnamed.uhoh"     };
+   Options_T            _options {getDefaultOptions()};
+   Timer                _timer   {   /* default */   };
+   std::atomic<State_T> _state   {State_T::Closed    };
 };
 
 } // ym

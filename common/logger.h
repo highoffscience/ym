@@ -58,12 +58,12 @@ public:
       OverwriteMode_T _overwriteMode{OverwriteMode_T::Disallow};
 
       /// @brief Allows direct comparison between Options_T and specified field type.
-      constexpr friend bool operator == (Options_T const & Opts, FilenameMode_T const Mode) {
+      friend constexpr bool operator == (Options_T const & Opts, FilenameMode_T const Mode) {
          return Opts._filenameMode == Mode;
       }
 
       /// @brief Allows direct comparison between Options_T and specified field type.
-      constexpr friend bool operator == (Options_T const & Opts, OverwriteMode_T const Mode) {
+      friend constexpr bool operator == (Options_T const & Opts, OverwriteMode_T const Mode) {
          return Opts._overwriteMode == Mode;
       }
    };
@@ -77,20 +77,18 @@ public:
 
 protected:
    explicit Logger(void) = default;
-   inline ~Logger(void) {
-      closeOutfile();
-   }
+   ~Logger(void);
 
-   inline auto isOutfileOpened(void) const { return _file_ptr != nullptr; }
+   inline auto isOutfileOpened(void) const { return _file != nullptr; }
 
    // Don't name simply "open" or "close" because we want to allow derived
    // classes to implement these functions without the overhead of
    // virtual calls.
 
    bool openOutfile(std::string_view const Filename, Options_T const & Options);
-   void closeOutfile(void);
+   virtual void closeOutfile(void);
    
-   std::FILE * _file_ptr{}; // TODOchange to FreePtr
+   FreePtr<std::FILE> _file{};
 
 private:
    void openOutfile_core           (std::string_view const Filename, Options_T const & Options);

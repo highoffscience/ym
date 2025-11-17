@@ -21,6 +21,15 @@
 #include <system_error>
 #include <utility>
 
+/** ~Logger
+ * 
+ * @brief Destructor.
+ */
+ym::Logger::~Logger(void)
+{
+   closeOutfile();
+}
+
 /** openOutfile
  *
  * @brief Attempts to open a write-file.
@@ -78,7 +87,7 @@ void ym::Logger::openOutfile_core(
    }
    else
    { // open!
-      _outfile_uptr.reset(std::fopen(Filename.data(), "w")); // status of failure handled at call site
+      _file = std::fopen(Filename.data(), "w"); // status of failure handled at call site
    }
 }
 
@@ -97,7 +106,7 @@ void ym::Logger::openOutfile_appendTimeStamp(
    Options_T        const & Options)
 {
    auto extPos = Filename.find_last_of('.');
-   if (extPos == std::size_t(0u) ||      // hidden files
+   if (extPos == 0uz ||                  // hidden files
        extPos == std::string_view::npos) // no extension
    { // no extension found
       extPos = Filename.size();
@@ -152,11 +161,11 @@ void ym::Logger::openOutfile_appendTimeStamp(
  */
 void ym::Logger::closeOutfile(void)
 {
-   if (_file_ptr != stdout &&
-       _file_ptr != stderr &&
-       _file_ptr != stdin)
-   {
-      std::ignore = std::fclose(_file_ptr);
-      _file_ptr = nullptr;
+   if (_file != stdout &&
+       _file != stderr &&
+       _file != stdin)
+   { // close the stream
+      std::ignore = std::fclose(_file);
+      _file = nullptr;
    }
 }

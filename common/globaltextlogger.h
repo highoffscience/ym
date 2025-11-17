@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "logger.h"
+#include "textlogger.h"
 #include "timer.h"
 #include "verbogroup.h"
 #include "ymglobals.h"
@@ -15,6 +15,7 @@
 
 #include <array>
 #include <atomic>
+#include <bitset>
 #include <concepts>
 #include <utility>
 
@@ -27,104 +28,38 @@ namespace ym
 
 template <typename... Args_T>
 inline void ymLog(
-   VG     const VG,
+   VF     const VFlag,
    strlit const Format,
    Args_T &&... args_uref);
 
-template <std::same_as<VG>... VGs_T> inline void ymLogEnable (VGs_T const... VGs);
-template <std::same_as<VG>... VGs_T> inline void ymLogDisable(VGs_T const... VGs);
+template <std::same_as<VF>... VFs_T> inline void ymLogEnable (VFs_T const... VFlags);
+template <std::same_as<VF>... VFs_T> inline void ymLogDisable(VFs_T const... VFlags);
 
-// template <std::same_as<VG>... VGs_T>
-// inline class ScopedEnable ymLogPushEnable(VGs_T const... VGs);
+// template <std::same_as<VF>... VFlags_T>
+// inline class ScopedEnable ymLogPushEnable(VFs_T const... VFlags);
 // Above is implemented below - ScopedEnable isn't yet defined.
 
 /* -------------------------------------------------------------------------- */
 
-/** TextLogger
+/** GlobalTextLogger
  *
  * @brief Logs text to the given outfile - similary to std::printf.
  */
-class TextLogger : public Logger
+class GlobalTextLogger : public TextLogger
 {
 public:
-   /** PrintMode_T
-    *
-    * @brief Mode to determine how to mangle the printable message.
-    */
-   enum class PrintMode_T : uint32
-   {
-      KeepOriginal,
-      PrependTimeStamp,
-      PrependHumanReadableTimeStamp
-   };
-
-   /** RedirectMode_T
-    * 
-    * @brief Specifies what streams to pipe the output to.
-    */
-   enum class RedirectMode_T : uint32
-   {
-      ToLog,
-      ToLogAndStdOut // for debugging
-   };
-
-   /** Options_T
-    * 
-    * @brief Options surrounding opening and writing to a file.
-    */
-   struct Options_T
-   {
-      /// @brief Opening options (defined in base Logger).
-      OpeningOptions_T _openingOptions{};
-
-      /// @brief Mode to determine how to mangle the printable message.
-      PrintMode_T _printMode{PrintMode_T::PrependHumanReadableTimeStamp};
-
-      /// @brief Mode to specify what streams to pipe the output to.
-      RedirectMode_T _redirectMode{
-         #if (YM_DEBUG || YM_PRINT_TO_SCREEN)
-            RedirectMode_T::ToLogAndStdOut
-         #else
-            RedirectMode_T::ToLog
-         #endif
-      };
-
-      /// @brief Convenience cast to pass to base Logger functions.
-      constexpr operator OpeningOptions_T(void) const { return _openingOptions; }
-
-      /// @brief Allows direct comparison between Options_T and specified field type.
-      constexpr friend bool operator == (Options_T const & Opts, PrintMode_T const Mode) {
-         return Opts._printMode == Mode;
-      }
-
-      /// @brief Allows direct comparison between OpeningOptions_T and specified field type.
-      constexpr friend bool operator == (Options_T const & Opts, RedirectMode_T const Mode) {
-         return Opts._redirectMode == Mode;
-      }
-   };
-
-   static constexpr Options_T getDefaultOptions(void) { return {}; }
-
-   explicit TextLogger(
+   explicit GlobalTextLogger(
       str       const   Filename,
       Options_T const & Options = getDefaultOptions());
-   ~TextLogger(void);
+   virtual ~GlobalTextLogger(void);
 
-   YM_NO_COPY  (TextLogger)
-   YM_NO_ASSIGN(TextLogger)
+   YM_NO_COPY  (GlobalTextLogger)
+   YM_NO_ASSIGN(GlobalTextLogger)
 
    YM_DECL_YMASSERT(PrintError)
    YM_DECL_YMASSERT(GlobalError)
 
-   static bptr<TextLogger> getGlobalInstancePtr(void);
-
-   inline auto         getFilename(void) const { return _Filename; }
-   inline auto const & getOptions (void) const { return _Options;  }
-
-   bool isOpen(void) const;
-
-   bool open(void);
-   void close(void);
+   static BoundPtr<GlobalTextLogger> getGlobalInstance(void);
 
    /** ScopedEnable
     * 
@@ -135,58 +70,35 @@ public:
     * @note Uses RAII to storing/restoring enabling verbosity groups.
     * 
     * @note The return value from pushEnable will need to be explicitly stored, ie.
-    *       auto const SE = ymLogPushEnable(VG);
+    *       auto const SE = ymLogPushEnable(VF);
     *       even if SE is not used, since the destructor has side effects. Simply calling
     *       pushEnable will result in the ScopedEnable structure being deleted immediately.
     */
-   template <std::same_as<VG>... VGs_T>
+   template <std::same_as<VF>... VFs_T>
    class ScopedEnable
    {
    public:
-      explicit ScopedEnable(
-         bptr<TextLogger> const logger_UPtr,
-         /*VG           const VG*/); // TODO allow multiple VGs
+      static constexpr auto NFlags = sizeof...(VFs_T);
+
+      explicit ScopedEnable(VFs_T const... VFlags);
       ~ScopedEnable(void);
 
       void popEnable(void) const;
 
    private:
-      bptr<TextLogger> const _logger_UPtr;
-      VGs_T...         const _VGs;
-      bool             const _WasEnabled;
+      std::array<VF, NFlags> const _VFlags;
+      std::bitset<   NFlags> const _WasEnabled;
    };
 
-   template <std::same_as<VG>... VGs_T> void enable (VGs_T const... VGs);
-   template <std::same_as<VG>... VGs_T> void disable(VGs_T const... VGs);
+   template <std::same_as<VF>... VFs_T> void enable (VFs_T const... VFlags);
+   template <std::same_as<VF>... VFs_T> void disable(VFs_T const... VFlags);
 
-   template <std::same_as<VG>... VGs_T>
-   ScopedEnable pushEnable(VGs_T const... VGs);
-
-   template <typename... Args_T>
-   inline void printf(
-      VG     const VG,
-      strlit const Format,
-      Args_T &&... args_uref);
+   template <std::same_as<VF>... VFs_T>
+   ScopedEnable<VFs_T...> pushEnable(VFs_T const... VFlags);
 
 private:
-   /** State_T
-    *
-    * @brief State of the logger.
-    */
-   enum class State_T : uint32
-   {
-      Closed,
-      Closing,
-      Open,
-      Opening
-   };
-   
-   static constexpr auto _s_MaxMsgSize_bytes = 256uz;
-   static constexpr auto getMaxMsgSize_bytes(void) { return _s_MaxMsgSize_bytes; }
-   static constexpr std::string_view RawTimeStampTemplate{"uuuuuuuuuuuu"};
-   static constexpr std::string_view HumanReadableTimeStampTemplate{" HHH:MM:SS.uuuuuu: "};
-
-   static_assert(_s_MaxMsgSize_bytes >= 64uz, "Too limited room");
+   static constexpr auto MaxMsgSize_bytes = 256uz;
+   static_assert(MaxMsgSize_bytes >= 64uz, "Too limited room");
 
    void acquireWriteAccess(void);
    void releaseWriteAccess(void);
@@ -200,11 +112,9 @@ private:
       strlit const     Format,
       fmt::format_args args);
 
-   char * populateFormattedTime(char * write_ptr) const;
-
    static inline TextLogger * _s_globalInstance_ptr{nullptr};
 
-   str       const      _Filename {""_str          };
+   str       const      _Filename {""              };
    Options_T const      _Options  { /* default */  };
    VerboGroup           _vGroups  { /* default */  };
    Timer                _timer    { /* default */  };
