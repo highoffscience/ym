@@ -97,28 +97,29 @@ public:
    ScopedEnable<VFs_T...> pushEnable(VFs_T const... VFlags);
 
 private:
-   static constexpr auto MaxMsgSize_bytes = 256uz;
-   static_assert(MaxMsgSize_bytes >= 64uz, "Too limited room");
-
-   void acquireWriteAccess(void);
-   void releaseWriteAccess(void);
-
-   void printf_Handler(
-      VG     const     VG,
-      strlit const     Format, // TODO I really think we can get away with str here
-      fmt::format_args args);
-
-   void printf_Handler(
+   virtual void producer(
       strlit const     Format,
-      fmt::format_args args);
+      fmt::format_args args) override;
+   
+   static constexpr auto SlotSize_bytes   = 256uz;
+   static constexpr auto SeqNSize_bytes   = sizeof(std::atomic_unsigned_lock_free);
+   static constexpr auto MaxMsgSize_bytes = SlotSize_bytes - SeqNSize_bytes;
 
-   static inline TextLogger * _s_globalInstance_ptr{nullptr};
+   struct Slot
+   {
+      std::atomic_unsigned_lock_free     _seqN     {0u};
+      std::array<char, MaxMsgSize_bytes> _msgBuffer{  };
+   };
 
-   str       const      _Filename {""              };
+   static_assert(MaxMsgSize_bytes >= 64uz, "Too limited room"); // time stamps require some space
+   static_assert(sizeof(Slot) == SlotSize_bytes, "Slot packing not as expected");
+
+   std::array<Slot, 32uz> _slots{};
+   std::atomic_unsigned_lock_free _writePos{0u};
+   std::atomic_unsigned_lock_free _readPos {0u};
+
    Options_T const      _Options  { /* default */  };
    VerboGroup           _vGroups  { /* default */  };
-   Timer                _timer    { /* default */  };
-   std::atomic<State_T> _state    {State_T::Closed };
    std::atomic_flag     _writeFlag{ATOMIC_FLAG_INIT};
 };
 

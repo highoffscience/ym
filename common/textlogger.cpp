@@ -98,10 +98,15 @@ void ym::TextLogger::close(void)
  *
  * @returns mutstr -- Where to continue writing into the buffer (after the time stamp).
  */
-auto ym::TextLogger::populateFormattedTime(mutstr writePtr) const -> mutstr
+auto ym::TextLogger::populateFormattedTime(
+   mutstr      writePtr,
+   sizet const BufSize_bytes) const -> mutstr
 {
-   if (getOptions() == PrintMode_T::PrependHumanReadableTimeStamp)
+   if (getOptions() == PrintMode_T::PrependTimeStamp)
    { // print raw form of the time stamp
+
+      YMASSERT(BufSize_bytes >= RawTimeStampTemplate.size(), Error, YM_DAH,
+         "Buffer ({}) cannot fit raw time stamp ({})", BufSize_bytes, RawTimeStampTemplate.size());
    
       auto       elapsed      = _timer.getElapsedTime();
       auto const TotalTime_us = std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
@@ -117,6 +122,18 @@ auto ym::TextLogger::populateFormattedTime(mutstr writePtr) const -> mutstr
       if (getOptions() == PrintMode_T::PrependHumanReadableTimeStamp)
       { // print human readable form of the time stamp
 
+         { // temp scope
+            constexpr auto TimeSize_bytes =
+               RawTimeStampTemplate.size() +
+               HumanReadableTimeStampTemplate.size() +
+               1uz; // for space between time stamps
+            YMASSERT(BufSize_bytes >= TimeSize_bytes, Error, YM_DAH,
+               "Buffer ({}) cannot fit raw and human readable time stamps ({})", Size_bytes, TimeSize_bytes);
+         }
+
+         *writePtr = ' ';
+         writePtr = writePtr + 1uz;
+
          auto const Time_hr  = std::chrono::duration_cast<std::chrono::hours>(elapsed);
          elapsed -= Time_hr;
 
@@ -131,7 +148,7 @@ auto ym::TextLogger::populateFormattedTime(mutstr writePtr) const -> mutstr
          auto const Result = fmt::format_to_n(
             writePtr.get(),
             HumanReadableTimeStampTemplate.size(),
-            " {:03}:{:02}:{:02}.{:06}",
+            "{:03}:{:02}:{:02}.{:06}",
             Time_hr.count(),
             Time_min.count(),
             Time_sec.count(),

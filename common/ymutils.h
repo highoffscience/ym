@@ -158,9 +158,9 @@ union PtrToInt_T
 {
    T       * ptr_val;
    T     * * ptr_ptr_val;
-   uintptr * uint_ptr_val;
+   uintptr * uint_ptr_val; // TODO std::uintptr_t
    uintptr   uint_val;
-   intptr  * int_ptr_val;
+   intptr  * int_ptr_val; // TODO std::ptrdiff_t
    intptr    int_val;
 };
 
@@ -175,13 +175,15 @@ union PtrToInt_T
  *
  * @tparam T -- Underlying type.
  */
-template <typename T = byte>
-requires (sizeof(T) < sizeof(sizet)) // see above doc comment
+template <typename T = std::byte>
+requires (sizeof(T) < sizeof(std::size_t)) // see above doc comment
 class Bitset
 {
 public:
    /// @brief Constructor.
    explicit constexpr Bitset(void) = default;
+
+   // TODO make briefing doc comments
 
    constexpr bool test  (T const Idx) const { return _bits &   (T(1u) << Idx); }
    constexpr void clear (T const Idx)       {        _bits &= ~(T(1u) << Idx); }
@@ -197,7 +199,37 @@ private:
    T _bits{};
 };
 
-YM_DECL_YMASSERT(NullPtrError)
+/** TODO
+ * 
+ */
+template <typename T, typename Derived_T>
+class Ptr_Base
+{
+   static_assert(std::is_base_of_v<Ptr_Base, Derived_T>, "Not derived type");
+
+protected:
+   /// @brief Wrapper for custom pointer types.
+   implicit constexpr Ptr_Base(T * const value_Ptr) :
+      _value_ptr {value_Ptr}
+   { }
+
+public:
+   /// @brief Increments the underlying pointer value.
+   constexpr auto operator + (std::integral auto const N) const {
+      return Derived_T(_value_ptr + N);
+   }
+
+   /// @brief Decrements the underlying pointer value.
+   constexpr auto operator - (std::integral auto const N) const {
+      return Derived_T(_value_ptr - N);
+   }
+
+protected:
+   T * _value_ptr{nullptr};
+};
+
+/// @brief Global null pointer error.
+YM_DECL_YMASSERT(YmNullPtrError)
 
 /** BoundPtr
  *
@@ -214,42 +246,19 @@ YM_DECL_YMASSERT(NullPtrError)
  * @note Throwing in the constructor is preferable because you cannot swallow the
  *       exception and use BoundPtr in an unacceptable state.
  */
-template <typename T>
-class BoundPtr_Base
+template <typename T, typename Derived_T>
+class BoundPtr_Base : public Ptr_Base<T, Derived_T>
 {
 protected:
-   /** BoundPtr_Base
-    * 
-    * @brief Wrapper for non-null pointer.
-    * 
-    * @param value_ptr -- Pointer to bind.
-    */
+   /// @brief Wrapper for non-null pointer.
    implicit constexpr BoundPtr_Base(T * const value_Ptr) :
-      _value_ptr {value_Ptr}
+      Ptr_Base<T, Derived_T>(value_Ptr)
    { }
 
 public:
-   /// @brief Enables users to cast pointer to anything.
-   YM_MAKE_PASSKEY(CastPassKey)
-
-   /// @brief Casting constructor.
-   template <typename U>
-   requires (std::is_convertible_v<U*, T*>) // enforce legal casting
-   implicit constexpr BoundPtr(BoundPtr<U> const & Other) :
-      BoundPtr<T>(Other)
-   { }
-
-   /// @brief Casting constructor. Anything goes.
-   template <typename U>
-   implicit constexpr BoundPtr(
-      BoundPtr<U> const & Other,
-      CastPassKey const) :
-         BoundPtr<T>(ymCastPtrTo<T>(Other))
-   { }
-
    /// @brief Compile time non-nullness checks.
-   constexpr BoundPtr_Base              (std::nullptr_t) = delete;
-   constexpr BoundPtr_Base & operator = (std::nullptr_t) = delete;
+   constexpr BoundPtr_Base                            (std::nullptr_t) = delete;
+   constexpr BoundPtr_Base<T, Derived_T> & operator = (std::nullptr_t) = delete;
 
    /// @brief Getters.
    constexpr auto * get          (this auto && self) { return  self._value_ptr; }
@@ -261,30 +270,43 @@ public:
    constexpr auto & operator [] (this auto && self, std::integral auto const Idx) {
       return self.get()[Idx];
    }
-
-protected:
-   T * _value_ptr{};
 };
 
+/** TODO
+ * 
+ */
 template <typename T>
-class BoundPtr : public BoundPtr_Base<T>
+class BoundPtr : public BoundPtr_Base<T, BoundPtr<T>>
 {
 public:
-   /** BoundPtr
-    * 
-    * @brief Wrapper for non-null pointer.
-    * 
-    * @param value_Ptr -- Pointer to bind.
-    */
+   /// @brief Wrapper for non-null pointer.
    implicit constexpr BoundPtr(T * const value_Ptr) :
-      BoundPtr_Base<T>(value_Ptr)
+      BoundPtr_Base<T, BoundPtr<T>>(value_Ptr)
    {
-      YMASSERT(get(), NullPtrError, YM_DAH, "Bound pointer cannot be null");
+      YMASSERT(get(), YmNullPtrError, YM_DAH, "Bound pointer cannot be null");
    }
+
+   /// @brief Enables users to cast pointer to anything.
+   YM_MAKE_PASSKEY(CastPassKey)
+
+   /// @brief Casting constructor.
+   template <typename U>
+   requires (std::is_convertible_v<U*, T*>) // enforce legal casting
+   implicit constexpr BoundPtr(BoundPtr<U, Derived_T> const & Other) :
+      BoundPtr<T>(Other)
+   { }
+
+   /// @brief Casting constructor. Anything goes.
+   template <typename U>
+   implicit constexpr BoundPtr(
+      BoundPtr<U, Derived_T> const & Other,
+      CastPassKey            const) :
+         BoundPtr<T>(ymCastPtrTo<T>(Other))
+   { }
 
    /// @brief Decaying constructor. Pointer to array to pointer is safe.
    implicit constexpr BoundPtr(BoundPtr<T[]> const Other) :
-      BoundPtr_Base<T>(Other)
+      BoundPtr_Base<T, BoundPtr<T>>(Other)
    { }
 
    /// @brief Assignment.
@@ -294,8 +316,11 @@ public:
    }
 };
 
+/** TODO
+ * 
+ */
 template <typename T>
-class BoundPtr<T[]> : public BoundPtr_Base<T>
+class BoundPtr<T[]> : public BoundPtr_Base<T, BoundPtr<T[]>>
 {
 public:
    /** BoundPtr
@@ -306,7 +331,7 @@ public:
     */
    template <sizet N>
    implicit constexpr BoundPtr(T (&array) [N]) :
-      BoundPtr_Base<T>(array)
+      BoundPtr_Base<T, BoundPtr<T[]>>(array)
    { }
 
    /// @brief Assignment.
@@ -328,7 +353,7 @@ BoundPtr(T (&)[N]) -> BoundPtr<T[]>;
  * @note No need to handle pointer to array cases - if it is an array then a BoundPtr will be made instead.
  */
 template <typename T>
-class FreePtr
+class FreePtr : public Ptr_Base<T, FreePtr<T>>
 {
 public:
    /// @brief Constructor.
@@ -336,7 +361,7 @@ public:
 
    /// @brief Constructor.
    implicit constexpr FreePtr(T * const value_Ptr) :
-      _value_ptr {value_Ptr}
+      Ptr_Base<T, FreePtr<T>>(value_Ptr)
    { }
 
    /// @brief Assignment.
@@ -362,9 +387,6 @@ public:
    constexpr BoundPtr<T> unwrap_or(BoundPtr<T> const BPtr) {
       return (*this) ? unwrap() : BPtr;
    }
-
-private:
-   T * _value_ptr{};
 };
 
 /// @brief Convenience alias.

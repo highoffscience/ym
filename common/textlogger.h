@@ -105,8 +105,8 @@ public:
    template <typename... Args_T>
    inline void printf(
          strlit       Format,
-         Args_T &&... args_uref) {
-      producer(Format, fmt::make_format_args(args_uref...));
+         Args_T &&... args) {
+      producer(Format, fmt::make_format_args(args...));
    }
 
 protected:
@@ -114,7 +114,7 @@ protected:
       strlit const     Format,
       fmt::format_args args) = 0;
 
-private:
+protected:
    /** State_T
     *
     * @brief State of the logger.
@@ -128,11 +128,13 @@ private:
    };
 
    static constexpr std::string_view RawTimeStampTemplate{"uuuuuuuuuuuu"};
-   static constexpr std::string_view HumanReadableTimeStampTemplate{" HHH:MM:SS.uuuuuu"};
+   static constexpr std::string_view HumanReadableTimeStampTemplate{"HHH:MM:SS.uuuuuu"};
 
-   mutstr populateFormattedTime(mutstr writePtr) const;
+   mutstr populateFormattedTime(
+      mutstr      writePtr,
+      sizet const BufSize_bytes) const;
 
-   str       const      _Filename{"unnamed.uhoh"     };
+   strlit    const      _Filename{"unnamed.uhoh"     };
    Options_T            _options {getDefaultOptions()};
    Timer                _timer   {   /* default */   };
    std::atomic<State_T> _state   {State_T::Closed    };

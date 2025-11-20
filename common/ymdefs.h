@@ -182,18 +182,6 @@ using float32  = float      ; static_assert(std::numeric_limits<float32 >::digit
 using float64  = double     ; static_assert(std::numeric_limits<float64 >::digits == 53, "float64  (mantissa) not of expected size");
 using floatext = long double; static_assert(std::numeric_limits<floatext>::digits >= 53, "floatext (mantissa) not of expected size");
 
-/// @brief Convenience alias.
-using uintptr = std::uintptr_t;
-
-/// @brief Convenience alias.
-using intptr = std::ptrdiff_t;
-
-/// @brief Convenience alias.
-using sizet = std::size_t;
-
-/// @brief Convenience alias.
-using byte = std::byte;
-
 /** YM_MAKE_PASSKEY
  *
  * @brief Template for defining a pass key class.

@@ -170,6 +170,52 @@ void ym::TextLogger::printf_Handler(
    }
 }
 
+/**
+ * @brief TODO
+ */
+void ym::GlobalTextLogger::producer(
+   strlit const     Format,
+   fmt::format_args args)
+{
+   // seq == slot_idx     -> ready to be written
+   // seq == slot_idx + 1 -> ready to be read
+
+   auto   const WritePos = _writePos.fetch_add(1u, std::memory_order_relaxed);
+   auto * const slot_Ptr = &_slots[WritePos % _slots.size()];
+
+   auto seqN = slot_Ptr->_seqN.load(std::memory_order_acquire);
+   while (seqN != WritePos)
+   {
+      slot_Ptr->seq.wait(seqN, std::memory_order_acquire);
+      seqN = slot_Ptr->seq.load(std::memory_order_acquire);
+   }
+
+   // put things into buffer
+
+   slot_Ptr->seq.store(WritePos + 1u, std::memory_order_release);
+   slot_Ptr->seq.notify_one();
+
+   // -------- consumer ----------
+
+   auto   const ReadPos  = _readPos.load(std::memory_order_relaxed);
+   auto * const slot_Ptr = &_slots[ReadPos % _slots.size()];
+
+   auto seqN = slot_Ptr->seq.load(std::memory_order_acquire);
+   while (seqN != ReadPos + 1u)
+   {
+      slot_Ptr->seq.wait(seqN, std::memory_order_acquire);
+      seqN = slot_Ptr->seq.load(std::memory_order_acquire);
+   }
+
+   // get value in slot
+
+   slot_Ptr->seq.store(pos + _slots.size(), std::memory_order_release);
+   slot_Ptr->seq.notify_all();
+   _readPos.store(ReadPos + 1u, std::memory_order_relaxed);
+
+
+}
+
 /** printf_Handler
  *
  * @brief Prints the requested message to the internal buffer.
@@ -264,68 +310,6 @@ void ym::TextLogger::printf_Handler(
    }
 
    releaseWriteAccess();
-}
-
-/** populateFormattedTime
- *
- * @brief Writes the elapsed time in the specified buffer.
- * 
- * @note Does *not* write null terminator.
- * 
- * @note Not to be confused with Logger::populateFilenameTimeStamp.
- *
- * @note Returns the current time, in microseconds, since the creation of the log in the format
- *       xxxxxxxxxxxx xxx:xx:xx.xxxxxx
- *       uuuuuuuuuuuu HHH:MM:SS.uuuuuu
- *
- * @param write_Ptr -- Buffer to write time stamp into.
- *
- * @returns char * -- Where to continue writing into the buffer (after the time stamp).
- */
-char * ym::TextLogger::populateFormattedTime(char * write_ptr) const
-{
-   if (getOptions() == PrintMode_T::PrependHumanReadableTimeStamp)
-   { // print raw form of the time stamp
-   
-      auto       elapsed      = _timer.getElapsedTime();
-      auto const TotalTime_us = std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
-
-      auto const Result = fmt::format_to_n(
-         write_ptr,
-         RawTimeStampTemplate.size(),
-         "{:012}",
-         TotalTime_us.count());
-
-      write_ptr = Result.out;
-
-      if (getOptions() == PrintMode_T::PrependHumanReadableTimeStamp)
-      { // print human readable form of the time stamp
-
-         auto const Time_hr   = std::chrono::duration_cast<std::chrono::hours>       (elapsed);
-         elapsed -= Time_hr;
-
-         auto const Time_min  = std::chrono::duration_cast<std::chrono::minutes>     (elapsed);
-         elapsed -= Time_min;
-
-         auto const Time_sec  = std::chrono::duration_cast<std::chrono::seconds>     (elapsed);
-         elapsed -= Time_sec;
-
-         auto const Time_us   = std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
-
-         auto const Result = fmt::format_to_n(
-            write_ptr,
-            HumanReadableTimeStampTemplate.size(),
-            "{:03}:{:02}:{:02}.{:06}",
-            Time_hr.count(),
-            Time_min.count(),
-            Time_sec.count(),
-            Time_us.count());
-
-         write_ptr = Result.out;
-      }
-   }
-
-   return write_ptr;
 }
 
 /** ScopedEnable
