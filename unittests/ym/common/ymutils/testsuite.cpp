@@ -56,7 +56,7 @@ auto ym::unit::TestSuite::PtrToIntConversion::run([[maybe_unused]] DataShuttle c
 
    int32 vals[] {9, 7};
 
-   PtrToInt_T p2i_a{vals};
+   PtrInt_T p2i_a{vals};
    p2i_a.uint_val += 4u;
 
    return {

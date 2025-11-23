@@ -15,6 +15,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <concepts>
+#include <functional>
 #include <iterator>
 #include <memory>
 #include <memory_resource>
@@ -80,7 +81,6 @@ constexpr auto ymEmpty(rawstr const S)
  *        if no element is found. Range must be in ascending order.
  * 
  * @tparam Iterator_T -- Iterator type.
- * @tparam T          -- Element type.
  * @tparam Compare_T  -- Comparator(Key, It). Key < *It -> < 0;
  *                                            Key = *It -> = 0;
  *                                            Key > *It -> > 0;
@@ -89,18 +89,16 @@ constexpr auto ymEmpty(rawstr const S)
  * @param last    -- One past the end of the range.
  * @param Value   -- Value to find in range.
  * @param compare -- Compare function. See above.
- * 
- * @todo T = typename std::iterator_traits<Iterator_T>::value_type should be specialized overload
  */
 template <
    typename Iterator_T,
-   typename T,
-   typename Compare_T>
+   typename Compare_T = std::less<>>
 constexpr auto ymBinarySearch(
-   Iterator_T first,
-   Iterator_T last,
-   T const &  Value,
-   Compare_T  compare)
+   Iterator_T  first,
+   Iterator_T  last,
+   typename std::iterator_traits<Iterator_T>::value_type const &
+               Value,
+   Compare_T   compare = Compare_T{})
 {
    auto elemIt = last;
 
@@ -130,9 +128,9 @@ constexpr auto ymBinarySearch(
 
 // ----------------------------------------------------------------------------
 
-/** PtrToInt_T
+/** PtrInt_T
  *
- * @brief Casts non-member pointer to an appropriately sized uint.
+ * @brief Casts non-member pointer to an appropriately sized integral type.
  *
  * @ref <https://en.cppreference.com/w/cpp/types/integer>.
  *
@@ -153,15 +151,13 @@ constexpr auto ymBinarySearch(
  * @tparam T -- Pointer type.
  */
 template <typename T>
-requires (!std::is_member_function_pointer<T>::value) // TODO no _v overload option?
-union PtrToInt_T
+requires (!std::is_member_function_pointer_v<T>)
+union PtrInt_T
 {
-   T       * ptr_val;
-   T     * * ptr_ptr_val;
-   uintptr * uint_ptr_val; // TODO std::uintptr_t
-   uintptr   uint_val;
-   intptr  * int_ptr_val; // TODO std::ptrdiff_t
-   intptr    int_val;
+   T            * ptr_val{};
+   T          * * ptr_ptr_val;
+   std::uintptr_t uint_val;
+   std::ptrdiff_t diff_val;
 };
 
 // ----------------------------------------------------------------------------
@@ -183,26 +179,40 @@ public:
    /// @brief Constructor.
    explicit constexpr Bitset(void) = default;
 
-   // TODO make briefing doc comments
+   /// @brief True if the bit is set, false otherwise.
+   constexpr bool test(T const Idx) const { return _bits & (T(1u) << Idx); }
 
-   constexpr bool test  (T const Idx) const { return _bits &   (T(1u) << Idx); }
-   constexpr void clear (T const Idx)       {        _bits &= ~(T(1u) << Idx); }
-   constexpr void toggle(T const Idx)       {        _bits ^=  (T(1u) << Idx); }
-   constexpr void set   (T const Idx)       {        _bits |=  (T(1u) << Idx); }
-   constexpr void set   (T const Idx, bool const Val) {
+   /// @brief Sets the bit to 0.
+   constexpr void clear(T const Idx) { _bits &= ~(T(1u) << Idx); }
+
+   /// @brief Flips the bit.
+   constexpr void flip(T const Idx) { _bits ^= (T(1u) << Idx); }
+
+   /// @brief Flips the bit.
+   constexpr void set(T const Idx) { _bits |= (T(1u) << Idx); }
+
+   /// @brief Sets the bit to the specified value.
+   constexpr void set(T const Idx, bool const Val) {
       clear(Idx); _bits |= (T(Val) << Idx);
    }
 
-   constexpr auto const & getUnderlying(void) const { return _bits; }
+   /// @brief Returns a copy of the underlying data.
+   constexpr auto getUnderlying(void) const { return _bits; }
 
 private:
    T _bits{};
 };
 
-/** TODO
+/** Ptr_Base
  * 
+ * @brief Common operations/fields for pointer wrapper classes.
+ * 
+ * @tparam T         -- Type of pointer.
+ * @tparam Derived_T -- Type of derived class.
  */
-template <typename T, typename Derived_T>
+template <
+   typename T,
+   typename Derived_T>
 class Ptr_Base
 {
    static_assert(std::is_base_of_v<Ptr_Base, Derived_T>, "Not derived type");
@@ -225,28 +235,22 @@ public:
    }
 
 protected:
-   T * _value_ptr{nullptr};
+   T * _value_ptr{};
 };
 
 /// @brief Global null pointer error.
-YM_DECL_YMASSERT(YmNullPtrError)
+YM_DECL_YMASSERT(NullPtrError)
 
 /** BoundPtr
  *
- * @brief Non-null pointer. There is no null check upon construction - pointers
- *        passed to this class are trusted to be non-null.
+ * @brief Common operations for bound pointer wrapper classes.
  * 
- * @tparam T -- Type of pointer.
- * @tparam N -- Size of array if pointer to C-style array, 0 otherwise.
- *
- * @note Compiling with the pedantic flag is recommended to prevent allowing arrays
- *       with zero size. If you are using 0-sized arrays, you'll need to modify
- *       the check conditions of this class.
- *
- * @note Throwing in the constructor is preferable because you cannot swallow the
- *       exception and use BoundPtr in an unacceptable state.
+ * @tparam T         -- Type of pointer.
+ * @tparam Derived_T -- Type of derived class.
  */
-template <typename T, typename Derived_T>
+template <
+   typename T,
+   typename Derived_T>
 class BoundPtr_Base : public Ptr_Base<T, Derived_T>
 {
 protected:
@@ -272,8 +276,12 @@ public:
    }
 };
 
-/** TODO
+/** BoundPtr
  * 
+ * @brief Warpper class for non-null pointers. Checked at construction.
+ * 
+ * @note Throwing in the constructor is preferable because you cannot swallow the
+ *       exception and use BoundPtr in an unacceptable state.
  */
 template <typename T>
 class BoundPtr : public BoundPtr_Base<T, BoundPtr<T>>
@@ -283,7 +291,7 @@ public:
    implicit constexpr BoundPtr(T * const value_Ptr) :
       BoundPtr_Base<T, BoundPtr<T>>(value_Ptr)
    {
-      YMASSERT(get(), YmNullPtrError, YM_DAH, "Bound pointer cannot be null");
+      YMASSERT(get(), NullPtrError, YM_DAH, "Bound pointer cannot be null");
    }
 
    /// @brief Enables users to cast pointer to anything.
@@ -316,20 +324,20 @@ public:
    }
 };
 
-/** TODO
+/** BoundPtr
  * 
+ * @brief Wrapper class for pointers to C-style arrays. See note about non-nullness.
+ * 
+ * @note Compiling with the pedantic flag is recommended to prevent allowing arrays
+ *       with zero size. If you are using 0-sized arrays, you'll need to modify
+ *       the check conditions of this class.
  */
 template <typename T>
 class BoundPtr<T[]> : public BoundPtr_Base<T, BoundPtr<T[]>>
 {
 public:
-   /** BoundPtr
-    * 
-    * @brief Wrapper for non-null pointer.
-    * 
-    * @param array -- Pointer to array to bind.
-    */
-   template <sizet N>
+   /// @brief Wrapper for non-null pointer.
+   template <std::size_t N>
    implicit constexpr BoundPtr(T (&array) [N]) :
       BoundPtr_Base<T, BoundPtr<T[]>>(array)
    { }
@@ -342,7 +350,7 @@ public:
 };
 
 /// @brief Deduction guide - prevents pointer to array from decaying.
-template <typename T, sizet N>
+template <typename T, std::size_t N>
 BoundPtr(T (&)[N]) -> BoundPtr<T[]>;
 
 /** FreePtr
@@ -406,10 +414,10 @@ using mutstr = BoundPtr<char>; // mutable string
  * @tparam N      -- Size of derived classes (in bytes).
  */
 template <
-   typename Base_T,
-   sizet    N>
+   typename    Base_T,
+   std::size_t N>
 requires (requires(
-   Base_T const & Base, bptr<void> const val_BPtr, sizet const Size_bytes) {
+   Base_T const & Base, BoundPtr<void> const val_BPtr, std::size_t const Size_bytes) {
       { Base.cloneAt(val_BPtr, Size_bytes) };
 })
 class PolyRaw
