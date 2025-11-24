@@ -417,7 +417,9 @@ template <
    typename    Base_T,
    std::size_t N>
 requires (requires(
-   Base_T const & Base, BoundPtr<void> const val_BPtr, std::size_t const Size_bytes) {
+   Base_T         const & Base,
+   BoundPtr<void> const   val_BPtr,
+   std::size_t    const   Size_bytes) {
       { Base.cloneAt(val_BPtr, Size_bytes) };
 })
 class PolyRaw
@@ -465,7 +467,7 @@ public:
    }
 
 private:
-   std::array<byte, N> _buffer; // no inline initialization intended
+   std::array<std::byte, N> _buffer{};
 };
 
 } // ym
