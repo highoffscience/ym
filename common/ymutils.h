@@ -418,21 +418,24 @@ template <
    std::size_t N>
 requires (requires(
    Base_T         const & Base,
-   BoundPtr<void> const   val_BPtr,
+   BoundPtr<void> const   val,
    std::size_t    const   Size_bytes) {
-      { Base.cloneAt(val_BPtr, Size_bytes) };
+      { Base.cloneAt(val, Size_bytes) };
 })
 class PolyRaw
 {
 public:
+   /// @brief Constructor.
    explicit constexpr PolyRaw(void) = default;
 
-   constexpr bptr<Base_T> operator -> (void) {
-      return bptr(ymCastPtrTo<Base_T>(_buffer.data()));
+   /// @brief Returns pointer as a base object.
+   constexpr BoundPtr<Base_T> operator -> (void) {
+      return BoundPtr(ymCastPtrTo<Base_T>(_buffer.data()));
    }
 
-   constexpr bptr<Base_T const> operator -> (void) const {
-      return bptr(ymCastPtrTo<Base_T const>(_buffer.data()));
+   /// @brief Returns pointer as a const base object.
+   constexpr BoundPtr<Base_T const> operator -> (void) const {
+      return BoundPtr(ymCastPtrTo<Base_T const>(_buffer.data()));
    }
 
    /// @brief Copy constructor.
@@ -441,10 +444,11 @@ public:
    }
 
    /// @brief Move constructor.
-   constexpr PolyRaw(PolyRaw<Base_T, N> && other_uref) {
-      *this = other_uref;
+   constexpr PolyRaw(PolyRaw<Base_T, N> && other) {
+      *this = other;
    }
 
+   /// @brief Copy assignment.
    constexpr PolyRaw<Base_T, N> & operator = (PolyRaw<Base_T, N> const & Other) {
       if (this != &Other) { // prevent self assign
          Other->cloneAt(_buffer.data(), N);
@@ -452,18 +456,20 @@ public:
       return *this;
    }
 
-   constexpr PolyRaw<Base_T, N> & operator = (PolyRaw<Base_T, N> && other_uref) {
-      return *this = other_uref;
+   /// @brief Move assignment.
+   constexpr PolyRaw<Base_T, N> & operator = (PolyRaw<Base_T, N> && other) {
+      return *this = other;
    }
    
+   /// @brief Constructs derived object in place.
    template <
       typename    Derived_T,
       typename... Args_T>
    requires (
       std::is_base_of_v<Base_T, Derived_T> &&
       sizeof(Derived_T) <= N)
-   constexpr void construct(Args_T &&... args_uref) {
-      ::new (_buffer.data()) Derived_T(std::forward<Args_T>(args_uref)...);
+   constexpr void construct(Args_T &&... args) {
+      ::new (_buffer.data()) Derived_T(std::forward<Args_T>(args)...);
    }
 
 private:
