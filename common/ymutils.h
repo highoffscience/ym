@@ -269,11 +269,6 @@ public:
    constexpr        operator T * (this auto && self) { return  self.get(); }
    constexpr auto & operator *   (this auto && self) { return *self.get(); }
    constexpr auto * operator ->  (this auto && self) { return  self.get(); }
-
-   /// @brief Grabs the element at the specified index. No bounds checking.
-   constexpr auto & operator [] (this auto && self, std::integral auto const Idx) {
-      return self.get()[Idx];
-   }
 };
 
 /** BoundPtr
@@ -347,6 +342,11 @@ public:
       _value_ptr = array;
       return *this;
    }
+
+   /// @brief Grabs the element at the specified index. No bounds checking.
+   constexpr auto & operator [] (this auto && self, std::integral auto const Idx) {
+      return self.get()[Idx];
+   }
 };
 
 /// @brief Deduction guide - prevents pointer to array from decaying.
@@ -380,6 +380,9 @@ public:
 
    /// @brief Comparison operations.
    constexpr auto operator <=> (FreePtr<T> const &) const noexcept = default;
+
+   /// @brief Comparison operations.
+   constexpr auto operator == (std::nullptr_t) const noexcept { return _value_ptr == nullptr; }
 
    /// @brief True if contained pointer is not null, false otherwise.
    constexpr operator bool(void) const noexcept {
