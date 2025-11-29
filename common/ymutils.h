@@ -337,6 +337,9 @@ public:
       BoundPtr_Base<T, BoundPtr<T[]>>(array)
    { }
 
+   /// @brief Constructor from limited lifetime memory to array is unsafe.
+   implicit constexpr BoundPtr(BoundPtr<T> const) = delete;
+
    /// @brief Assignment.
    constexpr auto & operator = (T (&array) [N]) {
       _value_ptr = array;

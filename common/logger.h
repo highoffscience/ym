@@ -77,7 +77,7 @@ public:
 
 protected:
    explicit Logger(void) = default;
-   ~Logger(void);
+   virtual ~Logger(void);
 
    inline auto isOutfileOpened(void) const { return _file != nullptr; }
 
