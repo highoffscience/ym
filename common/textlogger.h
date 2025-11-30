@@ -86,7 +86,7 @@ public:
 
    static constexpr Options_T getDefaultOptions(void) { return {}; }
 
-   explicit TextLogger(str const Filename);
+   explicit TextLogger(strlit const Filename);
    virtual ~TextLogger(void);
 
    YM_NO_COPY  (TextLogger)
