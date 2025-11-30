@@ -114,6 +114,8 @@ protected:
       strlit const     Format,
       fmt::format_args args) = 0;
 
+   virtual void closingHook(void) = 0;
+
 protected:
    /** State_T
     *
@@ -131,8 +133,8 @@ protected:
    static constexpr std::string_view HumanReadableTimeStampTemplate{"HHH:MM:SS.uuuuuu"};
 
    mutstr populateFormattedTime(
-      mutstr      writePtr,
-      sizet const BufSize_bytes) const;
+      mutstr            writePtr,
+      std::size_t const BufSize_bytes) const;
 
    strlit    const      _Filename{"unnamed.uhoh"     };
    Options_T            _options {getDefaultOptions()};
