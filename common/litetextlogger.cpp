@@ -16,11 +16,19 @@
  * @param Options  -- List of optional modes.
  */
 ym::LiteTextLogger::LiteTextLogger(
-   str       const   Filename,
+   strlit    const   Filename,
    Options_T const & Options) :
-      TextLogger(Filename),
-      _Options  {Options }
+      TextLogger(Filename)
 { }
+
+/**
+ * @brief TODO
+ */
+void ym::LiteTextLogger::closeOutfile(void)
+{
+   std::ignore = std::fclose(_file.unwrap());
+   _file = nullptr;
+}
 
 /**
  * @brief TODO
@@ -29,8 +37,8 @@ ym::LiteTextLogger::LiteTextLogger(
  * @param args 
  */
 void ym::LiteTextLogger::producer(
-   str const        Format,
+   strlit const     Format,
    fmt::format_args args)
 {
-
+   
 }

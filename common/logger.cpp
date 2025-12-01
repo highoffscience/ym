@@ -119,7 +119,7 @@ void ym::Logger::openOutfile_appendTimeStamp(
    }
    catch (std::out_of_range const & E)
    { // logic error
-      YMASSERT(false, OpenError, YM_DAH, "Error finding extension. {}", E.what())
+      YMASSERT(false, Error, YM_DAH, "Error finding extension. {}", E.what())
    }
 
    constexpr std::string_view TimeStamp("_YYYY_mm_dd_HH_MM_SS");
@@ -149,23 +149,8 @@ void ym::Logger::openOutfile_appendTimeStamp(
       "{}",
       ext);
 
-   YMASSERT(result.out == &*timeStampedFilename.end(), OpenError, YM_DAH,
+   YMASSERT(result.out == &*timeStampedFilename.end(), Error, YM_DAH,
       "Error printing time stamp. {} -- {}", (void*)result.out, (void*)&*timeStampedFilename.end())
 
    openOutfile_core(timeStampedFilename, Options);
-}
-
-/** closeOutfile
- *
- * @brief Closes the file and disassociates the file handle.
- */
-void ym::Logger::closeOutfile(void)
-{
-   if (_file != stdout &&
-       _file != stderr &&
-       _file != stdin)
-   { // close the stream
-      std::ignore = std::fclose(_file);
-      _file = nullptr;
-   }
 }

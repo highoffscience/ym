@@ -73,7 +73,7 @@ public:
    YM_NO_COPY  (Logger)
    YM_NO_ASSIGN(Logger)
 
-   YM_DECL_YMASSERT(OpenError)
+   YM_DECL_YMASSERT(Error)
 
 protected:
    explicit Logger(void) = default;
@@ -86,7 +86,7 @@ protected:
    // virtual calls.
 
    bool openOutfile(std::string_view const Filename, Options_T const & Options);
-   virtual void closeOutfile(void);
+   virtual void closeOutfile(void) = 0;
    
    FreePtr<std::FILE> _file{};
 

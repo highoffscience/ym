@@ -94,9 +94,8 @@ public:
 
    YM_DECL_YMASSERT(Error)
 
-   inline auto         getFilename(void) const { return _Filename; }
-   inline auto const & getOptions (void) const { return _options;  }
-
+   inline auto getFilename(void) const { return _Filename; }
+   
    bool isOpen(void) const;
 
    bool open(void);
@@ -114,9 +113,6 @@ protected:
       strlit const     Format,
       fmt::format_args args) = 0;
 
-   virtual void closingHook(void) = 0;
-
-protected:
    /** State_T
     *
     * @brief State of the logger.
@@ -136,10 +132,9 @@ protected:
       mutstr            writePtr,
       std::size_t const BufSize_bytes) const;
 
-   strlit    const      _Filename{"unnamed.uhoh"     };
-   Options_T            _options {getDefaultOptions()};
-   Timer                _timer   {   /* default */   };
-   std::atomic<State_T> _state   {State_T::Closed    };
+   strlit const         _Filename{"unnamed.uhoh" };
+   Timer                _timer   { /* default */ };
+   std::atomic<State_T> _state   {State_T::Closed};
 };
 
 } // ym

@@ -61,6 +61,8 @@ public:
 
    static BoundPtr<GlobalTextLogger> getGlobalInstance(void);
 
+   inline auto const & getOptions(void) const { return _Options; }
+
    /** ScopedEnable
     * 
     * @brief Allows managed temporary enabling of a verbosity group.
