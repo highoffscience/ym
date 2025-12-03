@@ -21,15 +21,6 @@ ym::TextLogger::TextLogger(strlit const Filename) :
    _Filename {Filename}
 { }
 
-/** ~TextLogger
- *
- * @brief Destructor.
- */
-ym::TextLogger::~TextLogger(void)
-{
-   close();
-}
-
 /** isOpen
  *
  * @brief Returns if outfile is open and able to be written to.
@@ -99,8 +90,8 @@ void ym::TextLogger::close(void)
  * @returns mutstr -- Where to continue writing into the buffer (after the time stamp).
  */
 auto ym::TextLogger::populateFormattedTime(
-   mutstr      writePtr,
-   sizet const BufSize_bytes) const -> mutstr
+   mutstr            writePtr,
+   std::size_t const BufSize_bytes) const -> mutstr
 {
    if (getOptions() == PrintMode_T::PrependTimeStamp)
    { // print raw form of the time stamp

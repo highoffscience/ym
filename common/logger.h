@@ -69,6 +69,7 @@ public:
    };
 
    static constexpr Options_T getDefaultOptions(void) { return {}; }
+   virtual Options_T const & getOptions(void) const = 0;
 
    YM_NO_COPY  (Logger)
    YM_NO_ASSIGN(Logger)
@@ -86,7 +87,7 @@ protected:
    // virtual calls.
 
    bool openOutfile(std::string_view const Filename, Options_T const & Options);
-   virtual void closeOutfile(void) = 0;
+   void closeOutfile(void);
    
    FreePtr<std::FILE> _file{};
 

@@ -27,7 +27,10 @@
  */
 ym::Logger::~Logger(void)
 {
-   closeOutfile();
+   if (isOutfileOpened())
+   { // file still opened - time to close it
+      closeOutfile();
+   }
 }
 
 /** openOutfile
@@ -62,6 +65,15 @@ bool ym::Logger::openOutfile(
    }
 
    return isOutfileOpened();
+}
+
+/**
+ * @brief TODO
+ */
+void ym::Logger::closeOutfile(void)
+{
+   std::ignore = std::fclose(_file.unwrap());
+   _file = nullptr;
 }
 
 /** openOutfile_core

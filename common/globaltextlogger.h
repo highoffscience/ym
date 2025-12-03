@@ -102,6 +102,18 @@ private:
    virtual void producer(
       strlit const     Format,
       fmt::format_args args) override;
+
+   /** State_T
+    *
+    * @brief State of the logger.
+    */
+   enum class State_T
+   {
+      Closed,
+      Closing,
+      Open,
+      Opening
+   };
    
    static constexpr auto SlotSize_bytes   = 256uz;
    static constexpr auto SeqNSize_bytes   = sizeof(std::atomic_unsigned_lock_free);
@@ -123,6 +135,7 @@ private:
    Options_T const      _Options  { /* default */  };
    VerboGroup           _vGroups  { /* default */  };
    std::atomic_flag     _writeFlag{ATOMIC_FLAG_INIT};
+   std::atomic<State_T> _state   {State_T::Closed};
 };
 
 /** enable

@@ -11,19 +11,14 @@
 
 #include "fmt/base.h"
 
-#include <array>
-#include <atomic>
-#include <concepts>
-#include <utility>
-
 namespace ym
 {
 
-/** LiteTextLogger
+/** LiteLogger
  *
  * @brief Logs text to the given outfile - similary to std::printf.
  */
-class LiteTextLogger : public TextLogger
+class LiteLogger : public TextLogger
 {
 public:
    /// @brief Options surrounding file configs.
@@ -31,17 +26,17 @@ public:
 
    static constexpr Options_T getDefaultOptions(void) { return {}; }
 
-   explicit LiteTextLogger(
+   explicit LiteLogger(
       strlit    const   Filename,
       Options_T const & Options = getDefaultOptions());
 
-   YM_NO_COPY  (LiteTextLogger)
-   YM_NO_ASSIGN(LiteTextLogger)
+   YM_NO_COPY  (LiteLogger)
+   YM_NO_ASSIGN(LiteLogger)
 
-   inline auto const & getOptions(void) const { return _Options; }
+   virtual Options_T const & getOptions(void) const override;
 
 protected:
-   virtual void closeOutfile(void) override;
+   virtual void close(void) override;
    virtual void producer(
       strlit const     Format,
       fmt::format_args args) override;
