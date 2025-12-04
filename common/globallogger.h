@@ -1,5 +1,5 @@
 /**
- * @file    textlogger.h
+ * @file    globallogger.h
  * @version 1.0.0
  * @author  Forrest Jablonski
  */
@@ -7,7 +7,6 @@
 #pragma once
 
 #include "textlogger.h"
-#include "timer.h"
 #include "verbogroup.h"
 #include "ymglobals.h"
 
@@ -41,27 +40,28 @@ template <std::same_as<VF>... VFs_T> inline void ymLogDisable(VFs_T const... VFl
 
 /* -------------------------------------------------------------------------- */
 
-/** GlobalTextLogger
+/** GlobalLogger
  *
  * @brief Logs text to the given outfile - similary to std::printf.
  */
-class GlobalTextLogger : public TextLogger
+class GlobalLogger : public TextLogger
 {
 public:
-   explicit GlobalTextLogger(
-      str       const   Filename,
-      Options_T const & Options = getDefaultOptions());
-   virtual ~GlobalTextLogger(void);
+   /// @brief Options surrounding file configs.
+   using Options_T = TextLogger::Options_T;
 
-   YM_NO_COPY  (GlobalTextLogger)
-   YM_NO_ASSIGN(GlobalTextLogger)
+   static constexpr Options_T getDefaultOptions(void) { return {}; }
+   inline virtual Options_T const & getOptions(void) const override { return _Options; }
+
+   virtual ~GlobalLogger(void);
+
+   YM_NO_COPY  (GlobalLogger)
+   YM_NO_ASSIGN(GlobalLogger)
 
    YM_DECL_YMASSERT(PrintError)
    YM_DECL_YMASSERT(GlobalError)
 
-   static BoundPtr<GlobalTextLogger> getGlobalInstance(void);
-
-   inline auto const & getOptions(void) const { return _Options; }
+   static BoundPtr<GlobalLogger> getGlobalInstance(void);
 
    /** ScopedEnable
     * 
@@ -99,6 +99,10 @@ public:
    ScopedEnable<VFs_T...> pushEnable(VFs_T const... VFlags);
 
 private:
+   explicit GlobalLogger(
+      strlit    const   Filename,
+      Options_T const & Options = getDefaultOptions());
+
    virtual void producer(
       strlit const     Format,
       fmt::format_args args) override;
@@ -134,8 +138,8 @@ private:
 
    Options_T const      _Options  { /* default */  };
    VerboGroup           _vGroups  { /* default */  };
+   std::atomic<State_T> _state    {State_T::Closed };
    std::atomic_flag     _writeFlag{ATOMIC_FLAG_INIT};
-   std::atomic<State_T> _state   {State_T::Closed};
 };
 
 /** enable

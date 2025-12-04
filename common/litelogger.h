@@ -25,6 +25,7 @@ public:
    using Options_T = TextLogger::Options_T;
 
    static constexpr Options_T getDefaultOptions(void) { return {}; }
+   inline virtual Options_T const & getOptions(void) const override { return _Options; }
 
    explicit LiteLogger(
       strlit    const   Filename,
@@ -33,10 +34,11 @@ public:
    YM_NO_COPY  (LiteLogger)
    YM_NO_ASSIGN(LiteLogger)
 
-   virtual Options_T const & getOptions(void) const override;
+   virtual bool isOpen(void) const override;
+   virtual bool open  (void) override;
+   virtual void close (void) override;
 
 protected:
-   virtual void close(void) override;
    virtual void producer(
       strlit const     Format,
       fmt::format_args args) override;

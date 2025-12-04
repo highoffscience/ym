@@ -1,5 +1,5 @@
 /**
- * @file    textlogger.cpp
+ * @file    globallogger.cpp
  * @version 1.0.0
  * @author  Forrest Jablonski
  */

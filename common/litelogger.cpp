@@ -26,9 +26,17 @@ ym::LiteLogger::LiteLogger(
 /**
  * @brief TODO
  */
-auto ym::LiteLogger::getOptions(void) const -> Options_T const &
+bool ym::LiteLogger::isOpen(void) const
 {
-   return _Options;
+   return isOutfileOpened();
+}
+
+/**
+ * @brief TODO
+ */
+bool ym::LiteLogger::open(void)
+{
+   return openOutfile(getFilename().get(), getOptions());
 }
 
 /**
@@ -36,7 +44,7 @@ auto ym::LiteLogger::getOptions(void) const -> Options_T const &
  */
 void ym::LiteLogger::close(void)
 {
-   std::ignore = std::fclose(_file.unwrap());
+   closeOutfile();
 }
 
 /**

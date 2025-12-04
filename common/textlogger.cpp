@@ -21,58 +21,6 @@ ym::TextLogger::TextLogger(strlit const Filename) :
    _Filename {Filename}
 { }
 
-/** isOpen
- *
- * @brief Returns if outfile is open and able to be written to.
- *
- * @returns True if outfile is open and able to be written to, false otherwise.
- */
-bool ym::TextLogger::isOpen(void) const
-{
-   return _state.load(std::memory_order_relaxed) == State_T::Open;
-}
-
-/** open
- *
- * @brief Opens and prepares the logger to be written to.
- * 
- * @returns bool -- Whether the outfile was opened successfully, false otherwise.
- */
-bool ym::TextLogger::open(void)
-{
-   auto expectedState = State_T::Closed;
-
-   if (_state.compare_exchange_strong(
-      expectedState, State_T::Opening,
-      std::memory_order_acquire,
-      std::memory_order_relaxed))
-   { // file not opened - let's do that
-
-      auto const Opened = openOutfile(getFilename().get(), getOptions());
-      expectedState = Opened ? State_T::Open : State_T::Closed;
-      _state.store(expectedState, std::memory_order_relaxed);
-   }
-
-   return expectedState == State_T::Open;
-}
-
-/** close
- *
- * @brief Closes the outfile and shuts the logger down.
- */
-void ym::TextLogger::close(void)
-{
-   if (auto expectedState = State_T::Open; _state.compare_exchange_strong(
-      expectedState, State_T::Closing,
-      std::memory_order_acquire,
-      std::memory_order_relaxed))
-   { // file opened - let's change that
-
-      closeOutfile();
-      _state.store(State_T::Closed, std::memory_order_relaxed);
-   }
-}
-
 /** populateFormattedTime
  *
  * @brief Writes the elapsed time in the specified buffer.
