@@ -68,6 +68,7 @@ public:
       }
    };
 
+   /// @brief Returns default options.
    static constexpr Options_T getDefaultOptions(void) { return {}; }
    virtual Options_T const & getOptions(void) const = 0;
 
@@ -80,6 +81,7 @@ protected:
    explicit Logger(void) = default;
    virtual ~Logger(void);
 
+   /// @brief Returns if outfile is opened.
    inline auto isOutfileOpened(void) const { return _file != nullptr; }
 
    // Don't name simply "open" or "close" because we want to allow derived

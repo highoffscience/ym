@@ -22,19 +22,19 @@ namespace ym
 {
 
 /*
- * Convenience functions.
+ * Global convenience functions.
  * -------------------------------------------------------------------------- */
 
 template <typename... Args_T>
 inline void ymLog(
    VF     const VFlag,
    strlit const Format,
-   Args_T &&... args_uref);
+   Args_T &&... args);
 
 template <std::same_as<VF>... VFs_T> inline void ymLogEnable (VFs_T const... VFlags);
 template <std::same_as<VF>... VFs_T> inline void ymLogDisable(VFs_T const... VFlags);
 
-// template <std::same_as<VF>... VFlags_T>
+// template <std::same_as<VF>... VFs_T>
 // inline class ScopedEnable ymLogPushEnable(VFs_T const... VFlags);
 // Above is implemented below - ScopedEnable isn't yet defined.
 
@@ -103,6 +103,14 @@ private:
       strlit    const   Filename,
       Options_T const & Options = getDefaultOptions());
 
+   template <
+      std::same_as<VF>... VFs_T,
+      typename... Args_T>
+   inline void printf(
+      VFs_T const... VFlags,
+      strlit         Format,
+      Args_T &&...   args);
+
    virtual void producer(
       strlit const     Format,
       fmt::format_args args) override;
@@ -125,87 +133,90 @@ private:
 
    struct Slot
    {
-      std::atomic_unsigned_lock_free     _seqN     {0u};
       std::array<char, MaxMsgSize_bytes> _msgBuffer{  };
+      std::atomic_unsigned_lock_free     _seqN     {0u};
    };
 
    static_assert(MaxMsgSize_bytes >= 64uz, "Too limited room"); // time stamps require some space
    static_assert(sizeof(Slot) == SlotSize_bytes, "Slot packing not as expected");
 
-   std::array<Slot, 32uz> _slots{};
-   std::atomic_unsigned_lock_free _writePos{0u};
-   std::atomic_unsigned_lock_free _readPos {0u};
-
-   Options_T const      _Options  { /* default */  };
-   VerboGroup           _vGroups  { /* default */  };
-   std::atomic<State_T> _state    {State_T::Closed };
-   std::atomic_flag     _writeFlag{ATOMIC_FLAG_INIT};
+   std::array<Slot, 32uz>         _slots    { /* default */  };
+   Options_T const                _Options  { /* default */  };
+   VerboGroup                     _vGroup   { /* default */  };
+   std::atomic<State_T>           _state    {State_T::Closed };
+   std::atomic_unsigned_lock_free _writePos {       0u       };
+   std::atomic_unsigned_lock_free _readPos  {       0u       };
+   std::atomic_flag               _writeFlag{ATOMIC_FLAG_INIT};
 };
 
 /** enable
  *
- * @brief Enables specified verbosity group.
+ * @brief Enables specified verbosity flags.
  *
- * @tparam VGs_T -- VG typename.
+ * @tparam VFs_T -- VF typename.
  *
- * @param VGs -- Verbosity groups to enable.
+ * @param VFlags -- Verbosity flags to enable.
  */
-template <std::same_as<VG>... VGs_T>
-void ym::TextLogger::enable(VGs_T const... VGs)
+template <std::same_as<VF>... VFs_T>
+void ym::GlobalLogger::enable(VFs_T const... VFlags)
 {
-   ((_vGroups.set(VGs)), ...);
+   ((_vGroup.set(VFlags)), ...);
 }
 
 /** disable
  *
- * @brief Disables specified verbosity group.
+ * @brief Disables specified verbosity flags.
  *
- * @tparam VGs_T -- VG typename.
+ * @tparam VFs_T -- VF typename.
  *
- * @param VG -- Verbosity group to disable.
+ * @param VFlags -- Verbosity flags to disable.
  */
-template <std::same_as<VG>... VGs_T>
-void ym::TextLogger::disable(VGs_T const... VGs)
+template <std::same_as<VF>... VFs_T>
+void ym::GlobalLogger::disable(VFs_T const... VFlags)
 {
-   ((_vGroups.clear(VGs)), ...);
+   ((_vGroups.clear(VFlags)), ...);
 }
 
 /** pushEnable
  * 
  * @brief Enables given verbosity group only in the current scope.
  *
- * @tparam VGs_T -- VG typename.
+ * @tparam VFs_T -- VF typename.
  *
- * @param VG -- Verbosity group.
+ * @param VFlags -- Verbosity flags to enable.
  * 
- * @returns ScopedEnable -- RAII mechanism that only keeps the enable VG while in scope.
+ * @returns ScopedEnable -- RAII mechanism that only keeps the enable VF while in scope.
  */
-template <std::same_as<VG>... VGs_T>
-auto ym::TextLogger::pushEnable([[maybe_unused]] VGs_T const... VGs) -> ScopedEnable
+template <std::same_as<VF>... VFs_T>
+auto ym::GlobalLogger::pushEnable(VFs_T const... VFlags) -> ScopedEnable<VFs_T...>
 {
-   return ScopedEnable(this/*, VGs...*/); // TODO
+   return ScopedEnable(this, VFlags...);
 }
 
-/** printf
- *
- * @brief Prints to the active logger.
- *
- * @throws Whatever print_Handler() throws.
- *
- * @tparam Args_T -- Constrained argument types.
- *
- * @param VG     -- Verbosity level.
- * @param Format -- Format string.
- * @param Args   -- Arguments.
+/**
+ * @brief TODO
+ * 
+ * @tparam VFs_T 
+ * @tparam Args_T 
+ * 
+ * @param VFlags 
+ * @param Format 
+ * @param args 
  */
-template <typename... Args_T>
-inline void TextLogger::printf(
-   VG     const VG,
-   strlit const Format,
-   Args_T &&... args_uref)
+template <
+   std::same_as<VF>... VFs_T,
+   typename... Args_T>
+inline void ym::GlobalLogger::printf(
+   VFs_T const... VFlags,
+   strlit         Format,
+   Args_T &&...   args)
 {
-   printf_Handler(VG, Format, fmt::make_format_args(args_uref...));
+   // TODO implement
 }
+
+/*
+ * Global convenience functions.
+ * -------------------------------------------------------------------------- */
 
 /** ymLog
  * 
@@ -215,17 +226,19 @@ inline void TextLogger::printf(
  * 
  * @tparam Args_T -- Argument types.
  *
- * @param VG     -- Verbosity level.
+ * @param VF     -- Verbosity level.
  * @param Format -- Format string.
  * @param Args   -- Arguments.
  */
 template <typename... Args_T>
 inline void ymLog(
-   VG     const VG,
+   VF     const VFlag,
    strlit const Format,
-   Args_T &&... args_uref)
+   Args_T &&... args)
 {
-   TextLogger::getGlobalInstancePtr()->printf(VG, Format, std::forward<Args_T>(args_uref)...);
+   // using VGM = VerboGroupMask;
+   // auto const IsEnabled = (_vGroups[VGM::getGroup(VG)] & VGM::getMaskAsByte(VG)) > 0_u8;
+   GlobalLogger::getGlobalInstancePtr()->printf(Format, std::forward<Args_T>(args)...);
 }
 
 /** ymLogEnable

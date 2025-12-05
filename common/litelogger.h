@@ -24,6 +24,7 @@ public:
    /// @brief Options surrounding file configs.
    using Options_T = TextLogger::Options_T;
 
+   /// @brief Returns default options.
    static constexpr Options_T getDefaultOptions(void) { return {}; }
    inline virtual Options_T const & getOptions(void) const override { return _Options; }
 
@@ -44,7 +45,7 @@ protected:
       fmt::format_args args) override;
    
 private:
-   Options_T const _Options{getDefaultOptions()};
+   Options_T const _Options{};
 };
 
 } // ym

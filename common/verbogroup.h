@@ -29,7 +29,7 @@ class VerboGroup
 {
 public:
    /// @brief List of verbosity flags.
-   enum class Flags_T : unsigned
+   enum class Flag_T : unsigned
    {
       Global,
       Debug,
@@ -73,20 +73,20 @@ public:
 
    YM_DECL_YMASSERT(Error)
 
-   void set  (Flags_T const F);
-   void clear(Flags_T const F);
-   bool test (Flags_T const F) const;
+   void set  (Flag_T const F);
+   void clear(Flag_T const F);
+   bool test (Flag_T const F) const;
 
 private:
    std::array<
       std::atomic<unsigned>, // type
       static_cast<unsigned>(
          std::ceil(
-            std::to_underlying(Flags_T::NFlags) / ymGetNBits<unsigned>())) // size
+            std::to_underlying(Flag_T::NFlags) / ymGetNBits<unsigned>())) // size
    > _flags{};
 };
 
 /// @brief Convenience alias (no _T suffix because of common usage).
-using VF = VerboGroup::Flags_T;
+using VF = VerboGroup::Flag_T;
 
 } // ym

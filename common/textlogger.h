@@ -12,7 +12,6 @@
 
 #include "fmt/base.h"
 
-#include <atomic>
 #include <string_view>
 
 namespace ym
@@ -75,13 +74,16 @@ public:
       }
    };
 
+   /// @brief Returns default options.
    static constexpr Options_T getDefaultOptions(void) { return {}; }
    virtual Options_T const & getOptions(void) const = 0;
 
    YM_DECL_YMASSERT(Error)
 
+   /// @brief Returns name of file.
    inline auto getFilename(void) const { return _Filename; }
 
+   /// @brief Prints.
    template <typename... Args_T>
    inline void printf(
          strlit       Format,
