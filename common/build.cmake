@@ -22,7 +22,7 @@ function(srcbuild-ym.common Ctx_JSON)
       # datalogger.cpp
       # fileio.cpp
       logger.cpp
-      textlogger.cpp
+      # textlogger.cpp
       timer.cpp
       verbogroup.cpp
       ymassert.cpp

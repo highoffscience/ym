@@ -28,7 +28,8 @@ target_compile_options(YMRootIntLib INTERFACE
    -Werror
    -Wall
    -Wextra
-   -Wno-format-security)
+   -Wno-format-security
+   -fmax-errors=1)
 
 target_include_directories(YMRootIntLib INTERFACE
    ${YM_UnitTestDir}/common

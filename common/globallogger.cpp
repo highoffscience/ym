@@ -4,14 +4,13 @@
  * @author  Forrest Jablonski
  */
 
-#include "textlogger.h"
+#include "globallogger.h"
 
 #include "fmt/format.h"
 
-#include <chrono>
 #include <cstdio>
 
-/** TextLogger
+/** GlobalLogger
  *
  * @brief Constructor.
  *
@@ -20,11 +19,11 @@
  * @param Filename -- Name of file to open.
  * @param Options  -- List of optional modes.
  */
-ym::TextLogger::TextLogger(
-   str       const   Filename,
+ym::GlobalLogger::GlobalLogger(
+   strlit    const   Filename,
    Options_T const & Options) :
-      _Filename {Filename},
-      _Options  {Options }
+      TextLogger(Filename),
+      _Options {Options}
 {
    _writeFlag.clear();
 }

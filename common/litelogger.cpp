@@ -20,7 +20,8 @@
 ym::LiteLogger::LiteLogger(
    strlit    const   Filename,
    Options_T const & Options) :
-      TextLogger(Filename)
+      TextLogger(Filename),
+      _Options {Options}
 { }
 
 /**

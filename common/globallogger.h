@@ -63,6 +63,12 @@ public:
 
    static BoundPtr<GlobalLogger> getGlobalInstance(void);
 
+   template <typename... Args_T>
+   inline void printf(
+      VF const     VFlag,
+      strlit       Format,
+      Args_T &&... args);
+
    /** ScopedEnable
     * 
     * @brief Allows managed temporary enabling of a verbosity group.
@@ -102,14 +108,6 @@ private:
    explicit GlobalLogger(
       strlit    const   Filename,
       Options_T const & Options = getDefaultOptions());
-
-   template <
-      std::same_as<VF>... VFs_T,
-      typename... Args_T>
-   inline void printf(
-      VFs_T const... VFlags,
-      strlit         Format,
-      Args_T &&...   args);
 
    virtual void producer(
       strlit const     Format,
@@ -174,7 +172,7 @@ void ym::GlobalLogger::enable(VFs_T const... VFlags)
 template <std::same_as<VF>... VFs_T>
 void ym::GlobalLogger::disable(VFs_T const... VFlags)
 {
-   ((_vGroups.clear(VFlags)), ...);
+   ((_vGroup.clear(VFlags)), ...);
 }
 
 /** pushEnable
@@ -190,7 +188,7 @@ void ym::GlobalLogger::disable(VFs_T const... VFlags)
 template <std::same_as<VF>... VFs_T>
 auto ym::GlobalLogger::pushEnable(VFs_T const... VFlags) -> ScopedEnable<VFs_T...>
 {
-   return ScopedEnable(this, VFlags...);
+   return ScopedEnable(VFlags...);
 }
 
 /**
@@ -203,15 +201,16 @@ auto ym::GlobalLogger::pushEnable(VFs_T const... VFlags) -> ScopedEnable<VFs_T..
  * @param Format 
  * @param args 
  */
-template <
-   std::same_as<VF>... VFs_T,
-   typename... Args_T>
+template <typename... Args_T>
 inline void ym::GlobalLogger::printf(
-   VFs_T const... VFlags,
-   strlit         Format,
-   Args_T &&...   args)
+   VF const     VFlag,
+   strlit       Format,
+   Args_T &&... args)
 {
-   // TODO implement
+   if (_vGroup.test(VFlag))
+   { // verbosity level is enabled - print!
+      GlobalLogger::getGlobalInstance()->printf(VFlag, Format, std::forward<Args_T>(args)...);
+   }
 }
 
 /*
@@ -222,7 +221,7 @@ inline void ym::GlobalLogger::printf(
  * 
  * @brief Prints to the active logger.
  *
- * @throws Whatever getGlobalInstancePtr() throws.
+ * @throws Whatever getGlobalInstance() throws.
  * 
  * @tparam Args_T -- Argument types.
  *
@@ -236,59 +235,57 @@ inline void ymLog(
    strlit const Format,
    Args_T &&... args)
 {
-   // using VGM = VerboGroupMask;
-   // auto const IsEnabled = (_vGroups[VGM::getGroup(VG)] & VGM::getMaskAsByte(VG)) > 0_u8;
-   GlobalLogger::getGlobalInstancePtr()->printf(Format, std::forward<Args_T>(args)...);
+   GlobalLogger::getGlobalInstance()->printf(VFlag, Format, std::forward<Args_T>(args)...);
 }
 
 /** ymLogEnable
  * 
  * @brief Enables specified verbosity group for the global logger.
  *
- * @throws Whatever getGlobalInstancePtr() throws.
+ * @throws Whatever getGlobalInstance() throws.
  *
- * @tparam VGs_T -- VG typename.
+ * @tparam VFs_T -- VF typename.
  *
- * @param VG -- Verbosity group to disable.
+ * @param VF -- Verbosity flag to enable.
  */
-template <std::same_as<VG>... VGs_T>
-inline void ymLogEnable(VGs_T const... VGs)
+template <std::same_as<VF>... VFs_T>
+inline void ymLogEnable(VFs_T const... VFlags)
 {
-   ((TextLogger::getGlobalInstancePtr()->enable(VGs)), ...);
+   GlobalLogger::getGlobalInstance()->enable(VFlags...);
 }
 
 /** ymLogDisable
  * 
  * @brief Disables specified verbosity group for the global logger.
  *
- * @throws Whatever getGlobalInstancePtr() throws.
+ * @throws Whatever getGlobalInstance() throws.
  *
- * @tparam VGs_T -- VG typename.
+ * @tparam VFs_T -- VF typename.
  *
- * @param VG -- Verbosity group to disable.
+ * @param VF -- Verbosity flag to disable.
  */
-template <std::same_as<VG>... VGs_T>
-inline void ymLogDisable(VGs_T const... VGs)
+template <std::same_as<VF>... VFs_T>
+inline void ymLogDisable(VFs_T const... VFlags)
 {
-   ((TextLogger::getGlobalInstancePtr()->disable(VGs)), ...);
+   GlobalLogger::getGlobalInstance()->disable(VFlags...);
 }
 
 /** ymLogPushEnable
  * 
  * @brief Enables given verbosity group only in the current scope for the global logger.
  * 
- * @throws Whatever getGlobalInstancePtr() throws.
+ * @throws Whatever getGlobalInstance() throws.
  *
- * @tparam VGs_T -- VG typename.
+ * @tparam VFs_T -- VF typename.
  *
- * @param VG -- Verbosity group.
+ * @param VF -- Verbosity flag.
  * 
- * @returns ScopedEnable -- RAII mechanism that only keeps the enabled VG while in scope.
+ * @returns ScopedEnable -- RAII mechanism that only keeps the enabled VF while in scope.
  */
-template <std::same_as<VG>... VGs_T>
-inline TextLogger::ScopedEnable ymLogPushEnable(VGs_T const... VGs)
+template <std::same_as<VF>... VFs_T>
+inline GlobalLogger::ScopedEnable<VFs_T...> ymLogPushEnable(VFs_T const... VFlags)
 {
-   return TextLogger::getGlobalInstancePtr()->pushEnable(VGs...);
+   return GlobalLogger::getGlobalInstance()->pushEnable(VFlags...);
 }
 
 } // ym

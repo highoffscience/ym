@@ -113,8 +113,8 @@ protected:
       mutstr            writePtr,
       std::size_t const BufSize_bytes) const;
 
-   strlit const _Filename{"unnamed.uhoh" };
-   Timer        _timer   { /* default */ };
+   strlit const _Filename{"unnamed.uhoh"};
+   Timer        _timer   {/* default */ };
 };
 
 } // ym

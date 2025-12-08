@@ -6,7 +6,7 @@
 
 #include "logger.h"
 
-#include "globaltextlogger.h"
+#include "globallogger.h"
 #include "timer.h"
 #include "verbogroup.h"
 

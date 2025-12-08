@@ -215,7 +215,7 @@ template <
    typename Derived_T>
 class Ptr_Base
 {
-   static_assert(std::is_base_of_v<Ptr_Base, Derived_T>, "Not derived type");
+   // static_assert(std::is_base_of_v<Ptr_Base, Derived_T>, "Not derived type");
 
 protected:
    /// @brief Wrapper for custom pointer types.
@@ -286,7 +286,7 @@ public:
    implicit constexpr BoundPtr(T * const value_Ptr) :
       BoundPtr_Base<T, BoundPtr<T>>(value_Ptr)
    {
-      YMASSERT(get(), NullPtrError, YM_DAH, "Bound pointer cannot be null");
+      YMASSERT(this->get(), NullPtrError, YM_DAH, "Bound pointer cannot be null");
    }
 
    /// @brief Enables users to cast pointer to anything.
@@ -295,15 +295,15 @@ public:
    /// @brief Casting constructor.
    template <typename U>
    requires (std::is_convertible_v<U*, T*>) // enforce legal casting
-   implicit constexpr BoundPtr(BoundPtr<U, Derived_T> const & Other) :
+   implicit constexpr BoundPtr(BoundPtr<U> const & Other) :
       BoundPtr<T>(Other)
    { }
 
    /// @brief Casting constructor. Anything goes.
    template <typename U>
    implicit constexpr BoundPtr(
-      BoundPtr<U, Derived_T> const & Other,
-      CastPassKey            const) :
+      BoundPtr<U> const & Other,
+      CastPassKey const) :
          BoundPtr<T>(ymCastPtrTo<T>(Other))
    { }
 
@@ -314,7 +314,7 @@ public:
 
    /// @brief Assignment.
    constexpr auto & operator = (T * const value_Ptr) {
-      _value_ptr = BoundPtr(value_Ptr);
+      this->_value_ptr = BoundPtr(value_Ptr);
       return *this;
    }
 };
@@ -341,8 +341,9 @@ public:
    implicit constexpr BoundPtr(BoundPtr<T> const) = delete;
 
    /// @brief Assignment.
+   template <std::size_t N>
    constexpr auto & operator = (T (&array) [N]) {
-      _value_ptr = array;
+      this->_value_ptr = array;
       return *this;
    }
 
@@ -368,7 +369,9 @@ class FreePtr : public Ptr_Base<T, FreePtr<T>>
 {
 public:
    /// @brief Constructor.
-   implicit constexpr FreePtr(void) = default;
+   implicit constexpr FreePtr(void)
+      : FreePtr<T>(nullptr)
+   { }
 
    /// @brief Constructor.
    implicit constexpr FreePtr(T * const value_Ptr) :
@@ -377,7 +380,7 @@ public:
 
    /// @brief Assignment.
    constexpr auto & operator = (T * const value_Ptr) {
-      _value_ptr = value_Ptr;
+      this->_value_ptr = value_Ptr;
       return *this;
    }
 
@@ -385,7 +388,7 @@ public:
    constexpr auto operator <=> (FreePtr<T> const &) const noexcept = default;
 
    /// @brief Comparison operations.
-   constexpr auto operator == (std::nullptr_t) const noexcept { return _value_ptr == nullptr; }
+   constexpr auto operator == (std::nullptr_t) const noexcept { return this->_value_ptr == nullptr; }
 
    /// @brief True if contained pointer is not null, false otherwise.
    constexpr operator bool(void) const noexcept {
@@ -394,7 +397,7 @@ public:
 
    /// @brief Returns a BoundPtr to the contained pointer.
    constexpr BoundPtr<T> unwrap(void) {
-      return _value_ptr;
+      return this->_value_ptr;
    }
 
    /// @brief Returns a BoundPtr to the contained pointer, or a default value if the contained pointer is null.
