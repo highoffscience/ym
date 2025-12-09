@@ -75,10 +75,10 @@ public:
 
    YM_DECL_YMASSERT(Error)
 
-   bool ready(void);
+   bool ready(void); // TODO could be open()
 
    inline auto getMaxDepth  (void) const { return _MaxDepth;    }
-   inline auto isInitialized(void) const { return _initialized; }
+   inline auto isInitialized(void) const { return _initialized; } // TODO could be isOpen()
 
    /// @brief Forwarding function.
    template <typename T>
@@ -92,7 +92,7 @@ public:
       bptr<T const> const Read_BPtr);
 
    void acquire(void);
-   void reset(void);
+   void reset(void); // TODO could be close()
    bool dump(
       str       const   Filename,
       Options_T const & Options = getDefaultOptions());

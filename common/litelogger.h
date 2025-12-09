@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "textlogger.h"
+#include "logger.h"
 #include "ymglobals.h"
 
 #include "fmt/base.h"
@@ -18,11 +18,11 @@ namespace ym
  *
  * @brief Logs text to the given outfile - similary to std::printf.
  */
-class LiteLogger : public TextLogger
+class LiteLogger : public Logger
 {
 public:
    /// @brief Options surrounding file configs.
-   using Options_T = TextLogger::Options_T;
+   using Options_T = Logger::Options_T;
 
    /// @brief Returns default options.
    static constexpr Options_T getDefaultOptions(void) { return {}; }

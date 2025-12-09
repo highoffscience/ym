@@ -24,35 +24,43 @@ ym::LiteLogger::LiteLogger(
       _Options {Options}
 { }
 
-/**
- * @brief TODO
+/** isOpen
+ * 
+ * @brief Returns whether the logger is ready to print to or not.
+ * 
+ * @returns True if logger can be printed to, false otherwise.
  */
 bool ym::LiteLogger::isOpen(void) const
 {
    return isOutfileOpened();
 }
 
-/**
- * @brief TODO
+/** open
+ * 
+ * @brief Prepares the logger to be written to.
+ * 
+ * @returns True if logger can be printed to, false otherwise.
  */
 bool ym::LiteLogger::open(void)
 {
    return openOutfile(getFilename().get(), getOptions());
 }
 
-/**
- * @brief TODO
+/** close
+ * 
+ * @brief Closes the logger.
  */
 void ym::LiteLogger::close(void)
 {
    closeOutfile();
 }
 
-/**
- * @brief TODO
+/** producer
  * 
- * @param Format 
- * @param args 
+ * @brief Writes the Format string to file.
+ * 
+ * @param Format -- Format string.
+ * @param args   -- Arguments.
  */
 void ym::LiteLogger::producer(
    strlit const     Format,

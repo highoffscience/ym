@@ -91,20 +91,12 @@ public:
       producer(Format, fmt::make_format_args(args...));
    }
 
-   virtual bool isOpen(void) const = 0;
-   virtual bool open  (void) = 0;
-   virtual void close (void) = 0;
-
 protected:
    explicit TextLogger(strlit const Filename);
    virtual ~TextLogger(void) = default;
 
    YM_NO_COPY  (TextLogger)
    YM_NO_ASSIGN(TextLogger)
-
-   virtual void producer(
-      strlit const     Format,
-      fmt::format_args args) = 0;
 
    static constexpr std::string_view RawTimeStampTemplate{"uuuuuuuuuuuu"};
    static constexpr std::string_view HumanReadableTimeStampTemplate{"HHH:MM:SS.uuuuuu"};

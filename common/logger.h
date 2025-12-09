@@ -77,9 +77,17 @@ public:
 
    YM_DECL_YMASSERT(Error)
 
+   virtual bool isOpen(void) const = 0;
+   virtual bool open  (void) = 0;
+   virtual void close (void) = 0;
+
 protected:
    explicit Logger(void) = default;
    virtual ~Logger(void);
+
+   virtual void producer(
+      strlit const     Format,
+      fmt::format_args args) = 0;
 
    /// @brief Returns if outfile is opened.
    inline auto isOutfileOpened(void) const { return _file != nullptr; }
