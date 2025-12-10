@@ -50,7 +50,10 @@ public:
    /// @brief Options surrounding file configs.
    using Options_T = TextLogger::Options_T;
 
+   /// @brief Returns default options.
    static constexpr Options_T getDefaultOptions(void) { return {}; }
+
+   /// @brief Gets this logger's options.
    inline virtual Options_T const & getOptions(void) const override { return _Options; }
 
    virtual ~GlobalLogger(void);

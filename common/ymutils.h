@@ -52,7 +52,7 @@ namespace ym
 template <
    typename T,
    typename U>
-constexpr auto * ymCastPtrTo(U * const data_Ptr)
+constexpr auto * ymCastPtrTo(U * const data_Ptr) noexcept
 {
    return static_cast<T *>(
       static_cast<typename std::conditional_t<
@@ -70,7 +70,7 @@ constexpr auto * ymCastPtrTo(U * const data_Ptr)
  * 
  * @returns True if empty, false otherwise.
  */
-constexpr auto ymEmpty(rawstr const S)
+constexpr auto ymEmpty(rawstr const S) noexcept
 {
    return static_cast<bool>(!(S && *S));
 }
@@ -98,7 +98,11 @@ constexpr auto ymBinarySearch(
    Iterator_T  last,
    typename std::iterator_traits<Iterator_T>::value_type const &
                Value,
-   Compare_T   compare = Compare_T{})
+   Compare_T   compare = Compare_T{}) noexcept
+requires (
+   std::is_nothrow_invocable_v<Compare_T,
+      typename std::iterator_traits<Iterator_T>::value_type const &,
+      typename std::iterator_traits<Iterator_T>::value_type const &>)
 {
    auto elemIt = last;
 
@@ -173,7 +177,7 @@ union PtrInt_T
  */
 template <typename T = std::byte>
 requires (sizeof(T) < sizeof(std::size_t)) // see above doc comment
-class Bitset
+class Bitset // TODO rename to MiniBitset. TODO declare functions noexcept.
 {
 public:
    /// @brief Constructor.

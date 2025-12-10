@@ -77,10 +77,6 @@ public:
 
    YM_DECL_YMASSERT(Error)
 
-   virtual bool isOpen(void) const = 0;
-   virtual bool open  (void) = 0;
-   virtual void close (void) = 0;
-
 protected:
    explicit Logger(void) = default;
    virtual ~Logger(void);

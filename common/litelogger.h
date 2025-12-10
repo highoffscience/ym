@@ -26,6 +26,8 @@ public:
 
    /// @brief Returns default options.
    static constexpr Options_T getDefaultOptions(void) { return {}; }
+
+   /// @brief Gets this logger's options.
    inline virtual Options_T const & getOptions(void) const override { return _Options; }
 
    explicit LiteLogger(
@@ -35,9 +37,14 @@ public:
    YM_NO_COPY  (LiteLogger)
    YM_NO_ASSIGN(LiteLogger)
 
-   virtual bool isOpen(void) const override;
-   virtual bool open  (void) override;
-   virtual void close (void) override;
+   YM_DECL_YMASSERT(Logger::Error, Error)
+
+   /// @brief Returns name of file.
+   inline auto getFilename(void) const { return _Filename; }
+
+   bool isOpen(void) const;
+   bool open  (void);
+   void close (void);
 
 protected:
    virtual void producer(
@@ -45,6 +52,7 @@ protected:
       fmt::format_args args) override;
    
 private:
+   strlit    const _Filename;
    Options_T const _Options{};
 };
 

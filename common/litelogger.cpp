@@ -20,8 +20,8 @@
 ym::LiteLogger::LiteLogger(
    strlit    const   Filename,
    Options_T const & Options) :
-      TextLogger(Filename),
-      _Options {Options}
+      _Filename {Filename},
+      _Options  {Options }
 { }
 
 /** isOpen
@@ -66,5 +66,5 @@ void ym::LiteLogger::producer(
    strlit const     Format,
    fmt::format_args args)
 {
-   
+   fmt::vprint(_file.unwrap(), Format.get(), args);
 }

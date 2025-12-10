@@ -201,7 +201,7 @@ using floatext = long double; static_assert(std::numeric_limits<floatext>::digit
  * @returns std::size_t -- The number of bits in type T.
  */
 template <typename T>
-constexpr auto ymGetNBits(void)
+constexpr auto ymGetNBits(void) noexcept
 {
    return sizeof(T) * static_cast<std::size_t>(CHAR_BIT);
 }
