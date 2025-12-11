@@ -97,7 +97,7 @@ public:
       rawstr        _val  {  }; // value
       uint32        _nvals{  }; // number of values, if list
       char          _abbr {  }; // abbreviation
-      Bitset<uint8> _flags{  }; // flags
+      MiniBitset<uint8> _flags{  }; // flags
    };
 
    // copyable to load Arg params into vector

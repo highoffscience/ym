@@ -171,40 +171,47 @@ union PtrInt_T
  * @brief A more compact version of std::bitset.
  * 
  * @note This should only be if std::bitset (which uses u64), is too expensive.
- *       ie, if you only need std::byte, short, or unsigned.
+ *       ie, if you only need a byte.
  *
  * @tparam T -- Underlying type.
  */
-template <typename T = std::byte>
-requires (sizeof(T) < sizeof(std::size_t)) // see above doc comment
-class Bitset // TODO rename to MiniBitset. TODO declare functions noexcept.
+class MiniBitset
 {
 public:
    /// @brief Constructor.
-   explicit constexpr Bitset(void) = default;
+   explicit constexpr MiniBitset(void) = default;
 
    /// @brief True if the bit is set, false otherwise.
-   constexpr bool test(T const Idx) const { return _bits & (T(1u) << Idx); }
+   constexpr bool test(std::size_t const Idx) const noexcept {
+      return _bits & (static_cast<uchar>(1uz << Idx));
+   }
 
    /// @brief Sets the bit to 0.
-   constexpr void clear(T const Idx) { _bits &= ~(T(1u) << Idx); }
+   constexpr void clear(std::size_t const Idx) noexcept {
+      _bits &= ~(static_cast<uchar>(1uz << Idx));
+   }
 
    /// @brief Flips the bit.
-   constexpr void flip(T const Idx) { _bits ^= (T(1u) << Idx); }
+   constexpr void flip(std::size_t const Idx) noexcept {
+      _bits ^= (static_cast<uchar>(1uz << Idx));
+   }
 
    /// @brief Flips the bit.
-   constexpr void set(T const Idx) { _bits |= (T(1u) << Idx); }
+   constexpr void set(std::size_t const Idx) noexcept {
+      _bits |= (static_cast<uchar>(1uz << Idx));
+   }
 
    /// @brief Sets the bit to the specified value.
-   constexpr void set(T const Idx, bool const Val) {
-      clear(Idx); _bits |= (T(Val) << Idx);
+   constexpr void set(std::size_t const Idx, bool const Val) noexcept {
+      clear(Idx);
+      _bits |= (static_cast<uchar>(static_cast<std::size_t>(Val) << Idx)); // sets/clears bit
    }
 
    /// @brief Returns a copy of the underlying data.
-   constexpr auto getUnderlying(void) const { return _bits; }
+   constexpr auto getUnderlying(void) const noexcept { return _bits; }
 
 private:
-   T _bits{};
+   uchar _bits{};
 };
 
 /** Ptr_Base
@@ -219,8 +226,6 @@ template <
    typename Derived_T>
 class Ptr_Base
 {
-   // static_assert(std::is_base_of_v<Ptr_Base, Derived_T>, "Not derived type");
-
 protected:
    /// @brief Wrapper for custom pointer types.
    implicit constexpr Ptr_Base(T * const value_Ptr) :
