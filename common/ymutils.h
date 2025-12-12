@@ -179,7 +179,7 @@ class MiniBitset
 {
 public:
    /// @brief Constructor.
-   explicit constexpr MiniBitset(void) = default;
+   explicit constexpr MiniBitset(void) noexcept = default;
 
    /// @brief True if the bit is set, false otherwise.
    constexpr bool test(std::size_t const Idx) const noexcept {
@@ -228,23 +228,23 @@ class Ptr_Base
 {
 protected:
    /// @brief Wrapper for custom pointer types.
-   implicit constexpr Ptr_Base(T * const value_Ptr) :
+   implicit constexpr Ptr_Base(T * const value_Ptr) noexcept :
       _value_ptr {value_Ptr}
    { }
 
 public:
    /// @brief Increments the underlying pointer value.
-   constexpr auto operator + (std::integral auto const N) const {
+   constexpr auto operator + (std::integral auto const N) const noexcept {
       return Derived_T(_value_ptr + N);
    }
 
    /// @brief Decrements the underlying pointer value.
-   constexpr auto operator - (std::integral auto const N) const {
+   constexpr auto operator - (std::integral auto const N) const noexcept {
       return Derived_T(_value_ptr - N);
    }
 
 protected:
-   T * _value_ptr{};
+   T * _value_ptr{nullptr};
 };
 
 /// @brief Global null pointer error.
@@ -264,7 +264,7 @@ class BoundPtr_Base : public Ptr_Base<T, Derived_T>
 {
 protected:
    /// @brief Wrapper for non-null pointer.
-   implicit constexpr BoundPtr_Base(T * const value_Ptr) :
+   implicit constexpr BoundPtr_Base(T * const value_Ptr) noexcept :
       Ptr_Base<T, Derived_T>(value_Ptr)
    { }
 
@@ -274,10 +274,10 @@ public:
    constexpr BoundPtr_Base<T, Derived_T> & operator = (std::nullptr_t) = delete;
 
    /// @brief Getters.
-   constexpr auto * get          (this auto && self) { return  self._value_ptr; }
-   constexpr        operator T * (this auto && self) { return  self.get(); }
-   constexpr auto & operator *   (this auto && self) { return *self.get(); }
-   constexpr auto * operator ->  (this auto && self) { return  self.get(); }
+   constexpr auto * get          (this auto && self) noexcept { return  self._value_ptr; }
+   constexpr        operator T * (this auto && self) noexcept { return  self.get(); }
+   constexpr auto & operator *   (this auto && self) noexcept { return *self.get(); }
+   constexpr auto * operator ->  (this auto && self) noexcept { return  self.get(); }
 };
 
 /** BoundPtr
@@ -304,20 +304,20 @@ public:
    /// @brief Casting constructor.
    template <typename U>
    requires (std::is_convertible_v<U*, T*>) // enforce legal casting
-   implicit constexpr BoundPtr(BoundPtr<U> const & Other) :
-      BoundPtr<T>(Other)
+   implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept :
+      BoundPtr_Base<T, BoundPtr<T>>(Other)
    { }
 
    /// @brief Casting constructor. Anything goes.
    template <typename U>
    implicit constexpr BoundPtr(
       BoundPtr<U> const & Other,
-      CastPassKey const) :
-         BoundPtr<T>(ymCastPtrTo<T>(Other))
+      CastPassKey const) noexcept :
+         BoundPtr_Base<T, BoundPtr<T>>(ymCastPtrTo<T>(Other))
    { }
 
    /// @brief Decaying constructor. Pointer to array to pointer is safe.
-   implicit constexpr BoundPtr(BoundPtr<T[]> const Other) :
+   implicit constexpr BoundPtr(BoundPtr<T[]> const Other) noexcept :
       BoundPtr_Base<T, BoundPtr<T>>(Other)
    { }
 
@@ -342,7 +342,7 @@ class BoundPtr<T[]> : public BoundPtr_Base<T, BoundPtr<T[]>>
 public:
    /// @brief Wrapper for non-null pointer.
    template <std::size_t N>
-   implicit constexpr BoundPtr(T (&array) [N]) :
+   implicit constexpr BoundPtr(T (&array) [N]) noexcept :
       BoundPtr_Base<T, BoundPtr<T[]>>(array)
    { }
 
@@ -351,13 +351,13 @@ public:
 
    /// @brief Assignment.
    template <std::size_t N>
-   constexpr auto & operator = (T (&array) [N]) {
+   constexpr auto & operator = (T (&array) [N]) noexcept {
       this->_value_ptr = array;
       return *this;
    }
 
    /// @brief Grabs the element at the specified index. No bounds checking.
-   constexpr auto & operator [] (this auto && self, std::integral auto const Idx) {
+   constexpr auto & operator [] (this auto && self, std::integral auto const Idx) noexcept {
       return self.get()[Idx];
    }
 };
@@ -378,17 +378,17 @@ class FreePtr : public Ptr_Base<T, FreePtr<T>>
 {
 public:
    /// @brief Constructor.
-   implicit constexpr FreePtr(void)
-      : FreePtr<T>(nullptr)
+   implicit constexpr FreePtr(void) noexcept :
+      FreePtr<T>(nullptr)
    { }
 
    /// @brief Constructor.
-   implicit constexpr FreePtr(T * const value_Ptr) :
+   implicit constexpr FreePtr(T * const value_Ptr) noexcept :
       Ptr_Base<T, FreePtr<T>>(value_Ptr)
    { }
 
    /// @brief Assignment.
-   constexpr auto & operator = (T * const value_Ptr) {
+   constexpr auto & operator = (T * const value_Ptr) noexcept {
       this->_value_ptr = value_Ptr;
       return *this;
    }
@@ -405,12 +405,13 @@ public:
    }
 
    /// @brief Returns a BoundPtr to the contained pointer.
+   /// @throws NullPtrError -- If value is null.
    constexpr BoundPtr<T> unwrap(void) {
       return this->_value_ptr;
    }
 
    /// @brief Returns a BoundPtr to the contained pointer, or a default value if the contained pointer is null.
-   constexpr BoundPtr<T> unwrap_or(BoundPtr<T> const BPtr) {
+   constexpr BoundPtr<T> unwrap_or(BoundPtr<T> const BPtr) noexcept {
       return (*this) ? unwrap() : BPtr;
    }
 };
