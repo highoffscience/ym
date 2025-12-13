@@ -445,7 +445,21 @@ class PolyRaw
 {
 public:
    /// @brief Constructor.
-   explicit constexpr PolyRaw(void) = default;
+   explicit constexpr PolyRaw(void) noexcept = default;
+
+   // TODO replace with below
+
+   /// @brief Constructor.
+// template <typename Derived_T, typename... Args_T>
+// explicit constexpr PolyRaw(std::in_place_type_t<Derived_T>, Args_T &&... args)
+//    {
+//       ::new (_buffer.data()) Derived_T(std::forward<Args_T>(args)...);
+//    }
+// constexpr Base_T * operator -> (void) {
+//    return std::launder(reinterpret_cast<Base_T*>(_buffer.data()));
+// }
+// auto p = PolyRaw<Base, sizeof(Derv)>(std::in_place_type<Derv>, 9);
+// std::cout << p->getme() << std::endl;
 
    /// @brief Returns pointer as a base object.
    constexpr BoundPtr<Base_T> operator -> (void) {
@@ -492,7 +506,7 @@ public:
    }
 
 private:
-   std::array<std::byte, N> _buffer{};
+   std::array<std::byte, N> _buffer{0};
 };
 
 } // ym
