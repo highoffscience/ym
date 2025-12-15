@@ -182,13 +182,13 @@ using float32  = float      ; static_assert(std::numeric_limits<float32 >::digit
 using float64  = double     ; static_assert(std::numeric_limits<float64 >::digits == 53, "float64  (mantissa) not of expected size");
 using floatext = long double; static_assert(std::numeric_limits<floatext>::digits >= 53, "floatext (mantissa) not of expected size");
 
-/** YM_MAKE_PASSKEY
- *
- * @brief Template for defining a pass key class.
- *
- * @param Name_ -- Name of pass key.
+/** YM_CREATE_TAG_DISPATCH_TYPE
+ * 
+ * @brief Template for creating tag dispatch types.
+ * 
+ * @param Name_ -- Name of type.
  */
-#define YM_MAKE_PASSKEY(Name_) struct Name_ { explicit constexpr Name_(void) = default; };
+#define YM_CREATE_TAG_DISPATCH_TYPE(Name_) struct Name_ { explicit constexpr Name_(void) noexcept = default; };
 
 // ----------------------------------------------------------------------------
 

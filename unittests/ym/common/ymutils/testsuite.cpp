@@ -164,11 +164,11 @@ auto ym::unit::TestSuite::PtrCast::run([[maybe_unused]] DataShuttle const & InDa
    int * p1 = &i;
    int const * p2 = &i;
 
-   auto * bytes1 = ymCastPtrTo<uint8>(p1);
-   auto * bytes2 = ymCastPtrTo<uint8 const>(p2);
+   auto * bytes1 = ym_castPtrTo<uint8>(p1);
+   auto * bytes2 = ym_castPtrTo<uint8 const>(p2);
 
    // compile error (expected)
-   // auto * bytes3 = ymCastPtrTo<uint8>(p2);
+   // auto * bytes3 = ym_castPtrTo<uint8>(p2);
 
    static_assert(!std::is_const_v<std::remove_pointer_t<decltype(bytes1)>>, "bytes1 expected to be non-const");
    static_assert( std::is_const_v<std::remove_pointer_t<decltype(bytes2)>>, "bytes2 expected to be const");

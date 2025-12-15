@@ -29,7 +29,7 @@
 namespace ym
 {
 
-/** ymCastPtrTo
+/** ym_castPtrTo
  * 
  * @brief Casts given pointer to byte pointer.
  * 
@@ -52,7 +52,7 @@ namespace ym
 template <
    typename T,
    typename U>
-constexpr auto * ymCastPtrTo(U * const data_Ptr) noexcept
+constexpr auto * ym_castPtrTo(U * const data_Ptr) noexcept
 {
    return static_cast<T *>(
       static_cast<typename std::conditional_t<
@@ -248,7 +248,10 @@ protected:
 };
 
 /// @brief Global null pointer error.
-YM_DECL_YMASSERT(NullPtrError)
+YM_DECL_YMASSERT(ym_NullPtrError)
+
+/// @brief Tag to indicate raw pointer is not null.
+YM_CREATE_TAG_DISPATCH_TYPE(ym_AssumePtrNotNull)
 
 /** BoundPtr
  *
@@ -291,15 +294,22 @@ template <typename T>
 class BoundPtr : public BoundPtr_Base<T, BoundPtr<T>>
 {
 public:
-   /// @brief Wrapper for non-null pointer.
+   /// @brief Constructor. Throws if pointer is null.
    implicit constexpr BoundPtr(T * const value_Ptr) :
       BoundPtr_Base<T, BoundPtr<T>>(value_Ptr)
    {
-      YMASSERT(this->get(), NullPtrError, YM_DAH, "Bound pointer cannot be null");
+      YMASSERT(this->get(), ym_NullPtrError, YM_DAH, "Bound pointer cannot be null");
    }
 
+   /// @brief Constructor. Assumes pointer is not null, like from std::array<>.data().
+   implicit constexpr BoundPtr(
+      T * const value_Ptr,
+      ym_AssumePtrNotNull) :
+         BoundPtr_Base<T, BoundPtr<T>>(value_Ptr)
+   { }
+
    /// @brief Enables users to cast pointer to anything.
-   YM_MAKE_PASSKEY(CastPassKey)
+   YM_CREATE_TAG_DISPATCH_TYPE(CastPassKey)
 
    /// @brief Casting constructor.
    template <typename U>
@@ -313,10 +323,10 @@ public:
    implicit constexpr BoundPtr(
       BoundPtr<U> const & Other,
       CastPassKey const) noexcept :
-         BoundPtr_Base<T, BoundPtr<T>>(ymCastPtrTo<T>(Other))
+         BoundPtr_Base<T, BoundPtr<T>>(ym_castPtrTo<T>(Other))
    { }
 
-   /// @brief Decaying constructor. Pointer to array to pointer is safe.
+   /// @brief Decaying constructor. Pointer to array pointer is safe.
    implicit constexpr BoundPtr(BoundPtr<T[]> const Other) noexcept :
       BoundPtr_Base<T, BoundPtr<T>>(Other)
    { }
@@ -348,6 +358,13 @@ public:
 
    /// @brief Constructor from limited lifetime memory to array is unsafe.
    implicit constexpr BoundPtr(BoundPtr<T> const) = delete;
+
+   /// @brief Casting constructor.
+   template <typename U>
+   requires (std::is_convertible_v<U*, T*>) // enforce legal casting
+   implicit constexpr BoundPtr(BoundPtr<U[]> const & Other) noexcept :
+      BoundPtr_Base<T, BoundPtr<T[]>>(Other)
+   { }
 
    /// @brief Assignment.
    template <std::size_t N>
@@ -405,7 +422,7 @@ public:
    }
 
    /// @brief Returns a BoundPtr to the contained pointer.
-   /// @throws NullPtrError -- If value is null.
+   /// @throws ym_NullPtrError -- If value is null.
    constexpr BoundPtr<T> unwrap(void) {
       return this->_value_ptr;
    }
@@ -434,41 +451,45 @@ using mutstr = BoundPtr<char>; // mutable string
  */
 template <
    typename    Base_T,
-   std::size_t N>
+   std::size_t MaxDerivedSize>
 requires (requires(
    Base_T         const & Base,
    BoundPtr<void> const   val,
    std::size_t    const   Size_bytes) {
       { Base.cloneAt(val, Size_bytes) };
-})
+      MaxDerivedSize >= sizeof(Base_T);
+   }
+)
 class PolyRaw
 {
 public:
    /// @brief Constructor.
-   explicit constexpr PolyRaw(void) noexcept = default;
-
-   // TODO replace with below
-
-   /// @brief Constructor.
-// template <typename Derived_T, typename... Args_T>
-// explicit constexpr PolyRaw(std::in_place_type_t<Derived_T>, Args_T &&... args)
-//    {
-//       ::new (_buffer.data()) Derived_T(std::forward<Args_T>(args)...);
-//    }
-// constexpr Base_T * operator -> (void) {
-//    return std::launder(reinterpret_cast<Base_T*>(_buffer.data()));
-// }
-// auto p = PolyRaw<Base, sizeof(Derv)>(std::in_place_type<Derv>, 9);
-// std::cout << p->getme() << std::endl;
-
-   /// @brief Returns pointer as a base object.
-   constexpr BoundPtr<Base_T> operator -> (void) {
-      return BoundPtr(ymCastPtrTo<Base_T>(_buffer.data()));
+   template <
+      typename    Derived_T,
+      typename... Args_T>
+   requires (
+      std::is_base_of_v<Base_T, Derived_T> &&
+      sizeof(Derived_T) <= MaxDerivedSize)
+   explicit constexpr PolyRaw(
+      std::in_place_type_t<Derived_T>,
+      Args_T &&... args)
+   {
+      ::new (_buffer.data()) Derived_T(std::forward<Args_T>(args)...);
    }
 
-   /// @brief Returns pointer as a const base object.
-   constexpr BoundPtr<Base_T const> operator -> (void) const {
-      return BoundPtr(ymCastPtrTo<Base_T const>(_buffer.data()));
+   /// @brief Returns const base object pointer.
+   constexpr BoundPtr<Base_T const> operator -> (void) const noexcept {
+      return BoundPtr(
+         std::launder(
+            ym_castPtrTo<Base_T const>(_buffer.data())
+         ),
+         ym_AssumePtrNotNull // _buffer guaranteed to have non-zero memory
+      );
+   }
+
+   /// @brief Returns base object pointer.
+   constexpr BoundPtr<Base_T> operator -> (void) noexcept {
+      return std::launder(ym_castPtrTo<Base_T>(_buffer.data()));
    }
 
    /// @brief Copy constructor.
@@ -477,9 +498,7 @@ public:
    }
 
    /// @brief Move constructor.
-   constexpr PolyRaw(PolyRaw<Base_T, N> && other) {
-      *this = other;
-   }
+   constexpr PolyRaw(PolyRaw<Base_T, N> && other) = delete;
 
    /// @brief Copy assignment.
    constexpr PolyRaw<Base_T, N> & operator = (PolyRaw<Base_T, N> const & Other) {
@@ -490,9 +509,7 @@ public:
    }
 
    /// @brief Move assignment.
-   constexpr PolyRaw<Base_T, N> & operator = (PolyRaw<Base_T, N> && other) {
-      return *this = other;
-   }
+   constexpr PolyRaw<Base_T, N> & operator = (PolyRaw<Base_T, N> && other) = delete;
    
    /// @brief Constructs derived object in place.
    template <
@@ -506,7 +523,7 @@ public:
    }
 
 private:
-   std::array<std::byte, N> _buffer{0};
+   alignas(std::max_align_t) std::array<std::byte, MaxDerivedSize> _buffer{};
 };
 
 } // ym
