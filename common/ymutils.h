@@ -62,7 +62,7 @@ constexpr auto * ym_castPtrTo(U * const data_Ptr) noexcept
          >(data_Ptr));
 }
 
-/** ymEmpty
+/** ym_empty
  * 
  * @brief Determines if the parameter is consider empty.
  *
@@ -70,12 +70,12 @@ constexpr auto * ym_castPtrTo(U * const data_Ptr) noexcept
  * 
  * @returns True if empty, false otherwise.
  */
-constexpr auto ymEmpty(rawstr const S) noexcept
+constexpr auto ym_empty(rawstr const S) noexcept
 {
    return static_cast<bool>(!(S && *S));
 }
 
-/** ymBinarySearch
+/** ym_binarySearch
  * 
  * @brief Returns an iterator to the searched for element, or last
  *        if no element is found. Range must be in ascending order.
@@ -93,7 +93,7 @@ constexpr auto ymEmpty(rawstr const S) noexcept
 template <
    typename Iterator_T,
    typename Compare_T = std::less<>>
-constexpr auto ymBinarySearch(
+constexpr auto ym_binarySearch(
    Iterator_T  first,
    Iterator_T  last,
    typename std::iterator_traits<Iterator_T>::value_type const &
@@ -276,10 +276,16 @@ public:
    constexpr BoundPtr_Base                            (std::nullptr_t) = delete;
    constexpr BoundPtr_Base<T, Derived_T> & operator = (std::nullptr_t) = delete;
 
-   /// @brief Getters.
+   /// @brief Getter.
    constexpr auto * get          (this auto && self) noexcept { return  self._value_ptr; }
+
+   /// @brief Getter.
    constexpr        operator T * (this auto && self) noexcept { return  self.get(); }
+
+   /// @brief Getter.
    constexpr auto & operator *   (this auto && self) noexcept { return *self.get(); }
+
+   /// @brief Getter.
    constexpr auto * operator ->  (this auto && self) noexcept { return  self.get(); }
 };
 
@@ -474,7 +480,7 @@ public:
       std::in_place_type_t<Derived_T>,
       Args_T &&... args)
    {
-      ::new (_buffer.data()) Derived_T(std::forward<Args_T>(args)...);
+      construct(std::in_place_type<Derived_T>, std::forward<Args_T>(args)...);
    }
 
    /// @brief Returns const base object pointer.
@@ -493,7 +499,7 @@ public:
    }
 
    /// @brief Copy constructor.
-   constexpr PolyRaw(PolyRaw<Base_T, N> const & Other) {
+   constexpr PolyRaw(PolyRaw<Base_T, MaxDerivedSize> const & Other) {
       *this = Other;
    }
 
@@ -501,15 +507,15 @@ public:
    constexpr PolyRaw(PolyRaw<Base_T, N> && other) = delete;
 
    /// @brief Copy assignment.
-   constexpr PolyRaw<Base_T, N> & operator = (PolyRaw<Base_T, N> const & Other) {
+   constexpr PolyRaw<Base_T, MaxDerivedSize> & operator = (PolyRaw<Base_T, MaxDerivedSize> const & Other) {
       if (this != &Other) { // prevent self assign
-         Other->cloneAt(_buffer.data(), N);
+         Other->cloneAt(_buffer.data(), MaxDerivedSize);
       }
       return *this;
    }
 
    /// @brief Move assignment.
-   constexpr PolyRaw<Base_T, N> & operator = (PolyRaw<Base_T, N> && other) = delete;
+   constexpr PolyRaw<Base_T, MaxDerivedSize> & operator = (PolyRaw<Base_T, MaxDerivedSize> && other) = delete;
    
    /// @brief Constructs derived object in place.
    template <
@@ -517,9 +523,11 @@ public:
       typename... Args_T>
    requires (
       std::is_base_of_v<Base_T, Derived_T> &&
-      sizeof(Derived_T) <= N)
-   constexpr void construct(Args_T &&... args) {
-      ::new (_buffer.data()) Derived_T(std::forward<Args_T>(args)...);
+      sizeof(Derived_T) <= MaxDerivedSize)
+   constexpr void construct(
+      std::in_place_type_t<Derived_T>,
+      Args_T &&... args) {
+         ::new (_buffer.data()) Derived_T(std::forward<Args_T>(args)...);
    }
 
 private:

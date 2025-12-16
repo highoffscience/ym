@@ -82,7 +82,7 @@ private:
       std::atomic<unsigned>, // type
       static_cast<unsigned>(
          std::ceil(
-            std::to_underlying(Flag_T::NFlags) / ymGetNBits<unsigned>())) // size
+            std::to_underlying(Flag_T::NFlags) / ym_getNBits<unsigned>())) // size
    > _flags{};
 };
 

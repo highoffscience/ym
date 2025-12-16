@@ -121,7 +121,7 @@ auto ym::unit::TestSuite::BinarySearch::run([[maybe_unused]] DataShuttle const &
    auto const SE = ymLogPushEnable(VF::UnitTest_YmUtils);
 
    int values[] = {1, 3, 4, 8, 9, 14, 15, 16, 20};
-   auto it = ymBinarySearch(values, values + std::size(values), 4,
+   auto it = ym_binarySearch(values, values + std::size(values), 4,
       [](auto const Key, auto const * const It_Ptr) -> auto {
          return
             (Key < *It_Ptr) ? -1 :

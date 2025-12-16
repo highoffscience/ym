@@ -78,7 +78,7 @@ public:
    static constexpr Options_T getDefaultOptions(void) { return {}; }
    virtual Options_T const & getOptions(void) const = 0;
 
-   YM_DECL_YMASSERT(Error)
+   YM_DECL_YMASSERT(Logger::Error, Error)
 
    /// @brief Returns name of file.
    inline auto getFilename(void) const { return _Filename; }

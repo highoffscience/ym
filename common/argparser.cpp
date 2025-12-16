@@ -118,7 +118,7 @@ auto ym::ArgParser::parse(void) -> ParseResult_T
  */
 auto ym::ArgParser::parseLonghand(rawstr token) -> ParseResult_T
 {
-   YMASSERT(!ymEmpty(token), ParseError, YM_DAH, "token missing after '--'")
+   YMASSERT(!ym_empty(token), ParseError, YM_DAH, "token missing after '--'")
 
    auto result = ParseResult_T::Success; // until told otherwise
 
@@ -151,7 +151,7 @@ auto ym::ArgParser::parseLonghand(rawstr token) -> ParseResult_T
  */
 auto ym::ArgParser::parseShorthand(rawstr token) -> ParseResult_T
 {
-   YMASSERT(!ymEmpty(token), ParseError, YM_DAH, "token missing after '-'")
+   YMASSERT(!ym_empty(token), ParseError, YM_DAH, "token missing after '-'")
 
    auto result = ParseResult_T::Success; // until told otherwise
 
@@ -290,7 +290,7 @@ auto ym::ArgParser::get(str const Key) const -> Arg const *
    auto const BeginIt = _argHandlers.cbegin();
    auto const EndIt   = _argHandlers.cend();
    
-   auto const It = ymBinarySearch(BeginIt, EndIt, Key,
+   auto const It = ym_binarySearch(BeginIt, EndIt, Key,
       [](str const Key, auto const & Arg) -> int32 {
          return std::strcmp(Key, Arg->getName());
       }
