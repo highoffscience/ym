@@ -272,21 +272,21 @@ protected:
    { }
 
 public:
+   /// @name Creation methods.
+   /// @{
    /// @brief Compile time non-nullness checks.
    constexpr BoundPtr_Base                            (std::nullptr_t) = delete;
    constexpr BoundPtr_Base<T, Derived_T> & operator = (std::nullptr_t) = delete;
+   /// @}
 
+   /// @name Getters.
+   /// @{
    /// @brief Getter.
    constexpr auto * get          (this auto && self) noexcept { return  self._value_ptr; }
-
-   /// @brief Getter.
    constexpr        operator T * (this auto && self) noexcept { return  self.get(); }
-
-   /// @brief Getter.
    constexpr auto & operator *   (this auto && self) noexcept { return *self.get(); }
-
-   /// @brief Getter.
    constexpr auto * operator ->  (this auto && self) noexcept { return  self.get(); }
+   /// @}
 };
 
 /** BoundPtr
@@ -416,11 +416,12 @@ public:
       return *this;
    }
 
-   /// @brief Comparison operations.
+   /// @name Comparison operations.
+   /// @{
+   /// @brief Comparison overloads.
    constexpr auto operator <=> (FreePtr<T> const &) const noexcept = default;
-
-   /// @brief Comparison operations.
    constexpr auto operator == (std::nullptr_t) const noexcept { return this->_value_ptr == nullptr; }
+   /// @}
 
    /// @brief True if contained pointer is not null, false otherwise.
    constexpr operator bool(void) const noexcept {
@@ -503,9 +504,6 @@ public:
       *this = Other;
    }
 
-   /// @brief Move constructor.
-   constexpr PolyRaw(PolyRaw<Base_T, N> && other) = delete;
-
    /// @brief Copy assignment.
    constexpr PolyRaw<Base_T, MaxDerivedSize> & operator = (PolyRaw<Base_T, MaxDerivedSize> const & Other) {
       if (this != &Other) { // prevent self assign
@@ -514,8 +512,12 @@ public:
       return *this;
    }
 
-   /// @brief Move assignment.
+   /// @name Move semantics.
+   /// @{
+   /// @brief Move constructor & move assignment doesn't make sense for use cases.
+   constexpr PolyRaw(PolyRaw<Base_T, N> && other) = delete;
    constexpr PolyRaw<Base_T, MaxDerivedSize> & operator = (PolyRaw<Base_T, MaxDerivedSize> && other) = delete;
+   /// @}
    
    /// @brief Constructs derived object in place.
    template <

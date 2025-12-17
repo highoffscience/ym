@@ -57,15 +57,16 @@ public:
       /// @brief Mode to determine if to overwrite file while opening or not.
       OverwriteMode_T _overwriteMode{OverwriteMode_T::Disallow};
 
+      /// @name Comparison operations.
+      /// @{
       /// @brief Allows direct comparison between Options_T and specified field type.
       friend constexpr bool operator == (Options_T const & Opts, FilenameMode_T const Mode) {
          return Opts._filenameMode == Mode;
       }
-
-      /// @brief Allows direct comparison between Options_T and specified field type.
       friend constexpr bool operator == (Options_T const & Opts, OverwriteMode_T const Mode) {
          return Opts._overwriteMode == Mode;
       }
+      /// @}
    };
 
    /// @brief Returns default options.

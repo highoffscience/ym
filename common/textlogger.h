@@ -63,15 +63,16 @@ public:
          #endif
       };
 
+      /// @name Comparison operations.
+      /// @{
       /// @brief Allows direct comparison between Options_T and specified field type.
       friend constexpr bool operator == (Options_T const & Opts, PrintMode_T const Mode) {
          return Opts._printMode == Mode;
       }
-
-      /// @brief Allows direct comparison between OpeningOptions_T and specified field type.
       friend constexpr bool operator == (Options_T const & Opts, RedirectMode_T const Mode) {
          return Opts._redirectMode == Mode;
       }
+      /// @}
    };
 
    /// @brief Returns default options.

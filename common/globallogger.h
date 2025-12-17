@@ -61,8 +61,7 @@ public:
    YM_NO_COPY  (GlobalLogger)
    YM_NO_ASSIGN(GlobalLogger)
 
-   YM_DECL_YMASSERT(PrintError)
-   YM_DECL_YMASSERT(GlobalError)
+   YM_DECL_YMASSERT(TextLogger::Error, Error)
 
    static BoundPtr<GlobalLogger> getGlobalInstance(void);
 
