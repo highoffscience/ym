@@ -69,8 +69,6 @@ public:
       /// @}
    };
 
-   /// @brief Returns default options.
-   static constexpr Options_T getDefaultOptions(void) { return {}; }
    virtual Options_T const & getOptions(void) const = 0;
 
    YM_NO_COPY  (Logger)
@@ -96,7 +94,7 @@ protected:
    bool openOutfile(std::string_view const Filename, Options_T const & Options);
    void closeOutfile(void);
    
-   FreePtr<std::FILE> _file{};
+   FreePtr<std::FILE> _file{nullptr};
 
 private:
    void openOutfile_core           (std::string_view const Filename, Options_T const & Options);

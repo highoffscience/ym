@@ -158,7 +158,7 @@ template <typename T>
 requires (!std::is_member_function_pointer_v<T>)
 union PtrInt_T
 {
-   T            * ptr_val{};
+   T            * ptr_val{nullptr};
    T          * * ptr_ptr_val;
    std::uintptr_t uint_val;
    std::ptrdiff_t diff_val;
@@ -211,7 +211,7 @@ public:
    constexpr auto getUnderlying(void) const noexcept { return _bits; }
 
 private:
-   uchar _bits{};
+   uchar _bits{0_u8};
 };
 
 /** Ptr_Base

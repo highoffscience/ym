@@ -75,8 +75,6 @@ public:
       /// @}
    };
 
-   /// @brief Returns default options.
-   static constexpr Options_T getDefaultOptions(void) { return {}; }
    virtual Options_T const & getOptions(void) const = 0;
 
    YM_DECL_YMASSERT(Logger::Error, Error)
@@ -106,8 +104,8 @@ protected:
       mutstr            writePtr,
       std::size_t const BufSize_bytes) const;
 
-   strlit const _Filename{"unnamed.uhoh"};
-   Timer        _timer   {/* default */ };
+   strlit const _Filename{"unnamed_textlogger.uhoh"};
+   Timer        _timer   {      /* default */      };
 };
 
 } // ym

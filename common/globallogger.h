@@ -50,9 +50,6 @@ public:
    /// @brief Options surrounding file configs.
    using Options_T = TextLogger::Options_T;
 
-   /// @brief Returns default options.
-   static constexpr Options_T getDefaultOptions(void) { return {}; }
-
    /// @brief Gets this logger's options.
    inline virtual Options_T const & getOptions(void) const override { return _Options; }
 
@@ -74,8 +71,6 @@ public:
    /** ScopedEnable
     * 
     * @brief Allows managed temporary enabling of a verbosity group.
-    * 
-    * TODO
     * 
     * @note Uses RAII to storing/restoring enabling verbosity groups.
     * 
@@ -109,7 +104,7 @@ public:
 private:
    explicit GlobalLogger(
       strlit    const   Filename,
-      Options_T const & Options = getDefaultOptions());
+      Options_T const & Options = {});
 
    virtual void producer(
       strlit const     Format,
@@ -133,8 +128,8 @@ private:
 
    struct Slot
    {
-      std::array<char, MaxMsgSize_bytes> _msgBuffer{  };
-      std::atomic_unsigned_lock_free     _seqN     {0u};
+      std::array<char, MaxMsgSize_bytes> _msgBuffer{0_u8};
+      std::atomic_unsigned_lock_free     _seqN     { 0u };
    };
 
    static_assert(MaxMsgSize_bytes >= 64uz, "Too limited room"); // time stamps require some space

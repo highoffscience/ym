@@ -64,8 +64,6 @@ public:
       }
    };
 
-   static constexpr Options_T getDefaultOptions(void) { return {}; }
-
    explicit DataLogger(
       sizet const MaxDepth,
       sizet const NTrackedValsHint = 0uz);
@@ -95,7 +93,7 @@ public:
    void reset(void); // TODO could be close()
    bool dump(
       str       const   Filename,
-      Options_T const & Options = getDefaultOptions());
+      Options_T const & Options = {});
 
 private:
    /** TrackedValBase

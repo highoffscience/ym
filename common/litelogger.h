@@ -24,15 +24,12 @@ public:
    /// @brief Options surrounding file configs.
    using Options_T = Logger::Options_T;
 
-   /// @brief Returns default options.
-   static constexpr Options_T getDefaultOptions(void) { return {}; }
-
    /// @brief Gets this logger's options.
    inline virtual Options_T const & getOptions(void) const override { return _Options; }
 
    explicit LiteLogger(
       strlit    const   Filename,
-      Options_T const & Options = getDefaultOptions());
+      Options_T const & Options = {});
 
    YM_NO_COPY  (LiteLogger)
    YM_NO_ASSIGN(LiteLogger)
@@ -52,8 +49,8 @@ protected:
       fmt::format_args args) override;
    
 private:
-   strlit    const _Filename;
-   Options_T const _Options{};
+   strlit    const _Filename{"unnamed_litelogger.uhoh"};
+   Options_T const _Options {      /* default */      };
 };
 
 } // ym

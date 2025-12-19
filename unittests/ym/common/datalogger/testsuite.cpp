@@ -51,7 +51,7 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
       d *= 1.1;
    }
 
-   auto options = DataLogger::getDefaultOptions();
+   DataLogger::Options_T options;
    // options._dumpMode = DataLogger::DumpMode_T::Binary;
    options._openingOptions._filenameMode  = Logger::FilenameMode_T::KeepOriginal;
    options._openingOptions._overwriteMode = Logger::OverwriteMode_T::Allow;
