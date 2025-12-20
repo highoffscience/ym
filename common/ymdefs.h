@@ -138,6 +138,18 @@
    #define implicit
 #endif
 
+/** YMNOEXC
+ * 
+ * @brief Conditional noexcept specifier.
+ * 
+ * @note Mostly for use with functions with debug assertions, eg. YMASSERTDBG.
+ */
+#if (YM_DEBUG)
+   #define YMNOEXC
+#else
+   #define YMNOEXC noexcept
+#endif
+
 // ----------------------------------------------------------------------------
 
 namespace ym

@@ -6,45 +6,44 @@
 
 #include "verbogroup.h"
 
-/**
- * @brief TODO
+/** set
  * 
- * @param G 
+ * @brief Sets the specified flag (flips to 1).
+ * 
+ * @param F -- Flag to set.
  */
-void ym::VerboGroup::set(Flag_T const F)
+void ym::VerboGroup::set(Flag_T const F) noexcept
 {
-   YMASSERT(F != Flag_T::NFlags, Error, YM_DAH, "Invalid verbosity group");
-
    auto const I = std::to_underlying(F) / ym_getNBits<unsigned>();
    auto const M = std::to_underlying(F) % ym_getNBits<unsigned>();
 
    std::ignore = _flags[I].fetch_or(1u << M, std::memory_order_relaxed);
 }
 
-/**
- * @brief TODO
+/** clear
  * 
- * @param G 
+ * @brief Clears the specified flag (flips to 0).
+ * 
+ * @param F -- Flag to clear.
  */
-void ym::VerboGroup::clear(Flag_T const F)
+void ym::VerboGroup::clear(Flag_T const F) noexcept
 {
-   YMASSERT(F != Flag_T::NFlags, Error, YM_DAH, "Invalid verbosity group");
-
    auto const I = std::to_underlying(F) / ym_getNBits<unsigned>();
    auto const M = std::to_underlying(F) % ym_getNBits<unsigned>();
 
    std::ignore = _flags[I].fetch_and(~(1u << M), std::memory_order_relaxed);
 }
 
-/**
- * @brief TODO
+/** test
  * 
- * @param G 
+ * @brief Test if the specified flag is enabled or not.
+ * 
+ * @param F -- Flag to test.
+ * 
+ * @returns bool -- True if flag is set, false otherwise.
  */
-bool ym::VerboGroup::test(Flag_T const F) const
+bool ym::VerboGroup::test(Flag_T const F) const noexcept
 {
-   YMASSERT(F != Flag_T::NFlags, Error, YM_DAH, "Invalid verbosity group");
-
    auto const I = std::to_underlying(F) / ym_getNBits<unsigned>();
    auto const M = std::to_underlying(F) % ym_getNBits<unsigned>();
 

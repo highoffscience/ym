@@ -25,7 +25,7 @@
  * 
  * @brief Destructor.
  */
-ym::Logger::~Logger(void)
+ym::Logger::~Logger(void) noexcept
 {
    if (isOutfileOpened())
    { // file still opened - time to close it
@@ -70,10 +70,13 @@ bool ym::Logger::openOutfile(
 /**
  * @brief TODO
  */
-void ym::Logger::closeOutfile(void)
+void ym::Logger::closeOutfile(void) noexcept
 {
-   std::ignore = std::fclose(_file.unwrap());
-   _file = nullptr;
+   if (isOutfileOpened())
+   { // something to close
+      std::ignore = std::fclose(_file.unwrap());
+      _file = nullptr;
+   }
 }
 
 /** openOutfile_core
@@ -85,7 +88,7 @@ void ym::Logger::closeOutfile(void)
  */
 void ym::Logger::openOutfile_core(
    std::string_view const   Filename,
-   Options_T        const & Options)
+   Options_T        const & Options) noexcept
 {
    std::error_code ec;
    if (Options == OverwriteMode_T::Disallow &&

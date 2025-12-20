@@ -60,16 +60,16 @@ public:
       /// @name Comparison operations.
       /// @{
       /// @brief Allows direct comparison between Options_T and specified field type.
-      friend constexpr bool operator == (Options_T const & Opts, FilenameMode_T const Mode) {
+      friend constexpr bool operator == (Options_T const & Opts, FilenameMode_T const Mode) noexcept {
          return Opts._filenameMode == Mode;
       }
-      friend constexpr bool operator == (Options_T const & Opts, OverwriteMode_T const Mode) {
+      friend constexpr bool operator == (Options_T const & Opts, OverwriteMode_T const Mode) noexcept {
          return Opts._overwriteMode == Mode;
       }
       /// @}
    };
 
-   virtual Options_T const & getOptions(void) const = 0;
+   virtual Options_T const & getOptions(void) const noexcept = 0;
 
    YM_NO_COPY  (Logger)
    YM_NO_ASSIGN(Logger)
@@ -77,27 +77,27 @@ public:
    YM_DECL_YMASSERT(Error)
 
 protected:
-   explicit Logger(void) = default;
-   virtual ~Logger(void);
+   explicit Logger(void) noexcept = default;
+   virtual ~Logger(void) noexcept;
 
    virtual void producer(
       strlit const     Format,
-      fmt::format_args args) = 0;
+      fmt::format_args args) noexcept = 0;
 
    /// @brief Returns if outfile is opened.
-   inline auto isOutfileOpened(void) const { return _file != nullptr; }
+   inline auto isOutfileOpened(void) const noexcept { return _file != nullptr; }
 
    // Don't name simply "open" or "close" because we want to allow derived
    // classes to implement these functions without the overhead of
    // virtual calls.
 
    bool openOutfile(std::string_view const Filename, Options_T const & Options);
-   void closeOutfile(void);
+   void closeOutfile(void) noexcept;
    
    FreePtr<std::FILE> _file{nullptr};
 
 private:
-   void openOutfile_core           (std::string_view const Filename, Options_T const & Options);
+   void openOutfile_core           (std::string_view const Filename, Options_T const & Options) noexcept;
    void openOutfile_appendTimeStamp(std::string_view const Filename, Options_T const & Options);
 };
 

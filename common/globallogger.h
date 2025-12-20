@@ -188,15 +188,15 @@ auto ym::GlobalLogger::pushEnable(VFs_T const... VFlags) -> ScopedEnable<VFs_T..
    return ScopedEnable(VFlags...);
 }
 
-/**
- * @brief TODO
+/** printf
  * 
- * @tparam VFs_T 
- * @tparam Args_T 
+ * @brief Conditionally prints.
  * 
- * @param VFlags 
- * @param Format 
- * @param args 
+ * @tparam Args_T -- Argument types.
+ * 
+ * @param VFlag  -- Verbosity flag.
+ * @param Format -- Format string.
+ * @param args   -- Arguments.
  */
 template <typename... Args_T>
 inline void ym::GlobalLogger::printf(
@@ -206,7 +206,7 @@ inline void ym::GlobalLogger::printf(
 {
    if (_vGroup.test(VFlag))
    { // verbosity level is enabled - print!
-      GlobalLogger::getGlobalInstance()->printf(VFlag, Format, std::forward<Args_T>(args)...);
+      GlobalLogger::getGlobalInstance()->printf(Format, std::forward<Args_T>(args)...);
    }
 }
 
@@ -222,7 +222,7 @@ inline void ym::GlobalLogger::printf(
  * 
  * @tparam Args_T -- Argument types.
  *
- * @param VF     -- Verbosity level.
+ * @param VF     -- Verbosity flag.
  * @param Format -- Format string.
  * @param Args   -- Arguments.
  */

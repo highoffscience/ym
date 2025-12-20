@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "ymassert.h"
 #include "ymdefs.h"
 
 #include <array>
@@ -68,21 +67,19 @@ public:
       UnitTest_YmUtils,
    #endif
       
-      NFlags
+      Testing // must be last
    };
 
-   YM_DECL_YMASSERT(Error)
-
-   void set  (Flag_T const F);
-   void clear(Flag_T const F);
-   bool test (Flag_T const F) const;
+   void set  (Flag_T const F) noexcept;
+   void clear(Flag_T const F) noexcept;
+   bool test (Flag_T const F) const noexcept;
 
 private:
    std::array<
       std::atomic<unsigned>, // type
-      static_cast<unsigned>(
+      static_cast<unsigned>( // size
          std::ceil(
-            std::to_underlying(Flag_T::NFlags) / ym_getNBits<unsigned>())) // size
+            (std::to_underlying(Flag_T::Testing) + 1u) / ym_getNBits<unsigned>()))
    > _flags{};
 };
 
