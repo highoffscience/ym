@@ -67,7 +67,7 @@ public:
       UnitTest_YmUtils,
    #endif
       
-      Testing // must be last
+      Errstream // must be last
    };
 
    void set  (Flag_T const F) noexcept;
@@ -79,7 +79,7 @@ private:
       std::atomic<unsigned>, // type
       static_cast<unsigned>( // size
          std::ceil(
-            (std::to_underlying(Flag_T::Testing) + 1u) / ym_getNBits<unsigned>()))
+            (std::to_underlying(Flag_T::Errstream) + 1u) / ym_getNBits<unsigned>()))
    > _flags{};
 };
 

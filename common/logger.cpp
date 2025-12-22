@@ -8,7 +8,6 @@
 
 #include "globallogger.h"
 #include "timer.h"
-#include "verbogroup.h"
 
 #include "fmt/chrono.h"
 #include "fmt/format.h"
@@ -67,8 +66,9 @@ bool ym::Logger::openOutfile(
    return isOutfileOpened();
 }
 
-/**
- * @brief TODO
+/** closeOutfile
+ * 
+ * @brief Closes file if open.
  */
 void ym::Logger::closeOutfile(void) noexcept
 {
@@ -94,11 +94,11 @@ void ym::Logger::openOutfile_core(
    if (Options == OverwriteMode_T::Disallow &&
       std::filesystem::exists(Filename, ec))
    { // file we are attempting to create already exists
-      ymLog(VF::Warning, "WARNING: File (or directory) '{}' already exists", Filename);
+      ymLog(VF::Errstream, "WARNING: File (or directory) '{}' already exists", Filename);
    }
    else if (ec)
    { // filesystem failure
-      ymLog(VF::Warning, "WARNING: Filesystem error when attempting to open '{}' with error code {}", Filename, ec.value());
+      ymLog(VF::Errstream, "WARNING: Filesystem error when attempting to open '{}' with error code {}", Filename, ec.value());
    }
    else
    { // open!
@@ -118,7 +118,7 @@ void ym::Logger::openOutfile_core(
  */
 void ym::Logger::openOutfile_appendTimeStamp(
    std::string_view const   Filename,
-   Options_T        const & Options)
+   Options_T        const & Options) noexcept
 {
    auto extPos = Filename.find_last_of('.');
    if (extPos == 0uz ||                  // hidden files
@@ -127,14 +127,14 @@ void ym::Logger::openOutfile_appendTimeStamp(
       extPos = Filename.size();
    }
 
-   std::string_view ext;
+   std::string_view ext{""};
    try
    { // get extension
       ext = Filename.substr(extPos);
    }
    catch (std::out_of_range const & E)
    { // logic error
-      YMASSERT(false, Error, YM_DAH, "Error finding extension. {}", E.what())
+      ymLog(VF::Errstream, "WARNING: Trouble finding extension. {}", E.what());
    }
 
    constexpr std::string_view TimeStamp("_YYYY_mm_dd_HH_MM_SS");
@@ -143,29 +143,39 @@ void ym::Logger::openOutfile_appendTimeStamp(
    std::pmr::monotonic_buffer_resource mbr{buffer.data(), buffer.size(), std::pmr::null_memory_resource()};
    std::pmr::string timeStampedFilename(Filename.size() + TimeStamp.size(), '\0', &mbr);
 
-   // write stem
-   auto result = fmt::format_to_n(
-      timeStampedFilename.data(),
-      Filename.size() - ext.size(),
-      "{}",
-      Filename);
+   try
+   {
+      // write stem
+      auto result = fmt::format_to_n(
+         timeStampedFilename.data(),
+         Filename.size() - ext.size(),
+         "{}",
+         Filename);
 
-   // write time stamp
-   result = fmt::format_to_n(
-      result.out,
-      TimeStamp.size(),
-      "_{:%Y_%m_%d_%H_%M_%S}",
-      Timer::Clock_T::now());
+      // write time stamp
+      result = fmt::format_to_n(
+         result.out,
+         TimeStamp.size(),
+         "_{:%Y_%m_%d_%H_%M_%S}",
+         Timer::Clock_T::now());
 
-   // write extension
-   result = fmt::format_to_n(
-      result.out,
-      ext.size(),
-      "{}",
-      ext);
+      // write extension
+      result = fmt::format_to_n(
+         result.out,
+         ext.size(),
+         "{}",
+         ext);
 
-   YMASSERT(result.out == &*timeStampedFilename.end(), Error, YM_DAH,
-      "Error printing time stamp. {} -- {}", (void*)result.out, (void*)&*timeStampedFilename.end())
+      if (result.out != &*timeStampedFilename.end())
+      { // unexpected error writing time stamp
+         ymLog(VF::Errstream, "WARNING: Trouble printing time stamp. {} -- {}",
+            (void*)result.out, (void*)&*timeStampedFilename.end());
+      }
+   }
+   catch (std::exception const & E)
+   { // logic or formatting error
+      ymLog(VF::Errstream, "WARNING: fmt::format_to_n encountered an error. {}", E.what());
+   }
 
    openOutfile_core(timeStampedFilename, Options);
 }

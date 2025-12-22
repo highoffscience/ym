@@ -91,14 +91,14 @@ protected:
    // classes to implement these functions without the overhead of
    // virtual calls.
 
-   bool openOutfile(std::string_view const Filename, Options_T const & Options);
+   bool openOutfile(std::string_view const Filename, Options_T const & Options) noexcept;
    void closeOutfile(void) noexcept;
    
    FreePtr<std::FILE> _file{nullptr};
 
 private:
    void openOutfile_core           (std::string_view const Filename, Options_T const & Options) noexcept;
-   void openOutfile_appendTimeStamp(std::string_view const Filename, Options_T const & Options);
+   void openOutfile_appendTimeStamp(std::string_view const Filename, Options_T const & Options) noexcept;
 };
 
 } // ym

@@ -51,7 +51,7 @@ public:
    using Options_T = TextLogger::Options_T;
 
    /// @brief Gets this logger's options.
-   inline virtual Options_T const & getOptions(void) const override { return _Options; }
+   inline virtual Options_T const & getOptions(void) const noexcept override { return _Options; }
 
    virtual ~GlobalLogger(void);
 

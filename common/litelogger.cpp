@@ -6,6 +6,8 @@
 
 #include "litelogger.h"
 
+#include "globallogger.h"
+
 #include "fmt/format.h"
 
 #include <utility>
@@ -19,7 +21,7 @@
  */
 ym::LiteLogger::LiteLogger(
    strlit    const   Filename,
-   Options_T const & Options) :
+   Options_T const & Options) noexcept :
       _Filename {Filename},
       _Options  {Options }
 { }
@@ -30,7 +32,7 @@ ym::LiteLogger::LiteLogger(
  * 
  * @returns True if logger can be printed to, false otherwise.
  */
-bool ym::LiteLogger::isOpen(void) const
+bool ym::LiteLogger::isOpen(void) const noexcept
 {
    return isOutfileOpened();
 }
@@ -41,7 +43,7 @@ bool ym::LiteLogger::isOpen(void) const
  * 
  * @returns True if logger can be printed to, false otherwise.
  */
-bool ym::LiteLogger::open(void)
+bool ym::LiteLogger::open(void) noexcept
 {
    return openOutfile(getFilename().get(), getOptions());
 }
@@ -50,7 +52,7 @@ bool ym::LiteLogger::open(void)
  * 
  * @brief Closes the logger.
  */
-void ym::LiteLogger::close(void)
+void ym::LiteLogger::close(void) noexcept
 {
    closeOutfile();
 }
@@ -64,7 +66,14 @@ void ym::LiteLogger::close(void)
  */
 void ym::LiteLogger::producer(
    strlit const     Format,
-   fmt::format_args args)
+   fmt::format_args args) noexcept
 {
-   fmt::vprint(_file.unwrap(), Format.get(), args);
+   try
+   {
+      fmt::vprint(_file.unwrap(), Format.get(), args);
+   }
+   catch (std::exception const & E)
+   { // logic or formatting error
+      ymLog(VF::Warning, "fmt::vprint encountered an error. {}", E.what());
+   }
 }

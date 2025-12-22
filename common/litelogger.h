@@ -25,11 +25,11 @@ public:
    using Options_T = Logger::Options_T;
 
    /// @brief Gets this logger's options.
-   inline virtual Options_T const & getOptions(void) const override { return _Options; }
+   inline virtual Options_T const & getOptions(void) const noexcept override { return _Options; }
 
    explicit LiteLogger(
       strlit    const   Filename,
-      Options_T const & Options = {});
+      Options_T const & Options = {}) noexcept;
 
    YM_NO_COPY  (LiteLogger)
    YM_NO_ASSIGN(LiteLogger)
@@ -37,16 +37,16 @@ public:
    YM_DECL_YMASSERT(Logger::Error, Error)
 
    /// @brief Returns name of file.
-   inline auto getFilename(void) const { return _Filename; }
+   inline auto getFilename(void) const noexcept { return _Filename; }
 
-   bool isOpen(void) const;
-   bool open  (void);
-   void close (void);
+   bool isOpen(void) const noexcept;
+   bool open  (void) noexcept;
+   void close (void) noexcept;
 
 protected:
    virtual void producer(
       strlit const     Format,
-      fmt::format_args args) override;
+      fmt::format_args args) noexcept override;
    
 private:
    strlit    const _Filename{"unnamed_litelogger.uhoh"};
