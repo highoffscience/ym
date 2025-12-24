@@ -486,12 +486,12 @@ public:
 
    /// @brief Returns const base object pointer.
    constexpr BoundPtr<Base_T const> operator -> (void) const noexcept {
-      return BoundPtr(
+      return {
          std::launder(
             ym_castPtrTo<Base_T const>(_buffer.data())
          ),
-         ym_AssumePtrNotNull // _buffer guaranteed to have non-zero memory
-      );
+         ym_AssumePtrNotNull{} // _buffer guaranteed to have non-zero memory
+      };
    }
 
    /// @brief Returns base object pointer.
@@ -515,7 +515,7 @@ public:
    /// @name Move semantics.
    /// @{
    /// @brief Move constructor & move assignment doesn't make sense for use cases.
-   constexpr PolyRaw(PolyRaw<Base_T, N> && other) = delete;
+   constexpr PolyRaw(PolyRaw<Base_T, MaxDerivedSize> && other) = delete;
    constexpr PolyRaw<Base_T, MaxDerivedSize> & operator = (PolyRaw<Base_T, MaxDerivedSize> && other) = delete;
    /// @}
    

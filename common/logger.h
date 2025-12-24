@@ -8,6 +8,8 @@
 
 #include "ymglobals.h"
 
+#include "fmt/base.h"
+
 #include <cstdio>
 #include <string_view>
 
@@ -75,6 +77,14 @@ public:
    YM_NO_ASSIGN(Logger)
 
    YM_DECL_YMASSERT(Error)
+
+   /// @brief Prints.
+   template <typename... Args_T>
+   inline void printf(
+         strlit       Format,
+         Args_T &&... args) {
+      producer(Format, fmt::make_format_args(args...));
+   }
 
 protected:
    explicit Logger(void) noexcept = default;

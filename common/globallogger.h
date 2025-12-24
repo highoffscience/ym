@@ -108,7 +108,7 @@ private:
 
    virtual void producer(
       strlit const     Format,
-      fmt::format_args args) override;
+      fmt::format_args args) noexcept override;
 
    /** State_T
     *

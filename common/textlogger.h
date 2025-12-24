@@ -66,29 +66,19 @@ public:
       /// @name Comparison operations.
       /// @{
       /// @brief Allows direct comparison between Options_T and specified field type.
-      friend constexpr bool operator == (Options_T const & Opts, PrintMode_T const Mode) {
+      friend constexpr bool operator == (Options_T const & Opts, PrintMode_T const Mode) noexcept {
          return Opts._printMode == Mode;
       }
-      friend constexpr bool operator == (Options_T const & Opts, RedirectMode_T const Mode) {
+      friend constexpr bool operator == (Options_T const & Opts, RedirectMode_T const Mode) noexcept {
          return Opts._redirectMode == Mode;
       }
       /// @}
    };
 
-   virtual Options_T const & getOptions(void) const = 0;
-
    YM_DECL_YMASSERT(Logger::Error, Error)
 
    /// @brief Returns name of file.
-   inline auto getFilename(void) const { return _Filename; }
-
-   /// @brief Prints.
-   template <typename... Args_T>
-   inline void printf(
-         strlit       Format,
-         Args_T &&... args) {
-      producer(Format, fmt::make_format_args(args...));
-   }
+   inline auto const & getFilename(void) const noexcept { return _Filename; }
 
 protected:
    explicit TextLogger(strlit const Filename);
