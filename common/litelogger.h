@@ -49,8 +49,8 @@ protected:
       fmt::format_args args) noexcept override;
    
 private:
-   strlit    const _Filename{"unnamed_litelogger.uhoh"};
-   Options_T const _Options {      /* default */      };
+   strlit    const _Filename{"unnamed_ll.uhoh"};
+   Options_T const _Options {  /* default */  };
 };
 
 } // ym

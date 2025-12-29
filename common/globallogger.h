@@ -62,6 +62,13 @@ public:
 
    static BoundPtr<GlobalLogger> getGlobalInstance(void);
 
+   /// @brief Returns name of file.
+   inline auto getFilename(void) const noexcept { return _Filename; }
+
+   bool isOpen(void) const noexcept;
+   bool open  (void) noexcept;
+   void close (void) noexcept;
+
    template <typename... Args_T>
    inline void printf(
       VF const     VFlag,
@@ -110,10 +117,9 @@ private:
       strlit const     Format,
       fmt::format_args args) noexcept override;
 
-   /** State_T
-    *
-    * @brief State of the logger.
-    */
+   void printer(void) noexcept;
+
+   /// @brief State of the logger.
    enum class State_T
    {
       Closed,
@@ -126,22 +132,24 @@ private:
    static constexpr auto SeqNSize_bytes   = sizeof(std::atomic_unsigned_lock_free);
    static constexpr auto MaxMsgSize_bytes = SlotSize_bytes - SeqNSize_bytes;
 
+   /// @brief Stores the message buffer and the synchronization counter.
    struct Slot
    {
-      std::array<char, MaxMsgSize_bytes> _msgBuffer{0_u8};
+      std::array<char, MaxMsgSize_bytes> _msgBuffer{'\0'};
       std::atomic_unsigned_lock_free     _seqN     { 0u };
    };
 
    static_assert(MaxMsgSize_bytes >= 64uz, "Too limited room"); // time stamps require some space
    static_assert(sizeof(Slot) == SlotSize_bytes, "Slot packing not as expected");
 
-   std::array<Slot, 32uz>         _slots    { /* default */  };
-   Options_T const                _Options  { /* default */  };
-   VerboGroup                     _vGroup   { /* default */  };
-   std::atomic<State_T>           _state    {State_T::Closed };
-   std::atomic_unsigned_lock_free _writePos {       0u       };
-   std::atomic_unsigned_lock_free _readPos  {       0u       };
-   std::atomic_flag               _writeFlag{ATOMIC_FLAG_INIT};
+   std::array<Slot, 32uz>         _slots    {  /* default */  };
+   strlit    const                _Filename {"unnamed_gl.uhoh"};
+   Options_T const                _Options  {  /* default */  };
+   VerboGroup                     _vGroup   {  /* default */  };
+   std::atomic<State_T>           _state    { State_T::Closed };
+   std::atomic_unsigned_lock_free _writePos {        0u       };
+   std::atomic_unsigned_lock_free _readPos  {        0u       };
+   std::atomic_flag               _writeFlag{ ATOMIC_FLAG_INIT};
 };
 
 /** enable
@@ -194,6 +202,8 @@ auto ym::GlobalLogger::pushEnable(VFs_T const... VFlags) -> ScopedEnable<VFs_T..
  * 
  * @tparam Args_T -- Argument types.
  * 
+ * TODO don't try to print if Errstream
+ * 
  * @param VFlag  -- Verbosity flag.
  * @param Format -- Format string.
  * @param args   -- Arguments.
@@ -204,7 +214,12 @@ inline void ym::GlobalLogger::printf(
    strlit       Format,
    Args_T &&... args)
 {
-   if (_vGroup.test(VFlag))
+   if (VFlag == VF::Errstream)
+   { // error printing - print to err stream console
+      fmt::print(stderr, "WARNING: ");
+      fmt::println(stderr, Format, std::forward<Args_T>(args)...);
+   }
+   else if (_vGroup.test(VFlag))
    { // verbosity level is enabled - print!
       GlobalLogger::getGlobalInstance()->printf(Format, std::forward<Args_T>(args)...);
    }

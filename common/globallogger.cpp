@@ -28,11 +28,11 @@ ym::GlobalLogger::GlobalLogger(
    _writeFlag.clear();
 }
 
-/** ~TextLogger
+/** ~GlobalLogger
  *
  * @brief Destructor.
  */
-ym::TextLogger::~TextLogger(void)
+ym::GlobalLogger::~GlobalLogger(void)
 {
    close();
 }
@@ -43,21 +43,21 @@ ym::TextLogger::~TextLogger(void)
  *
  * @returns True if outfile is open and able to be written to, false otherwise.
  */
-bool ym::TextLogger::isOpen(void) const
+bool ym::GlobalLogger::isOpen(void) const
 {
    return _state.load(std::memory_order_relaxed) == State_T::Open;
 }
 
 /** getGlobalInstancePtr
  *
- * @brief Gets the global text logger instance.
+ * @brief Gets the global logger instance.
  * 
  * @note Used as the global logger for the program. Not expected to close until the end.
  * @note Not thread-safe.
  *
  * @throws GlobalError -- If TextLogger instance fails to be instantiated.
  */
-auto ym::TextLogger::getGlobalInstancePtr(void) -> bptr<TextLogger>
+auto ym::GlobalLogger::getGlobalInstance(void) -> BoundPtr<GlobalLogger>
 {
    if (!_s_globalInstance_ptr)
    { // file not already opened - open it
@@ -83,7 +83,7 @@ auto ym::TextLogger::getGlobalInstancePtr(void) -> bptr<TextLogger>
  * 
  * @returns bool -- Whether the outfile was opened successfully, false otherwise.
  */
-bool ym::TextLogger::open(void)
+bool ym::GlobalLogger::open(void)
 {
    auto expectedState = State_T::Closed;
 
@@ -105,7 +105,7 @@ bool ym::TextLogger::open(void)
  *
  * @brief Closes the outfile and shuts the logger down.
  */
-void ym::TextLogger::close(void)
+void ym::GlobalLogger::close(void)
 {
    acquireWriteAccess();
 
@@ -126,7 +126,7 @@ void ym::TextLogger::close(void)
  * 
  * @brief Acquires the write flag.
  */
-void ym::TextLogger::acquireWriteAccess(void)
+void ym::GlobalLogger::acquireWriteAccess(void)
 {
    while (_writeFlag.test_and_set(std::memory_order_acquire))
    { // wait until the other thread is done
@@ -138,43 +138,18 @@ void ym::TextLogger::acquireWriteAccess(void)
  * 
  * @brief Releases the write flag.
  */
-void ym::TextLogger::releaseWriteAccess(void)
+void ym::GlobalLogger::releaseWriteAccess(void)
 {
    _writeFlag.clear(std::memory_order_release);
    _writeFlag.notify_one();
 }
 
-/** printf_Handler
- *
- * @brief Conditionally prints the requested message.
- *
- * @throws Whatever print_Handler(Format, args) throws.
- * 
- * @param VG     -- Verbosity group.
- * @param Format -- Format string.
- * @param ...    -- Arguments.
- */
-void ym::TextLogger::printf_Handler(
-   VG     const     VG,
-   strlit const     Format,
-   fmt::format_args args)
-{
-   using VGM = VerboGroupMask;
-   auto const IsEnabled = (_vGroups[VGM::getGroup(VG)] & VGM::getMaskAsByte(VG)) > 0_u8;
-
-   if (IsEnabled)
-   { // verbose enough to print this message
-      printf_Handler(Format, args); // TODO should take VG here too and add debug, warning, or error labels,
-                                    // if applicable (rename func of course, it is already overloaded).
-   }
-}
-
 /**
  * @brief TODO
  */
-void ym::GlobalTextLogger::producer(
+void ym::GlobalLogger::producer(
    strlit const     Format,
-   fmt::format_args args)
+   fmt::format_args args) noexcept
 {
    // seq == slot_idx     -> ready to be written
    // seq == slot_idx + 1 -> ready to be read
@@ -182,37 +157,63 @@ void ym::GlobalTextLogger::producer(
    auto   const WritePos = _writePos.fetch_add(1u, std::memory_order_relaxed);
    auto * const slot_Ptr = &_slots[WritePos % _slots.size()];
 
-   auto seqN = slot_Ptr->_seqN.load(std::memory_order_acquire);
-   while (seqN != WritePos)
-   {
-      slot_Ptr->seq.wait(seqN, std::memory_order_acquire);
-      seqN = slot_Ptr->seq.load(std::memory_order_acquire);
+   for (
+      auto seqN = 0u;
+      (seqN = slot_Ptr->_seqN.load(std::memory_order_acquire)) != WritePos;)
+   { // wait for slot "ready to be written"
+      slot_Ptr->_seqN.wait(seqN, std::memory_order_acquire);
    }
 
-   // put things into buffer
+   auto const Result = fmt::vformat_to_n( // does *not* append null terminator
+      slot_Ptr->_msgBuffer.data(),
+      MaxMsgSize_bytes,
+      Format.get(),
+      args);
+   
+   if (getOptions() != PrintMode_T::KeepOriginal)
+   { // mangling has occured - ensure newline
+      if (*(Result.out - 1) != '\n')
+      { // no newline - add one
+         if (Result.size >= MaxMsgSize_bytes)
+         { // used all room - need to truncate a bit more
+            *(Result.out - 1) = '\n';
+         }
+         else
+         { // enough room for newline
+            *Result.out = '\n';
+         }
+      }
+   }
 
-   slot_Ptr->seq.store(WritePos + 1u, std::memory_order_release);
-   slot_Ptr->seq.notify_one();
+   if (Result.size >= MaxMsgSize_bytes)
+   { // truncation likely happened
+      ymLog(VF::Warning, "Truncation in GlobalLogger producer");
+   }
 
-   // -------- consumer ----------
+   slot_Ptr->_seqN.store(WritePos + 1u, std::memory_order_release); // mark as "ready to be read"
+   slot_Ptr->_seqN.notify_one();
+}
 
+/**
+ * @brief TODO
+ */
+void ym::GlobalLogger::printer(void)
+{
    auto   const ReadPos  = _readPos.load(std::memory_order_relaxed);
    auto * const slot_Ptr = &_slots[ReadPos % _slots.size()];
 
-   auto seqN = slot_Ptr->seq.load(std::memory_order_acquire);
-   while (seqN != ReadPos + 1u)
+   for (
+      auto seqN = 0u;
+      (seqN = slot_Ptr->_seqN.load(std::memory_order_acquire)) != (ReadPos + 1u);)
    {
-      slot_Ptr->seq.wait(seqN, std::memory_order_acquire);
-      seqN = slot_Ptr->seq.load(std::memory_order_acquire);
+      slot_Ptr->_seqN.wait(seqN, std::memory_order_acquire);
    }
 
-   // get value in slot
+   // TODO get value in slot
 
    slot_Ptr->seq.store(pos + _slots.size(), std::memory_order_release);
    slot_Ptr->seq.notify_all();
    _readPos.store(ReadPos + 1u, std::memory_order_relaxed);
-
-
 }
 
 /** printf_Handler
@@ -305,7 +306,7 @@ void ym::TextLogger::printf_Handler(
    }
    else
    { // *not* ok to print
-      fmt::print("WARNING: Tried to print on a logger that is not opened!");
+      ymLog(VF::Errstream, "Tried to print on a logger that is not opened!");
    }
 
    releaseWriteAccess();
