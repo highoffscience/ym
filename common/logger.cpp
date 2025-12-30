@@ -35,11 +35,8 @@ ym::Logger::~Logger(void) noexcept
 /** openOutfile
  *
  * @brief Attempts to open a write-file.
- *
- * @throws Whatever openOutfile_appendTimeStamp() throws.
  * 
  * @param Filename -- Name of file.
- * @param Options  -- List of optional modes.
  * 
  * @note We open the file here instead of the constructor to allow flexibility with
  *       derived classes handling the file operations. Also it's awkward to code
@@ -47,19 +44,17 @@ ym::Logger::~Logger(void) noexcept
  *
  * @returns bool -- True if the file is/was opened, false otherwise.
  */
-bool ym::Logger::openOutfile(
-   std::string_view const   Filename,
-   Options_T        const & Options) // TODO we have virtual getOptions()
+bool ym::Logger::openOutfile(std::string_view const Filename) noexcept
 {
    if (!isOutfileOpened())
    { // file not opened
-      if (Options == FilenameMode_T::AppendTimeStamp)
+      if (getOptions() == FilenameMode_T::AppendTimeStamp)
       { // append file stamp
-         openOutfile_appendTimeStamp(Filename, Options);
+         openOutfile_appendTimeStamp(Filename);
       }
       else
       { // do not append file stamp (default fallthrough)
-         openOutfile_core(Filename, Options);
+         openOutfile_core(Filename);
       }
    }
 
@@ -84,14 +79,11 @@ void ym::Logger::closeOutfile(void) noexcept
  * @brief Attempts to open a write-file.
  * 
  * @param Filename -- Name of file.
- * @param Options  -- List of optional opening modes.
  */
-void ym::Logger::openOutfile_core(
-   std::string_view const   Filename,
-   Options_T        const & Options) noexcept
+void ym::Logger::openOutfile_core(std::string_view const Filename) noexcept
 {
    std::error_code ec;
-   if (Options == OverwriteMode_T::Disallow &&
+   if (getOptions() == OverwriteMode_T::Disallow &&
       std::filesystem::exists(Filename, ec))
    { // file we are attempting to create already exists
       ymLog(VF::Errstream, "File (or directory) '{}' already exists", Filename);
@@ -110,15 +102,9 @@ void ym::Logger::openOutfile_core(
  *
  * @brief Attempts to open the file with the current time appended to the file name.
  * 
- * @throws OpenError -- If a logic error occurs.
- * @throws OpenError -- Error printing time stamp.
- * 
  * @param Filename -- Name of file.
- * @param Options  -- List of optional modes.
  */
-void ym::Logger::openOutfile_appendTimeStamp(
-   std::string_view const   Filename,
-   Options_T        const & Options) noexcept
+void ym::Logger::openOutfile_appendTimeStamp(std::string_view const Filename) noexcept
 {
    auto extPos = Filename.find_last_of('.');
    if (extPos == 0uz ||                  // hidden files
@@ -141,13 +127,15 @@ void ym::Logger::openOutfile_appendTimeStamp(
 
    std::array<char, 256uz> buffer{'\0'};
    std::pmr::monotonic_buffer_resource mbr{buffer.data(), buffer.size(), std::pmr::null_memory_resource()};
-   std::pmr::string timeStampedFilename(Filename.size() + TimeStamp.size(), '\0', &mbr);
+   std::pmr::string stampedFilename(Filename.size() + TimeStamp.size(), '\0', &mbr);
+
+   // TODO what is stampedFilename.end()?
 
    auto updatedStemSize = Filename.size() - ext.size();
 
-   if (timeStampedFilename.size() >= buffer.size())
-   { // cannot fit timestamp in character limit (-1 for null terminator)
-      ymLog(VF::Errstream, "Not enough room to time stamp filename '{}'");
+   if (stampedFilename.size() >= buffer.size())
+   { // cannot fit desired filename in character limit (-1 for null terminator)
+      ymLog(VF::Errstream, "Not enough room for time stamped filename '{}'", Filename);
       updatedStemSize = buffer.size() - 1uz - TimeStamp.size() - ext.size(); // -1 for null terminator
    }
 
@@ -155,7 +143,7 @@ void ym::Logger::openOutfile_appendTimeStamp(
    {
       // write stem
       auto result = fmt::format_to_n(
-         timeStampedFilename.data(),
+         stampedFilename.data(),
          updatedStemSize,
          "{}",
          Filename);
@@ -174,7 +162,7 @@ void ym::Logger::openOutfile_appendTimeStamp(
          "{}",
          ext);
 
-      if (result.out != &*timeStampedFilename.end())
+      if (result.out != &*stampedFilename.end())
       { // unexpected error writing time stamp
          ymLog(VF::Errstream, "Trouble printing time stamp. {} -- {}",
             (void*)result.out, (void*)&*timeStampedFilename.end());
@@ -186,5 +174,5 @@ void ym::Logger::openOutfile_appendTimeStamp(
       ymLog(VF::Errstream, "fmt::format_to_n encountered an error. {}", E.what());
    }
 
-   openOutfile_core(timeStampedFilename, Options);
+   openOutfile_core(timeStampedFilename);
 }
