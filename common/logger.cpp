@@ -125,13 +125,13 @@ void ym::Logger::openOutfile_appendTimeStamp(std::string_view const Filename) no
 
    constexpr std::string_view TimeStamp("_YYYY_mm_dd_HH_MM_SS");
 
-   std::array<char, 256uz> buffer{'\0'};
+   std::array<char, 1024uz> buffer{'\0'};
    std::pmr::monotonic_buffer_resource mbr{buffer.data(), buffer.size(), std::pmr::null_memory_resource()};
    std::pmr::string stampedFilename(Filename.size() + TimeStamp.size(), '\0', &mbr);
 
-   // TODO what is stampedFilename.end()?
-
    auto updatedStemSize = Filename.size() - ext.size();
+
+   // TODO this is a great time to use YMASSERT with a custom handler...
 
    if (stampedFilename.size() >= buffer.size())
    { // cannot fit desired filename in character limit (-1 for null terminator)
@@ -162,11 +162,12 @@ void ym::Logger::openOutfile_appendTimeStamp(std::string_view const Filename) no
          "{}",
          ext);
 
-      if (result.out != &*stampedFilename.end())
+      if ((result.out != &*stampedFilename.end()) ||
+         (*result.out != '\0'))
       { // unexpected error writing time stamp
-         ymLog(VF::Errstream, "Trouble printing time stamp. {} -- {}",
-            (void*)result.out, (void*)&*timeStampedFilename.end());
-         timeStampedFilename = Filename;
+         ymLog(VF::Errstream, "Trouble printing time stamp. Stem {}, Stamp {}, Ext {}",
+            updatedStemSize, TimeStamp.size(), ext.size());
+         stampedFilename = Filename;
       }
    }
    catch (std::exception const & E)
@@ -174,5 +175,5 @@ void ym::Logger::openOutfile_appendTimeStamp(std::string_view const Filename) no
       ymLog(VF::Errstream, "fmt::format_to_n encountered an error. {}", E.what());
    }
 
-   openOutfile_core(timeStampedFilename);
+   openOutfile_core(stampedFilename);
 }
