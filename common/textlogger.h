@@ -75,6 +75,8 @@ public:
       /// @}
    };
 
+   virtual Options_T const & getOptions(void) const noexcept override = 0;
+
    YM_DECL_YMASSERT(Logger::Error, Error)
 
    /// @brief Returns name of file.

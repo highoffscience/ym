@@ -67,7 +67,7 @@ auto ym::TextLogger::populateFormattedTime(
                HumanReadableTimeStampTemplate.size() +
                1uz; // for space between time stamps
             YMASSERT(BufSize_bytes >= TimeSize_bytes, Error, YM_DAH,
-               "Buffer ({}) cannot fit raw and human readable time stamps ({})", Size_bytes, TimeSize_bytes);
+               "Buffer ({}) cannot fit raw and human readable time stamps ({})", BufSize_bytes, TimeSize_bytes);
          }
 
          *writePtr = ' ';

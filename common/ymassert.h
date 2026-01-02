@@ -53,7 +53,7 @@
  *          ...
  *       }(e__)
  * 
- *       or
+ *       or (if handler returns a value)
  * 
  *       [](ymassert_Base const & E, auto && v) -> auto {
  *          ...

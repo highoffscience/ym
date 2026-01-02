@@ -131,8 +131,6 @@ void ym::Logger::openOutfile_appendTimeStamp(std::string_view const Filename) no
 
    auto updatedStemSize = Filename.size() - ext.size();
 
-   // TODO this is a great time to use YMASSERT with a custom handler...
-
    if (stampedFilename.size() >= buffer.size())
    { // cannot fit desired filename in character limit (-1 for null terminator)
       ymLog(VF::Errstream, "Not enough room for time stamped filename '{}'", Filename);
