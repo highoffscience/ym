@@ -164,30 +164,43 @@ void ym::GlobalLogger::producer(
       slot_Ptr->_seqN.wait(seqN, std::memory_order_acquire);
    }
 
+   // TODO need to print time stamp
+
    auto const Result = fmt::vformat_to_n( // does *not* append null terminator
       slot_Ptr->_msgBuffer.data(),
       MaxMsgSize_bytes,
       Format.get(),
       args);
-   
-   if (getOptions() != PrintMode_T::KeepOriginal)
-   { // mangling has occured - ensure newline
-      if (*(Result.out - 1) != '\n')
-      { // no newline - add one
-         if (Result.size >= MaxMsgSize_bytes)
-         { // used all room - need to truncate a bit more
-            *(Result.out - 1) = '\n';
-         }
-         else
-         { // enough room for newline
-            *Result.out = '\n';
-         }
+
+   if (getOptions() == PrintMode_T::KeepOriginal)
+   { // line to be printed as is
+      if ((Result.size + 1uz) > MaxMsgSize_bytes)
+      { // truncation likely happened
+         ymLog(VF::Warning, "Truncation in GlobalLogger producer");
+         *(Result.out - 1) = '\0';
+      }
+      else
+      { // ensure null termination
+         *Result.out = '\0';
       }
    }
-
-   if (Result.size >= MaxMsgSize_bytes)
-   { // truncation likely happened
-      ymLog(VF::Warning, "Truncation in GlobalLogger producer");
+   else
+   { // mangling has occured - ensure newline
+      if ((Result.size + 2uz) > MaxMsgSize_bytes)
+      { // truncation likely happened
+         ymLog(VF::Warning, "Truncation in GlobalLogger producer");
+         *(Result.out - 2) = '\n';
+         *(Result.out - 1) = '\0';
+      }
+      else if (*(Result.out - 1) == '\n')
+      { // newline already appended
+         Result.out[0] = '\0';
+      }
+      else
+      { // add newline
+         Result.out[0] = '\n';
+         Result.out[1] = '\0';
+      }
    }
 
    slot_Ptr->_seqN.store(WritePos + 1u, std::memory_order_release); // mark as "ready to be read"
@@ -199,20 +212,31 @@ void ym::GlobalLogger::producer(
  */
 void ym::GlobalLogger::printer(void)
 {
+   // seq == slot_idx     -> ready to be written
+   // seq == slot_idx + 1 -> ready to be read
+
    auto   const ReadPos  = _readPos.load(std::memory_order_relaxed);
    auto * const slot_Ptr = &_slots[ReadPos % _slots.size()];
 
    for (
       auto seqN = 0u;
       (seqN = slot_Ptr->_seqN.load(std::memory_order_acquire)) != (ReadPos + 1u);)
-   {
+   { // wait for slot "ready to be read"
       slot_Ptr->_seqN.wait(seqN, std::memory_order_acquire);
    }
 
-   // TODO get value in slot
+   try
+   {
+      fmt::print(_file.unwrap(), slot_Ptr->_msgBuffer.data());
+   }
+   catch (std::exception const & E)
+   { // logic or formatting error
+      // TODO can we print to the producer from here? No deadlock possible?
+      ymLog(VF::Errstream, "(global logger) fmt::print encountered an error. {}", E.what());
+   }
 
-   slot_Ptr->seq.store(pos + _slots.size(), std::memory_order_release);
-   slot_Ptr->seq.notify_all();
+   slot_Ptr->_seqN.store(ReadPos + _slots.size(), std::memory_order_release);
+   slot_Ptr->_seqN.notify_all();
    _readPos.store(ReadPos + 1u, std::memory_order_relaxed);
 }
 

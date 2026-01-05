@@ -34,7 +34,7 @@ public:
    YM_NO_COPY  (LiteLogger)
    YM_NO_ASSIGN(LiteLogger)
 
-   YM_DECL_YMASSERT(Logger::Error, Error)
+   // YM_DECL_YMASSERT(Logger::Error, Error)
 
    /// @brief Returns name of file.
    inline auto getFilename(void) const noexcept { return _Filename; }

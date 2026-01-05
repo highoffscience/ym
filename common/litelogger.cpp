@@ -45,7 +45,7 @@ bool ym::LiteLogger::isOpen(void) const noexcept
  */
 bool ym::LiteLogger::open(void) noexcept
 {
-   return openOutfile(getFilename().get(), getOptions());
+   return openOutfile(getFilename().get());
 }
 
 /** close
@@ -74,6 +74,6 @@ void ym::LiteLogger::producer(
    }
    catch (std::exception const & E)
    { // logic or formatting error
-      ymLog(VF::Warning, "fmt::vprint encountered an error. {}", E.what());
+      ymLog(VF::Warning, "(lite logger) fmt::vprint encountered an error. {}", E.what());
    }
 }

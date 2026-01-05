@@ -202,8 +202,6 @@ auto ym::GlobalLogger::pushEnable(VFs_T const... VFlags) -> ScopedEnable<VFs_T..
  * 
  * @tparam Args_T -- Argument types.
  * 
- * TODO don't try to print if Errstream
- * 
  * @param VFlag  -- Verbosity flag.
  * @param Format -- Format string.
  * @param args   -- Arguments.
