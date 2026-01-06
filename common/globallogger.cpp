@@ -164,7 +164,16 @@ void ym::GlobalLogger::producer(
       slot_Ptr->_seqN.wait(seqN, std::memory_order_acquire);
    }
 
-   // TODO need to print time stamp
+   auto * head = slot_Ptr->_msgBuffer.data();
+
+   try
+   {
+      head = populateFormattedTime(slot_Ptr->_msgBuffer.data(), slot_Ptr->_msgBuffer.size() - 1uz).get();
+   }
+   catch (std::exception const & E)
+   {
+      ymLog(VF::Errstream, "TimeStamp error in GlobalLogger producer - {}", E.what());
+   }
 
    auto const Result = fmt::vformat_to_n( // does *not* append null terminator
       slot_Ptr->_msgBuffer.data(),
@@ -176,7 +185,7 @@ void ym::GlobalLogger::producer(
    { // line to be printed as is
       if ((Result.size + 1uz) > MaxMsgSize_bytes)
       { // truncation likely happened
-         ymLog(VF::Warning, "Truncation in GlobalLogger producer");
+         ymLog(VF::Errstream, "Truncation in GlobalLogger producer");
          *(Result.out - 1) = '\0';
       }
       else
@@ -188,7 +197,7 @@ void ym::GlobalLogger::producer(
    { // mangling has occured - ensure newline
       if ((Result.size + 2uz) > MaxMsgSize_bytes)
       { // truncation likely happened
-         ymLog(VF::Warning, "Truncation in GlobalLogger producer");
+         ymLog(VF::Errstream, "Truncation in GlobalLogger producer");
          *(Result.out - 2) = '\n';
          *(Result.out - 1) = '\0';
       }
