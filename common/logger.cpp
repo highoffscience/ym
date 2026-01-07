@@ -138,7 +138,8 @@ void ym::Logger::openOutfile_appendTimeStamp(std::string_view const Filename) no
    }
 
    try
-   {
+   { // attempt to fill full filename
+
       // write stem
       auto result = fmt::format_to_n(
          stampedFilename.data(),

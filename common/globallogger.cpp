@@ -154,6 +154,18 @@ void ym::GlobalLogger::producer(
    // seq == slot_idx     -> ready to be written
    // seq == slot_idx + 1 -> ready to be read
 
+   // we need to compare closing flag here and elsewhere in this function.
+
+   // if (auto expectedState = State_T::Open; _state.compare_exchange_strong(
+   //    expectedState, State_T::Closing,
+   //    std::memory_order_acquire,
+   //    std::memory_order_relaxed))
+   // { // file opened - let's change that
+
+   //    closeOutfile();
+   //    _state.store(State_T::Closed, std::memory_order_relaxed);
+   // }
+
    auto   const WritePos = _writePos.fetch_add(1u, std::memory_order_relaxed);
    auto * const slot_Ptr = &_slots[WritePos % _slots.size()];
 
@@ -167,16 +179,16 @@ void ym::GlobalLogger::producer(
    auto * head = slot_Ptr->_msgBuffer.data();
 
    try
-   {
-      head = populateFormattedTime(slot_Ptr->_msgBuffer.data(), slot_Ptr->_msgBuffer.size() - 1uz).get();
+   { // attempt to write time stamp
+      head = populateFormattedTime(head, slot_Ptr->_msgBuffer.size() - 1uz).get();
    }
    catch (std::exception const & E)
-   {
+   { // error writing time stamp
       ymLog(VF::Errstream, "TimeStamp error in GlobalLogger producer - {}", E.what());
    }
 
    auto const Result = fmt::vformat_to_n( // does *not* append null terminator
-      slot_Ptr->_msgBuffer.data(),
+      head,
       MaxMsgSize_bytes,
       Format.get(),
       args);
@@ -235,12 +247,11 @@ void ym::GlobalLogger::printer(void)
    }
 
    try
-   {
+   { // attempt to write message to file
       fmt::print(_file.unwrap(), slot_Ptr->_msgBuffer.data());
    }
    catch (std::exception const & E)
    { // logic or formatting error
-      // TODO can we print to the producer from here? No deadlock possible?
       ymLog(VF::Errstream, "(global logger) fmt::print encountered an error. {}", E.what());
    }
 
