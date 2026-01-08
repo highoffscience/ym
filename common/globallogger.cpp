@@ -92,8 +92,7 @@ bool ym::GlobalLogger::open(void)
       std::memory_order_acquire,
       std::memory_order_relaxed))
    { // file not opened - let's do that
-
-      auto const Opened = openOutfile(getFilename().get(), _Options);
+      auto const Opened = openOutfile(getFilename().get());
       expectedState = Opened ? State_T::Open : State_T::Closed;
       _state.store(expectedState, std::memory_order_relaxed);
    }
@@ -114,7 +113,6 @@ void ym::GlobalLogger::close(void)
       std::memory_order_acquire,
       std::memory_order_relaxed))
    { // file opened - let's change that
-
       closeOutfile();
       _state.store(State_T::Closed, std::memory_order_relaxed);
    }
@@ -154,17 +152,11 @@ void ym::GlobalLogger::producer(
    // seq == slot_idx     -> ready to be written
    // seq == slot_idx + 1 -> ready to be read
 
-   // we need to compare closing flag here and elsewhere in this function.
-
-   // if (auto expectedState = State_T::Open; _state.compare_exchange_strong(
-   //    expectedState, State_T::Closing,
-   //    std::memory_order_acquire,
-   //    std::memory_order_relaxed))
-   // { // file opened - let's change that
-
-   //    closeOutfile();
-   //    _state.store(State_T::Closed, std::memory_order_relaxed);
-   // }
+   if (_state.load(std::memory_order_acquire) != State_T::Open)
+   { // not open for business
+      ymLog(VF::Errstream, "Attempted to write to closed GlobalLogger! - {}", Format);
+      return; // exit early
+   }
 
    auto   const WritePos = _writePos.fetch_add(1u, std::memory_order_relaxed);
    auto * const slot_Ptr = &_slots[WritePos % _slots.size()];

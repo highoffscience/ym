@@ -553,4 +553,24 @@ struct formatter<ym::str> : public fmt::formatter<fmt::string_view>
    auto format(ym::str s, fmt::format_context & ctx_ref) const -> fmt::format_context::iterator;
 };
 
+/** formatter
+ *
+ * @brief Helper class to format ym::strlit types for use in the fmt library.
+ */
+template <>
+struct formatter<ym::strlit> : public fmt::formatter<fmt::string_view>
+{
+   auto format(ym::strlit s, fmt::format_context & ctx_ref) const -> fmt::format_context::iterator;
+};
+
+/** formatter
+ *
+ * @brief Helper class to format ym::mutstr types for use in the fmt library.
+ */
+template <>
+struct formatter<ym::mutstr> : public fmt::formatter<fmt::string_view>
+{
+   auto format(ym::mutstr s, fmt::format_context & ctx_ref) const -> fmt::format_context::iterator;
+};
+
 } // fmt

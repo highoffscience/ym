@@ -16,3 +16,21 @@ auto fmt::formatter<ym::str>::format(ym::str s, fmt::format_context & ctx_ref) c
 {
    return fmt::formatter<fmt::string_view>::format(s.get(), ctx_ref);
 }
+
+/** formatter
+ *
+ * @brief Helper class to format ym::strlit types for use in the fmt library.
+ */
+auto fmt::formatter<ym::strlit>::format(ym::strlit s, fmt::format_context & ctx_ref) const -> fmt::format_context::iterator
+{
+   return fmt::formatter<fmt::string_view>::format(s.get(), ctx_ref);
+}
+
+/** formatter
+ *
+ * @brief Helper class to format ym::mutstr types for use in the fmt library.
+ */
+auto fmt::formatter<ym::mutstr>::format(ym::mutstr s, fmt::format_context & ctx_ref) const -> fmt::format_context::iterator
+{
+   return fmt::formatter<fmt::string_view>::format(s.get(), ctx_ref);
+}
