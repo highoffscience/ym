@@ -26,6 +26,11 @@ ym::GlobalLogger::GlobalLogger(
       _Options {Options}
 {
    _writeFlag.clear();
+
+   for (auto i = 0u; i < _slots.size(); i++)
+   { // init slot sequence numbers
+      _slots[i]._seqN.store(i, std::memory_order_relaxed);
+   }
 }
 
 /** ~GlobalLogger
@@ -114,7 +119,7 @@ void ym::GlobalLogger::close(void)
       std::memory_order_relaxed))
    { // file opened - let's change that
       closeOutfile();
-      _state.store(State_T::Closed, std::memory_order_relaxed);
+      _state.store(State_T::Closed, std::memory_order_relaxed); // TODO release?
    }
 
    releaseWriteAccess();
@@ -221,35 +226,52 @@ void ym::GlobalLogger::producer(
 }
 
 /**
- * @brief TODO
+ * @brief TODO consumer
  */
 void ym::GlobalLogger::printer(void)
 {
    // seq == slot_idx     -> ready to be written
    // seq == slot_idx + 1 -> ready to be read
 
-   auto   const ReadPos  = _readPos.load(std::memory_order_relaxed);
-   auto * const slot_Ptr = &_slots[ReadPos % _slots.size()];
+   while (true)
+   {
 
-   for (
-      auto seqN = 0u;
-      (seqN = slot_Ptr->_seqN.load(std::memory_order_acquire)) != (ReadPos + 1u);)
-   { // wait for slot "ready to be read"
-      slot_Ptr->_seqN.wait(seqN, std::memory_order_acquire);
-   }
+      auto   const ReadPos  = _readPos.load(std::memory_order_relaxed);
+      auto * const slot_Ptr = &_slots[ReadPos % _slots.size()];
 
-   try
-   { // attempt to write message to file
-      fmt::print(_file.unwrap(), slot_Ptr->_msgBuffer.data());
-   }
-   catch (std::exception const & E)
-   { // logic or formatting error
-      ymLog(VF::Errstream, "(global logger) fmt::print encountered an error. {}", E.what());
-   }
+      for (
+         auto seqN = 0u;
+         (seqN = slot_Ptr->_seqN.load(std::memory_order_acquire)) != (ReadPos + 1u);)
+      { // wait for slot "ready to be read"
 
-   slot_Ptr->_seqN.store(ReadPos + _slots.size(), std::memory_order_release);
-   slot_Ptr->_seqN.notify_all();
-   _readPos.store(ReadPos + 1u, std::memory_order_relaxed);
+         // // No message available
+         // State s = state.load(std::memory_order_acquire);
+
+         // if (s == State::Closing) {
+         //    // Are all producers drained?
+         //    size_t w = write_pos.load(std::memory_order_acquire);
+         //    if (read_pos == w) {
+         //       state.store(State::Closed, std::memory_order_release);
+         //       return;
+         //    }
+         // }
+
+         slot_Ptr->_seqN.wait(seqN, std::memory_order_acquire);
+      }
+
+      try
+      { // attempt to write message to file
+         fmt::print(_file.unwrap(), slot_Ptr->_msgBuffer.data());
+      }
+      catch (std::exception const & E)
+      { // logic or formatting error
+         ymLog(VF::Errstream, "(global logger) fmt::print encountered an error. {}", E.what());
+      }
+
+      slot_Ptr->_seqN.store(ReadPos + _slots.size(), std::memory_order_release);
+      slot_Ptr->_seqN.notify_all();
+      _readPos.store(ReadPos + 1u, std::memory_order_relaxed);
+   }
 }
 
 /** printf_Handler
