@@ -111,8 +111,6 @@ bool ym::GlobalLogger::open(void)
  */
 void ym::GlobalLogger::close(void)
 {
-   acquireWriteAccess();
-
    if (auto expectedState = State_T::Open; _state.compare_exchange_strong(
       expectedState, State_T::Closing,
       std::memory_order_acquire,
@@ -121,30 +119,6 @@ void ym::GlobalLogger::close(void)
       closeOutfile();
       _state.store(State_T::Closed, std::memory_order_relaxed); // TODO release?
    }
-
-   releaseWriteAccess();
-}
-
-/** acquireWriteAccess
- * 
- * @brief Acquires the write flag.
- */
-void ym::GlobalLogger::acquireWriteAccess(void)
-{
-   while (_writeFlag.test_and_set(std::memory_order_acquire))
-   { // wait until the other thread is done
-      _writeFlag.wait(true, std::memory_order_relaxed);
-   }
-}
-
-/** releaseWriteAccess
- * 
- * @brief Releases the write flag.
- */
-void ym::GlobalLogger::releaseWriteAccess(void)
-{
-   _writeFlag.clear(std::memory_order_release);
-   _writeFlag.notify_one();
 }
 
 /**
@@ -190,6 +164,12 @@ void ym::GlobalLogger::producer(
       Format.get(),
       args);
 
+   // YMASSERT(result.out >= buffer, Error,
+   //    [this](auto const & E) -> void {
+   //       this->releaseWriteAccess();
+   //       throw E;
+   //    }, "Format to buffer did not behave as expected")
+
    if (getOptions() == PrintMode_T::KeepOriginal)
    { // line to be printed as is
       if ((Result.size + 1uz) > MaxMsgSize_bytes)
@@ -234,8 +214,7 @@ void ym::GlobalLogger::printer(void)
    // seq == slot_idx + 1 -> ready to be read
 
    while (true)
-   {
-
+   { // consume messages
       auto   const ReadPos  = _readPos.load(std::memory_order_relaxed);
       auto * const slot_Ptr = &_slots[ReadPos % _slots.size()];
 
@@ -244,17 +223,16 @@ void ym::GlobalLogger::printer(void)
          (seqN = slot_Ptr->_seqN.load(std::memory_order_acquire)) != (ReadPos + 1u);)
       { // wait for slot "ready to be read"
 
-         // // No message available
-         // State s = state.load(std::memory_order_acquire);
+         // no message waiting in this slot...
 
-         // if (s == State::Closing) {
-         //    // Are all producers drained?
-         //    size_t w = write_pos.load(std::memory_order_acquire);
-         //    if (read_pos == w) {
-         //       state.store(State::Closed, std::memory_order_release);
-         //       return;
-         //    }
-         // }
+         if (_state.load(std::memory_order_acquire) == State_T::Closing)
+         { // we want to close
+            if (ReadPos == _writePos.load(std::memory_order_acquire))
+            { // no more messages
+               _state.store(State_T::Closed, std::memory_order_release);
+               break;
+            }
+         }
 
          slot_Ptr->_seqN.wait(seqN, std::memory_order_acquire);
       }
@@ -274,102 +252,6 @@ void ym::GlobalLogger::printer(void)
    }
 }
 
-/** printf_Handler
- *
- * @brief Prints the requested message to the internal buffer.
- *
- * @note The system call to get the timestamp is usually optimized at runtime.
- *
- * @throws PrintError -- If unenexpected pointer manipulation happens.
- * @throws PrintError -- If time stamp cannot fit into the buffer.
- * 
- * @param Format -- Format string.
- * @param args   -- Arguments.
- */
-void ym::TextLogger::printf_Handler(
-   strlit const     Format,
-   fmt::format_args args)
-{
-   char buffer[getMaxMsgSize_bytes()]{}; // unnecessary init?
-   auto * const write_Ptr = populateFormattedTime(buffer); // conditionally
-
-   YMASSERT(write_Ptr >= buffer, PrintError, YM_DAH,
-      "populateFormattedTime not returning as expected")
-
-   auto const TimeStampSize_bytes = static_cast<std::size_t>(write_Ptr - buffer);
-
-   YMASSERT(getMaxMsgSize_bytes() >= TimeStampSize_bytes, PrintError, YM_DAH,
-      "Buffer ({} bytes) not large enough to hold time stamp ({} bytes)",
-      getMaxMsgSize_bytes(), TimeStampSize_bytes)
-   
-   auto const HasTimeStamp =
-      getOptions() == PrintMode_T::PrependTimeStamp ||
-      getOptions() == PrintMode_T::PrependHumanReadableTimeStamp;
-
-   auto const NewlineSize_bytes = (HasTimeStamp) ? 1uz : 0uz;
-
-   auto result = fmt::vformat_to_n(
-      write_Ptr,
-      getMaxMsgSize_bytes() - TimeStampSize_bytes - NewlineSize_bytes,
-      Format,
-      args);
-
-   if (HasTimeStamp)
-   { // automatically print newline if in this mode
-      *result.out = '\n';
-   }
-
-   acquireWriteAccess(); // TODO make this RAII
-
-   if (_state.load(std::memory_order_relaxed) == State_T::Open)
-   { // ok to print
-
-      YMASSERT(result.out >= buffer, PrintError,
-         [this](auto const & E) -> void {
-            this->releaseWriteAccess();
-            throw E;
-         }, "Format to buffer did not behave as expected")
-
-      auto const TotalWritten_bytes = static_cast<sizet>(result.out - buffer) + NewlineSize_bytes;
-
-      // It is possible to ship this block to another thread/process,
-      // but if no need for it just write it here. It blocks, but if
-      // you're printing it's probably not a high performance task
-      // anyways (see DataLogger).
-
-      std::fwrite(buffer, sizeof(char), TotalWritten_bytes, _outfile_uptr.get());
-
-      if (getOptions() == RedirectMode_T::ToLogAndStdOut)
-      { // print to console
-         buffer[getMaxMsgSize_bytes() - std::size_t(1u)] = '\0';
-         fmt::print("{}", buffer);
-      }
-
-      if (auto const WantedSize_bytes = (result.size + NewlineSize_bytes);
-         WantedSize_bytes > getMaxMsgSize_bytes())
-      { // overflow
-
-         releaseWriteAccess();
-
-         if (HasTimeStamp)
-         { // alert user which line overflowed
-            buffer[RawTimeStampTemplate.size()] = '\0';
-            printf_Handler("OVERFLOW message @ time stamp {}", fmt::make_format_args(buffer));
-         }
-         else
-         { // alert user a message overflowed
-            printf_Handler("OVERFLOW on a previous message", {});
-         }
-      }
-   }
-   else
-   { // *not* ok to print
-      ymLog(VF::Errstream, "Tried to print on a logger that is not opened!");
-   }
-
-   releaseWriteAccess();
-}
-
 /** ScopedEnable
  * 
  * @brief Constructor.
@@ -379,7 +261,7 @@ void ym::TextLogger::printf_Handler(
  * @param logger_Ptr -- Logger instance to enable VG for.
  * @param VG         -- Verbosity group.
  */
-ym::TextLogger::ScopedEnable::ScopedEnable(
+ym::GlobalLogger::ScopedEnable::ScopedEnable(
    TextLogger * const logger_Ptr//,
    /*VG           const VG*/) :
       _logger_Ptr {logger_Ptr            },
@@ -394,7 +276,7 @@ ym::TextLogger::ScopedEnable::ScopedEnable(
  * 
  * @note Disables upon exit.
  */
-ym::TextLogger::ScopedEnable::~ScopedEnable(void)
+ym::GlobalLogger::ScopedEnable::~ScopedEnable(void)
 {
    popEnable();
 }
@@ -403,7 +285,7 @@ ym::TextLogger::ScopedEnable::~ScopedEnable(void)
  * 
  * @brief Restores the enable state of the stored VG.
  */
-void ym::TextLogger::ScopedEnable::popEnable(void) const
+void ym::GlobalLogger::ScopedEnable::popEnable(void) const
 {
    if (!_WasEnabled)
    { // disable
