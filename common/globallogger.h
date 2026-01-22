@@ -99,7 +99,7 @@ public:
 
    private:
       std::array<VF, NFlags> const _VFlags;
-      std::bitset<   NFlags> const _WasEnabled;
+      std::bitset<   NFlags> const _WasEnabled{};
    };
 
    template <std::same_as<VF>... VFs_T> void enable (VFs_T const... VFlags);
@@ -149,8 +149,11 @@ private:
    std::atomic<State_T>           _state    { State_T::Closed };
    std::atomic_unsigned_lock_free _writePos {        0u       };
    std::atomic_unsigned_lock_free _readPos  {        0u       };
-   std::atomic_flag               _writeFlag{ ATOMIC_FLAG_INIT};
 };
+
+/*
+ * GlobalLogger member functions.
+ * -------------------------------------------------------------------------- */
 
 /** enable
  *
@@ -220,6 +223,69 @@ inline void ym::GlobalLogger::printf(
    else if (_vGroup.test(VFlag))
    { // verbosity level is enabled - print!
       GlobalLogger::getGlobalInstance()->printf(Format, std::forward<Args_T>(args)...);
+   }
+}
+
+/*
+ * Inner Class ScopedEnable functions.
+ * -------------------------------------------------------------------------- */
+
+// template <std::same_as<VF>... VFs_T>
+// class ScopedEnable
+// {
+// public:
+//    static constexpr auto NFlags = sizeof...(VFs_T);
+
+//    explicit ScopedEnable(VFs_T const... VFlags);
+//    ~ScopedEnable(void);
+
+//    void popEnable(void) const;
+
+// private:
+//    std::array<VF, NFlags> const _VFlags;
+//    std::bitset<   NFlags> const _WasEnabled{};
+// };
+
+// template <std::same_as<VF>... VFs_T>
+// ScopedEnable<VFs_T...> pushEnable(VFs_T const... VFlags);
+
+/** ScopedEnable
+ * 
+ * @brief Constructor.
+ * 
+ * @note Enables upon construction.
+ * 
+ * @param logger_Ptr -- Logger instance to enable VG for.
+ * @param VG         -- Verbosity group.
+ */
+template <std::same_as<VF>... VFs_T>
+ym::GlobalLogger::ScopedEnable<VFs_T...>::ScopedEnable(VFs_T const... VFlags) :
+   _VFlags     {VFlags...},
+   _WasEnabled {false}
+{
+
+}
+
+/** ~ScopedEnable
+ * 
+ * @brief Destructor.
+ * 
+ * @note Disables upon exit.
+ */
+ym::GlobalLogger::ScopedEnable::~ScopedEnable(void)
+{
+   popEnable();
+}
+
+/** popEnable
+ * 
+ * @brief Restores the enable state of the stored VG.
+ */
+void ym::GlobalLogger::ScopedEnable::popEnable(void) const
+{
+   if (!_WasEnabled)
+   { // disable
+      _logger_Ptr->disable(_VG);
    }
 }
 

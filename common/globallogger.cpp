@@ -25,8 +25,6 @@ ym::GlobalLogger::GlobalLogger(
       TextLogger(Filename),
       _Options {Options}
 {
-   _writeFlag.clear();
-
    for (auto i = 0u; i < _slots.size(); i++)
    { // init slot sequence numbers
       _slots[i]._seqN.store(i, std::memory_order_relaxed);
@@ -249,46 +247,5 @@ void ym::GlobalLogger::printer(void)
       slot_Ptr->_seqN.store(ReadPos + _slots.size(), std::memory_order_release);
       slot_Ptr->_seqN.notify_all();
       _readPos.store(ReadPos + 1u, std::memory_order_relaxed);
-   }
-}
-
-/** ScopedEnable
- * 
- * @brief Constructor.
- * 
- * @note Enables upon construction.
- * 
- * @param logger_Ptr -- Logger instance to enable VG for.
- * @param VG         -- Verbosity group.
- */
-ym::GlobalLogger::ScopedEnable::ScopedEnable(
-   TextLogger * const logger_Ptr//,
-   /*VG           const VG*/) :
-      _logger_Ptr {logger_Ptr            },
-      // _VG         {VG                    },
-      _WasEnabled {false} // TODO was logger_Ptr->enable(VG)
-{
-}
-
-/** ~ScopedEnable
- * 
- * @brief Destructor.
- * 
- * @note Disables upon exit.
- */
-ym::GlobalLogger::ScopedEnable::~ScopedEnable(void)
-{
-   popEnable();
-}
-
-/** popEnable
- * 
- * @brief Restores the enable state of the stored VG.
- */
-void ym::GlobalLogger::ScopedEnable::popEnable(void) const
-{
-   if (!_WasEnabled)
-   { // disable
-      _logger_Ptr->disable(_VG);
    }
 }
