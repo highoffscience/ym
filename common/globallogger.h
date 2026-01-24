@@ -14,7 +14,6 @@
 
 #include <array>
 #include <atomic>
-#include <bitset>
 #include <concepts>
 #include <utility>
 
@@ -34,8 +33,7 @@ inline void ymLog(
 template <std::same_as<VF>... VFs_T> inline void ymLogEnable (VFs_T const... VFlags);
 template <std::same_as<VF>... VFs_T> inline void ymLogDisable(VFs_T const... VFlags);
 
-// template <std::same_as<VF>... VFs_T>
-// inline class ScopedEnable ymLogPushEnable(VFs_T const... VFlags);
+// inline class ScopedEnable ymLogPushEnable(VF const VFlag);
 // Above is implemented below - ScopedEnable isn't yet defined.
 
 /* -------------------------------------------------------------------------- */
@@ -86,32 +84,35 @@ public:
     *       even if SE is not used, since the destructor has side effects. Simply calling
     *       pushEnable will result in the ScopedEnable structure being deleted immediately.
     */
-   template <std::same_as<VF>... VFs_T>
    class ScopedEnable
    {
    public:
-      static constexpr auto NFlags = sizeof...(VFs_T);
+      explicit ScopedEnable(VF const VFlag);
+      inline ~ScopedEnable(void) {
+         popEnable();
+      }
 
-      explicit ScopedEnable(VFs_T const... VFlags);
-      ~ScopedEnable(void);
-
-      void popEnable(void) const;
+      void popEnable(void) const noexcept;
 
    private:
-      std::array<VF, NFlags> const _VFlags;
-      std::bitset<   NFlags> const _WasEnabled{};
+      VF   const _VFlag;
+      bool const _WasEnabled{false};
    };
 
-   template <std::same_as<VF>... VFs_T> void enable (VFs_T const... VFlags);
-   template <std::same_as<VF>... VFs_T> void disable(VFs_T const... VFlags);
-
    template <std::same_as<VF>... VFs_T>
-   ScopedEnable<VFs_T...> pushEnable(VFs_T const... VFlags);
+   inline void enable (VFs_T const... VFlags) noexcept { ((_vGroup.set  (VFlags)), ...); }
+   template <std::same_as<VF>... VFs_T>
+   inline void disable(VFs_T const... VFlags) noexcept { ((_vGroup.clear(VFlags)), ...); }
+
+   inline bool isVFlagEnabled(VF const VFlag) const noexcept { return _vGroup.test(VFlag); }
+   inline ScopedEnable pushEnable(VF const VFlag) { return ScopedEnable(VFlag); }
 
 private:
    explicit GlobalLogger(
       strlit    const   Filename,
       Options_T const & Options = {});
+
+   static inline FreePtr<GlobalLogger> _s_instance{nullptr};
 
    virtual void producer(
       strlit const     Format,
@@ -155,34 +156,6 @@ private:
  * GlobalLogger member functions.
  * -------------------------------------------------------------------------- */
 
-/** enable
- *
- * @brief Enables specified verbosity flags.
- *
- * @tparam VFs_T -- VF typename.
- *
- * @param VFlags -- Verbosity flags to enable.
- */
-template <std::same_as<VF>... VFs_T>
-void ym::GlobalLogger::enable(VFs_T const... VFlags)
-{
-   ((_vGroup.set(VFlags)), ...);
-}
-
-/** disable
- *
- * @brief Disables specified verbosity flags.
- *
- * @tparam VFs_T -- VF typename.
- *
- * @param VFlags -- Verbosity flags to disable.
- */
-template <std::same_as<VF>... VFs_T>
-void ym::GlobalLogger::disable(VFs_T const... VFlags)
-{
-   ((_vGroup.clear(VFlags)), ...);
-}
-
 /** pushEnable
  * 
  * @brief Enables given verbosity group only in the current scope.
@@ -193,10 +166,9 @@ void ym::GlobalLogger::disable(VFs_T const... VFlags)
  * 
  * @returns ScopedEnable -- RAII mechanism that only keeps the enable VF while in scope.
  */
-template <std::same_as<VF>... VFs_T>
-auto ym::GlobalLogger::pushEnable(VFs_T const... VFlags) -> ScopedEnable<VFs_T...>
+auto ym::GlobalLogger::pushEnable(VF const VFlag) -> ScopedEnable
 {
-   return ScopedEnable(VFlags...);
+   return ScopedEnable(VFlag);
 }
 
 /** printf
@@ -220,72 +192,9 @@ inline void ym::GlobalLogger::printf(
       fmt::print(stderr, "WARNING: ");
       fmt::println(stderr, Format, std::forward<Args_T>(args)...);
    }
-   else if (_vGroup.test(VFlag))
+   else if (isVFlagEnabled(VFlag))
    { // verbosity level is enabled - print!
       GlobalLogger::getGlobalInstance()->printf(Format, std::forward<Args_T>(args)...);
-   }
-}
-
-/*
- * Inner Class ScopedEnable functions.
- * -------------------------------------------------------------------------- */
-
-// template <std::same_as<VF>... VFs_T>
-// class ScopedEnable
-// {
-// public:
-//    static constexpr auto NFlags = sizeof...(VFs_T);
-
-//    explicit ScopedEnable(VFs_T const... VFlags);
-//    ~ScopedEnable(void);
-
-//    void popEnable(void) const;
-
-// private:
-//    std::array<VF, NFlags> const _VFlags;
-//    std::bitset<   NFlags> const _WasEnabled{};
-// };
-
-// template <std::same_as<VF>... VFs_T>
-// ScopedEnable<VFs_T...> pushEnable(VFs_T const... VFlags);
-
-/** ScopedEnable
- * 
- * @brief Constructor.
- * 
- * @note Enables upon construction.
- * 
- * @param logger_Ptr -- Logger instance to enable VG for.
- * @param VG         -- Verbosity group.
- */
-template <std::same_as<VF>... VFs_T>
-ym::GlobalLogger::ScopedEnable<VFs_T...>::ScopedEnable(VFs_T const... VFlags) :
-   _VFlags     {VFlags...},
-   _WasEnabled {false}
-{
-
-}
-
-/** ~ScopedEnable
- * 
- * @brief Destructor.
- * 
- * @note Disables upon exit.
- */
-ym::GlobalLogger::ScopedEnable::~ScopedEnable(void)
-{
-   popEnable();
-}
-
-/** popEnable
- * 
- * @brief Restores the enable state of the stored VG.
- */
-void ym::GlobalLogger::ScopedEnable::popEnable(void) const
-{
-   if (!_WasEnabled)
-   { // disable
-      _logger_Ptr->disable(_VG);
    }
 }
 
@@ -352,16 +261,13 @@ inline void ymLogDisable(VFs_T const... VFlags)
  * 
  * @throws Whatever getGlobalInstance() throws.
  *
- * @tparam VFs_T -- VF typename.
- *
  * @param VF -- Verbosity flag.
  * 
  * @returns ScopedEnable -- RAII mechanism that only keeps the enabled VF while in scope.
  */
-template <std::same_as<VF>... VFs_T>
-inline GlobalLogger::ScopedEnable<VFs_T...> ymLogPushEnable(VFs_T const... VFlags)
+inline GlobalLogger::ScopedEnable ymLogPushEnable(VF const VFlag)
 {
-   return GlobalLogger::getGlobalInstance()->pushEnable(VFlags...);
+   return GlobalLogger::getGlobalInstance()->pushEnable(VFlag);
 }
 
 } // ym
