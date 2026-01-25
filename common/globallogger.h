@@ -112,8 +112,6 @@ private:
       strlit    const   Filename,
       Options_T const & Options = {});
 
-   static inline FreePtr<GlobalLogger> _s_instance{nullptr};
-
    virtual void producer(
       strlit const     Format,
       fmt::format_args args) noexcept override;

@@ -60,22 +60,12 @@ bool ym::GlobalLogger::isOpen(void) const
  */
 auto ym::GlobalLogger::getGlobalInstance(void) -> BoundPtr<GlobalLogger>
 {
-   if (!_s_instance)
-   { // file not already opened - open it
+   // static FreePtr<GlobalLogger> s_instance{nullptr};
+   static GlobalLogger s_instance("logs/global.txt"); // TODO is this constructor noexcept?
 
-      _s_instance = new GlobalLogger("logs/global.txt");
-      YMASSERT(_s_globalInstance_ptr, GlobalError, YM_DAH, "Global instance failed to be created");
+   // static auto s_instance = _s_instance.unwrap_or(new GlobalLogger("logs/global.txt"));
 
-      auto const Opened = _s_globalInstance_ptr->open();
-      YMASSERT(Opened, GlobalError,
-         [](auto const & E) -> void {
-            delete _s_globalInstance_ptr;
-            _s_globalInstance_ptr = nullptr;
-            throw E;
-         }, "Global instance failed to open");
-   }
-
-   return tbptr(_s_globalInstance_ptr); // guaranteed not null
+   return BoundPtr(&s_instance, ym_AssumePtrNotNull{});
 }
 
 /** open
