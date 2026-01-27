@@ -310,7 +310,7 @@ public:
    /// @brief Constructor. Assumes pointer is not null, like from std::array<>.data().
    implicit constexpr BoundPtr(
       T * const value_Ptr,
-      ym_AssumePtrNotNull) :
+      ym_AssumePtrNotNull) noexcept :
          BoundPtr_Base<T, BoundPtr<T>>(value_Ptr)
    { }
 

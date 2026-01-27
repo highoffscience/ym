@@ -83,8 +83,8 @@ public:
    inline auto const & getFilename(void) const noexcept { return _Filename; }
 
 protected:
-   explicit TextLogger(strlit const Filename);
-   virtual ~TextLogger(void) = default;
+   explicit TextLogger(strlit const Filename) noexcept;
+   virtual ~TextLogger(void) noexcept = default;
 
    YM_NO_COPY  (TextLogger)
    YM_NO_ASSIGN(TextLogger)

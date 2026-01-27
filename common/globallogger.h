@@ -15,6 +15,7 @@
 #include <array>
 #include <atomic>
 #include <concepts>
+#include <thread>
 #include <utility>
 
 namespace ym
@@ -51,14 +52,14 @@ public:
    /// @brief Gets this logger's options.
    inline virtual Options_T const & getOptions(void) const noexcept override { return _Options; }
 
-   virtual ~GlobalLogger(void);
+   virtual ~GlobalLogger(void) noexcept;
 
    YM_NO_COPY  (GlobalLogger)
    YM_NO_ASSIGN(GlobalLogger)
 
    YM_DECL_YMASSERT(TextLogger::Error, Error)
 
-   static BoundPtr<GlobalLogger> getGlobalInstance(void);
+   static BoundPtr<GlobalLogger> getGlobalInstance(void) noexcept;
 
    /// @brief Returns name of file.
    inline auto getFilename(void) const noexcept { return _Filename; }
@@ -110,7 +111,7 @@ public:
 private:
    explicit GlobalLogger(
       strlit    const   Filename,
-      Options_T const & Options = {});
+      Options_T const & Options = {}) noexcept;
 
    virtual void producer(
       strlit const     Format,
@@ -142,6 +143,7 @@ private:
    static_assert(sizeof(Slot) == SlotSize_bytes, "Slot packing not as expected");
 
    std::array<Slot, 32uz>         _slots    {  /* default */  };
+   std::thread                    _consumer {  /* default */  };
    strlit    const                _Filename {"unnamed_gl.uhoh"};
    Options_T const                _Options  {  /* default */  };
    VerboGroup                     _vGroup   {  /* default */  };

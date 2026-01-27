@@ -19,7 +19,7 @@
  */
 ym::GlobalLogger::GlobalLogger(
    strlit    const   Filename,
-   Options_T const & Options) :
+   Options_T const & Options) noexcept :
       TextLogger(Filename),
       _Options {Options}
 {
@@ -33,7 +33,7 @@ ym::GlobalLogger::GlobalLogger(
  *
  * @brief Destructor.
  */
-ym::GlobalLogger::~GlobalLogger(void)
+ym::GlobalLogger::~GlobalLogger(void) noexcept
 {
    close();
 }
@@ -54,16 +54,12 @@ bool ym::GlobalLogger::isOpen(void) const
  * @brief Gets the global logger instance.
  * 
  * @note Used as the global logger for the program. Not expected to close until the end.
- * @note Not thread-safe.
  *
- * @throws GlobalError -- If TextLogger instance fails to be instantiated.
+ * @note Uses Meyers Singleton implementation.
  */
-auto ym::GlobalLogger::getGlobalInstance(void) -> BoundPtr<GlobalLogger>
+auto ym::GlobalLogger::getGlobalInstance(void) noexcept -> BoundPtr<GlobalLogger>
 {
-   // static FreePtr<GlobalLogger> s_instance{nullptr};
-   static GlobalLogger s_instance("logs/global.txt"); // TODO is this constructor noexcept?
-
-   // static auto s_instance = _s_instance.unwrap_or(new GlobalLogger("logs/global.txt"));
+   static GlobalLogger s_instance("logs/global.txt");
 
    return BoundPtr(&s_instance, ym_AssumePtrNotNull{});
 }
@@ -74,7 +70,7 @@ auto ym::GlobalLogger::getGlobalInstance(void) -> BoundPtr<GlobalLogger>
  * 
  * @returns bool -- Whether the outfile was opened successfully, false otherwise.
  */
-bool ym::GlobalLogger::open(void)
+bool ym::GlobalLogger::open(void) noexcept
 {
    auto expectedState = State_T::Closed;
 
@@ -85,25 +81,41 @@ bool ym::GlobalLogger::open(void)
    { // file not opened - let's do that
       auto const Opened = openOutfile(getFilename().get());
       expectedState = Opened ? State_T::Open : State_T::Closed;
-      _state.store(expectedState, std::memory_order_relaxed);
+      _consumer = std::thread(&GlobalLogger::printer, this);
+      _state.store(expectedState, std::memory_order_release);
+      _state.notify_all();
    }
 
-   return expectedState == State_T::Open;
+   return isOpen();
 }
 
 /** close
  *
  * @brief Closes the outfile and shuts the logger down.
+ * 
+ * @note Only one caller of close() should initiate shutdown, everyone else will wait
+ *       until the logger closes before returning, so when execution returns to the caller
+ *       tthe logger is indeed closed.
  */
-void ym::GlobalLogger::close(void)
+void ym::GlobalLogger::close(void) noexcept
 {
    if (auto expectedState = State_T::Open; _state.compare_exchange_strong(
       expectedState, State_T::Closing,
-      std::memory_order_acquire,
-      std::memory_order_relaxed))
+      std::memory_order_release,
+      std::memory_order_acquire))
    { // file opened - let's change that
+      _state.notify_all(); // consumer might be waiting
+      _consumer.join();
       closeOutfile();
-      _state.store(State_T::Closed, std::memory_order_relaxed); // TODO release?
+      _state.store(State_T::Closed, std::memory_order_release);
+      _state.notify_all(); // someone else might be waiting
+   }
+   else
+   { // already closing or closed
+      while (_state.load(std::memory_order_acquire) != State_T::Closed)
+      { // hang out here until we are closed
+         _state.wait(State_T::Closed, std::memory_order_acquire);
+      }
    }
 }
 
@@ -149,12 +161,6 @@ void ym::GlobalLogger::producer(
       MaxMsgSize_bytes,
       Format.get(),
       args);
-
-   // YMASSERT(result.out >= buffer, Error,
-   //    [this](auto const & E) -> void {
-   //       this->releaseWriteAccess();
-   //       throw E;
-   //    }, "Format to buffer did not behave as expected")
 
    if (getOptions() == PrintMode_T::KeepOriginal)
    { // line to be printed as is
@@ -215,8 +221,7 @@ void ym::GlobalLogger::printer(void)
          { // we want to close
             if (ReadPos == _writePos.load(std::memory_order_acquire))
             { // no more messages
-               _state.store(State_T::Closed, std::memory_order_release);
-               break;
+               goto END_OF_CONSUMER_LABEL; // break out of both loops
             }
          }
 
@@ -236,6 +241,9 @@ void ym::GlobalLogger::printer(void)
       slot_Ptr->_seqN.notify_all();
       _readPos.store(ReadPos + 1u, std::memory_order_relaxed);
    }
+
+END_OF_CONSUMER_LABEL:
+   return;
 }
 
 /*

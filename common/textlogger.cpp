@@ -17,7 +17,7 @@
  * 
  * @param Filename -- Name of file to open.
  */
-ym::TextLogger::TextLogger(strlit const Filename) :
+ym::TextLogger::TextLogger(strlit const Filename) noexcept :
    _Filename {Filename}
 { }
 

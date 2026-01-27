@@ -30,6 +30,7 @@ public:
    explicit LiteLogger(
       strlit    const   Filename,
       Options_T const & Options = {}) noexcept;
+   virtual ~LiteLogger(void) noexcept = default;
 
    YM_NO_COPY  (LiteLogger)
    YM_NO_ASSIGN(LiteLogger)
