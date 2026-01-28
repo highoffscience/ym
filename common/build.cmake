@@ -21,9 +21,10 @@ function(srcbuild-ym.common Ctx_JSON)
       # argparser.cpp
       # datalogger.cpp
       # fileio.cpp
+      globallogger.cpp
       litelogger.cpp
       logger.cpp
-      # textlogger.cpp
+      textlogger.cpp
       timer.cpp
       verbogroup.cpp
       ymassert.cpp

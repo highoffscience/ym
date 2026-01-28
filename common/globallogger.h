@@ -75,11 +75,11 @@ public:
       Args_T &&... args);
 
    /** ScopedEnable
-    * 
+    *
     * @brief Allows managed temporary enabling of a verbosity group.
-    * 
+    *
     * @note Uses RAII to storing/restoring enabling verbosity groups.
-    * 
+    *
     * @note The return value from pushEnable will need to be explicitly stored, ie.
     *       auto const SE = ymLogPushEnable(VF);
     *       even if SE is not used, since the destructor has side effects. Simply calling
@@ -127,7 +127,7 @@ private:
       Open,
       Opening
    };
-   
+
    static constexpr auto SlotSize_bytes   = 256uz;
    static constexpr auto SeqNSize_bytes   = sizeof(std::atomic_unsigned_lock_free);
    static constexpr auto MaxMsgSize_bytes = SlotSize_bytes - SeqNSize_bytes;
@@ -156,27 +156,12 @@ private:
  * GlobalLogger member functions.
  * -------------------------------------------------------------------------- */
 
-/** pushEnable
- * 
- * @brief Enables given verbosity group only in the current scope.
- *
- * @tparam VFs_T -- VF typename.
- *
- * @param VFlags -- Verbosity flags to enable.
- * 
- * @returns ScopedEnable -- RAII mechanism that only keeps the enable VF while in scope.
- */
-auto ym::GlobalLogger::pushEnable(VF const VFlag) -> ScopedEnable
-{
-   return ScopedEnable(VFlag);
-}
-
 /** printf
- * 
+ *
  * @brief Conditionally prints.
- * 
+ *
  * @tparam Args_T -- Argument types.
- * 
+ *
  * @param VFlag  -- Verbosity flag.
  * @param Format -- Format string.
  * @param args   -- Arguments.
@@ -203,11 +188,11 @@ inline void ym::GlobalLogger::printf(
  * -------------------------------------------------------------------------- */
 
 /** ymLog
- * 
+ *
  * @brief Prints to the active logger.
  *
  * @throws Whatever getGlobalInstance() throws.
- * 
+ *
  * @tparam Args_T -- Argument types.
  *
  * @param VF     -- Verbosity flag.
@@ -224,7 +209,7 @@ inline void ymLog(
 }
 
 /** ymLogEnable
- * 
+ *
  * @brief Enables specified verbosity group for the global logger.
  *
  * @throws Whatever getGlobalInstance() throws.
@@ -240,7 +225,7 @@ inline void ymLogEnable(VFs_T const... VFlags)
 }
 
 /** ymLogDisable
- * 
+ *
  * @brief Disables specified verbosity group for the global logger.
  *
  * @throws Whatever getGlobalInstance() throws.
@@ -256,13 +241,13 @@ inline void ymLogDisable(VFs_T const... VFlags)
 }
 
 /** ymLogPushEnable
- * 
+ *
  * @brief Enables given verbosity group only in the current scope for the global logger.
- * 
+ *
  * @throws Whatever getGlobalInstance() throws.
  *
  * @param VF -- Verbosity flag.
- * 
+ *
  * @returns ScopedEnable -- RAII mechanism that only keeps the enabled VF while in scope.
  */
 inline GlobalLogger::ScopedEnable ymLogPushEnable(VF const VFlag)
