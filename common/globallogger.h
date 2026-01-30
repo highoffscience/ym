@@ -175,11 +175,11 @@ inline void ym::GlobalLogger::printf(
    if (VFlag == VF::Errstream)
    { // error printing - print to err stream console
       fmt::print(stderr, "WARNING: ");
-      fmt::println(stderr, Format, std::forward<Args_T>(args)...);
+      fmt::println(stderr, Format.get(), std::forward<Args_T>(args)...);
    }
    else if (isVFlagEnabled(VFlag))
    { // verbosity level is enabled - print!
-      GlobalLogger::getGlobalInstance()->printf(Format, std::forward<Args_T>(args)...);
+      GlobalLogger::getGlobalInstance()->producer(Format, std::forward<Args_T>(args)...);
    }
 }
 

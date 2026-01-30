@@ -235,7 +235,7 @@ void ym::GlobalLogger::printer(void) noexcept
 
       try
       { // attempt to write message to file
-         fmt::print(_file.unwrap(), slot_Ptr->_msgBuffer.data());
+         fmt::print(_file.unwrap(), "{}", slot_Ptr->_msgBuffer.data());
       }
       catch (std::exception const & E)
       { // logic or formatting error
