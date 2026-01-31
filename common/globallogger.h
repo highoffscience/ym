@@ -162,6 +162,9 @@ private:
  *
  * @tparam Args_T -- Argument types.
  *
+ * @note fmt::make_format_args takes lvalue references (&), not universal references (&&),
+ *       which is why we don't std::forward the args.
+ *
  * @param VFlag  -- Verbosity flag.
  * @param Format -- Format string.
  * @param args   -- Arguments.
@@ -175,11 +178,11 @@ inline void ym::GlobalLogger::printf(
    if (VFlag == VF::Errstream)
    { // error printing - print to err stream console
       fmt::print(stderr, "WARNING: ");
-      fmt::println(stderr, Format.get(), std::forward<Args_T>(args)...);
+      fmt::vprintln(stderr, Format.get(), fmt::make_format_args(args...));
    }
    else if (isVFlagEnabled(VFlag))
    { // verbosity level is enabled - print!
-      GlobalLogger::getGlobalInstance()->producer(Format, std::forward<Args_T>(args)...);
+      GlobalLogger::getGlobalInstance()->producer(Format, fmt::make_format_args(args...));
    }
 }
 

@@ -5,9 +5,9 @@
  *
  * @note This file should be included in every file of the project. It provides
  *       standard declarations to be shared throughout.
- * 
+ *
  * @note File used in unittests - maximum standard C++20.
- * 
+ *
  * @note Macros are prefixed "YM_".
  * @note Macros used for a particular purpose are prefixed "YM_SPECIAL_".
  * @note Macros used as helper functions are prefixed "YM_HELPER_".
@@ -41,7 +41,15 @@
       #define YM_CPP_STANDARD 23
    #endif
 #else
-   #error "At least C++23 standard required"
+   #if defined(YM_UNITTEST_ACTIVE_DEFINED)
+      #if (__cplusplus == 202002L)
+         #define YM_CPP_STANDARD 20
+      #else
+         #error "C++20 standard required"
+      #endif
+   #else
+      #error "At least C++23 standard required"
+   #endif
 #endif
 
 // ----------------------------------------------------------------------------
@@ -99,16 +107,16 @@
 #define YM_NO_MOVE_ASSIGN( ClassName_ ) ClassName_ & operator = (ClassName_ &&     ) = delete;
 
 /** YM_MACRO_OVERLOAD
- * 
+ *
  * @brief Helper macro to allow for macro overloading based on number of arguments.
- * 
+ *
  * @ref <https://stackoverflow.com/questions/11761703/overloading-macro-on-number-of-arguments>
- * 
+ *
  * @note Example:
  *    #define YM_MY_MACRO(...) YM_MACRO_OVERLOAD(YM_MY_MACRO, __VA_ARGS__)
  *    #define YM_MY_MACRO1(First) ...
  *    #define YM_MY_MACRO2(First, Second) ...
- * 
+ *
  * @param MACRO_ -- Name of macro to overload.
  * @param ...    -- Args to pass to macro.
  */
@@ -126,9 +134,9 @@
    YM_HELPER_2_MACRO_OVERLOAD(MACRO_, YM_HELPER__NARG__(__VA_ARGS__)) (__VA_ARGS__)
 
 /** implicit
- * 
+ *
  * @brief Used to make constructors explicitly implicit.
- * 
+ *
  * @note Name is not "YM_IMPLICIT" because it is more natural to write "implicit".
  */
 #if defined(implicit)
@@ -139,9 +147,9 @@
 #endif
 
 /** YMNOEXC
- * 
+ *
  * @brief Conditional noexcept specifier.
- * 
+ *
  * @note Mostly for use with functions with debug assertions, eg. YMASSERTDBG.
  */
 #if (YM_DEBUG)
@@ -157,7 +165,7 @@ namespace ym
 
 /**
  * @brief Primitive typedefs.
- * 
+ *
  * @note The static_asserts for the higher precision floating point defines
  *       are structured unorthodoxically so all supported compilers can parse it.
  */
@@ -195,9 +203,9 @@ using float64  = double     ; static_assert(std::numeric_limits<float64 >::digit
 using floatext = long double; static_assert(std::numeric_limits<floatext>::digits >= 53, "floatext (mantissa) not of expected size");
 
 /** YM_CREATE_TAG_DISPATCH_TYPE
- * 
+ *
  * @brief Template for creating tag dispatch types.
- * 
+ *
  * @param Name_ -- Name of type.
  */
 #define YM_CREATE_TAG_DISPATCH_TYPE(Name_) struct Name_ { explicit constexpr Name_(void) noexcept = default; };
@@ -205,11 +213,11 @@ using floatext = long double; static_assert(std::numeric_limits<floatext>::digit
 // ----------------------------------------------------------------------------
 
 /** ym_getNBits
- * 
+ *
  * @brief Returns number of bits in type T.
- * 
+ *
  * @tparam T -- Type.
- * 
+ *
  * @returns std::size_t -- The number of bits in type T.
  */
 template <typename T>
@@ -228,7 +236,7 @@ constexpr auto ym_getNBits(void) noexcept
  *
  * @param UDL_          -- Name of User Defined Literal.
  * @param TypeToCastTo_ -- Type to cast to.
- * 
+ *
  * @returns auto -- Input casted to TypeToCastTo_.
  */
 #define YM_HELPER_LITERAL_DECL(UDL_, TypeToCastTo_)                                                               \

@@ -30,5 +30,6 @@ ym::unit::TestSuite::TestSuite(void) :
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VF::UnitTest_Logger);
+   ymLog(VF::UnitTest_Logger, "Go! Torchic!");
    return {};
 }
