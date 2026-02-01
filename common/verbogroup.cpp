@@ -6,6 +6,8 @@
 
 #include "verbogroup.h"
 
+#include <tuple> // some standards don't have std::ignore in <utility>
+
 /** set
  * 
  * @brief Sets the specified flag (flips to 1).

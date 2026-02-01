@@ -180,6 +180,10 @@ inline void ym::GlobalLogger::printf(
       fmt::print(stderr, "WARNING: ");
       fmt::vprintln(stderr, Format.get(), fmt::make_format_args(args...));
    }
+   else if (VFlag == VF::Debug) // TODO make a dedicated verbogroup - VF::Console
+   { // print to console
+      fmt::println(stdout, "{}", Format);
+   }
    else if (isVFlagEnabled(VFlag))
    { // verbosity level is enabled - print!
       GlobalLogger::getGlobalInstance()->producer(Format, fmt::make_format_args(args...));
