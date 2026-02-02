@@ -144,7 +144,7 @@ private:
 
    std::array<Slot, 32uz>         _slots    {  /* default */  };
    std::thread                    _consumer {  /* default */  };
-   strlit    const                _Filename {"unnamed_gl.uhoh"};
+   strlit    const                _Filename {"logs/unnamed_gl.uhoh"};
    Options_T const                _Options  {  /* default */  };
    VerboGroup                     _vGroup   {  /* default */  };
    std::atomic<State_T>           _state    { State_T::Closed };
@@ -180,9 +180,9 @@ inline void ym::GlobalLogger::printf(
       fmt::print(stderr, "WARNING: ");
       fmt::vprintln(stderr, Format.get(), fmt::make_format_args(args...));
    }
-   else if (VFlag == VF::Debug) // TODO make a dedicated verbogroup - VF::Console
+   else if (VFlag == VF::Console)
    { // print to console
-      fmt::println(stdout, "{}", Format);
+      fmt::println(stdout, "{}", Format.get()); // TODO Format not displaying
    }
    else if (isVFlagEnabled(VFlag))
    { // verbosity level is enabled - print!

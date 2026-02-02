@@ -27,6 +27,8 @@ ym::GlobalLogger::GlobalLogger(
    { // init slot sequence numbers
       _slots[i]._seqN.store(i, std::memory_order_relaxed);
    }
+
+   open();
 }
 
 /** ~GlobalLogger
@@ -60,7 +62,6 @@ bool ym::GlobalLogger::isOpen(void) const noexcept
 auto ym::GlobalLogger::getGlobalInstance(void) noexcept -> BoundPtr<GlobalLogger>
 {
    static GlobalLogger s_instance("logs/global.txt");
-
    return BoundPtr(&s_instance, ym_AssumePtrNotNull{});
 }
 
@@ -99,16 +100,21 @@ bool ym::GlobalLogger::open(void) noexcept
  */
 void ym::GlobalLogger::close(void) noexcept
 {
+   std::printf("DBG -->13<--\n");
+
    if (auto expectedState = State_T::Open; _state.compare_exchange_strong(
       expectedState, State_T::Closing,
       std::memory_order_release,
       std::memory_order_acquire))
    { // file opened - let's change that
+      std::printf("DBG -->8<--\n");
       _state.notify_all(); // consumer might be waiting
+      std::printf("DBG -->9<--\n");
       _consumer.join();
       closeOutfile();
       _state.store(State_T::Closed, std::memory_order_release);
       _state.notify_all(); // someone else might be waiting
+      std::printf("DBG -->10<--\n");
    }
    else
    { // already closing or closed
@@ -146,7 +152,9 @@ void ym::GlobalLogger::producer(
       auto seqN = 0u;
       (seqN = slot_Ptr->_seqN.load(std::memory_order_acquire)) != WritePos;)
    { // wait for slot "ready to be written"
+      std::printf("DBG -->6<--\n");
       slot_Ptr->_seqN.wait(seqN, std::memory_order_acquire);
+      std::printf("DBG -->7<--\n");
    }
 
    auto * head = slot_Ptr->_msgBuffer.data();
@@ -165,6 +173,8 @@ void ym::GlobalLogger::producer(
       MaxMsgSize_bytes,
       Format.get(),
       args);
+
+   std::printf("DBG -->0<--\n");
 
    if (getOptions() == PrintMode_T::KeepOriginal)
    { // line to be printed as is
@@ -215,6 +225,8 @@ void ym::GlobalLogger::printer(void) noexcept
       auto   const ReadPos  = _readPos.load(std::memory_order_relaxed);
       auto * const slot_Ptr = &_slots[ReadPos % _slots.size()];
 
+      std::printf("DBG -->1<--\n");
+
       for (
          auto seqN = 0u;
          (seqN = slot_Ptr->_seqN.load(std::memory_order_acquire)) != (ReadPos + 1u);)
@@ -224,22 +236,28 @@ void ym::GlobalLogger::printer(void) noexcept
 
          if (_state.load(std::memory_order_acquire) == State_T::Closing)
          { // we want to close
+            std::printf("DBG -->4<--\n");
             if (ReadPos == _writePos.load(std::memory_order_acquire))
             { // no more messages
                goto END_OF_CONSUMER_LABEL; // break out of both loops
             }
          }
 
+         std::printf("DBG -->11<--\n");
          slot_Ptr->_seqN.wait(seqN, std::memory_order_acquire);
+         std::printf("DBG -->12<--\n");
       }
 
       try
       { // attempt to write message to file
          fmt::print(_file.unwrap(), "{}", slot_Ptr->_msgBuffer.data());
 
+         std::printf("DBG -->2<--\n");
+
          if (getOptions() == RedirectMode_T::ToLogAndStdOut)
          { // log it to console!
-            ymLog(VF::Debug, "{}", slot_Ptr->_msgBuffer.data());
+            ymLog(VF::Console, "{}", slot_Ptr->_msgBuffer.data());
+            std::printf("DBG -->3<--\n");
          }
       }
       catch (std::exception const & E)
@@ -253,6 +271,7 @@ void ym::GlobalLogger::printer(void) noexcept
    }
 
 END_OF_CONSUMER_LABEL:
+   std::printf("DBG -->5<--\n");
    return;
 }
 

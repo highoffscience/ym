@@ -57,9 +57,9 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
-      
+
       # uncomment to run test
-      # results = self.run_test_case("InteractiveInspection")
+      results = self.run_test_case("InteractiveInspection")
       pass
 
 # kick-off

@@ -31,7 +31,7 @@ public:
    enum class Flag_T : unsigned
    {
       Global,
-      Debug,
+      Console,
       Warning,
       Error,
 
@@ -66,7 +66,7 @@ public:
       UnitTest_YmDefs,
       UnitTest_YmUtils,
    #endif
-      
+
       Errstream // must be last
    };
 
