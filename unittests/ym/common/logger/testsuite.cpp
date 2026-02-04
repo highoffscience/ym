@@ -21,6 +21,11 @@ ym::unit::TestSuite::TestSuite(void) :
    addTestCase<InteractiveInspection>();
 }
 
+ym::unit::TestSuite::~TestSuite(void)
+{
+   GlobalLogger::getGlobalInstance()->close(); // TODO this also hangs - but in a worse way!
+}
+
 /** run
  *
  * @brief Interactive inspection - for debug purposes.
@@ -31,9 +36,11 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
 {
    auto const SE = ymLogPushEnable(VF::UnitTest_Logger);
    ymLog(VF::UnitTest_Logger, "Go! Torchic!");
-   GlobalLogger::getGlobalInstance()->close(); // TODO logger waits on close, which could happen in this
+   // GlobalLogger::getGlobalInstance()->close(); // TODO logger waits on close, which could happen in this
    // destructor, but this class is created in the python script, and the python script won't exit until
    // the logger closes. The logger needs a close command somewhere so the script can continue...
    // It also appears the logger is not using the expected name, it is using the default name...
+   // The python script can't create the global logger because the global logger uses c++23 standard, where
+   // cppyy can only use c++20.
    return {{"", true}};
 }

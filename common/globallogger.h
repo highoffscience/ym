@@ -182,7 +182,7 @@ inline void ym::GlobalLogger::printf(
    }
    else if (VFlag == VF::Console)
    { // print to console
-      fmt::println(stdout, "{}", Format.get()); // TODO Format not displaying
+      fmt::vprintln(stdout, Format.get(), fmt::make_format_args(args...));
    }
    else if (isVFlagEnabled(VFlag))
    { // verbosity level is enabled - print!

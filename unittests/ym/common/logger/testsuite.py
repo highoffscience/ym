@@ -60,6 +60,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
       # uncomment to run test
       results = self.run_test_case("InteractiveInspection")
+      print("<Hello from python>")
       pass
 
 # kick-off
