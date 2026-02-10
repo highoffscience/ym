@@ -51,7 +51,9 @@ function(unitbuild-ym.common Ctx_JSON)
          cmake_language(CALL unitbuild-${SubBaseBuild} Ctx_JSON)
       else()
          add_library(${SubTarget} SHARED)
-         target_sources(${SubTarget} PRIVATE ${SubBuildDir}/testsuite.cpp)
+         target_sources(${SubTarget} PRIVATE
+            ${SubBuildDir}/testsuite.cpp
+            ${YM_UnitTestDir}/common/ymdefhelpers.cpp)
          target_link_libraries(${SubTarget} PRIVATE ${TargetInt})
          set_target_properties(${SubTarget} PROPERTIES VERSION ${PROJECT_VERSION})
          set_target_properties(${SubTarget} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_CustomLibsDir})

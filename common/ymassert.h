@@ -13,7 +13,7 @@
 #include <type_traits>
 
 #if ((YM_YES_EXCEPTIONS) + (YM_NO_EXCEPTIONS) != 1)
-   #error "Conflicting Exception rule or none specified"
+   #error "Conflicting exception rule or none specified"
 #endif
 
 #if (YM_YES_EXCEPTIONS)
@@ -40,28 +40,28 @@
  *       return from the calling function.
  *
  * @note ", ## __VA_ARGS__" eats the comma when __VA_ARGS__ is empty.
- * 
+ *
  * @note A static assert with std::is_invocable_v<decltype(Handler_), Derived_> doesn't work
  *       when Handler_ is a template function because unless the compiler knows it's
  *       specialized type decltype will fail, and providing the machinery to test the proper
  *       invocableness is too messy. If the user provides an invalid Handler function then
  *       the compile error will lead them to this note...hopefully.
- * 
+ *
  * @note Handler_ will typically be YM_DAH or YM_DAH_REV (defined above). To install your own handler:
- * 
+ *
  *       [](ymassert_Base const & E) {
  *          ...
  *       }(e__)
- * 
+ *
  *       or (if handler returns a value)
- * 
+ *
  *       [](ymassert_Base const & E, auto && v) -> auto {
  *          ...
  *          return v;
  *       }(e__, <value-to-return>)
- * 
+ *
  *       Note here the lambdas are called, not just defined. e__ is the name of the instantiated error.
- * 
+ *
  * @param Cond_    -- Condition - true for happy path, false triggers the assert.
  * @param Derived_ -- Ymassert class to handle assert.
  * @param Handler_ -- Evaluated callback function if assert fails. Must be callable with Ymassert_Base.

@@ -142,14 +142,13 @@ private:
    static_assert(MaxMsgSize_bytes >= 64uz, "Too limited room"); // time stamps require some space
    static_assert(sizeof(Slot) == SlotSize_bytes, "Slot packing not as expected");
 
-   std::array<Slot, 32uz>         _slots    {  /* default */  };
-   std::thread                    _consumer {  /* default */  };
-   strlit    const                _Filename {"logs/unnamed_gl.uhoh"};
-   Options_T const                _Options  {  /* default */  };
-   VerboGroup                     _vGroup   {  /* default */  };
-   std::atomic<State_T>           _state    { State_T::Closed };
-   std::atomic_unsigned_lock_free _writePos {        0u       };
-   std::atomic_unsigned_lock_free _readPos  {        0u       };
+   std::array<Slot, 32uz>         _slots    { /* default */ };
+   std::thread                    _consumer { /* default */ };
+   Options_T const                _Options  { /* default */ };
+   VerboGroup                     _vGroup   { /* default */ };
+   std::atomic<State_T>           _state    {State_T::Closed};
+   std::atomic_unsigned_lock_free _writePos {       0u      };
+   std::atomic_unsigned_lock_free _readPos  {       0u      };
 };
 
 /*

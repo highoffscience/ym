@@ -37,6 +37,7 @@ data*.txt
 data*.csv
 log*.txt
 global*.txt
+*/logs/*
 
 # libraries
 *.so
