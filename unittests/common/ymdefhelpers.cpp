@@ -14,7 +14,11 @@
  *        for the global logger to close, which is waiting for the testsuite to close... so
  *        this is how we break the deadlock.
  */
-void ym_unit_cleanup_GlobalLogger(void)
+extern "C"
 {
-   ym::GlobalLogger::getGlobalInstance()->close();
+   __attribute__((used))
+   void ym_unit_cleanup_GlobalLogger(void)
+   {
+      ym::GlobalLogger::getGlobalInstance()->close();
+   }
 }

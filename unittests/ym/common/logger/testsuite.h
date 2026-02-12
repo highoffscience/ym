@@ -24,7 +24,7 @@ class TestSuite : public TestSuiteBase
 {
 public:
    explicit TestSuite(void);
-   virtual ~TestSuite(void); // TODO = default;
+   virtual ~TestSuite(void) = default;
 
    YM_UT_TESTCASE(InteractiveInspection)
 };

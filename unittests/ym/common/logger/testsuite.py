@@ -59,8 +59,10 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym  # type:ignore
 
       # uncomment to run test
+      print("DBG --A--", flush=True)
       results = self.run_test_case("InteractiveInspection")
-      print("<Hello from python>")
+      # cppyy.gbl.ym_unit_cleanup_GlobalLogger()
+      print("DBG --B--", flush=True)
       pass
 
 # kick-off

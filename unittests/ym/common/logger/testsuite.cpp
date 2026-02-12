@@ -21,11 +21,6 @@ ym::unit::TestSuite::TestSuite(void) :
    addTestCase<InteractiveInspection>();
 }
 
-ym::unit::TestSuite::~TestSuite(void)
-{
-   GlobalLogger::getGlobalInstance()->close(); // TODO this also hangs - but in a worse way!
-}
-
 /** run
  *
  * @brief Interactive inspection - for debug purposes.
