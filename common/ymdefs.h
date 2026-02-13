@@ -25,6 +25,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <climits>
 #include <limits>
 #include <type_traits>
@@ -98,6 +99,13 @@ extern "C"
    void ym_unit_cleanup_GlobalLogger(void);
 }
 #endif
+
+/** YM_DBG_PRINT
+ *
+ * @brief Convenience method to print debug statements to console. Usually this macro is used
+ *        to debug the global logger.
+ */
+#define YM_DBG_PRINT(Id_) { std::printf("DBG --<> "#Id_" <>--\n"); std::fflush(stdout); }
 
 // ----------------------------------------------------------------------------
 
