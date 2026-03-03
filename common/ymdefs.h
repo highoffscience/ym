@@ -94,8 +94,6 @@
 #if defined(YM_UNITTEST_ACTIVE_DEFINED)
 extern "C"
 {
-   // TODO Find all "YM_UNITTEST" and either document or come up with a more consistent way
-   //      to handle unit test specific builds.
    void ym_unit_cleanup_GlobalLogger(void);
 }
 #endif

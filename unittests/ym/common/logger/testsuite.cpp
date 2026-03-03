@@ -29,8 +29,8 @@ ym::unit::TestSuite::TestSuite(void) :
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest_Logger);
-   ymLog(VF::UnitTest_Logger, "Go! Torchic!");
+   auto const SE = ymLogPushEnable(VF::UnitTest);
+   ymLog(VF::UnitTest, "Go! Torchic!");
    // GlobalLogger::getGlobalInstance()->close(); // TODO logger waits on close, which could happen in this
    // destructor, but this class is created in the python script, and the python script won't exit until
    // the logger closes. The logger needs a close command somewhere so the script can continue...

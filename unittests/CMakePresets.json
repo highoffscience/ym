@@ -15,13 +15,12 @@
             "YM_ProjRootDir": "${sourceParentDir}/..",
             "YM_UnitTestDir": "${sourceDir}",
             "YM_ExtLibsDir": "${sourceParentDir}/extlibs",
-            
+
             "$comment": "true values should be 1, false values should be 0",
             "YM_PRINT_TO_SCREEN": "1",
             "YM_DEBUG": "1",
             "YM_ENABLE_EXCEPTIONS": "1",
-            "YM_LITE": "1",
-            "YM_UNITTEST": "1"
+            "YM_LITE": "1"
          }
       },
       {

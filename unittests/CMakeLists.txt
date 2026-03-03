@@ -65,10 +65,7 @@ else()
    target_compile_definitions(YMRootIntLib INTERFACE YM_NO_EXCEPTIONS=1)
 endif()
 
-# TODO Look at YM_UNITTEST -> YM_UNITTEST_ACTIVE (_DEFINED)
-
 target_compile_definitions(YMRootIntLib INTERFACE YM_LITE=${YM_LITE})
-target_compile_definitions(YMRootIntLib INTERFACE YM_UNITTEST=${YM_UNITTEST})
 
 find_library(YM_FMT_LIB
    NAMES fmt

@@ -32,6 +32,7 @@ public:
    {
       Global,
       Console,
+      UnitTest,
       Warning,
       Error,
 
@@ -49,23 +50,6 @@ public:
       YmAssert,
       YmDefs,
       YmUtils,
-
-   #if (YM_UNITTEST)
-      UnitTest_ArgParser,
-      UnitTest_DataLogger,
-      UnitTest_FileIO,
-      UnitTest_Logger,
-      UnitTest_TextLogger,
-      UnitTest_ThreadSafeProxy,
-      UnitTest_MemIO,
-      UnitTest_Ops,
-      UnitTest_Rng,
-      UnitTest_Timer,
-      UnitTest_VerboGroup,
-      UnitTest_YmAssert,
-      UnitTest_YmDefs,
-      UnitTest_YmUtils,
-   #endif
 
       Errstream // must be last
    };
