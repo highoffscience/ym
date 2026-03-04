@@ -19,6 +19,7 @@ ym::unit::TestSuite::TestSuite(void) :
    TestSuiteBase("Logger")
 {
    addTestCase<InteractiveInspection>();
+   addTestCase<SmokeTest>();
 }
 
 /** run
@@ -31,11 +32,17 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
 {
    auto const SE = ymLogPushEnable(VF::UnitTest);
    ymLog(VF::UnitTest, "Go! Torchic!");
-   // GlobalLogger::getGlobalInstance()->close(); // TODO logger waits on close, which could happen in this
-   // destructor, but this class is created in the python script, and the python script won't exit until
-   // the logger closes. The logger needs a close command somewhere so the script can continue...
-   // It also appears the logger is not using the expected name, it is using the default name...
-   // The python script can't create the global logger because the global logger uses c++23 standard, where
-   // cppyy can only use c++20.
-   return {{"", true}};
+   return {{}};
+}
+
+/** run
+ *
+ * @brief Basic integrity test.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VF::UnitTest);
+   return {{}};
 }

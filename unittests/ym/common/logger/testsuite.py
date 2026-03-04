@@ -59,10 +59,17 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym  # type:ignore
 
       # uncomment to run test
-      print("DBG --A--", flush=True)
-      results = self.run_test_case("InteractiveInspection")
-      # cppyy.gbl.ym_unit_cleanup_GlobalLogger()
-      print("DBG --B--", flush=True)
+      # results = self.run_test_case("InteractiveInspection")
+      pass
+
+   def test_SmokeTest(self):
+      """
+      Analyzes results from test case.
+      """
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+
+      results = self.run_test_case("SmokeTest")
       pass
 
 # kick-off

@@ -133,7 +133,7 @@ class TestSuiteBase(unittest.TestCase):
       args = parser.parse_args()
 
       cls.customBaseInit(args.unittestdir, args.projrootdir, args.builddir)
-      
+
       suite = unittest.TestSuite()
       loader = unittest.TestLoader()
       suite.addTests(loader.loadTestsFromTestCase(cls))
@@ -166,11 +166,20 @@ class TestSuiteBase(unittest.TestCase):
          self.assertTrue(False, f"Unhandled exception in test case {test_case_name}")
 
       self.assertTrue(type(saved_exc) is NullExc, f"Unhandled exception in test case {test_case_name} - {saved_exc.what()}")
-      
+
       # results will also eval to None if the dictionary is empty
       self.assertTrue(results, "Results is None")
 
       return results
+
+   def dbg_print(self, id: str):
+      """
+      Convenience method to print debug statements to console. Usually this macro is used to debug the global logger.
+
+      Args:
+         id: String to print.
+      """
+      print(f"DBG --<> {id} <>--", flush=True)
 
 # kick-off
 if __name__ == "__main__":

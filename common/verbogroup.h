@@ -62,8 +62,10 @@ private:
    std::array<
       std::atomic<unsigned>, // type
       static_cast<unsigned>( // size
-         std::ceil( // exclude Errstream intentional - special handling required
-            std::to_underlying(Flag_T::Errstream) / ym_getNBits<unsigned>()))
+         std::ceil(
+            static_cast<float>(
+               std::to_underlying(Flag_T::Errstream) // exclude Errstream intentional - special handling required
+            ) / ym_getNBits<unsigned>()))
    > _flags{};
 };
 
