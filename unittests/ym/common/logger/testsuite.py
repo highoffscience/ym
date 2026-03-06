@@ -59,7 +59,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym  # type:ignore
 
       # uncomment to run test
-      # results = self.run_test_case("InteractiveInspection")
+      # results = self.run_test_case("InteractiveInspection", assert_results=False)
       pass
 
    def test_SmokeTest(self):
@@ -70,7 +70,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym  # type:ignore
 
       results = self.run_test_case("SmokeTest")
-      pass
+      self.assertTrue(results.get[bool]("IsOpen"), "Global logger should not be closed")
 
 # kick-off
 if __name__ == "__main__":

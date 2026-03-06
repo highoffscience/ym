@@ -211,7 +211,8 @@ def gen_runner_file(args: argparse.Namespace):
       writeln(f"      from cppyy.gbl import ym  # type: ignore                      ")
       writeln(f"                                                                    ")
       writeln(f"      # uncomment to run test                                       ")
-      writeln(f"      # results = self.run_test_case(\"InteractiveInspection\")     ")
+      writeln(f"      # results = self.run_test_case(\"InteractiveInspection\", " \
+              f"assert_results=False)                                               ")
       writeln(f"      pass                                                          ")
       writeln(f"                                                                    ")
       writeln(f"   def test_SmokeTest(self):                                        ")

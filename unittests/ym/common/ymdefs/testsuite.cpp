@@ -6,7 +6,7 @@
 
 #include "testsuite.h"
 
-#include "textlogger.h"
+#include "globallogger.h"
 #include "ymglobals.h"
 
 #include "ymdefs.h" // Structures under test
@@ -19,20 +19,33 @@ ym::unit::TestSuite::TestSuite(void) :
    TestSuiteBase("YmDefs")
 {
    addTestCase<InteractiveInspection>();
-   addTestCase<BigFiveDeleteMacros  >();
-   addTestCase<OverloadMacros       >();
+   addTestCase<SmokeTest>();
+   addTestCase<BigFiveDeleteMacros>();
+   addTestCase<OverloadMacros>();
 }
 
 /** run
  *
- * @brief Sandbox.
+ * @brief Interactive inspection - for debug purposes.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest_YmDefs);
-   return {};
+   auto const SE = ymLogPushEnable(VF::UnitTest);
+   return {{}};
+}
+
+/** run
+ *
+ * @brief Basic integrity test.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VF::UnitTest);
+   return {{}};
 }
 
 /** run
@@ -43,7 +56,7 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
  */
 auto ym::unit::TestSuite::BigFiveDeleteMacros::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest_YmDefs);
+   auto const SE = ymLogPushEnable(VF::UnitTest);
 
    struct Test
    {
@@ -67,7 +80,7 @@ auto ym::unit::TestSuite::BigFiveDeleteMacros::run([[maybe_unused]] DataShuttle 
  */
 auto ym::unit::TestSuite::OverloadMacros::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest_YmDefs);
+   auto const SE = ymLogPushEnable(VF::UnitTest);
 
    #define YM_SUM(...) YM_MACRO_OVERLOAD(YM_SUM, __VA_ARGS__)
    #define YM_SUM1(First) (First)

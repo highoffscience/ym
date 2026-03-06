@@ -31,7 +31,6 @@ ym::unit::TestSuite::TestSuite(void) :
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VF::UnitTest);
-   ymLog(VF::UnitTest, "Go! Torchic!");
    return {{}};
 }
 
@@ -44,5 +43,8 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
 auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VF::UnitTest);
-   return {{}};
+   ymLog(VF::UnitTest, "Go! Torchic!");
+   return {
+      {"IsOpen", GlobalLogger::getGlobalInstance()->isOpen()}
+   };
 }

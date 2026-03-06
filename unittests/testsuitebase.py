@@ -142,12 +142,15 @@ class TestSuiteBase(unittest.TestCase):
       runner = unittest.TextTestRunner(verbosity=verbolevel)
       runner.run(suite)
 
-   def run_test_case(self, test_case_name: str):
+   def run_test_case(self,
+         test_case_name: str,
+         assert_results: bool = True):
       """
       Runs the specified test case.
 
       Args:
          test_case_name: Name of test case to run.
+         assert_results: True if asserting the unittest returns data, false if not.
 
       Returns:
          DataShuttle: Dictionary containing results of test case.
@@ -167,8 +170,9 @@ class TestSuiteBase(unittest.TestCase):
 
       self.assertTrue(type(saved_exc) is NullExc, f"Unhandled exception in test case {test_case_name} - {saved_exc.what()}")
 
-      # results will also eval to None if the dictionary is empty
-      self.assertTrue(results, "Results is None")
+      if assert_results:
+         # results will also eval to None if the dictionary is empty
+         self.assertTrue(results, "Results is None")
 
       return results
 
