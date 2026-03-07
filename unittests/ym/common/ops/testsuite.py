@@ -24,7 +24,7 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   Collection of all tests for Ops.
+   Collection of all tests for suite Ops.
    """
 
    @classmethod
@@ -61,7 +61,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
-      
+
       results = self.run_test_case("Casting")
 
       self.assertTrue(results.get[bool]("Val_char"), "char cast failed")

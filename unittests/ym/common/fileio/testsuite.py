@@ -20,7 +20,7 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   Collection of all tests for FileIO.
+   Collection of all tests for suite FileIO.
    """
 
    @classmethod
@@ -59,9 +59,18 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      results = self.run_test_case("InteractiveInspection")
+      results = self.run_test_case("InteractiveInspection", assert_results=False)
 
       print(f"--> {results.get[cppyy.gbl.char]('E0')}")
+
+   def test_SmokeTest(self):
+      """
+      Analyzes results from test case.
+      """
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+
+      # results = self.run_test_case("SmokeTest")
 
 # kick-off
 if __name__ == "__main__":

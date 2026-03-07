@@ -24,7 +24,7 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   Collection of all tests for TextLogger.
+   Collection of all tests for suite TextLogger.
    """
 
    @classmethod
@@ -63,10 +63,19 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
-      
+
       # uncomment to run test
-      # results = self.run_test_case("InteractiveInspection")
+      # results = self.run_test_case("InteractiveInspection", assert_results=False)
       pass
+
+   def test_SmokeTest(self):
+      """
+      Analyzes results from test case.
+      """
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+
+      # results = self.run_test_case("SmokeTest")
 
    def test_OpenAndClose(self):
       """

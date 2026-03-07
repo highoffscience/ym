@@ -8,6 +8,7 @@
 
 #pragma once
 
+#define YM_UNITTEST_ACTIVE_DEFINED
 #include "ymdefs.h"
 
 #include "testsuitebase.h"
@@ -25,7 +26,8 @@ public:
    explicit TestSuite(void);
    virtual ~TestSuite(void) = default;
 
-   YM_UT_TESTCASE(InteractiveInspection)
+   YM_UNIT_TESTCASE(InteractiveInspection)
+   YM_UNIT_TESTCASE(SmokeTest)
 };
 
 } // ym::unit

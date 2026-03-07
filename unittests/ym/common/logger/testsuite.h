@@ -26,8 +26,8 @@ public:
    explicit TestSuite(void);
    virtual ~TestSuite(void) = default;
 
-   YM_UT_TESTCASE(InteractiveInspection)
-   YM_UT_TESTCASE(SmokeTest)
+   YM_UNIT_TESTCASE(InteractiveInspection)
+   YM_UNIT_TESTCASE(SmokeTest)
 };
 
 } // ym::unit

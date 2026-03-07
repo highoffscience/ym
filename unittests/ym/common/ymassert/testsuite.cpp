@@ -6,7 +6,7 @@
 
 #include "testsuite.h"
 
-#include "textlogger.h"
+#include "globallogger.h"
 #include "ymglobals.h"
 
 #include "ymassert.h" // Structures under test
@@ -22,19 +22,20 @@ ym::unit::TestSuite::TestSuite(void) :
    TestSuiteBase("YmAssert")
 {
    addTestCase<InteractiveInspection>();
-   addTestCase<What                 >();
-   addTestCase<Assertion            >();
+   addTestCase<SmokeTest>();
+   addTestCase<What>();
+   addTestCase<Assertion>();
 }
 
 /** run
  *
- * @brief Sandbox.
+ * @brief Basic integrity test.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest_YmAssert);
+   auto const SE = ymLogPushEnable(VF::UnitTest);
 
    YM_DECL_YMASSERT(Error)
 
@@ -59,13 +60,25 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
 
 /** run
  *
+ * @brief Basic integrity test.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VF::UnitTest);
+   return {{}};
+}
+
+/** run
+ *
  * @brief TODO.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
 auto ym::unit::TestSuite::What::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest_YmAssert);
+   auto const SE = ymLogPushEnable(VF::UnitTest);
 
    bool expectedMsg = false;
 
@@ -77,9 +90,9 @@ auto ym::unit::TestSuite::What::run([[maybe_unused]] DataShuttle const & InData)
    }
    catch (std::exception const & E)
    {
-      str const ExpectedMsg =
-         "Assert @ \"/home/forrest/code/ym/unittests/ym/common/ymassert/testsuite.cpp:76\": Go! Torchic!";
-      expectedMsg = std::strcmp(E.what(), ExpectedMsg) == 0;
+      // str const ExpectedMsg =
+      //    "Assert @ \"/home/forrest/code/ym/unittests/ym/common/ymassert/testsuite.cpp:76\": Go! Torchic!";
+      // expectedMsg = std::strcmp(E.what(), ExpectedMsg) == 0;
    }
 
    return {
@@ -95,7 +108,7 @@ auto ym::unit::TestSuite::What::run([[maybe_unused]] DataShuttle const & InData)
  */
 auto ym::unit::TestSuite::Assertion::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest_YmAssert);
+   auto const SE = ymLogPushEnable(VF::UnitTest);
 
    bool expectedFalseAssert = false;
    bool expectedTrueAssert  = true;

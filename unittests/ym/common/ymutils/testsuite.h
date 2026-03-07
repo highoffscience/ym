@@ -2,12 +2,13 @@
  * @file    testsuite.h
  * @version 1.0.0
  * @author  Forrest Jablonski
- * 
+ *
  * @note File used in unittests - maximum standard C++20.
  */
 
 #pragma once
 
+#define YM_UNITTEST_ACTIVE_DEFINED
 #include "ymdefs.h"
 
 #include "testsuitebase.h"
@@ -25,14 +26,15 @@ public:
    explicit TestSuite(void);
    virtual ~TestSuite(void) = default;
 
-   YM_UT_TESTCASE(InteractiveInspection)
-   YM_UT_TESTCASE(PtrToIntConversion   )
-   YM_UT_TESTCASE(BoundedPtrClass      )
-   YM_UT_TESTCASE(BinarySearch         )
-   YM_UT_TESTCASE(BoundedStr           )
-   YM_UT_TESTCASE(PtrCast              )
-   YM_UT_TESTCASE(BitSet               )
-   YM_UT_TESTCASE(PolyRawTest          )
+   YM_UNIT_TESTCASE(InteractiveInspection)
+   YM_UNIT_TESTCASE(SmokeTest)
+   YM_UNIT_TESTCASE(PtrToIntConversion)
+   YM_UNIT_TESTCASE(BoundedPtrClass)
+   YM_UNIT_TESTCASE(BinarySearch)
+   YM_UNIT_TESTCASE(BoundedStr)
+   YM_UNIT_TESTCASE(PtrCast)
+   YM_UNIT_TESTCASE(BitSet)
+   YM_UNIT_TESTCASE(PolyRawTest)
 };
 
 } // ym::unit

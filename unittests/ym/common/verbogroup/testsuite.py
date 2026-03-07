@@ -20,7 +20,7 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   Collection of all tests for VerboGroup.
+   Collection of all tests for suite VerboGroup.
    """
 
    @classmethod
@@ -59,11 +59,20 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym  # type: ignore
 
       # uncomment to run test
-      # results = self.run_test_case("InteractiveInspection")
+      # results = self.run_test_case("InteractiveInspection", assert_results=False)
       pass
+
+   def test_SmokeTest(self):
+      """
+      Analyzes results from test case.
+      """
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+
+      # results = self.run_test_case("SmokeTest")
 
 # kick-off
 if __name__ == "__main__":
    TestSuite.runSuite()
- else:
+else:
    TestSuite.runSuite()

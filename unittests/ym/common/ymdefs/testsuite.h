@@ -26,10 +26,10 @@ public:
    explicit TestSuite(void);
    virtual ~TestSuite(void) = default;
 
-   YM_UT_TESTCASE(InteractiveInspection)
-   YM_UT_TESTCASE(SmokeTest)
-   YM_UT_TESTCASE(BigFiveDeleteMacros)
-   YM_UT_TESTCASE(OverloadMacros)
+   YM_UNIT_TESTCASE(InteractiveInspection)
+   YM_UNIT_TESTCASE(SmokeTest)
+   YM_UNIT_TESTCASE(BigFiveDeleteMacros)
+   YM_UNIT_TESTCASE(OverloadMacros)
 };
 
 } // ym::unit

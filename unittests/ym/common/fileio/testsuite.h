@@ -6,11 +6,12 @@
 
 #pragma once
 
+#define YM_UNITTEST_ACTIVE_DEFINED
 #include "ymdefs.h"
 
 #include "testsuitebase.h"
 
-namespace ym::unit // TODO consider renaming namespace unit, YM_UT_TESTCASE -> YM_UNIT_TESTCASE
+namespace ym::unit
 {
 
 /** TestSuite
@@ -23,7 +24,8 @@ public:
    explicit TestSuite(void);
    virtual ~TestSuite(void) = default;
 
-   YM_UT_TESTCASE(InteractiveInspection)
+   YM_UNIT_TESTCASE(InteractiveInspection)
+   YM_UNIT_TESTCASE(SmokeTest)
 };
 
 } // ym::unit

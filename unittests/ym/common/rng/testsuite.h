@@ -23,8 +23,8 @@ public:
    explicit TestSuite(void);
    virtual ~TestSuite(void) = default;
 
-   YM_UT_TESTCASE(ZerosAndOnes);
-   YM_UT_TESTCASE(UniformBins );
+   YM_UNIT_TESTCASE(ZerosAndOnes);
+   YM_UNIT_TESTCASE(UniformBins );
 };
 
 } // ym::unit

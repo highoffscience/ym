@@ -20,7 +20,7 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   Collection of all tests for MemIO.
+   Collection of all tests for suite MemIO.
    """
 
    @classmethod
@@ -57,7 +57,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
-      
+
       # uncomment to run test
       # results = self.run_test_case("InteractiveInspection")
       pass

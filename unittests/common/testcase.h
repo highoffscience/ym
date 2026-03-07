@@ -2,7 +2,7 @@
  * @file    testcase.h
  * @version 1.0.0
  * @author  Forrest Jablonski
- * 
+ *
  * @note File used in unittests - maximum standard C++20.
  */
 
@@ -18,11 +18,11 @@
 namespace ym::unit
 {
 
-/** YM_UT_TESTCASE
- * 
+/** YM_UNIT_TESTCASE
+ *
  * @brief Defines a test case.
  */
-#define YM_UT_TESTCASE(Name_)                                            \
+#define YM_UNIT_TESTCASE(Name_)                                            \
    class Name_ : public TestCase                                         \
    {                                                                     \
    public:                                                               \
@@ -31,7 +31,7 @@ namespace ym::unit
    };
 
 /** TestCase
- * 
+ *
  * @brief Represents a test case.
  */
 class TestCase : public PermaNameable_NV<>

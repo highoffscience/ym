@@ -6,7 +6,7 @@
 
 #include "testsuite.h"
 
-#include "textlogger.h"
+#include "globallogger.h"
 #include "ymglobals.h"
 
 #include "argparser.h" // Structures under test
@@ -22,9 +22,10 @@ ym::unit::TestSuite::TestSuite(void) :
    TestSuiteBase("ArgParser")
 {
    addTestCase<InteractiveInspection>();
-   addTestCase<BasicParse           >();
-   addTestCase<FlagIntegrity        >();
-   addTestCase<SizeOfArg            >();
+   addTestCase<SmokeTest>();
+   addTestCase<BasicParse>();
+   addTestCase<FlagIntegrity>();
+   addTestCase<SizeOfArg>();
 }
 
 /** run
@@ -35,21 +36,31 @@ ym::unit::TestSuite::TestSuite(void) :
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest_TextLogger);
-   return {};
+   auto const SE = ymLogPushEnable(VF::UnitTest);
+   return {{}};
+}
+
+/** run
+ *
+ * @brief Basic integrity test.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VF::UnitTest);
+   return {{}};
 }
 
 /** run
  *
  * @brief Tests if ArgParser can parse.
- * 
- * @throws TODO
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
 auto ym::unit::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest_ArgParser);
+   auto const SE = ymLogPushEnable(VF::UnitTest);
 
    strlit const Argv[] = {"testsuite",
       "--input",  "settings.json",
@@ -65,7 +76,7 @@ auto ym::unit::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & I
       ArgParser::Arg("output"   ).desc("Output file" ),
       ArgParser::Arg("clean"    ).desc("Cleans build").abbr('c').enbl(),
       ArgParser::Arg("build"    ).desc("Builds exe"  ).abbr('b').enbl(),
-      ArgParser::Arg("key"      ).desc("Passkey"     ).abbr('k'),      
+      ArgParser::Arg("key"      ).desc("Passkey"     ).abbr('k'),
       ArgParser::Arg("in-denial").desc("My existence")          .enbl()
    };
 
@@ -92,7 +103,7 @@ auto ym::unit::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & I
    }
    catch (ArgParser::Error const & E)
    {
-      ymLog(VF::UnitTest_ArgParser, "--> {}", E.what());
+      ymLog(VF::UnitTest, "--> {}", E.what());
       excHappened = true;
    }
 
@@ -110,14 +121,12 @@ auto ym::unit::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & I
 /** run
  *
  * @brief Tests if ArgParser can parse.
- * 
- * @throws TODO
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
 auto ym::unit::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest_ArgParser);
+   auto const SE = ymLogPushEnable(VF::UnitTest);
 
    strlit const Argv[] = {"testsuite",
       "--verbose",
@@ -129,9 +138,9 @@ auto ym::unit::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const 
       ArgParser::Arg("width"  ).desc("Width"    ),
       ArgParser::Arg("verbose").desc("Verbosity").enbl()
    };
-   
+
    ArgParser ap(Argc, Argv, argHandlers);
-   
+
    auto excHappened = false;
    auto val_verbose = false;
    auto val_width   = false;
@@ -145,7 +154,7 @@ auto ym::unit::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const 
    }
    catch (ArgParser::Error const & E)
    {
-      ymLog(VF::UnitTest_ArgParser, "--> {}", E.what());
+      ymLog(VF::UnitTest, "--> {}", E.what());
       excHappened = true;
    }
 
@@ -159,14 +168,12 @@ auto ym::unit::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const 
 /** run
  *
  * @brief Tests if ArgParser can parse.
- * 
- * @throws TODO
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
 auto ym::unit::TestSuite::SizeOfArg::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest_ArgParser);
+   auto const SE = ymLogPushEnable(VF::UnitTest);
 
    constexpr auto Size = sizeof(ym::ArgParser::Arg);
 

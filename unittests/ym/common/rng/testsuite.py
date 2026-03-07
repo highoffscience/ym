@@ -27,7 +27,7 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   Collection of all tests for PRNG.
+   Collection of all tests for suite PRNG.
    """
 
    @classmethod

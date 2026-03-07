@@ -2,7 +2,7 @@
  * @file    testsuite.h
  * @version 1.0.0
  * @author  Forrest Jablonski
- * 
+ *
  * @note File used in unittests - maximum standard C++20.
  */
 
@@ -25,8 +25,8 @@ public:
    explicit TestSuite(void);
    virtual ~TestSuite(void) = default;
 
-   YM_UT_TESTCASE(InteractiveInspection)
-   YM_UT_TESTCASE(StackAlloc           )
+   YM_UNIT_TESTCASE(InteractiveInspection)
+   YM_UNIT_TESTCASE(StackAlloc           )
 };
 
 } // ym::unit

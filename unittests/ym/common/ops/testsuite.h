@@ -23,8 +23,8 @@ public:
    explicit TestSuite(void);
    virtual ~TestSuite(void) = default;
 
-   YM_UT_TESTCASE(Casting   )
-   YM_UT_TESTCASE(BadCasting)
+   YM_UNIT_TESTCASE(Casting   )
+   YM_UNIT_TESTCASE(BadCasting)
 };
 
 } // ym::unit

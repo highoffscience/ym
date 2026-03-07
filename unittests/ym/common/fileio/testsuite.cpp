@@ -6,7 +6,7 @@
 
 #include "testsuite.h"
 
-#include "textlogger.h"
+#include "globallogger.h"
 #include "ymglobals.h"
 
 #include "fileio.h" // Structures under test
@@ -19,6 +19,7 @@ ym::unit::TestSuite::TestSuite(void) :
    TestSuiteBase("FileIO")
 {
    addTestCase<InteractiveInspection>();
+   addTestCase<SmokeTest>();
 }
 
 /** run
@@ -29,7 +30,7 @@ ym::unit::TestSuite::TestSuite(void) :
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest_FileIO);
+   auto const SE = ymLogPushEnable(VF::UnitTest);
 
    auto firstChar = '!'; // '!' not in char set for file
    auto buffer = FileIO::createFileBuffer("ym/common/fileio/data.txt");
@@ -41,4 +42,16 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
    return {
       {"E0", firstChar}
    };
+}
+
+/** run
+ *
+ * @brief Basic integrity test.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VF::UnitTest);
+   return {{}};
 }
