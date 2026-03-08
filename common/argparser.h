@@ -18,7 +18,7 @@ namespace ym
 /** ArgParser
  *
  * @brief A parsing utility for use for command line arguments.
- * 
+ *
  * TODO add commands, like
  *      ./a.out status -a (note that status doesn't require a preceeding --).
  * TODO add completion hints ("--statis" leads to "did you mean --status?")
@@ -35,14 +35,14 @@ class ArgParser
 {
 public:
    /** Arg
-    * 
+    *
     * @brief Provides type info for each parsable argument.
-    * 
+    *
     * @note Flag based arguments are only able to be turned on, not off.
     *       For the opposite one can make "--no-..." argument.
-    * 
+    *
     * @note Uses cascading.
-    * 
+    *
     * @note The flags cannot be made constexpr - we need a const storage location for these
     *       variables since we do direct pointer comparisons. The compiler may optimize
     *       away storage locations for constexpr, breaking our use cases.
@@ -57,7 +57,7 @@ public:
    class Arg
    {
       friend ArgParser;
-      
+
    private:
       enum Flags_T : uint8 {
          FFlag = 0u,
@@ -92,12 +92,12 @@ public:
 
    // private:
       // no consts - see static assert below
-      str           _name {""}; // arg name (used as the key)
-      str           _desc {""}; // description
-      rawstr        _val  {  }; // value
-      uint32        _nvals{  }; // number of values, if list
-      char          _abbr {  }; // abbreviation
-      MiniBitset<uint8> _flags{  }; // flags
+      str        _name {""}; // arg name (used as the key)
+      str        _desc {""}; // description
+      rawstr     _val  {  }; // value
+      uint32     _nvals{  }; // number of values, if list
+      char       _abbr {  }; // abbreviation
+      MiniBitset _flags{  }; // flags
    };
 
    // copyable to load Arg params into vector
@@ -184,7 +184,7 @@ private:
       int    vec_idx; // used for array of args (as passed to main)
       rawstr str_idx; // used for one string
    };
-           
+
    AbbrSet_T      _abbrs      {       };
    std::span<Arg> _argHandlers{       };
    int    const   _Argc       {       };

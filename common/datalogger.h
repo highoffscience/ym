@@ -6,10 +6,9 @@
 
 #pragma once
 
-#include "ymglobals.h"
-
 #include "logger.h"
 #include "nameable.h"
+#include "ymglobals.h"
 
 #include "fmt/base.h"
 
@@ -23,18 +22,18 @@ namespace ym
 /** DataLogger
  *
  * @brief A blackbox.
- * 
+ *
  * @note Implemented as a circular buffer. Stores the last X data entries for each tracked variable.
  *       Each row of the buffer contains all variable values. The names and conversion classes for
  *       these values are stored in a separate array for efficiency.
- * 
+ *
  * @note *Not* thread-safe.
  */
 class DataLogger : public Logger
 {
 public:
    /** DumpMode_T
-    * 
+    *
     * @brief Mode to indicate how to format the data when writing.
     */
    enum class DumpMode_T
@@ -44,62 +43,61 @@ public:
    };
 
    /** Options_T
-    * 
+    *
     * @brief Options surrounding opening and writing to a file.
     */
-   struct Options_T
+   struct Options_T : public Logger::Options_T
    {
-      /// @brief Opening options (defined in base Logger).
-      OpeningOptions_T _openingOptions{};
-
       /// @brief Mode to determine the format to write the data in.
       DumpMode_T _dumpMode{DumpMode_T::Text};
 
-      /// @brief Convenience cast to pass to base Logger functions.
-      constexpr operator OpeningOptions_T(void) const { return _openingOptions; }
-
       /// @brief Allows direct comparison between Options_T and specified field type.
-      constexpr friend bool operator == (Options_T const & Opts, DumpMode_T const Mode) {
+      constexpr friend bool operator == (Options_T const & Opts, DumpMode_T const Mode) noexcept {
          return Opts._dumpMode == Mode;
       }
    };
 
+   /// @brief Gets this logger's options.
+   inline virtual Options_T const & getOptions(void) const noexcept override { return _Options; }
+
    explicit DataLogger(
-      sizet const MaxDepth,
-      sizet const NTrackedValsHint = 0uz);
+      std::size_t const MaxDepth,
+      std::size_t const NTrackedValsHint = 0uz);
 
    YM_NO_COPY  (DataLogger)
    YM_NO_ASSIGN(DataLogger)
 
    YM_DECL_YMASSERT(Error)
 
-   bool ready(void); // TODO could be open()
+   bool ready(void); // open()
 
    inline auto getMaxDepth  (void) const { return _MaxDepth;    }
-   inline auto isInitialized(void) const { return _initialized; } // TODO could be isOpen()
+   inline auto isInitialized(void) const { return _initialized; } // isOpen()
 
    /// @brief Forwarding function.
    template <typename T>
    inline void track(
-      str       const Name,
-      T const * const Read_Ptr) { return track(Name, bptr(Read_Ptr)); }
+         strlit    const Name,
+         T const * const Read_Ptr) {
+      return track(Name, BoundPtr(Read_Ptr));
+   }
 
    template <typename T>
    void track(
-      str           const Name,
-      bptr<T const> const Read_BPtr);
+      strlit            const Name,
+      BoundPtr<T const> const Read_BPtr);
 
    void acquire(void);
-   void reset(void); // TODO could be close()
+   void reset(void); // close()
    bool dump(
-      str       const   Filename,
+      strlit    const   Filename,
       Options_T const & Options = {});
 
 private:
    /** TrackedValBase
-    * 
+    *
     * @brief Meta data carrier.
-    * 
+    *
     * @note We store a raw pointer to the data we wish to capture. Optionally using a lambda
     *       to capture data requires too slow of a mechanism. Data loggers should be as
     *       non-invasive as possible to prevent interfering with the actual intention of the
@@ -108,34 +106,34 @@ private:
     *       it. However, we still want as much attention on the intention of the program,
     *       not debugging, so how the data logger acquires it's information should be as
     *       efficient as possible.
-    * 
+    *
     * @note The pointer stored for the variable is non-owning. Per efficiency concerns
     *       discussed above we use raw pointers instead of shared pointers. Also shared
     *       pointers don't really make sense because they might point to things on the
     *       stack. Care must be taken the data logger doesn't outlive the tracked variables.
-    * 
+    *
     * @note This class does *not* own the read pointer.
     */
-   class TrackedValBase : public Nameable_NV<str>
+   class TrackedValBase : public Nameable_NV<strlit>
    {
    public:
       explicit inline TrackedValBase(
-         str              const Name,
-         bptr<void const> const Read_BPtr,
-         sizet            const Size_bytes);
+         strlit               const Name,
+         BoundPtr<void const> const Read_BPtr,
+         std::size_t          const Size_bytes);
 
       virtual ~TrackedValBase(void) = default;
 
       virtual void cloneAt(
-         bptr<void> const val_BPtr,
-         sizet      const Size_bytes) const = 0;
+         BoundPtr<void> const val_BPtr,
+         std::size_t    const Size_bytes) const = 0;
 
       virtual void toStr(
-         bptr<void const> const Entry_BPtr,
-         std::span<char>        buffer) const = 0;
+         BoundPtr<void const> const Entry_BPtr,
+         std::span<char>            buffer) const = 0;
 
-      bptr<void const> const _Read_BPtr;
-      sizet            const _Size_bytes;
+      BoundPtr<void const> const _Read_BPtr;
+      std::size_t          const _Size_bytes;
 
    protected:
       void toStr_Handler(
@@ -144,7 +142,7 @@ private:
    };
 
    /** TrackedVal
-    * 
+    *
     * @brief Stores a reference to a variable and provides stringification.
     */
    template <typename T>
@@ -152,46 +150,48 @@ private:
    {
    public:
       explicit inline TrackedVal(
-         str              const Name,
-         bptr<void const> const Read_BPtr);
+         strlit               const Name,
+         BoundPtr<void const> const Read_BPtr);
 
       virtual void cloneAt(
-         bptr<void> const val_BPtr,
-         sizet      const Size_bytes) const override;
+         BoundPtr<void> const val_BPtr,
+         std::size_t    const Size_bytes) const override;
 
       virtual void toStr(
-         bptr<void const> const Entry_BPtr,
-         std::span<char>        buffer) const override;
+         BoundPtr<void const> const Entry_BPtr,
+         std::span<char>            buffer) const override;
    };
 
    using RawTrackedVal_T = PolyRaw<TrackedValBase, sizeof(TrackedVal<int>)>;
 
    std::pmr::vector<
-      RawTrackedVal_T>    _trackedVals   {    };
-   std::pmr::vector<byte> _blackBoxBuffer{    };
-   sizet const            _MaxDepth      {10uz};
+      RawTrackedVal_T>     _trackedVals   {    };
+   std::pmr::vector<uchar> _blackBoxBuffer{    };
+   std::size_t const       _MaxDepth      {10uz};
+   Options_T const _Options  {  /* default */  };
    union {
-      sizet               _nTrackedValsHint{0uz};
-      sizet               _nextEntry_idx;
+      std::size_t          _nTrackedValsHint{0uz};
+      std::size_t          _nextEntry_idx;
    };
-   bool                   _rollover   {false};
-   bool                   _initialized{false};
+   bool                    _rollover   {false};
+   bool                    _initialized{false};
 };
 
 /** track
- * 
+ *
  * @brief Adds a data variable to be tracked.
- * 
+ *
  * @tparam T -- Data type to add.
- * 
+ *
  * @param Name      -- Name of variable.
  * @param Read_BPtr -- Pointer to variable to be read.
  */
 template <typename T>
 void DataLogger::track(
-   str           const Name,
-   bptr<T const> const Read_BPtr)
+   strlit            const Name,
+   BoundPtr<T const> const Read_BPtr)
 {
+   // TODO cleanup.
    // auto p = PolyRaw<Base, sizeof(Derv)>(std::in_place_type<Derv>, 9);
    _trackedVals.emplace_back(std::in_place_type<TrackedVal<T>>, Name, Read_BPtr);
    // _trackedVals.emplace_back(); // push allocated memory
@@ -199,20 +199,20 @@ void DataLogger::track(
 }
 
 /** TrackedValBase
- * 
+ *
  * @brief Constructor.
  */
 inline DataLogger::TrackedValBase::TrackedValBase(
-   str              const Name,
-   bptr<void const> const Read_BPtr,
-   sizet            const Size_bytes) :
+   strlit               const Name,
+   BoundPtr<void const> const Read_BPtr,
+   std::size_t          const Size_bytes) :
       Nameable_NV(Name),
       _Read_BPtr  {Read_BPtr },
       _Size_bytes {Size_bytes}
 { }
 
 /** TrackedVal
- * 
+ *
  * @brief Constructor.
  */
 template <typename T>
@@ -223,9 +223,9 @@ DataLogger::TrackedVal<T>::TrackedVal(
 { }
 
 /** cloneAt
- * 
+ *
  * @brief Clones class at specified location (copy idiom for polymorphic types).
- * 
+ *
  * @param val_BPtr   -- Pointer to variable to bbe tracked.
  * @param Size_bytes -- Size of variable in bytes.
  */
@@ -237,19 +237,19 @@ void DataLogger::TrackedVal<T>::cloneAt(
    YMASSERT(sizeof(*this) <= Size_bytes, Error, YM_DAH,
       "Not enough room to clone (obj {} bytes, buffer {} bytes)",
       sizeof(*this), Size_bytes)
-   
+
    ::new (val_BPtr.get()) TrackedVal<T>(getName(), _Read_BPtr);
 }
 
 /** toStr
- * 
+ *
  * @brief Stringifies the given data type.
- * 
+ *
  * @note To accomodate types not supported by std::to_string() you can either
  *       specialize Stringify or specialize std::to_string().
- * 
+ *
  * @tparam T -- Type of variable to convert to.
- * 
+ *
  * @param DataEntry_Ptr -- Pointer to data to stringify.
  */
 template <typename T>
