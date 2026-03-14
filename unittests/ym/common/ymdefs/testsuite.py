@@ -69,7 +69,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      results = self.run_test_case("SmokeTest", assert_results=False)
+      results = self.run_test_case("SmokeTest", assert_results=False) # pylint: disable=unused-variable
 
    def test_BigFiveDeleteMacros(self):
       """
@@ -89,8 +89,17 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      results = self.run_test_case("OverloadMacros")
-      self.assertEqual(results.get[int]("Sum"), 10, "Macro overloads not behaving as expected")
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
+      self.assertTrue(results.get[bool]("DefinedAndWorks"), "Macro overloads not behaving as expected")
+
+   def test_PrimitiveDefs(self):
+      """
+      Analyzes results from test case.
+      """
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+
+      # results = self.run_test_case("PrimitiveDefs")
 
 # kick-off
 if __name__ == "__main__":

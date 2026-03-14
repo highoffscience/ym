@@ -74,7 +74,7 @@ auto ym::unit::TestSuite::BigFiveDeleteMacros::run([[maybe_unused]] DataShuttle 
 
 /** run
  *
- * @brief Interactive inspection - for debug purposes.
+ * @brief Tests overload macro hack.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
@@ -91,6 +91,6 @@ auto ym::unit::TestSuite::OverloadMacros::run([[maybe_unused]] DataShuttle const
    auto const Sum = YM_SUM(1, 2, 3, 4);
 
    return {
-      {"Sum", Sum}
+      {"DefinedAndWorks", Sum == (1+2+3+4)}
    };
 }

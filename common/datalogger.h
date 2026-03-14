@@ -69,10 +69,10 @@ public:
 
    YM_DECL_YMASSERT(Error)
 
-   bool ready(void); // open()
+   bool init(void) noexcept;
 
-   inline auto getMaxDepth  (void) const { return _MaxDepth;    }
-   inline auto isInitialized(void) const { return _initialized; } // isOpen()
+   inline auto getMaxDepth  (void) const noexcept { return _MaxDepth;    }
+   inline auto isInitialized(void) const noexcept { return _initialized; }
 
    /// @brief Forwarding function.
    template <typename T>
@@ -85,13 +85,16 @@ public:
    template <typename T>
    void track(
       strlit            const Name,
-      BoundPtr<T const> const Read_BPtr);
+      BoundPtr<T const> const Read_BPtr); // TODO can be noexcept
 
-   void acquire(void);
-   void reset(void); // close()
-   bool dump(
-      strlit    const   Filename,
-      Options_T const & Options = {});
+   void acquire(void) noexcept;
+   void reset(void) noexcept;
+   bool dump(strlit const Filename);
+
+protected:
+   inline virtual void producer(
+      [[maybe_unused]] strlit const     Format,
+      [[maybe_unused]] fmt::format_args args) noexcept override {};
 
 private:
    /** TrackedValBase
@@ -191,9 +194,10 @@ void DataLogger::track(
    strlit            const Name,
    BoundPtr<T const> const Read_BPtr)
 {
+   _trackedVals.emplace_back(std::in_place_type<TrackedVal<T>>, Name, Read_BPtr);
+
    // TODO cleanup.
    // auto p = PolyRaw<Base, sizeof(Derv)>(std::in_place_type<Derv>, 9);
-   _trackedVals.emplace_back(std::in_place_type<TrackedVal<T>>, Name, Read_BPtr);
    // _trackedVals.emplace_back(); // push allocated memory
    // _trackedVals.back().construct<TrackedVal<T>>(Name, Read_BPtr);
 }
@@ -217,8 +221,8 @@ inline DataLogger::TrackedValBase::TrackedValBase(
  */
 template <typename T>
 DataLogger::TrackedVal<T>::TrackedVal(
-   str              const Name,
-   bptr<void const> const Read_BPtr) :
+   strlit               const Name,
+   BoundPtr<void const> const Read_BPtr) :
       TrackedValBase(Name, Read_BPtr, sizeof(T))
 { }
 
@@ -231,8 +235,8 @@ DataLogger::TrackedVal<T>::TrackedVal(
  */
 template <typename T>
 void DataLogger::TrackedVal<T>::cloneAt(
-   bptr<void> const val_BPtr,
-   sizet      const Size_bytes) const
+   BoundPtr<void> const val_BPtr,
+   std::size_t    const Size_bytes) const
 {
    YMASSERT(sizeof(*this) <= Size_bytes, Error, YM_DAH,
       "Not enough room to clone (obj {} bytes, buffer {} bytes)",
@@ -245,17 +249,14 @@ void DataLogger::TrackedVal<T>::cloneAt(
  *
  * @brief Stringifies the given data type.
  *
- * @note To accomodate types not supported by std::to_string() you can either
- *       specialize Stringify or specialize std::to_string().
- *
  * @tparam T -- Type of variable to convert to.
  *
  * @param DataEntry_Ptr -- Pointer to data to stringify.
  */
 template <typename T>
 void DataLogger::TrackedVal<T>::toStr(
-   bptr<void const> const Entry_BPtr,
-   std::span<char>        buffer) const
+   BoundPtr<void const> const Entry_BPtr,
+   std::span<char>            buffer) const
 {
    toStr_Handler(buffer, fmt::make_format_args(*static_cast<T const *>(Entry_BPtr.get())));
 }

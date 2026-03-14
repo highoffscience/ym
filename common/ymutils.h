@@ -30,23 +30,23 @@ namespace ym
 {
 
 /** ym_castPtrTo
- * 
+ *
  * @brief Casts given pointer to byte pointer.
- * 
+ *
  * @note According to @ref <https://en.cppreference.com/w/cpp/language/object>, any object can be
  *       inspected assuming an underlying representation of bytes.
- * 
+ *
  * @note A reinterpret_cast will not convert a pointer of arbitrary type to another, must cast
  *       to void first. We can avoid an explicit cast to void by just accepting a void * since
  *       pointers can be implicitely cast to void.
- * 
+ *
  * @note U will be either const or non-const.
- * 
+ *
  * @tparam T -- Data type to cast to.
  * @tparam U -- Deduced data type (implicit).
- * 
+ *
  * @param data_Ptr -- Pointer to object(s).
- * 
+ *
  * @returns T (const) * -- Pointer to object(s) represented as an array of T.
  */
 template <
@@ -63,11 +63,11 @@ constexpr auto * ym_castPtrTo(U * const data_Ptr) noexcept
 }
 
 /** ym_empty
- * 
+ *
  * @brief Determines if the parameter is consider empty.
  *
  * @note Can be overloaded for other types.
- * 
+ *
  * @returns True if empty, false otherwise.
  */
 constexpr auto ym_empty(rawstr const S) noexcept
@@ -76,15 +76,15 @@ constexpr auto ym_empty(rawstr const S) noexcept
 }
 
 /** ym_binarySearch
- * 
+ *
  * @brief Returns an iterator to the searched for element, or last
  *        if no element is found. Range must be in ascending order.
- * 
+ *
  * @tparam Iterator_T -- Iterator type.
  * @tparam Compare_T  -- Comparator(Key, It). Key < *It -> < 0;
  *                                            Key = *It -> = 0;
  *                                            Key > *It -> > 0;
- * 
+ *
  * @param first   -- Beginning of range.
  * @param last    -- One past the end of the range.
  * @param Value   -- Value to find in range.
@@ -108,7 +108,7 @@ requires (
 
    while (first != last)
    { // while there are still elements unchecked
-   
+
       auto const Mid = first + (std::distance(first, last) / 2);
       auto const Cmp = compare(Value, Mid);
 
@@ -167,9 +167,9 @@ union PtrInt_T
 // ----------------------------------------------------------------------------
 
 /** Bitset
- * 
+ *
  * @brief A more compact version of std::bitset.
- * 
+ *
  * @note This should only be if std::bitset (which uses u64), is too expensive.
  *       ie, if you only need a byte.
  *
@@ -215,9 +215,9 @@ private:
 };
 
 /** Ptr_Base
- * 
+ *
  * @brief Common operations/fields for pointer wrapper classes.
- * 
+ *
  * @tparam T         -- Type of pointer.
  * @tparam Derived_T -- Type of derived class.
  */
@@ -256,7 +256,7 @@ YM_CREATE_TAG_DISPATCH_TYPE(ym_AssumePtrNotNull)
 /** BoundPtr
  *
  * @brief Common operations for bound pointer wrapper classes.
- * 
+ *
  * @tparam T         -- Type of pointer.
  * @tparam Derived_T -- Type of derived class.
  */
@@ -290,9 +290,9 @@ public:
 };
 
 /** BoundPtr
- * 
+ *
  * @brief Warpper class for non-null pointers. Checked at construction.
- * 
+ *
  * @note Throwing in the constructor is preferable because you cannot swallow the
  *       exception and use BoundPtr in an unacceptable state.
  */
@@ -321,7 +321,7 @@ public:
    template <typename U>
    requires (std::is_convertible_v<U*, T*>) // enforce legal casting
    implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept :
-      BoundPtr_Base<T, BoundPtr<T>>(Other)
+      BoundPtr_Base<T, BoundPtr<T>>(ym_castPtrTo<T>(Other))
    { }
 
    /// @brief Casting constructor. Anything goes.
@@ -333,7 +333,9 @@ public:
    { }
 
    /// @brief Decaying constructor. Pointer to array pointer is safe.
-   implicit constexpr BoundPtr(BoundPtr<T[]> const Other) noexcept :
+   template <typename U = T>
+   requires (!std::is_void_v<std::remove_cv_t<U>>) // void[] is ill-formed
+   implicit constexpr BoundPtr(BoundPtr<U[]> const Other) noexcept :
       BoundPtr_Base<T, BoundPtr<T>>(Other)
    { }
 
@@ -345,9 +347,9 @@ public:
 };
 
 /** BoundPtr
- * 
+ *
  * @brief Wrapper class for pointers to C-style arrays. See note about non-nullness.
- * 
+ *
  * @note Compiling with the pedantic flag is recommended to prevent allowing arrays
  *       with zero size. If you are using 0-sized arrays, you'll need to modify
  *       the check conditions of this class.
@@ -390,7 +392,7 @@ template <typename T, std::size_t N>
 BoundPtr(T (&)[N]) -> BoundPtr<T[]>;
 
 /** FreePtr
- * 
+ *
  * @brief Wrapper class that represents a possibly null pointer. No access is allowed without first
  *        converting to a BoundPtr.
  *
@@ -450,9 +452,9 @@ using strlit = BoundPtr<char const[]>; // string literal
 using mutstr = BoundPtr<char>; // mutable string
 
 /** PolyRaw
- * 
+ *
  * @brief Holds a polymorphic object that share a common base and whose sizes are all equivalent.
- * 
+ *
  * @tparam Base_T -- Base class.
  * @tparam N      -- Size of derived classes (in bytes).
  */
@@ -495,6 +497,7 @@ public:
    }
 
    /// @brief Returns base object pointer.
+   /// TODO why doesn't this implementation match the above one?
    constexpr BoundPtr<Base_T> operator -> (void) noexcept {
       return std::launder(ym_castPtrTo<Base_T>(_buffer.data()));
    }
@@ -518,7 +521,7 @@ public:
    constexpr PolyRaw(PolyRaw<Base_T, MaxDerivedSize> && other) = delete;
    constexpr PolyRaw<Base_T, MaxDerivedSize> & operator = (PolyRaw<Base_T, MaxDerivedSize> && other) = delete;
    /// @}
-   
+
    /// @brief Constructs derived object in place.
    template <
       typename    Derived_T,
