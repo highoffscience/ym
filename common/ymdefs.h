@@ -78,7 +78,7 @@
    /**
     * @brief MSVC shenanigans.
     *
-    * @ref <https://docs.microsoft.com/en-us/cpp/preprocessor/warning>.
+    * @link <https://docs.microsoft.com/en-us/cpp/preprocessor/warning>.
     */
 
    #pragma warning(disable: 26812) // stop bugging me about unscoped enums
@@ -114,7 +114,7 @@ extern "C"
 /**
  * @brief Helper macros for the "the big five".
  *
- * @ref <https://en.cppreference.com/w/cpp/language/rule_of_three>.
+ * @link <https://en.cppreference.com/w/cpp/language/rule_of_three>.
  *
  * @param ClassName_ -- Name of class.
  */
@@ -129,7 +129,7 @@ extern "C"
  *
  * @brief Helper macro to allow for macro overloading based on number of arguments.
  *
- * @ref <https://stackoverflow.com/questions/11761703/overloading-macro-on-number-of-arguments>
+ * @link <https://stackoverflow.com/questions/11761703/overloading-macro-on-number-of-arguments>
  *
  * @note Example:
  *    #define YM_MY_MACRO(...) YM_MACRO_OVERLOAD(YM_MY_MACRO, __VA_ARGS__)
@@ -225,6 +225,8 @@ using floatext = long double; static_assert(std::numeric_limits<floatext>::digit
  *
  * @brief Template for creating tag dispatch types.
  *
+ * @link <https://www.fluentcpp.com/2018/04/27/tag-dispatching/>.
+ *
  * @param Name_ -- Name of type.
  */
 #define YM_CREATE_TAG_DISPATCH_TYPE(Name_) struct Name_ { explicit constexpr Name_(void) noexcept = default; };
@@ -251,7 +253,7 @@ constexpr auto ym_getNBits(void) noexcept
  *
  * @brief Defines a set of user-defined literals for commonly used types.
  *
- * @ref <https://en.cppreference.com/w/cpp/language/user_literal>.
+ * @link <https://en.cppreference.com/w/cpp/language/user_literal>.
  *
  * @param UDL_          -- Name of User Defined Literal.
  * @param TypeToCastTo_ -- Type to cast to.

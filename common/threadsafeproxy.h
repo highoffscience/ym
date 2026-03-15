@@ -34,7 +34,7 @@
 //  *       destructor of the temporary monitor class will be called, releasing the mutex.
 //  * 
 //  * @tparam Underlying_T -- Type which needs thread protection.
-//  * @tparam Mtx_T        -- A type that satisfies @ref <https://en.cppreference.com/w/cpp/named_req/Mutex>.
+//  * @tparam Mtx_T        -- A type that satisfies @link <https://en.cppreference.com/w/cpp/named_req/Mutex>.
 //  */
 // template <typename Underlying_T,
 //           typename Mtx_T = std::mutex>
@@ -80,7 +80,7 @@
 //  * @brief Constructor.
 //  * 
 //  * @tparam Underlying_T -- Type which needs thread protection.
-//  * @tparam Mtx_T        -- A type that satisfies @ref <https://en.cppreference.com/w/cpp/named_req/Mutex>.
+//  * @tparam Mtx_T        -- A type that satisfies @link <https://en.cppreference.com/w/cpp/named_req/Mutex>.
 //  * 
 //  * @param mtx_Ptr -- Pointer to shared mutex.
 //  * @param obj_Ptr -- Pointer to wrapped object.
@@ -100,7 +100,7 @@
 //  * @brief Constructor.
 //  * 
 //  * @tparam Underlying_T -- Type which needs thread protection.
-//  * @tparam Mtx_T        -- A type that satisfies @ref <https://en.cppreference.com/w/cpp/named_req/Mutex>.
+//  * @tparam Mtx_T        -- A type that satisfies @link <https://en.cppreference.com/w/cpp/named_req/Mutex>.
 //  * 
 //  * @param obj_Ptr -- Pointer to wrapped object.
 //  */

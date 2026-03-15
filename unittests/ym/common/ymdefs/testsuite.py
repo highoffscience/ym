@@ -59,7 +59,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym  # type:ignore
 
       # uncomment to run test
-      # results = self.run_test_case("InteractiveInspection", assert_results=False)
+      # results = self.run_test_case(self._testMethodName.removeprefix("test_"), assert_results=False)
       pass
 
    def test_SmokeTest(self):
@@ -69,7 +69,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      results = self.run_test_case("SmokeTest", assert_results=False) # pylint: disable=unused-variable
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"), assert_results=False) # pylint: disable=unused-variable
 
    def test_BigFiveDeleteMacros(self):
       """
@@ -78,8 +78,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      results = self.run_test_case("BigFiveDeleteMacros")
-
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
       self.assertTrue(results.get[bool]("Defined"), "Macros not defined")
 
    def test_OverloadMacros(self):
@@ -99,7 +98,18 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      # results = self.run_test_case("PrimitiveDefs")
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
+      self.assertTrue(results.get[bool]("Defined"), "De facto primitives not defined")
+
+   def test_Funcs(self):
+      """
+      Analyzes results from test case.
+      """
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
+      self.assertTrue(results.get[bool]("CorrectNBits"), "ym_getNBits() does not behave as expected")
 
 # kick-off
 if __name__ == "__main__":

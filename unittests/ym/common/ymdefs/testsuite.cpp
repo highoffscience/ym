@@ -22,6 +22,8 @@ ym::unit::TestSuite::TestSuite(void) :
    addTestCase<SmokeTest>();
    addTestCase<BigFiveDeleteMacros>();
    addTestCase<OverloadMacros>();
+   addTestCase<PrimitiveDefs>();
+   addTestCase<Funcs>();
 }
 
 /** run
@@ -92,5 +94,55 @@ auto ym::unit::TestSuite::OverloadMacros::run([[maybe_unused]] DataShuttle const
 
    return {
       {"DefinedAndWorks", Sum == (1+2+3+4)}
+   };
+}
+
+/** run
+ *
+ * @brief Tests that primitive sized defs are defined.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::unit::TestSuite::PrimitiveDefs::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VF::UnitTest);
+
+   rawstr s0 = "Go! Torchic!";
+   uchar  s1 = 7;
+   schar  s2 = 9;
+
+   int8 i1 = 1_i8;
+   int16 i2 = 1_i16;
+   int32 i3 = 1_i32;
+   int64 i4 = 1_i64;
+
+   uint8 u1 = 1_u8;
+   uint16 u2 = 1_u16;
+   uint32 u3 = 1_u32;
+   uint64 u4 = 1_u64;
+
+   float32 f1 = 1.0_f32;
+   float64 f2 = 1.0_f64;
+
+   return {
+      {"Defined", true}
+   };
+}
+
+/** run
+ *
+ * @brief Tests basic functions defined in ymdefs.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::unit::TestSuite::Funcs::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VF::UnitTest);
+
+   auto const I = 0_i32;
+   auto const NBits = ym_getNBits<decltype(I)>();
+
+   return {
+      {"CorrectNBits", NBits == 32u}
    };
 }

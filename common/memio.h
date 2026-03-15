@@ -26,8 +26,8 @@ namespace ym
  * @note Only allocates memory in current stack frame, so this must a macro,
  *       not an inline function.
  *
- * @ref <https://man7.org/linux/man-pages/man3/alloca.3.html>.
- * @ref <https://en.cppreference.com/w/c/language/array>. See section on VLA's.
+ * @link <https://man7.org/linux/man-pages/man3/alloca.3.html>.
+ * @link <https://en.cppreference.com/w/c/language/array>. See section on VLA's.
  *
  * @param Type_      -- Type to allocate.
  * @param NElements_ -- Number of T elements to allocate room for.

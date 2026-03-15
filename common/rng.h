@@ -37,9 +37,9 @@
 //  * 
 //  * @note Satisfies requirements of UniformRandomBitGenerator
 //  * 
-//  * @ref <https://en.cppreference.com/w/cpp/named_req/UniformRandomBitGenerator>
-//  * @ref <https://www.pcg-random.org/paper.html>
-//  * @ref <https://en.wikipedia.org/wiki/Linear-feedback_shift_register>.
+//  * @link <https://en.cppreference.com/w/cpp/named_req/UniformRandomBitGenerator>
+//  * @link <https://www.pcg-random.org/paper.html>
+//  * @link <https://en.wikipedia.org/wiki/Linear-feedback_shift_register>.
 //  */
 // class Prng
 // {
@@ -219,7 +219,7 @@
 //  * 
 //  * @note Satisfies requirements of UniformRandomBitGenerator
 //  * 
-//  * @ref <https://en.cppreference.com/w/cpp/named_req/UniformRandomBitGenerator>
+//  * @link <https://en.cppreference.com/w/cpp/named_req/UniformRandomBitGenerator>
 //  */
 // class Trng
 // {
@@ -249,7 +249,7 @@
 //  * 
 //  * @note Changes internal state when called.
 //  * 
-//  * @note __rdtsc() returns the cpu cycle count. @ref <https://learn.microsoft.com/en-us/cpp/intrinsics/rdtsc?view=msvc-170>
+//  * @note __rdtsc() returns the cpu cycle count. @link <https://learn.microsoft.com/en-us/cpp/intrinsics/rdtsc?view=msvc-170>
 //  *
 //  * @returns uint64 -- Random number in range.
 //  */

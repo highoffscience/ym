@@ -33,7 +33,7 @@ namespace ym
  *
  * @brief Casts given pointer to byte pointer.
  *
- * @note According to @ref <https://en.cppreference.com/w/cpp/language/object>, any object can be
+ * @note According to @link <https://en.cppreference.com/w/cpp/language/object>, any object can be
  *       inspected assuming an underlying representation of bytes.
  *
  * @note A reinterpret_cast will not convert a pointer of arbitrary type to another, must cast
@@ -136,7 +136,7 @@ requires (
  *
  * @brief Casts non-member pointer to an appropriately sized integral type.
  *
- * @ref <https://en.cppreference.com/w/cpp/types/integer>.
+ * @link <https://en.cppreference.com/w/cpp/types/integer>.
  *
  * @note It is important to make sure the size of the pointer is the exact size of the
  *       type we're trying to cast too. Too small or large will lead to undefined

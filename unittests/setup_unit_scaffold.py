@@ -172,7 +172,7 @@ def gen_runner_file(args: argparse.Namespace):
       writeln(f"                                                                    ")
       writeln(f"class TestSuite(testsuitebase.TestSuiteBase):                       ")
       writeln(f"   \"\"\"                                                           ")
-      writeln(f"   Collection of all tests for suite {args.suitename}.                    ")
+      writeln(f"   Collection of all tests for suite {args.suitename}.              ")
       writeln(f"   \"\"\"                                                           ")
       writeln(f"                                                                    ")
       writeln(f"   @classmethod                                                     ")
@@ -211,8 +211,8 @@ def gen_runner_file(args: argparse.Namespace):
       writeln(f"      from cppyy.gbl import ym  # type: ignore                      ")
       writeln(f"                                                                    ")
       writeln(f"      # uncomment to run test                                       ")
-      writeln(f"      # results = self.run_test_case(\"InteractiveInspection\", " \
-              f"assert_results=False)                                               ")
+      writeln(f"      # results = self.run_test_case(" \
+              f"self._testMethodName.removeprefix(\"test_\"), assert_results=False) ")
       writeln(f"      pass                                                          ")
       writeln(f"                                                                    ")
       writeln(f"   def test_SmokeTest(self):                                        ")
@@ -222,7 +222,8 @@ def gen_runner_file(args: argparse.Namespace):
       writeln(f"      from cppyy.gbl import std # type: ignore                      ")
       writeln(f"      from cppyy.gbl import ym  # type: ignore                      ")
       writeln(f"                                                                    ")
-      writeln(f"      results = self.run_test_case(\"SmokeTest\")                   ")
+      writeln(f"      results = self.run_test_case(" \
+              f"self._testMethodName.removeprefix(\"test_\"))                       ")
       writeln(f"      pass                                                          ")
       writeln(f"                                                                    ")
       writeln(f"# kick-off                                                          ")
