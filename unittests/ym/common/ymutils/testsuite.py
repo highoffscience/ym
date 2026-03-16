@@ -59,7 +59,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym  # type:ignore
 
       # uncomment to run test
-      # results = self.run_test_case("InteractiveInspection", assert_results=False)
+      # results = self.run_test_case(self._testMethodName.removeprefix("test_"), assert_results=False)
       pass
 
    def test_SmokeTest(self):
@@ -69,7 +69,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      # results = self.run_test_case("SmokeTest")
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
 
    def test_PtrToIntConversion(self):
       """
@@ -78,7 +78,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      # results = self.run_test_case("PtrToIntConversion")
+      # results = self.run_test_case(self._testMethodName.removeprefix("test_"))
       # self.assertEqual(results.get[int]("Val"), 7, "Ptr to int yielded unexpected value")
 
    def test_BoundedPtrClass(self):
@@ -88,7 +88,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      # results = self.run_test_case("BoundedPtrClass")
+      # results = self.run_test_case(self._testMethodName.removeprefix("test_"))
 
       # self.assertEqual(results.get[int]("Ptr_1"), 9, "Bounded ptr does not have expected value")
       # self.assertEqual(results.get[str]("Name"), "Torchic", "Bounded ptr does not have expected value")
@@ -100,7 +100,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      # results = self.run_test_case("BinarySearch")
+      # results = self.run_test_case(self._testMethodName.removeprefix("test_"))
       # self.assertTrue(results.get[bool]("ElementFound"), "Search failed to find correct element")
 
    def test_PtrCast(self):
@@ -110,7 +110,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      # results = self.run_test_case("PtrCast")
+      # results = self.run_test_case(self._testMethodName.removeprefix("test_"))
       # self.assertTrue(results.get[bool]("True"), "Failed to compile")
 
    def test_BitSet(self):
@@ -120,7 +120,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      # results = self.run_test_case("BitSet")
+      # results = self.run_test_case(self._testMethodName.removeprefix("test_"))
       # self.assertTrue(results.get[bool]("True"), "Failed to compile")
 
    def test_PolyRaw(self):
@@ -130,7 +130,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      # results = self.run_test_case("PolyRawTest")
+      # results = self.run_test_case(self._testMethodName.removeprefix("test_"))
       # self.assertTrue(results.get[bool]("True"), "Failed to compile")
 
 # kick-off

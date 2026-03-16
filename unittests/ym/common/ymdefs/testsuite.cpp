@@ -107,22 +107,22 @@ auto ym::unit::TestSuite::PrimitiveDefs::run([[maybe_unused]] DataShuttle const 
 {
    auto const SE = ymLogPushEnable(VF::UnitTest);
 
-   rawstr s0 = "Go! Torchic!";
-   uchar  s1 = 7;
-   schar  s2 = 9;
+   [[maybe_unused]] volatile rawstr s0 = "Go! Torchic!";
+   [[maybe_unused]] volatile uchar  s1 = 7;
+   [[maybe_unused]] volatile schar  s2 = 9;
 
-   int8 i1 = 1_i8;
-   int16 i2 = 1_i16;
-   int32 i3 = 1_i32;
-   int64 i4 = 1_i64;
+   [[maybe_unused]] volatile int8 i1 = 1_i8;
+   [[maybe_unused]] volatile int16 i2 = 1_i16;
+   [[maybe_unused]] volatile int32 i3 = 1_i32;
+   [[maybe_unused]] volatile int64 i4 = 1_i64;
 
-   uint8 u1 = 1_u8;
-   uint16 u2 = 1_u16;
-   uint32 u3 = 1_u32;
-   uint64 u4 = 1_u64;
+   [[maybe_unused]] volatile uint8 u1 = 1_u8;
+   [[maybe_unused]] volatile uint16 u2 = 1_u16;
+   [[maybe_unused]] volatile uint32 u3 = 1_u32;
+   [[maybe_unused]] volatile uint64 u4 = 1_u64;
 
-   float32 f1 = 1.0_f32;
-   float64 f2 = 1.0_f64;
+   [[maybe_unused]] volatile float32 f1 = 1.0_f32;
+   [[maybe_unused]] volatile float64 f2 = 1.0_f64;
 
    return {
       {"Defined", true}
