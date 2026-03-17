@@ -28,6 +28,7 @@ public:
 
    YM_UNIT_TESTCASE(InteractiveInspection)
    YM_UNIT_TESTCASE(SmokeTest)
+   YM_UNIT_TESTCASE(Funcs)
    YM_UNIT_TESTCASE(PtrToIntConversion)
    YM_UNIT_TESTCASE(BoundedPtrClass)
    YM_UNIT_TESTCASE(BinarySearch)

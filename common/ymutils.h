@@ -118,7 +118,7 @@ requires (
       }
       else if (Cmp > 0)
       { // Value > *Mid
-         first = Mid + 1ull;
+         first = Mid + 1;
       }
       else
       { // Value == *Mid

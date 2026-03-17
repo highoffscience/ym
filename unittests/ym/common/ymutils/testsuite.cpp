@@ -58,6 +58,55 @@ auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & In
 
 /** run
  *
+ * @brief Basic integrity test.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::unit::TestSuite::Funcs::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VF::UnitTest);
+
+   auto castPtrToSuccess = false;
+   {
+      int a = 9;
+      auto * p = &a;
+      auto * u = ym_castPtrTo<void>(p);
+      auto * v = ym_castPtrTo<int const>(u);
+      castPtrToSuccess  = std::is_void_v<std::remove_pointer_t<decltype(u)>>;
+      castPtrToSuccess &= std::is_same_v<int const*, decltype(v)>;
+   }
+
+   auto emptySuccess = false;
+   {
+      rawstr s = nullptr;
+      emptySuccess = ym_empty(s);
+
+      s = "";
+      emptySuccess &= ym_empty(s);
+
+      s = "Go! Torchic!";
+      emptySuccess &= !ym_empty(s);
+   }
+
+   auto binarySearchSuccess = false;
+   {
+      std::vector v = {1,2,3,4,5,6,7,8,9};
+      auto e = ym_binarySearch(v.cbegin(), v.cend(), 5);
+      binarySearchSuccess = (*e == 5);
+
+      e = ym_binarySearch(v.cbegin(), v.cend(), 10);
+      binarySearchSuccess &= (e == v.cend());
+   }
+
+   return {
+      {"castPtrToSuccess", castPtrToSuccess},
+      {"emptySuccess", emptySuccess},
+      {"binarySearchSuccess", binarySearchSuccess}
+   };
+}
+
+/** run
+ *
  * @brief TODO
  *
  * @returns DataShuttle -- Important values acquired during run of test.

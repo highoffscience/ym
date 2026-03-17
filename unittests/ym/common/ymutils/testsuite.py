@@ -71,6 +71,18 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
       results = self.run_test_case(self._testMethodName.removeprefix("test_"))
 
+   def test_Funcs(self):
+      """
+      Analyzes results from test case.
+      """
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
+      self.assertTrue(results.get[bool]("castPtrToSuccess"), "ym_castPtrTo() failed")
+      self.assertTrue(results.get[bool]("emptySuccess"), "ym_empty() failed")
+      self.assertTrue(results.get[bool]("binarySearchSuccess"), "ym_binarySearch failed")
+
    def test_PtrToIntConversion(self):
       """
       Analyzes results from test case.
