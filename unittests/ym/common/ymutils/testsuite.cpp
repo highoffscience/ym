@@ -23,6 +23,7 @@ ym::unit::TestSuite::TestSuite(void) :
 {
    addTestCase<InteractiveInspection>();
    addTestCase<SmokeTest>();
+   addTestCase<Funcs>();
    addTestCase<PtrToIntConversion>();
    addTestCase<BoundedPtrClass>();
    addTestCase<BinarySearch>();

@@ -14,6 +14,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdlib>
+#include <compare>
 #include <concepts>
 #include <functional>
 #include <iterator>
@@ -81,9 +82,7 @@ constexpr auto ym_empty(rawstr const S) noexcept
  *        if no element is found. Range must be in ascending order.
  *
  * @tparam Iterator_T -- Iterator type.
- * @tparam Compare_T  -- Comparator(Key, It). Key < *It -> < 0;
- *                                            Key = *It -> = 0;
- *                                            Key > *It -> > 0;
+ * @tparam Compare_T  -- Comparator(Key, It). Key <=> *It.
  *
  * @param first   -- Beginning of range.
  * @param last    -- One past the end of the range.
@@ -92,7 +91,7 @@ constexpr auto ym_empty(rawstr const S) noexcept
  */
 template <
    typename Iterator_T,
-   typename Compare_T = std::less<>>
+   typename Compare_T = std::compare_three_way>
 constexpr auto ym_binarySearch(
    Iterator_T  first,
    Iterator_T  last,
@@ -110,13 +109,13 @@ requires (
    { // while there are still elements unchecked
 
       auto const Mid = first + (std::distance(first, last) / 2);
-      auto const Cmp = compare(Value, Mid);
+      auto const Cmp = compare(Value, *Mid);
 
-      if (Cmp < 0)
+      if (Cmp == std::weak_ordering::less)
       { // Value < *Mid
          last = Mid;
       }
-      else if (Cmp > 0)
+      else if (Cmp == std::weak_ordering::greater)
       { // Value > *Mid
          first = Mid + 1;
       }
