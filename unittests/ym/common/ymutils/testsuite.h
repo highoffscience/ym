@@ -29,13 +29,10 @@ public:
    YM_UNIT_TESTCASE(InteractiveInspection)
    YM_UNIT_TESTCASE(SmokeTest)
    YM_UNIT_TESTCASE(Funcs)
-   YM_UNIT_TESTCASE(PtrToIntConversion)
+   YM_UNIT_TESTCASE(PtrIntClass)
+   YM_UNIT_TESTCASE(MiniBitsetClass)
    YM_UNIT_TESTCASE(BoundedPtrClass)
-   YM_UNIT_TESTCASE(BinarySearch)
-   YM_UNIT_TESTCASE(BoundedStr)
-   YM_UNIT_TESTCASE(PtrCast)
-   YM_UNIT_TESTCASE(BitSet)
-   YM_UNIT_TESTCASE(PolyRawTest)
+   YM_UNIT_TESTCASE(PolyRawClass)
 };
 
 } // ym::unit

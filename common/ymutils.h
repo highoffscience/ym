@@ -165,7 +165,7 @@ union PtrInt_T
 
 // ----------------------------------------------------------------------------
 
-/** Bitset
+/** MiniBitset
  *
  * @brief A more compact version of std::bitset.
  *

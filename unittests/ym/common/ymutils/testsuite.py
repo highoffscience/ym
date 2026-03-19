@@ -83,7 +83,17 @@ class TestSuite(testsuitebase.TestSuiteBase):
       self.assertTrue(results.get[bool]("emptySuccess"), "ym_empty() failed")
       self.assertTrue(results.get[bool]("binarySearchSuccess"), "ym_binarySearch failed")
 
-   def test_PtrToIntConversion(self):
+   def test_PtrInt(self):
+      """
+      Analyzes results from test case.
+      """
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
+      self.assertEqual(results.get[bool]("UnionWorks"), "Ptr to int yielded unexpected value")
+
+   def test_MiniBitsetClass(self):
       """
       Analyzes results from test case.
       """
@@ -91,7 +101,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym  # type:ignore
 
       # results = self.run_test_case(self._testMethodName.removeprefix("test_"))
-      # self.assertEqual(results.get[int]("Val"), 7, "Ptr to int yielded unexpected value")
+      # self.assertTrue(results.get[bool]("True"), "Failed to compile")
 
    def test_BoundedPtrClass(self):
       """
@@ -105,37 +115,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       # self.assertEqual(results.get[int]("Ptr_1"), 9, "Bounded ptr does not have expected value")
       # self.assertEqual(results.get[str]("Name"), "Torchic", "Bounded ptr does not have expected value")
 
-   def test_BinarySearch(self):
-      """
-      Analyzes results from test case.
-      """
-      from cppyy.gbl import std # type:ignore
-      from cppyy.gbl import ym  # type:ignore
-
-      # results = self.run_test_case(self._testMethodName.removeprefix("test_"))
-      # self.assertTrue(results.get[bool]("ElementFound"), "Search failed to find correct element")
-
-   def test_PtrCast(self):
-      """
-      Analyzes results from test case.
-      """
-      from cppyy.gbl import std # type:ignore
-      from cppyy.gbl import ym  # type:ignore
-
-      # results = self.run_test_case(self._testMethodName.removeprefix("test_"))
-      # self.assertTrue(results.get[bool]("True"), "Failed to compile")
-
-   def test_BitSet(self):
-      """
-      Analyzes results from test case.
-      """
-      from cppyy.gbl import std # type:ignore
-      from cppyy.gbl import ym  # type:ignore
-
-      # results = self.run_test_case(self._testMethodName.removeprefix("test_"))
-      # self.assertTrue(results.get[bool]("True"), "Failed to compile")
-
-   def test_PolyRaw(self):
+   def test_PolyRawClass(self):
       """
       Analyzes results from test case.
       """
