@@ -119,7 +119,7 @@ auto ym::unit::TestSuite::PtrIntClass::run([[maybe_unused]] DataShuttle const & 
    p2i.uint_val += 4u;
 
    return {
-      {"UnionWorks", *p2i.ptr_val}
+      {"UnionWorks", *p2i.ptr_val == 7}
    };
 }
 
@@ -159,42 +159,21 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
 {
    auto const SE = ymLogPushEnable(VF::UnitTest);
 
-   // int a = 9;
-   // int * a_ptr = &a;
+   int a = 9;
+   int * ap = &a;
 
-   // bptr a_bptr(a_ptr);
+   BoundPtr ab(ap);
+   *ab = 11;
 
-   // int * b_ptr = a_bptr;
+   BoundPtr<void> vb = ab;
 
-   // auto name = "Torchic"_str;
+   BoundPtr<int> bb(vb, BoundPtr<int>::CastPassKey{});
 
-   // bptr name_b = name;
+   auto const Is11 = (*bb == 11);
 
-   // ymLog(VF::UnitTest, "sizeof(TBP) {}; sizeof(BP) {}", sizeof(name), sizeof(a_bptr));
-
-   // {
-   //    auto a = 9;
-   //    auto const ca = 11;
-   //    bptr myint(&a);
-   //    bptr mycint(&ca);
-
-   //    [[maybe_unused]] bptr<void>       myvoid_1  = myint;
-   //    [[maybe_unused]] bptr<void const> mycvoid_1 = mycint;
-   //    [[maybe_unused]] bptr<void const> mycvoid_2 = myint;
-   //    // [[maybe_unused]] bptr<void>       myvoid_2  = mycint; // compile error (expected)
-
-   //    [[maybe_unused]] auto mybyte_1 = bptr<byte>(myint, BPtrCastingPassKey());
-   //    // [[maybe_unused]] auto myvoid_3 = bptr<void>(mycint); // compile error (expected)
-
-   //    // ymLog(VF::UnitTest, "myvoid's value {}", *static_cast<int const*>(myvoid.get()));
-   // }
-
-   // return {
-   //    {"Ptr_1", *b_ptr},
-   //    {"Name", std::string(name_b.get())}
-   // };
-
-   return {{}};
+   return {
+      {"CanCast", Is11}
+   };
 }
 
 /** run

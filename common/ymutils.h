@@ -320,7 +320,7 @@ public:
    template <typename U>
    requires (std::is_convertible_v<U*, T*>) // enforce legal casting
    implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept :
-      BoundPtr_Base<T, BoundPtr<T>>(ym_castPtrTo<T>(Other))
+      BoundPtr_Base<T, BoundPtr<T>>(ym_castPtrTo<T>(Other.get()))
    { }
 
    /// @brief Casting constructor. Anything goes.
@@ -328,7 +328,7 @@ public:
    implicit constexpr BoundPtr(
       BoundPtr<U> const & Other,
       CastPassKey const) noexcept :
-         BoundPtr_Base<T, BoundPtr<T>>(ym_castPtrTo<T>(Other))
+         BoundPtr_Base<T, BoundPtr<T>>(ym_castPtrTo<T>(Other.get()))
    { }
 
    /// @brief Decaying constructor. Pointer to array pointer is safe.

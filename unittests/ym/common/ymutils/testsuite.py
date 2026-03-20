@@ -83,7 +83,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       self.assertTrue(results.get[bool]("emptySuccess"), "ym_empty() failed")
       self.assertTrue(results.get[bool]("binarySearchSuccess"), "ym_binarySearch failed")
 
-   def test_PtrInt(self):
+   def test_PtrIntClass(self):
       """
       Analyzes results from test case.
       """
@@ -91,7 +91,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym  # type:ignore
 
       results = self.run_test_case(self._testMethodName.removeprefix("test_"))
-      self.assertEqual(results.get[bool]("UnionWorks"), "Ptr to int yielded unexpected value")
+      self.assertTrue(results.get[bool]("UnionWorks"), "Ptr to int yielded unexpected value")
 
    def test_MiniBitsetClass(self):
       """
@@ -110,10 +110,9 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      # results = self.run_test_case(self._testMethodName.removeprefix("test_"))
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
 
-      # self.assertEqual(results.get[int]("Ptr_1"), 9, "Bounded ptr does not have expected value")
-      # self.assertEqual(results.get[str]("Name"), "Torchic", "Bounded ptr does not have expected value")
+      self.assertTrue(results.get[bool]("CanCast"), "Bounded ptr does not have expected value")
 
    def test_PolyRawClass(self):
       """
