@@ -59,9 +59,8 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      results = self.run_test_case("InteractiveInspection", assert_results=False)
-
-      print(f"--> {results.get[cppyy.gbl.char]('E0')}")
+      # results = self.run_test_case(self._testMethodName.removeprefix("test_"), assert_results=False)
+      # print(f"--> {results.get[cppyy.gbl.char]('E0')}")
 
    def test_SmokeTest(self):
       """
@@ -70,7 +69,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      # results = self.run_test_case("SmokeTest")
+      # results = self.run_test_case(self._testMethodName.removeprefix("test_"))
 
 # kick-off
 if __name__ == "__main__":

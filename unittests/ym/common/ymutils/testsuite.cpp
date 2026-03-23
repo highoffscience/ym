@@ -171,6 +171,10 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
 
    auto const Is11 = (*bb == 11);
 
+   strlit s = "Go! Torchic!";
+   [[maybe_unused]] str s2 = s;
+   // strlit s3 = s2; won't compile - check.
+
    return {
       {"CanCast", Is11}
    };
