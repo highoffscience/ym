@@ -11,6 +11,8 @@
 
 #include "ymutils.h" // Structures under test
 
+#include <sys/stat.h>
+
 #include <string>
 #include <vector>
 
@@ -174,6 +176,12 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
    strlit s = "Go! Torchic!";
    [[maybe_unused]] str s2 = s;
    // strlit s3 = s2; won't compile - check.
+
+   struct stat st;
+   if (stat(s2, &st) == 0)
+   {
+
+   }
 
    return {
       {"CanCast", Is11}

@@ -20,7 +20,7 @@ function(srcbuild-ym.common Ctx_JSON)
    set(Srcs
       # argparser.cpp
       datalogger.cpp
-      fileio.cpp
+      # fileio.cpp
       globallogger.cpp
       litelogger.cpp
       logger.cpp

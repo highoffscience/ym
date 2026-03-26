@@ -13,9 +13,36 @@
 #include <filesystem>
 #include <tuple>
 
+/** exists
+ *
+ * @brief Resets the file handle.
+ *
+ * TODO
+ */
+bool ym::FileIO::exists(str const Filename) noexcept
+{
+   auto found = false;
+
+   struct stat st;
+   if (stat(Filename, &st) == 0)
+   { // found file
+      found = true;
+   }
+#if (YM_USE_HEAP_AS_FALLBACK)
+   else
+   {
+      found = std::filesystem::is_regular_file(Filename.get()); // uses heap
+   }
+#endif
+
+   return found;
+}
+
 /** reset
  *
  * @brief Resets the file handle.
+ *
+ * TODO
  */
 bool ym::FileIO::reset(
    str const Filename,
@@ -23,14 +50,13 @@ bool ym::FileIO::reset(
 {
    if (isOpen())
    { // close current file
-      std::fclose(get());
+      std::ignore = std::fclose(get());
    }
 
-   _file = std::fopen(Filename.get(), Mode.get());
+   _file = std::fopen(Filename, Mode);
 
-   // TODO can Filename decay naturally? test it!
    struct stat st;
-   if (stat(Filename.get(), &st) == 0)
+   if (stat(Filename, &st) == 0)
    { // got file size
       _size = static_cast<std::size_t>(st.st_size);
    }
@@ -48,6 +74,12 @@ bool ym::FileIO::reset(
    }
 #endif
 
+   if (getSize() == 0uz)
+   { // failed to acquire size
+      std::ignore = std::fclose(get());
+      _file = nullptr;
+   }
+
    return isOpen();
 }
 
@@ -57,59 +89,24 @@ bool ym::FileIO::reset(
  *
  * @returns std::optional<std::string> -- File contents, or null if an error occured.
  */
+#if (YM_USE_HEAP_AS_FALLBACK)
 std::optional<std::string> ym::FileIO::createFileBuffer(void) noexcept
 {
    std::optional<std::string> buffer; // default is nullopt
 
    if (isOpen())
    { // file opened
-      if (getSize() > 0uz)
-      { // read in everything all at once
-         std::string contents;
-         contents.resize_and_overwrite(getSize(), [this](char * const buf_Ptr, std::size_t const N) {
-            std::ignore = std::fread(buf_Ptr, 1uz, this->getSize(), this->get());
-            return N;
-         });
-      }
-      else
-      { // failed to get size - read file in like a peasant
-         // TODO
-         for (char buf[8]; std::fgets(buf, sizeof buf, tmpf) != nullptr;);
-      }
-
-
-      if (ec)
-      { // failed to get size - read file in like a peasant
-         std::istreambuf_iterator<char> it(infile);
-         std::istreambuf_iterator<char> end;
-         buffer = {it, end};
-      }
-      else
-      { // read in everything all at once
-
-         std::string contents;
-         contents.resize_and_overwrite(Size_bytes, [&infile](char * const buf_Ptr, std::size_t const N) {
-            std::ignore = infile.read(buf_Ptr, N);
-            return N;
-         });
-
-         if (infile.good())
-         { // file read into memory successful
-            buffer = std::move(contents);
-         }
-         else
-         { // error reading file
-            str const Flag =
-               infile.eof () ? "EOF"  :
-               infile.fail() ? "FAIL" :
-               infile.bad () ? "BAD"  : "?";
-            ymLog(VF::Warning, "Got error {} while attempting to read from {}", Flag, Filename);
-         }
-      }
+      std::string contents;
+      contents.resize_and_overwrite(getSize(), [this](char * const buf_Ptr, std::size_t const N) {
+         std::ignore = std::fread(buf_Ptr, 1uz, N, this->get());
+         return N;
+      });
+      buffer = std::move(contents);
    }
 
    return buffer;
 }
+#endif
 
 /** createFileBuffer
  *
@@ -119,43 +116,15 @@ std::optional<std::string> ym::FileIO::createFileBuffer(void) noexcept
  *
  * @returns bool -- True if file was read and copied successfully, false if an error occured.
  */
-bool ym::FileIO::createFileBuffer(
-   str const       Filename,
-   std::span<char> buffer) noexcept
+bool ym::FileIO::createFileBuffer(std::span<char> buffer) noexcept
 {
-   if (std::ifstream infile(Filename.get(), std::ios::binary); infile.is_open())
+   auto success = false;
+
+   if (isOpen())
    { // file opened
-
-      std::error_code ec;
-      auto const Size_bytes = std::filesystem::file_size(Filename.get(), ec);
-
-      if (ec)
-      { // failed to get size - read file in like a peasant
-         std::istreambuf_iterator<char> it(infile);
-         std::istreambuf_iterator<char> end;
-         buffer = {it, end};
-      }
-      else
-      { // read in everything all at once
-
-         std::string contents;
-         contents.resize_and_overwrite(Size_bytes, [&infile](char * const buf_Ptr, std::size_t const N) {
-            std::ignore = infile.read(buf_Ptr, N);
-            return N;
-         });
-
-         if (infile.good())
-         { // file read into memory successful
-            buffer = std::move(contents);
-         }
-         else
-         { // error reading file
-            str const Flag =
-               infile.eof () ? "EOF"  :
-               infile.fail() ? "FAIL" :
-               infile.bad () ? "BAD"  : "?";
-            ymLog(VF::Warning, "Got error {} while attempting to read from {}", Flag, Filename);
-         }
-      }
+      auto const NRead = std::fread(buffer.data(), 1uz, this->getSize(), this->get());
+      success = (NRead == this->getSize());
    }
+
+   return success;
 }

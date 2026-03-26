@@ -29,6 +29,8 @@ public:
       str const Filename,
       str const Mode = "rb") noexcept;
 
+   static bool exists(str const Filename) noexcept;
+
    inline bool isOpen(void) const noexcept { return _file; }
    inline operator bool(void) const noexcept { return isOpen(); }
 
