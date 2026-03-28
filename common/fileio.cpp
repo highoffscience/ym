@@ -98,8 +98,7 @@ std::optional<std::string> ym::FileIO::createFileBuffer(void) noexcept
    { // file opened
       std::string contents;
       contents.resize_and_overwrite(getSize(), [this](char * const buf_Ptr, std::size_t const N) {
-         std::ignore = std::fread(buf_Ptr, 1uz, N, this->get());
-         return N;
+         return std::fread(buf_Ptr, 1uz, N, this->get());
       });
       buffer = std::move(contents);
    }
@@ -122,8 +121,14 @@ bool ym::FileIO::createFileBuffer(std::span<char> buffer) noexcept
 
    if (isOpen())
    { // file opened
-      auto const NRead = std::fread(buffer.data(), 1uz, this->getSize(), this->get());
-      success = (NRead == this->getSize());
+      if (buffer.size() > getSize())
+      { //
+         auto const NRead = std::fread(buffer.data(), 1uz, getSize(), get());
+         // TODO do we rewind? even if successful.
+         // TODO rename to fillBuffer
+         // TODO create a re-entrant version so we can load a large file with many chunks.
+         success = (NRead == getSize());
+      }
    }
 
    return success;
