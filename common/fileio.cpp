@@ -83,52 +83,108 @@ bool ym::FileIO::reset(
    return isOpen();
 }
 
-/** createFileBuffer
+/** createAndFillBuffer
  *
  * @brief Reads in file contents into an std::string.
  *
  * @returns std::optional<std::string> -- File contents, or null if an error occured.
  */
 #if (YM_USE_HEAP_AS_FALLBACK)
-std::optional<std::string> ym::FileIO::createFileBuffer(void) noexcept
-{
-   std::optional<std::string> buffer; // default is nullopt
+   std::optional<std::string> ym::FileIO::createAndFillBuffer(void) noexcept
+   {
+      std::optional<std::string> buffer; // default is nullopt
 
-   if (isOpen())
-   { // file opened
-      std::string contents;
-      contents.resize_and_overwrite(getSize(), [this](char * const buf_Ptr, std::size_t const N) {
-         return std::fread(buf_Ptr, 1uz, N, this->get());
-      });
-      buffer = std::move(contents);
+      if (isOpen())
+      { // file opened
+         std::string contents;
+         contents.resize_and_overwrite(getSize(), [this](char * const buf_Ptr, std::size_t const N) {
+            return std::fread(buf_Ptr, 1uz, N, this->get());
+         });
+         buffer = std::move(contents);
+         std::rewind(get());
+      }
+
+      return buffer;
    }
-
-   return buffer;
-}
 #endif
 
-/** createFileBuffer
+/** fillBuffer
  *
- * @brief Reads in file contents into a supplied buffer.
+ * @brief Reads entire file contents into a supplied buffer.
  *
- * @param Filename -- Name of file to read from.
+ * @note The size of the file is already calculated and query-able. If and only if
+ *       this function returns true has all the data been read.
+ *
+ * @param buffer     -- Buffer to read file into.
+ * @param AppendNull -- Whether or not to apply null terminator.
  *
  * @returns bool -- True if file was read and copied successfully, false if an error occured.
  */
-bool ym::FileIO::createFileBuffer(std::span<char> buffer) noexcept
+bool ym::FileIO::fillBuffer(
+   std::span<char> buffer,
+   bool const      AppendNull) noexcept
 {
    auto success = false;
 
    if (isOpen())
    { // file opened
-      if (buffer.size() > getSize())
-      { //
+      if (buffer.size() >= getSize())
+      { // tentatively enough room to store data
          auto const NRead = std::fread(buffer.data(), 1uz, getSize(), get());
-         // TODO do we rewind? even if successful.
-         // TODO rename to fillBuffer
-         // TODO create a re-entrant version so we can load a large file with many chunks.
          success = (NRead == getSize());
+         
+         if (AppendNull)
+         { // apply null terminator
+            if (buffer.size() > getSize())
+            { // we have room
+               buffer[NRead] = '\0';
+            }
+            else
+            { // not enough room afterall
+               success = false;
+            }
+         }
       }
+      std::rewind(get());
+   }
+
+   return success;
+}
+
+/** fillBufferPiecewise
+ *
+ * @brief Reads in file contents incrementally into a supplied buffer.
+ *
+ * @param buffer -- Buffer to read file into.
+ *
+ * @returns std::optional<std::size_t> -- The size of data read, or null if an error occured.
+ */
+std::optional<std::size_t> ym::FileIO::fillBufferPiecewise(std::span<char> buffer) noexcept
+{
+   auto success = false;
+
+   if (isOpen())
+   { // file opened
+      auto const NRead = std::fread(buffer.data(), 1uz, getSize(), get());
+
+      if (buffer.size() >= getSize())
+      { // enough room to store data
+         auto const NRead = std::fread(buffer.data(), 1uz, getSize(), get());
+         success = (NRead == getSize());
+         
+         if (AppendNull)
+         { // apply null terminator
+            if (buffer.size() > getSize())
+            { // we have room
+               buffer[NRead] = '\0';
+            }
+            else
+            { // not enough room afterall
+               success = false;
+            }
+         }
+      }
+      std::rewind(get());
    }
 
    return success;

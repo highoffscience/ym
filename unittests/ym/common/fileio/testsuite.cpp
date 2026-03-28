@@ -11,6 +11,8 @@
 
 #include "fileio.h" // Structures under test
 
+#include <array>
+
 /** TestSuite
  *
  * @brief Constructor.
@@ -63,7 +65,10 @@ auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & In
    FileIO f(Filename);
 
    char buffer[1024]{};
-   auto const Created = f.createFileBuffer(buffer);
+   auto const Filled = f.fillBuffer(buffer);
+
+   std::array<char, 1024> buffer2{};
+   auto const Filled2 = f.fillBuffer(buffer2);
 
    return {{}};
 }

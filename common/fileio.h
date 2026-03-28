@@ -51,9 +51,10 @@ public:
    /// @}
 
 #if (YM_USE_HEAP_AS_FALLBACK)
-   std::optional<std::string> createFileBuffer(void) noexcept;
+   std::optional<std::string> createAndFillBuffer(void) noexcept;
 #endif
-   bool createFileBuffer(std::span<char> buffer) noexcept;
+   bool                       fillBuffer         (std::span<char> buffer, bool const AppendNull = true) noexcept;
+   std::optional<std::size_t> fillBufferPiecewise(std::span<char> buffer) noexcept;
 
 private:
    FreePtr<std::FILE> _file{};
