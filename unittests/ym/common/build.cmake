@@ -36,8 +36,7 @@ function(unitbuild-ym.common Ctx_JSON)
    set_target_properties(${BaseBuild} PROPERTIES VERSION ${PROJECT_VERSION})
    set_target_properties(${BaseBuild} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_CustomLibsDir})
 
-   # TODO fileio
-   set(SubBuilds argparser datalogger logger textlogger timer verbogroup ymassert ymdefs ymutils)
+   set(SubBuilds argparser datalogger fileio logger textlogger timer verbogroup ymassert ymdefs ymutils)
    foreach(SubBuild ${SubBuilds})
 
       set(SubBaseBuild ${BaseBuild}.${SubBuild})

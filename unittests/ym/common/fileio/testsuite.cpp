@@ -12,6 +12,7 @@
 #include "fileio.h" // Structures under test
 
 #include <array>
+#include <cstring>
 
 /** TestSuite
  *
@@ -64,11 +65,28 @@ auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & In
 
    FileIO f(Filename);
 
-   char buffer[1024]{};
+   constexpr auto MaxSize = 1024uz;
+
+   char buffer[MaxSize]{};
    auto const Filled = f.fillBuffer(buffer);
 
-   std::array<char, 1024> buffer2{};
-   auto const Filled2 = f.fillBuffer(buffer2);
+   char buffer2[MaxSize]{};
+   for (
+      std::optional<std::span<char>> data{{buffer2, 100uz}};
+      (data = f.fillBufferPiecewise(*data));
+      data = {data->data() + data->size(), data->size()})
+   { // read file in one chunk at a time
+   }
 
-   return {{}};
+   // ymLog(VF::UnitTest, "{}\n", buffer);
+   // ymLog(VF::UnitTest, "{}\n", buffer2);
+
+   auto const Equal = (std::strncmp(buffer, buffer2, MaxSize) == 0);
+
+   return {
+      {"Exists", Exists},
+      {"NotExists", NotExists},
+      {"Buffer_1_Filled", Filled},
+      {"BuffersEqual", Equal}
+   };
 }

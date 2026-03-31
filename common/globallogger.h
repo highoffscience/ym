@@ -128,7 +128,11 @@ private:
       Opening
    };
 
-   static constexpr auto SlotSize_bytes   = 256uz;
+#if defined(YM_UNITTEST_ACTIVE_DEFINED)
+   static constexpr auto SlotSize_bytes   = 1024uz; // TODO this doesn't work
+#else
+   static constexpr auto SlotSize_bytes   = 1024uz; //256uz;
+#endif
    static constexpr auto SeqNSize_bytes   = sizeof(std::atomic_unsigned_lock_free);
    static constexpr auto MaxMsgSize_bytes = SlotSize_bytes - SeqNSize_bytes;
 

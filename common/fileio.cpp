@@ -46,7 +46,7 @@ bool ym::FileIO::exists(str const Filename) noexcept
  */
 bool ym::FileIO::reset(
    str const Filename,
-   str const Mode = "rb") noexcept
+   str const Mode) noexcept
 {
    if (isOpen())
    { // close current file
@@ -130,9 +130,9 @@ bool ym::FileIO::fillBuffer(
    { // file opened
       if (buffer.size() >= getSize())
       { // tentatively enough room to store data
-         auto const NRead = std::fread(buffer.data(), 1uz, getSize(), get());
+         auto const NRead = std::fread(buffer.data(), 1uz, buffer.size(), get());
          success = (NRead == getSize());
-         
+
          if (AppendNull)
          { // apply null terminator
             if (buffer.size() > getSize())
@@ -144,8 +144,9 @@ bool ym::FileIO::fillBuffer(
                success = false;
             }
          }
+
+         std::rewind(get());
       }
-      std::rewind(get());
    }
 
    return success;
@@ -155,37 +156,28 @@ bool ym::FileIO::fillBuffer(
  *
  * @brief Reads in file contents incrementally into a supplied buffer.
  *
+ * @note Since the user has the file size available to them, it is the user's responsibility
+ *       to track how much file data has bbeen read thus far. And return value of true means
+ *       that data has been read, a return value of false means that either EOF or an error
+ *       has occured.
+ *
  * @param buffer -- Buffer to read file into.
  *
- * @returns std::optional<std::size_t> -- The size of data read, or null if an error occured.
+ * @returns std::optional<std::span<char>> -- If true, all available or requested amount of data was read.
+ *                                            If false, EOF or an error occured.
  */
-std::optional<std::size_t> ym::FileIO::fillBufferPiecewise(std::span<char> buffer) noexcept
+std::optional<std::span<char>> ym::FileIO::fillBufferPiecewise(std::span<char> buffer) noexcept
 {
-   auto success = false;
+   std::optional<std::span<char>> data; // default is nullopt
 
    if (isOpen())
    { // file opened
-      auto const NRead = std::fread(buffer.data(), 1uz, getSize(), get());
-
-      if (buffer.size() >= getSize())
-      { // enough room to store data
-         auto const NRead = std::fread(buffer.data(), 1uz, getSize(), get());
-         success = (NRead == getSize());
-         
-         if (AppendNull)
-         { // apply null terminator
-            if (buffer.size() > getSize())
-            { // we have room
-               buffer[NRead] = '\0';
-            }
-            else
-            { // not enough room afterall
-               success = false;
-            }
-         }
+      auto const NRead = std::fread(buffer.data(), 1uz, buffer.size(), get());
+      if (NRead > 0uz)
+      { // at least some data was available
+         data = buffer.subspan(0uz, NRead);
       }
-      std::rewind(get());
    }
 
-   return success;
+   return data;
 }
