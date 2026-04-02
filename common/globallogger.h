@@ -128,10 +128,10 @@ private:
       Opening
    };
 
-#if defined(YM_UNITTEST_ACTIVE_DEFINED)
-   static constexpr auto SlotSize_bytes   = 1024uz; // TODO this doesn't work
+#if ((YM_DEBUG + YM_UNITTEST) > 0)
+   static constexpr auto SlotSize_bytes   = 1024uz;
 #else
-   static constexpr auto SlotSize_bytes   = 1024uz; //256uz;
+   static constexpr auto SlotSize_bytes   = 256uz;
 #endif
    static constexpr auto SeqNSize_bytes   = sizeof(std::atomic_unsigned_lock_free);
    static constexpr auto MaxMsgSize_bytes = SlotSize_bytes - SeqNSize_bytes;
@@ -146,7 +146,7 @@ private:
    static_assert(MaxMsgSize_bytes >= 64uz, "Too limited room"); // time stamps require some space
    static_assert(sizeof(Slot) == SlotSize_bytes, "Slot packing not as expected");
 
-   std::array<Slot, 32uz>         _slots    { /* default */ };
+   std::array<Slot, 8uz>          _slots    { /* default */ };
    std::thread                    _consumer { /* default */ };
    Options_T const                _Options  { /* default */ };
    VerboGroup                     _vGroup   { /* default */ };

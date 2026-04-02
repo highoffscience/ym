@@ -54,9 +54,16 @@ else()
    target_compile_options(YMRootIntLib INTERFACE -O2)
 endif()
 
+# @note YM_UNITTEST_ACTIVE_DEFINED is to compile this header *only* in objects with
+#       testsuites that include them.
+#       YM_UNITTEST is a source-wide define that edits properties that make inspecting
+#       code easier for clients easier.
+target_compile_definitions(YMRootIntLib INTERFACE YM_UNITTEST=${YM_UNITTEST})
+
 target_compile_definitions(YMRootIntLib INTERFACE YM_PRINT_TO_SCREEN=${YM_PRINT_TO_SCREEN})
 target_compile_definitions(YMRootIntLib INTERFACE YM_DEBUG=${YM_DEBUG})
 target_compile_definitions(YMRootIntLib INTERFACE YM_USE_HEAP_AS_FALLBACK=${YM_USE_HEAP_AS_FALLBACK})
+
 
 if (${YM_ENABLE_EXCEPTIONS})
    target_compile_definitions(YMRootIntLib INTERFACE YM_YES_EXCEPTIONS=1)

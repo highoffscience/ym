@@ -34,18 +34,6 @@ ym::unit::TestSuite::TestSuite(void) :
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const SE = ymLogPushEnable(VF::UnitTest);
-
-   // auto firstChar = '!'; // '!' not in char set for file
-   // auto buffer = FileIO::createFileBuffer("ym/common/fileio/data.txt");
-   // if (buffer) // TODO buffer.or_else(...)? to initialize first char
-   // {
-   //    firstChar = (*buffer)[0];
-   // }
-
-   // return {
-   //    {"E0", firstChar}
-   // };
-
    return {{}};
 }
 

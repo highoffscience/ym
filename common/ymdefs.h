@@ -42,6 +42,10 @@
       #define YM_CPP_STANDARD 23
    #endif
 #else
+   /// @note YM_UNITTEST_ACTIVE_DEFINED is to compile this header *only* in objects with
+   ///       testsuites that include them.
+   ///       YM_UNITTEST is a source-wide define that edits properties that make inspecting
+   ///       code easier for clients easier.
    #if defined(YM_UNITTEST_ACTIVE_DEFINED)
       #if (__cplusplus == 202002L)
          #define YM_CPP_STANDARD 20
