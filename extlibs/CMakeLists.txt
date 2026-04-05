@@ -4,7 +4,7 @@
 # @author  Forrest Jablonski
 #
 
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 4.0)
 
 project(
    ExtLibs
@@ -13,7 +13,7 @@ project(
 
 include(FetchContent)
 
-if (${YM_BUILD_FMT})
+if (YM_BUILD_FMT)
    set(BUILD_SHARED_LIBS TRUE)
    FetchContent_Declare(
       fmt

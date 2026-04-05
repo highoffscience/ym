@@ -10,7 +10,7 @@
          "name": "default",
          "displayName": "External Libs",
          "description": "Builds external libraries",
-         "generator": "Unix Makefiles",
+         "generator": "Ninja",
          "binaryDir": "${sourceDir}/build",
          "toolchainFile": "${sourceDir}/toolchain.cmake",
          "cacheVariables": {

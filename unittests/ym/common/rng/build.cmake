@@ -6,7 +6,7 @@
 # @todo Waiting for 64-bit TestU01
 #
 
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 4.0)
 
 ## unitbuild-ym.common.rng
 #

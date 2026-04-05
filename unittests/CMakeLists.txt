@@ -7,7 +7,7 @@
 #       Yeah? Then explain Europe to me.
 #
 
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 4.0)
 
 project(
    UnitTest
@@ -44,8 +44,9 @@ else()
 endif()
 unset(YM_UTPYTHONPATHS)
 
-if (${YM_CovEnabled})
+if (YM_CovEnabled)
    message("Compiling for coverage...")
+   file(MAKE_DIRECTORY ${YM_UnitTestDir}/cov_build/profiles)
    set(YM_CovFlags -fprofile-instr-generate -fcoverage-mapping)
    target_compile_options(YMRootIntLib INTERFACE ${YM_CovFlags})
    target_link_options(   YMRootIntLib INTERFACE ${YM_CovFlags})
@@ -64,14 +65,10 @@ target_compile_definitions(YMRootIntLib INTERFACE YM_PRINT_TO_SCREEN=${YM_PRINT_
 target_compile_definitions(YMRootIntLib INTERFACE YM_DEBUG=${YM_DEBUG})
 target_compile_definitions(YMRootIntLib INTERFACE YM_USE_HEAP_AS_FALLBACK=${YM_USE_HEAP_AS_FALLBACK})
 
-
-if (${YM_ENABLE_EXCEPTIONS})
-   target_compile_definitions(YMRootIntLib INTERFACE YM_YES_EXCEPTIONS=1)
-   target_compile_definitions(YMRootIntLib INTERFACE YM_NO_EXCEPTIONS=0)
-else()
-   target_compile_definitions(YMRootIntLib INTERFACE YM_YES_EXCEPTIONS=0)
-   target_compile_definitions(YMRootIntLib INTERFACE YM_NO_EXCEPTIONS=1)
-endif()
+math(EXPR YM_NO_EXCEPTIONS "1 - ${YM_ENABLE_EXCEPTIONS}")
+target_compile_definitions(YMRootIntLib INTERFACE YM_YES_EXCEPTIONS=${YM_ENABLE_EXCEPTIONS})
+target_compile_definitions(YMRootIntLib INTERFACE YM_NO_EXCEPTIONS=${YM_NO_EXCEPTIONS})
+unset(YM_NO_EXCEPTIONS)
 
 find_library(YM_FMT_LIB
    NAMES fmt

@@ -10,7 +10,7 @@
          "name": "default",
          "displayName": "UnitTest Common",
          "description": "Unit test common communication functionality",
-         "generator": "Unix Makefiles",
+         "generator": "Ninja",
          "binaryDir": "${sourceDir}/build",
          "toolchainFile": "${sourceParentDir}/toolchain.cmake",
          "cacheVariables": {

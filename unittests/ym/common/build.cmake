@@ -4,7 +4,7 @@
 # @author  Forrest Jablonski
 #
 
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 4.0)
 
 ## unitbuild-ym.common
 #
@@ -66,7 +66,6 @@ function(unitbuild-ym.common Ctx_JSON)
       add_custom_command(TARGET ${SubTargetRun}
          POST_BUILD
          WORKING_DIRECTORY ${YM_UnitTestDir}
-         BYPRODUCTS        ${YM_UnitTestDir}/cov_build/profiles
          COMMAND ${CMAKE_COMMAND} -E env
             PYTHONPATH=$ENV{PYTHONPATH}
             ${YM_Python} run_unittest.py
@@ -79,11 +78,10 @@ function(unitbuild-ym.common Ctx_JSON)
 
    endforeach()
 
-   if (${YM_CovEnabled})
+   if (YM_CovEnabled)
       add_custom_command(TARGET ${TargetRun}
          POST_BUILD
          WORKING_DIRECTORY ${YM_UnitTestDir}
-         BYPRODUCTS        ${YM_UnitTestDir}/cov_build/profiles
          COMMAND ${YM_Python} merge_cov_profiles.py --binarydir=${CMAKE_BINARY_DIR} --libraryname=lib${BaseBuild}.so)
    endif()
 

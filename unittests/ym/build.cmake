@@ -4,7 +4,7 @@
 # @author  Forrest Jablonski
 #
 
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 4.0)
 
 ## unitbuild-ym
 #
@@ -34,5 +34,5 @@ function(unitbuild-ym Ctx_JSON)
       include(${YM_UnitTestDir}/${BaseBuildDir}/${SubBuild}/build.cmake)
       cmake_language(CALL unitbuild-${BaseBuild}.${SubBuild} ${Ctx_JSON})
    endforeach()
-   
+
 endfunction()
