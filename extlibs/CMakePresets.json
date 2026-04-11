@@ -14,7 +14,8 @@
          "binaryDir": "${sourceDir}/build",
          "toolchainFile": "${sourceDir}/toolchain.cmake",
          "cacheVariables": {
-            "YM_BUILD_FMT": true
+            "YM_BUILD_FMT": true,
+            "YM_BUILD_LLVM": true
          }
       }
    ]

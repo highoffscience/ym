@@ -195,11 +195,6 @@ void DataLogger::track(
    BoundPtr<T const> const Read_BPtr)
 {
    _trackedVals.emplace_back(std::in_place_type<TrackedVal<T>>, Name, Read_BPtr);
-
-   // TODO cleanup.
-   // auto p = PolyRaw<Base, sizeof(Derv)>(std::in_place_type<Derv>, 9);
-   // _trackedVals.emplace_back(); // push allocated memory
-   // _trackedVals.back().construct<TrackedVal<T>>(Name, Read_BPtr);
 }
 
 /** TrackedValBase

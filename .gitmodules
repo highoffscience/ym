@@ -1,0 +1,6 @@
+[submodule "extlibs/llvm-project"]
+	path = extlibs/llvm-project
+	url = https://github.com/llvm/llvm-project.git
+[submodule "extlibs/fmt"]
+	path = extlibs/fmt
+	url = https://github.com/fmtlib/fmt.git

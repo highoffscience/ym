@@ -27,11 +27,11 @@ target_include_directories(unit.common PRIVATE ${YM_ProjRootDir}/ym/common/)
 
 find_library(YM_FMT_LIB
    NAMES fmt
-   PATHS ${YM_ExtLibsDir}/build/_deps/fmt-build)
+   PATHS ${YM_ExtLibsDir}/build/fmt)
 
 if (YM_FMT_LIB)
    target_link_libraries(unit.common PRIVATE ${YM_FMT_LIB})
-   target_include_directories(unit.common PRIVATE ${YM_ExtLibsDir}/build/_deps/fmt-src/include)
+   target_include_directories(unit.common PRIVATE ${YM_ExtLibsDir}/fmt/include)
 else()
    message(FATAL_ERROR "fmt lib not found. Must build external libraries first.")
 endif()

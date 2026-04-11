@@ -130,8 +130,9 @@ public:
       logAssert(E); return v_uref;
    }
 
-   static constexpr auto _s_MaxMsgSize_bytes = std::size_t(128u);
+   static constexpr auto _s_MaxMsgSize_bytes = 128uz;
 
+   /// @brief Forwarding printf function.
    template <typename... Args_T>
    inline void write(
       rawstr const Format,
@@ -145,7 +146,7 @@ public:
       fmt::format_args args);
 
 private:
-   char _msg[_s_MaxMsgSize_bytes]{'\0'};
+   char _msg[_s_MaxMsgSize_bytes]{};
 };
 
 } // ym

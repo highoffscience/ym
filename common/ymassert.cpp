@@ -29,7 +29,7 @@ void ym::ymassert_Base::write_Helper(
 {
    auto const Result = fmt::vformat_to_n(
       _msg,
-      _s_MaxMsgSize_bytes - std::size_t(1u),
+      _s_MaxMsgSize_bytes - 1uz,
       Format,
       args);
    *Result.out = '\0';
@@ -37,38 +37,38 @@ void ym::ymassert_Base::write_Helper(
 
 #if (YM_YES_EXCEPTIONS)
 
-/** what
- *
- * @brief Returns an identifying message.
- */
-auto ym::ymassert_Base::what(void) const noexcept -> rawstr
-{
-   return _msg;
-}
+   /** what
+    *
+    * @brief Returns an identifying message.
+    */
+   auto ym::ymassert_Base::what(void) const noexcept -> rawstr
+   {
+      return _msg;
+   }
 
 #else // YM_NO_EXCEPTIONS
 
-/** defaultNoExceptHandler
- *
- * @brief Logs the error message and raises interrupt.
- *
- * @param E -- Raised error.
- */
-void ym::ymassert_Base::defaultNoExceptHandler(ymassert_Base const & E)
-{
-   logAssert(E);
-   std::raise(SIGTERM);
-}
+   /** defaultNoExceptHandler
+    *
+    * @brief Logs the error message and raises interrupt.
+    *
+    * @param E -- Raised error.
+    */
+   void ym::ymassert_Base::defaultNoExceptHandler(ymassert_Base const & E)
+   {
+      logAssert(E);
+      std::raise(SIGTERM);
+   }
 
-/** logAssert
- * 
- * @brief Logs the assert to the global logger.
- * 
- * @param E -- Assert to log.
- */
-void ym::ymassert_Base::logAssert(ymassert_Base const & E)
-{
-   ymLog(VF::Error, E.what());
-}
+   /** logAssert
+    *
+    * @brief Logs the assert to the global logger.
+    *
+    * @param E -- Assert to log.
+    */
+   void ym::ymassert_Base::logAssert(ymassert_Base const & E)
+   {
+      ymLog(VF::Error, E.what());
+   }
 
 #endif

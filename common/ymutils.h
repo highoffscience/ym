@@ -213,6 +213,15 @@ private:
    uchar _bits{0_u8};
 };
 
+/// @brief Global null pointer error.
+YM_DECL_YMASSERT(ym_NullPtrError)
+
+/// @brief Tag to indicate raw pointer is not null.
+YM_CREATE_TAG_DISPATCH_TYPE(ym_AssumePtrNotNull)
+
+/// @brief Enables users to cast pointer to anything.
+YM_CREATE_TAG_DISPATCH_TYPE(ym_PtrCastPassKey)
+
 /** Ptr_Base
  *
  * @brief Common operations/fields for pointer wrapper classes.
@@ -245,12 +254,6 @@ public:
 protected:
    T * _value_ptr{nullptr};
 };
-
-/// @brief Global null pointer error.
-YM_DECL_YMASSERT(ym_NullPtrError)
-
-/// @brief Tag to indicate raw pointer is not null.
-YM_CREATE_TAG_DISPATCH_TYPE(ym_AssumePtrNotNull)
 
 /** BoundPtr
  *
@@ -302,7 +305,7 @@ public:
    /// @brief Constructor. Throws if pointer is null.
    implicit constexpr BoundPtr(T * const value_Ptr) :
       BoundPtr_Base<T, BoundPtr<T>>(value_Ptr)
-   {
+   { // TODO test this constructor for strlit -> str conversions, etc.
       YMASSERT(this->get(), ym_NullPtrError, YM_DAH, "Bound pointer cannot be null");
    }
 
@@ -312,9 +315,6 @@ public:
       ym_AssumePtrNotNull) noexcept :
          BoundPtr_Base<T, BoundPtr<T>>(value_Ptr)
    { }
-
-   /// @brief Enables users to cast pointer to anything.
-   YM_CREATE_TAG_DISPATCH_TYPE(CastPassKey)
 
    /// @brief Casting constructor.
    template <typename U>
