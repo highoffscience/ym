@@ -59,19 +59,19 @@ public:
       friend ArgParser;
 
    private:
-      enum Flags_T : uint8 {
-         FFlag = 0u,
+      enum Flags_T {
+         FFlag,
          FEnbl,
          FList,
          FReqd
       };
 
    public:
-      explicit Arg(str const Name);
+      explicit Arg(strlit const Name);
 
       inline auto   getName (void) const { return _name;  }
       inline auto   getDesc (void) const { return _desc;  }
-             rawstr getVal  (uint32 const Idx = 0_u32) const;
+             optstr getVal  (std::size_t const Idx = 0uz) const;
       inline auto   getAbbr (void) const { return _abbr;  }
       inline auto   getNVals(void) const { return _nvals; }
 
@@ -80,8 +80,9 @@ public:
       inline auto isList (void) const { return _flags.test(FList); }
       inline auto isReqd (void) const { return _flags.test(FReqd); }
 
-      inline Arg & desc  (rawstr const Desc       ) { _desc = Desc;            return *this; }
-      inline Arg & defval(rawstr const DefaultVal ) { _val  = DefaultVal;      return *this; }
+      // TODO defval assignment fails.
+      inline Arg & desc  (strlit const Desc       ) { _desc = Desc;            return *this; }
+      inline Arg & defval(strlit const DefaultVal ) { _val  = DefaultVal;      return *this; }
       inline Arg & abbr  (char   const Abbr       ) { _abbr = Abbr;            return *this; }
       inline Arg & enbl  (bool   const Enbl = true) { _flags.set(FFlag);
                                                       _flags.set(FEnbl, Enbl);
@@ -92,12 +93,12 @@ public:
 
    // private:
       // no consts - see static assert below
-      str        _name {""}; // arg name (used as the key)
-      str        _desc {""}; // description
-      rawstr     _val  {  }; // value
+      strlit     _name {""}; // arg name (used as the key)
+      strlit     _desc {""}; // description
+      optstr     _val  {  }; // value
       uint32     _nvals{  }; // number of values, if list
       char       _abbr {  }; // abbreviation
-      MiniBitset _flags{  }; // flags
+      ByteBitset _flags{  }; // flags
    };
 
    // copyable to load Arg params into vector
@@ -105,7 +106,7 @@ public:
    static_assert(std::is_copy_assignable_v<Arg>, "Arg needs to be copyable/assignable");
 
    /// @brief Result status of the parse
-   enum class ParseResult_T : uint32
+   enum class ParseResult_T
    {
       Success,
       Failure,

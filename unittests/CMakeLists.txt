@@ -63,6 +63,7 @@ target_compile_definitions(YMRootIntLib INTERFACE YM_UNITTEST=${YM_UNITTEST})
 
 target_compile_definitions(YMRootIntLib INTERFACE YM_PRINT_TO_SCREEN=${YM_PRINT_TO_SCREEN})
 target_compile_definitions(YMRootIntLib INTERFACE YM_DEBUG=${YM_DEBUG})
+target_compile_definitions(YMRootIntLib INTERFACE YM_LITE=${YM_LITE})
 target_compile_definitions(YMRootIntLib INTERFACE YM_USE_HEAP_AS_FALLBACK=${YM_USE_HEAP_AS_FALLBACK})
 
 math(EXPR YM_NO_EXCEPTIONS "1 - ${YM_ENABLE_EXCEPTIONS}")

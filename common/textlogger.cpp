@@ -14,7 +14,7 @@
 /** TextLogger
  *
  * @brief Constructor.
- * 
+ *
  * @param Filename -- Name of file to open.
  */
 ym::TextLogger::TextLogger(strlit const Filename) noexcept :
@@ -24,9 +24,9 @@ ym::TextLogger::TextLogger(strlit const Filename) noexcept :
 /** populateFormattedTime
  *
  * @brief Writes the elapsed time in the specified buffer.
- * 
+ *
  * @note Does *not* write null terminator.
- * 
+ *
  * @note Not to be confused with Logger::populateFilenameTimeStamp.
  *
  * @note Returns the current time, in microseconds, since the creation of the log in the format
@@ -46,7 +46,7 @@ auto ym::TextLogger::populateFormattedTime(
 
       YMASSERT(BufSize_bytes >= RawTimeStampTemplate.size(), Error, YM_DAH,
          "Buffer ({}) cannot fit raw time stamp ({})", BufSize_bytes, RawTimeStampTemplate.size());
-   
+
       auto       elapsed      = _timer.getElapsedTime();
       auto const TotalTime_us = std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
 

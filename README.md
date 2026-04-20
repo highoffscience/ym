@@ -11,3 +11,6 @@ To update subtree (ym) run
 git subtree pull --prefix ym <git-url> <branch-name> --squash
 
 url-ym = "https://github.com/highoffscience/ym.git" on branch "main"
+
+Use strlit over str to indicate the pointer can be stored. strlit has program-long lifetime,
+   so it is safe to store a reference.

@@ -7,7 +7,7 @@
 #include "argparser.h"
 
 #include "memio.h"
-#include "textlogger.h"
+#include "globallogger.h"
 
 #include <algorithm>
 #include <cctype>
@@ -18,15 +18,15 @@
 #include <utility>
 
 /** ArgParser
- * 
+ *
  * @brief Initializes class variables.
- * 
+ *
  * @note ArgParser assumes ownership argHandlers, excluding it's destruction.
  *       Param argHandlers must outlive the ArgParser instance.
- * 
+ *
  * @note ArgParser assumes ownership Argv_Ptr, excluding it's destruction.
  *       Argv_Ptr must outlive the ArgParser instance.
- * 
+ *
  * @param Argc        -- Argument count  (as supplied from main()).
  * @param Argv_Ptr    -- Argument vector (as supplied from main()).
  * @param argHandlers -- Array of argument handlers.
@@ -43,11 +43,11 @@ ym::ArgParser::ArgParser(
 {}
 
 /** ArgParser
- * 
+ *
  * @brief Initializes class variables.
- * 
+ *
  * @note ArgParser assumes ownership of argHandlers.
- * 
+ *
  * @param Argc        -- Argument count  (as supplied from main()).
  * @param Argv        -- Argument vector (as supplied from main()).
  * @param argHandlers -- Array of argument handlers.
@@ -65,9 +65,9 @@ ym::ArgParser::ArgParser(
 /** parse
  *
  * @brief Parses through the command line arguments and populates registered args.
- * 
+ *
  * @throws ParseError -- If a parsing error occurs.
- * 
+ *
  * @returns ParseResult_T -- Result of the parse.
  */
 auto ym::ArgParser::parse(void) -> ParseResult_T
@@ -107,13 +107,13 @@ auto ym::ArgParser::parse(void) -> ParseResult_T
 }
 
 /** parseLonghand
- * 
+ *
  * @brief Parses next long command.
- * 
+ *
  * @throws Whatever the other functions throw.
- * 
+ *
  * @param token -- Current token in stream.
- * 
+ *
  * @returns ParseResult_T -- Result of the parse.
  */
 auto ym::ArgParser::parseLonghand(rawstr token) -> ParseResult_T
@@ -139,14 +139,14 @@ auto ym::ArgParser::parseLonghand(rawstr token) -> ParseResult_T
 }
 
 /** parseShorthand
- * 
+ *
  * @brief Parses next short command.
- * 
+ *
  * @throws ParseError -- If a parsing error occurs.
  * @throws Whatever the other functions throw.
- * 
+ *
  * @param token -- Current token in stream.
- * 
+ *
  * @returns ParseResult_T -- Result of the parse.
  */
 auto ym::ArgParser::parseShorthand(rawstr token) -> ParseResult_T
@@ -180,15 +180,15 @@ auto ym::ArgParser::parseShorthand(rawstr token) -> ParseResult_T
 }
 
 /** parseLonghand
- * 
+ *
  * @brief Sets the value depending on the type of argument.
- * 
+ *
  * @throws ParseError -- If a parsing error occurs.
  * @throws Whatever the other functions throw.
- * 
+ *
  * @param arg_Ptr -- Arg handler refering to the current token.
  * @param IsNeg   -- Is the flag negated.
- * 
+ *
  * @returns ParseResult_T -- Result of the parse.
  */
 auto ym::ArgParser::parseLonghand(
@@ -238,17 +238,17 @@ auto ym::ArgParser::parseLonghand(
 }
 
 /** parse
- * 
+ *
  * @brief Sets the value depending on the type of argument.
- * 
+ *
  * @note This overload is for shorthand args.
- * 
+ *
  * @throws ParseError -- If a parsing error occurs.
  * @throws Whatever the other functions throw.
- * 
+ *
  * @param arg_Ptr -- Arg handler refering to the current token.
  * @param MightHaveValue -- True if abbr might have an associated value, false otherwise.
- * 
+ *
  * @returns ParseResult_T -- Result of the parse.
  */
 auto ym::ArgParser::parseShorthand(
@@ -273,26 +273,26 @@ auto ym::ArgParser::parseShorthand(
 }
 
 /** get
- * 
+ *
  * @brief Returns the registered argument info associated with the given key.
- * 
+ *
  * @note std::binary_search doesn't return a pointer to the found object, which is
  *       why we use a custom binary search function.
  *
  * @throws AccessError -- If no argument with the given name found.
- * 
+ *
  * @param Key -- Name of argument.
- * 
+ *
  * @returns Arg const * -- Found argument, or nullptr if none found.
  */
 auto ym::ArgParser::get(str const Key) const -> Arg const *
 {
    auto const BeginIt = _argHandlers.cbegin();
    auto const EndIt   = _argHandlers.cend();
-   
+
    auto const It = ym_binarySearch(BeginIt, EndIt, Key,
-      [](str const Key, auto const & Arg) -> int32 {
-         return std::strcmp(Key, Arg->getName());
+      [](str const Key, auto const & Arg) -> std::weak_ordering {
+         return std::strcmp(Key, Arg->getName()) <=> 0;
       }
    );
 
@@ -302,7 +302,7 @@ auto ym::ArgParser::get(str const Key) const -> Arg const *
 }
 
 /** getNextToken
- * 
+ *
  * @brief Grabs the next token in the given command arguments.
  *
  * @returns rawstr -- Next token in the list, or nullptr if no next.
@@ -313,7 +313,7 @@ auto ym::ArgParser::getNextToken(void) -> rawstr
 
    if (_Argc < 0)
    { // cmd line args are in one string
-      
+
       if (_tidx.str_idx)
       { // no selected cmd line arg yet - set to argument string
          _tidx.str_idx = _Argv.Str;
@@ -353,9 +353,9 @@ auto ym::ArgParser::getNextToken(void) -> rawstr
 }
 
 /** organizeAndValidateArgHandlerVector
- * 
+ *
  * @brief Sorts and checks for duplicate args.
- * 
+ *
  * @throws Error    -- If std::sort fails.
  * @throws ArgError -- If there is a duplicate argument (argument with the same name).
  * @throws ArgError -- If name is null or empty or invalid.
@@ -408,7 +408,8 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
       // --- --- validate key name --- ---
 
       YMASSERT(*Key, ArgError, YM_DAH, "Name must be non-empty");
-      YMASSERT(Key[0u] != '-', ArgError, YM_DAH, "Name '{}' cannot begin with '-'", Key);
+      // TODO
+      // YMASSERT(Key[0] != '-', ArgError, YM_DAH, "Name '{}' cannot begin with '-'", Key);
       YMASSERT(std::strcmp(Key, "help") != 0, ArgError, YM_DAH,
          "Arg cannot be named the reserved word 'help'");
 
@@ -463,7 +464,7 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 }
 
 /** displayHelpMenu
- * 
+ *
  * @brief Prints the help menu.
  */
 void ym::ArgParser::displayHelpMenu(void) const
@@ -506,14 +507,14 @@ void ym::ArgParser::displayHelpMenu(void) const
 }
 
 /** getArgPtrFromPrefix
- * 
+ *
  * @brief Returns the registered argument info associated with the given prefix.
- * 
+ *
  * @throws ParseError -- If prefix is ambiguous.
  * @throws ParseError -- If prefix is not found.
- * 
+ *
  * @param Prefix -- Prefix of argument.
- * 
+ *
  * @returns Arg * -- Found argument.
  */
 auto ym::ArgParser::getArgPtrFromPrefix(rawstr const Prefix) -> Arg *
@@ -568,14 +569,14 @@ auto ym::ArgParser::getArgPtrFromPrefix(rawstr const Prefix) -> Arg *
 }
 
 /** getArgPtrFromAbbr
- * 
+ *
  * @brief Returns the registered argument info associated with the given abbreviation.
- * 
+ *
  * @throws ParseError -- If the requested Abbr is invalid.
  * @throws ParseError -- If the requested Abbr is not registered.
  *
  * @param Abbr -- Abbreviation of argument.
- * 
+ *
  * @returns Arg * -- Found argument.
  */
 auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> Arg *
@@ -592,26 +593,26 @@ auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> Arg *
 // ---------------------------------- Arg ----------------------------------
 
 /** Arg
- * 
+ *
  * @brief Constructor.
- * 
+ *
  * @note Names must start with an alphanumeric character.
- * 
+ *
  * @param Name -- Name of argument.
  */
-ym::ArgParser::Arg::Arg(str const Name) :
+ym::ArgParser::Arg::Arg(strlit const Name) :
    _name {Name}
 {}
 
 /** getVal
- * 
+ *
  * @brief Gets the value associated with the given arg (and index if applicable).
- * 
+ *
  * @param Idx -- Index of requested list element, if applicable.
- * 
+ *
  * @return str -- Requested value.
  */
-auto ym::ArgParser::Arg::getVal(uint32 const Idx) const -> rawstr
+auto ym::ArgParser::Arg::getVal(std::size_t const Idx) const -> optstr
 {
    auto retVal = _val;
 

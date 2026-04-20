@@ -30,7 +30,7 @@ public:
    YM_UNIT_TESTCASE(SmokeTest)
    YM_UNIT_TESTCASE(Funcs)
    YM_UNIT_TESTCASE(PtrIntClass)
-   YM_UNIT_TESTCASE(MiniBitsetClass)
+   YM_UNIT_TESTCASE(ByteBitsetClass)
    YM_UNIT_TESTCASE(BoundedPtrClass)
    YM_UNIT_TESTCASE(PolyRawClass)
 };

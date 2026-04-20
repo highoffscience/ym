@@ -73,7 +73,9 @@ constexpr auto * ym_castPtrTo(U * const data_Ptr) noexcept
  */
 constexpr auto ym_empty(rawstr const S) noexcept
 {
-   return static_cast<bool>(!(S && *S));
+   return
+       S == nullptr || // if null
+      *S != '\0';      // if empty
 }
 
 /** ym_binarySearch
@@ -91,37 +93,47 @@ constexpr auto ym_empty(rawstr const S) noexcept
  */
 template <
    typename Iterator_T,
+   typename Value_T,
    typename Compare_T = std::compare_three_way>
 constexpr auto ym_binarySearch(
-   Iterator_T  first,
-   Iterator_T  last,
-   typename std::iterator_traits<Iterator_T>::value_type const &
-               Value,
-   Compare_T   compare = Compare_T{}) noexcept
+   Iterator_T      first,
+   Iterator_T      last,
+   Value_T const & Value,
+   Compare_T       compare = Compare_T{}) noexcept
 requires (
    std::is_nothrow_invocable_v<Compare_T,
-      typename std::iterator_traits<Iterator_T>::value_type const &,
+      Value_T /* - - - - - - - - - - - - - - - - - - - - */ const &,
       typename std::iterator_traits<Iterator_T>::value_type const &>)
 {
    auto elemIt = last;
+   auto mid    = last;
 
    while (first != last)
    { // while there are still elements unchecked
 
-      auto const Mid = first + (std::distance(first, last) / 2);
-      auto const Cmp = compare(Value, *Mid);
+      try
+      { // iterator traversal is allowed to throw
+         mid = first + (std::distance(first, last) / 2);
+      }
+      catch(std::exception const & E)
+      { // something went wrong
+         elemIt = last;
+         break;
+      }
+
+      auto const Cmp = compare(Value, *mid);
 
       if (Cmp == std::weak_ordering::less)
-      { // Value < *Mid
-         last = Mid;
+      { // Value < *mid
+         last = mid;
       }
       else if (Cmp == std::weak_ordering::greater)
-      { // Value > *Mid
-         first = Mid + 1;
+      { // Value > *mid
+         first = mid + 1;
       }
       else
-      { // Value == *Mid
-         elemIt = Mid;
+      { // Value == *mid
+         elemIt = mid;
          break;
       }
    }
@@ -157,7 +169,7 @@ template <typename T>
 requires (!std::is_member_function_pointer_v<T>)
 union PtrInt_T
 {
-   T            * ptr_val{nullptr};
+   T            * ptr_val{};
    T          * * ptr_ptr_val;
    std::uintptr_t uint_val;
    std::ptrdiff_t diff_val;
@@ -165,7 +177,7 @@ union PtrInt_T
 
 // ----------------------------------------------------------------------------
 
-/** MiniBitset
+/** ByteBitset
  *
  * @brief A more compact version of std::bitset.
  *
@@ -174,43 +186,43 @@ union PtrInt_T
  *
  * @tparam T -- Underlying type.
  */
-class MiniBitset
+class ByteBitset
 {
 public:
    /// @brief Constructor.
-   explicit constexpr MiniBitset(void) noexcept = default;
+   explicit constexpr ByteBitset(void) noexcept = default;
 
    /// @brief True if the bit is set, false otherwise.
    constexpr bool test(std::size_t const Idx) const noexcept {
-      return _bits & (static_cast<uchar>(1uz << Idx));
+      return (std::to_integer<std::size_t>(_bits) & (1uz << Idx)) != 0uz;
    }
 
    /// @brief Sets the bit to 0.
    constexpr void clear(std::size_t const Idx) noexcept {
-      _bits &= ~(static_cast<uchar>(1uz << Idx));
+      _bits &= ~static_cast<std::byte>(1uz << Idx);
    }
 
    /// @brief Flips the bit.
    constexpr void flip(std::size_t const Idx) noexcept {
-      _bits ^= (static_cast<uchar>(1uz << Idx));
+      _bits ^= static_cast<std::byte>(1uz << Idx);
    }
 
    /// @brief Flips the bit.
    constexpr void set(std::size_t const Idx) noexcept {
-      _bits |= (static_cast<uchar>(1uz << Idx));
+      _bits |= static_cast<std::byte>(1uz << Idx);
    }
 
    /// @brief Sets the bit to the specified value.
    constexpr void set(std::size_t const Idx, bool const Val) noexcept {
       clear(Idx);
-      _bits |= (static_cast<uchar>(static_cast<std::size_t>(Val) << Idx)); // sets/clears bit
+      _bits |= (static_cast<std::byte>(Val) << Idx); // sets/clears bit
    }
 
    /// @brief Returns a copy of the underlying data.
    constexpr auto getUnderlying(void) const noexcept { return _bits; }
 
 private:
-   uchar _bits{0_u8};
+   std::byte _bits{};
 };
 
 /// @brief Global null pointer error.
@@ -241,18 +253,18 @@ protected:
    { }
 
 public:
-   /// @brief Increments the underlying pointer value.
+   /// @brief Returns the value of the incremented underlying pointer value.
    constexpr auto operator + (std::integral auto const N) const noexcept {
       return Derived_T(_value_ptr + N);
    }
 
-   /// @brief Decrements the underlying pointer value.
+   /// @brief Returns the value of the decremented underlying pointer value.
    constexpr auto operator - (std::integral auto const N) const noexcept {
       return Derived_T(_value_ptr - N);
    }
 
 protected:
-   T * _value_ptr{nullptr};
+   T * _value_ptr{};
 };
 
 /** BoundPtr
@@ -305,7 +317,7 @@ public:
    /// @brief Constructor. Throws if pointer is null.
    implicit constexpr BoundPtr(T * const value_Ptr) :
       BoundPtr_Base<T, BoundPtr<T>>(value_Ptr)
-   { // TODO test this constructor for strlit -> str conversions, etc.
+   {
       YMASSERT(this->get(), ym_NullPtrError, YM_DAH, "Bound pointer cannot be null");
    }
 
@@ -315,6 +327,11 @@ public:
       ym_AssumePtrNotNull) noexcept :
          BoundPtr_Base<T, BoundPtr<T>>(value_Ptr)
    { }
+
+   /// @brief Unsafe to convert between the two.
+   template <typename U>
+   requires (std::is_array_v<U>)
+   implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept = delete;
 
    /// @brief Casting constructor.
    template <typename U>
@@ -326,8 +343,8 @@ public:
    /// @brief Casting constructor. Anything goes.
    template <typename U>
    implicit constexpr BoundPtr(
-      BoundPtr<U> const & Other,
-      CastPassKey const) noexcept :
+      BoundPtr<U>       const & Other,
+      ym_PtrCastPassKey const) noexcept :
          BoundPtr_Base<T, BoundPtr<T>>(ym_castPtrTo<T>(Other.get()))
    { }
 
@@ -337,12 +354,6 @@ public:
    implicit constexpr BoundPtr(BoundPtr<U[]> const Other) noexcept :
       BoundPtr_Base<T, BoundPtr<T>>(Other)
    { }
-
-   /// @brief Assignment.
-   constexpr auto & operator = (T * const value_Ptr) {
-      this->_value_ptr = BoundPtr(value_Ptr);
-      return *this;
-   }
 };
 
 /** BoundPtr
@@ -363,8 +374,8 @@ public:
       BoundPtr_Base<T, BoundPtr<T[]>>(array)
    { }
 
-   /// @brief Constructor from limited lifetime memory to array is unsafe.
-   implicit constexpr BoundPtr(BoundPtr<T> const) = delete;
+   /// @brief Unsafe to convert between the two.
+   implicit constexpr BoundPtr(BoundPtr<T> const & Other) noexcept = delete;
 
    /// @brief Casting constructor.
    template <typename U>
@@ -372,13 +383,6 @@ public:
    implicit constexpr BoundPtr(BoundPtr<U[]> const & Other) noexcept :
       BoundPtr_Base<T, BoundPtr<T[]>>(Other)
    { }
-
-   /// @brief Assignment.
-   template <std::size_t N>
-   constexpr auto & operator = (T (&array) [N]) noexcept {
-      this->_value_ptr = array;
-      return *this;
-   }
 
    /// @brief Grabs the element at the specified index. No bounds checking.
    constexpr auto & operator [] (this auto && self, std::integral auto const Idx) noexcept {
@@ -411,12 +415,6 @@ public:
       Ptr_Base<T, FreePtr<T>>(value_Ptr)
    { }
 
-   /// @brief Assignment.
-   constexpr auto & operator = (T * const value_Ptr) noexcept {
-      this->_value_ptr = value_Ptr;
-      return *this;
-   }
-
    /// @name Comparison operations.
    /// @{
    /// @brief Comparison overloads.
@@ -441,14 +439,16 @@ public:
    }
 };
 
+/// @name C-style string aliases.
+/// @{
 /// @brief Convenience alias.
-using str = BoundPtr<char const>; // string
-
-/// @brief Convenience alias.
-using strlit = BoundPtr<char const[]>; // string literal
-
-/// @brief Convenience alias.
-using mutstr = BoundPtr<char>; // mutable string
+using str       = BoundPtr<char const>;   // string
+using strlit    = BoundPtr<char const[]>; // string literal
+using mutstr    = BoundPtr<char>;         // mutable string
+using optstr    = FreePtr<char const>;    // optional string
+using optstrlit = FreePtr<char const[]>;  // optional string literal
+using optmutstr = FreePtr<char>;          // optional mutable string
+/// @}
 
 /** PolyRaw
  *

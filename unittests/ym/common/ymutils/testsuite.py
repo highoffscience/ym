@@ -93,7 +93,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       results = self.run_test_case(self._testMethodName.removeprefix("test_"))
       self.assertTrue(results.get[bool]("UnionWorks"), "Ptr to int yielded unexpected value")
 
-   def test_MiniBitsetClass(self):
+   def test_ByteBitsetClass(self):
       """
       Analyzes results from test case.
       """
