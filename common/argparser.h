@@ -91,11 +91,11 @@ public:
 
       YM_DECL_YMASSERT(Error)
 
-   // private:
+   private:
       // no consts - see static assert below
       strlit     _name {""}; // arg name (used as the key)
       strlit     _desc {""}; // description
-      optstr     _val  {  }; // value
+      optstrlit  _val  {  }; // value
       uint32     _nvals{  }; // number of values, if list
       char       _abbr {  }; // abbreviation
       ByteBitset _flags{  }; // flags

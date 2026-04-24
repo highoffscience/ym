@@ -374,9 +374,6 @@ public:
       BoundPtr_Base<T, BoundPtr<T[]>>(array)
    { }
 
-   /// @brief Unsafe to convert between the two.
-   implicit constexpr BoundPtr(BoundPtr<T> const & Other) noexcept = delete;
-
    /// @brief Casting constructor.
    template <typename U>
    requires (std::is_convertible_v<U*, T*>) // enforce legal casting
@@ -398,8 +395,6 @@ BoundPtr(T (&)[N]) -> BoundPtr<T[]>;
  *
  * @brief Wrapper class that represents a possibly null pointer. No access is allowed without first
  *        converting to a BoundPtr.
- *
- * @note No need to handle pointer to array cases - if it is an array then a BoundPtr will be made instead.
  */
 template <typename T>
 class FreePtr : public Ptr_Base<T, FreePtr<T>>
@@ -413,6 +408,11 @@ public:
    /// @brief Constructor.
    implicit constexpr FreePtr(T * const value_Ptr) noexcept :
       Ptr_Base<T, FreePtr<T>>(value_Ptr)
+   { }
+
+   /// @brief Constructor.
+   implicit constexpr FreePtr(BoundPtr<T> const value_BPtr) noexcept :
+      Ptr_Base<T, FreePtr<T>>(value_BPtr.get())
    { }
 
    /// @name Comparison operations.
@@ -438,6 +438,43 @@ public:
       return (*this) ? unwrap() : BPtr;
    }
 };
+
+/** FreePtr
+ *
+ * @brief Wrapper class that represents a possibly null pointer. No access is allowed without first
+ *        converting to a BoundPtr.
+ */
+template <typename T>
+class FreePtr<T[]> : public Ptr_Base<T, FreePtr<T[]>>
+{
+public:
+   /// @brief Constructor.
+   implicit constexpr FreePtr(void) noexcept :
+      Ptr_Base<T, FreePtr<T[]>>(nullptr)
+   { }
+
+   /// @brief Wrapper for non-null pointer.
+   template <std::size_t N>
+   implicit constexpr FreePtr(T (&array) [N]) noexcept :
+      Ptr_Base<T, FreePtr<T[]>>(array)
+   { }
+
+   /// @brief Casting constructor.
+   template <typename U>
+   requires (std::is_convertible_v<U*, T*>) // enforce legal casting
+   implicit constexpr FreePtr(FreePtr<U[]> const & Other) noexcept :
+      Ptr_Base<T, FreePtr<T[]>>(Other)
+   { }
+
+   /// @brief Grabs the element at the specified index. No bounds checking.
+   constexpr auto & operator [] (this auto && self, std::integral auto const Idx) noexcept {
+      return self.get()[Idx];
+   }
+};
+
+/// @brief Deduction guide - prevents pointer to array from decaying.
+template <typename T, std::size_t N>
+FreePtr(T (&)[N]) -> FreePtr<T[]>;
 
 /// @name C-style string aliases.
 /// @{
@@ -507,7 +544,7 @@ public:
    }
 
    /// @brief Copy assignment.
-   constexpr PolyRaw<Base_T, MaxDerivedSize> & operator = (PolyRaw<Base_T, MaxDerivedSize> const & Other) {
+   constexpr auto & operator = (PolyRaw<Base_T, MaxDerivedSize> const & Other) {
       if (this != &Other) { // prevent self assign
          Other->cloneAt(_buffer.data(), MaxDerivedSize);
       }

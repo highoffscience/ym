@@ -172,6 +172,18 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
    int r[3]{};
    BoundPtr<int> rp(r);
 
+   [[maybe_unused]] optstrlit val = "3";
+
+   [[maybe_unused]] optstrlit val3;
+   val3 = "1";
+
+   // optstr val4 = val3; // doesn't compile - expected!
+
+   [[maybe_unused]] strlit val2 = "1";
+   val2 = "0";
+
+   [[maybe_unused]] str val5 = val2; // does compile - *NOT* expected!
+
    // BoundPtr<void> vb = ab;
 
    // BoundPtr<int> bb(vb, ym_PtrCastPassKey{});
