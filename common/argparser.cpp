@@ -32,15 +32,13 @@
  * @param argHandlers -- Array of argument handlers.
  */
 ym::ArgParser::ArgParser(
-      int            const Argc,
-      strlit const * const Argv_Ptr,
-      std::span<Arg>       argHandlers) :
-   _abbrs       {nullptr    },
-   _argHandlers {argHandlers},
-   _Argc        {Argc       },
-   _Argv        {Argv_Ptr   },
-   _tidx        {0          }
-{}
+   int              const Argc,
+   BoundPtr<strlit> const Argv_BPtr,
+   std::span<Arg>         argHandlers) :
+      _argHandlers {argHandlers},
+      _Argc        {Argc       },
+      _Argv        {Argv_BPtr  }
+{ }
 
 /** ArgParser
  *
@@ -53,14 +51,12 @@ ym::ArgParser::ArgParser(
  * @param argHandlers -- Array of argument handlers.
  */
 ym::ArgParser::ArgParser(
-      str      const  Argv,
-      std::span<Arg>  argHandlers) :
-   _abbrs       {nullptr    },
-   _argHandlers {argHandlers},
-   _Argc        {-1         },
-   _Argv        {Argv       },
-   _tidx        {nullptr    }
-{}
+   str      const  Argv,
+   std::span<Arg>  argHandlers) :
+      _argHandlers {argHandlers},
+      _Argc        {-1         },
+      _Argv        {Argv       }
+{ }
 
 /** parse
  *
@@ -104,252 +100,6 @@ auto ym::ArgParser::parse(void) -> ParseResult_T
    }
 
    return result;
-}
-
-/** parseLonghand
- *
- * @brief Parses next long command.
- *
- * @throws Whatever the other functions throw.
- *
- * @param token -- Current token in stream.
- *
- * @returns ParseResult_T -- Result of the parse.
- */
-auto ym::ArgParser::parseLonghand(rawstr token) -> ParseResult_T
-{
-   YMASSERT(!ym_empty(token), ParseError, YM_DAH, "token missing after '--'")
-
-   auto result = ParseResult_T::Success; // until told otherwise
-
-   if (std::strcmp(token, "help") == 0) // must be full name - no prefix allowed
-   { // help menu requested
-      displayHelpMenu();
-      result = ParseResult_T::HelpMenuCalled;
-   }
-   else
-   { // standard arg
-      auto const IsNeg = (std::strncmp(token, "no-", 3uz) == 0);
-      token += (IsNeg) ? 3 : 0;
-      auto * const arg_Ptr = getArgPtrFromPrefix(token);
-      result = parseLonghand(arg_Ptr, IsNeg);
-   }
-
-   return result;
-}
-
-/** parseShorthand
- *
- * @brief Parses next short command.
- *
- * @throws ParseError -- If a parsing error occurs.
- * @throws Whatever the other functions throw.
- *
- * @param token -- Current token in stream.
- *
- * @returns ParseResult_T -- Result of the parse.
- */
-auto ym::ArgParser::parseShorthand(rawstr token) -> ParseResult_T
-{
-   YMASSERT(!ym_empty(token), ParseError, YM_DAH, "token missing after '-'")
-
-   auto result = ParseResult_T::Success; // until told otherwise
-
-   auto const NAbbrs = std::strlen(token); // already tested this has non-zero size
-
-   for (auto i = 0uz; i < NAbbrs; ++i)
-   { // go through all abbrs in pack
-
-      auto const Abbr = token[i];
-
-      if (Abbr == 'h')
-      { // help menu requested
-         displayHelpMenu();
-         result = ParseResult_T::HelpMenuCalled;
-         break;
-      }
-      else
-      { // standard arg
-         auto * const arg_Ptr = getArgPtrFromAbbr(Abbr);
-         auto const MightHaveValue = (NAbbrs == 1uz);
-         result = parseShorthand(arg_Ptr, MightHaveValue);
-      }
-   }
-
-   return result;
-}
-
-/** parseLonghand
- *
- * @brief Sets the value depending on the type of argument.
- *
- * @throws ParseError -- If a parsing error occurs.
- * @throws Whatever the other functions throw.
- *
- * @param arg_Ptr -- Arg handler refering to the current token.
- * @param IsNeg   -- Is the flag negated.
- *
- * @returns ParseResult_T -- Result of the parse.
- */
-auto ym::ArgParser::parseLonghand(
-   Arg * const arg_Ptr,
-   bool  const IsNeg) -> ParseResult_T
-{
-   auto result = ParseResult_T::Failure; // until told otherwise
-
-   if (arg_Ptr)
-   { // found arg
-      if (arg_Ptr->isFlag())
-      { // enable argument - no explicit value
-         arg_Ptr->enbl(!IsNeg);
-      }
-      else
-      { // value is next command line argument
-
-         auto token = getNextToken();
-         YMASSERT(token, ParseError, YM_DAH, "No value for arg '{}'", arg_Ptr->getName());
-         arg_Ptr->defval(token);
-
-         if (arg_Ptr->isList())
-         { // argument is list
-
-            auto const NExpectedVals = std::strtoul(token, nullptr, 10);
-
-            YMASSERT(NExpectedVals != 0ul && NExpectedVals != ULONG_MAX, ParseError, YM_DAH,
-               "List '{}' has invalid hint for number of arguments", arg_Ptr->getName());
-
-            arg_Ptr->_nvals = static_cast<uint32>(NExpectedVals);
-
-            for (auto i = 0u; (i < arg_Ptr->_nvals) && (token = getNextToken()); i++)
-            { // fast forward the number of items in list
-               if (i == 0u)
-               { // record starting point of list
-                  arg_Ptr->defval(token);
-               }
-            }
-
-            YMASSERT(token, ParseError, YM_DAH, "List '{}' doesn't have {} elements as promised",
-               arg_Ptr->getName(), arg_Ptr->_nvals)
-         }
-      }
-   }
-
-   return result;
-}
-
-/** parse
- *
- * @brief Sets the value depending on the type of argument.
- *
- * @note This overload is for shorthand args.
- *
- * @throws ParseError -- If a parsing error occurs.
- * @throws Whatever the other functions throw.
- *
- * @param arg_Ptr -- Arg handler refering to the current token.
- * @param MightHaveValue -- True if abbr might have an associated value, false otherwise.
- *
- * @returns ParseResult_T -- Result of the parse.
- */
-auto ym::ArgParser::parseShorthand(
-   Arg * const arg_Ptr,
-   bool  const MightHaveValue) -> ParseResult_T
-{
-   auto result = ParseResult_T::Failure; // until told otherwise
-
-   if (MightHaveValue)
-   { // only 1 abbr - might have value
-      result = parseLonghand(arg_Ptr);
-   }
-   else
-   { // abbr found
-      YMASSERT(arg_Ptr->isFlag(), ParseError, YM_DAH,
-         "Arg '{}' not a flag", arg_Ptr->getName());
-      arg_Ptr->enbl(true);
-      result = ParseResult_T::Success;
-   }
-
-   return result;
-}
-
-/** get
- *
- * @brief Returns the registered argument info associated with the given key.
- *
- * @note std::binary_search doesn't return a pointer to the found object, which is
- *       why we use a custom binary search function.
- *
- * @throws AccessError -- If no argument with the given name found.
- *
- * @param Key -- Name of argument.
- *
- * @returns Arg const * -- Found argument, or nullptr if none found.
- */
-auto ym::ArgParser::get(str const Key) const -> Arg const *
-{
-   auto const BeginIt = _argHandlers.cbegin();
-   auto const EndIt   = _argHandlers.cend();
-
-   auto const It = ym_binarySearch(BeginIt, EndIt, Key,
-      [](str const Key, auto const & Arg) -> std::weak_ordering {
-         return std::strcmp(Key, Arg->getName()) <=> 0;
-      }
-   );
-
-   YMASSERT(&*It, AccessError, YM_DAH, "Key '{}' not found", Key);
-
-   return &*It;
-}
-
-/** getNextToken
- *
- * @brief Grabs the next token in the given command arguments.
- *
- * @returns rawstr -- Next token in the list, or nullptr if no next.
- */
-auto ym::ArgParser::getNextToken(void) -> rawstr
-{
-   rawstr token = nullptr;
-
-   if (_Argc < 0)
-   { // cmd line args are in one string
-
-      if (_tidx.str_idx)
-      { // no selected cmd line arg yet - set to argument string
-         _tidx.str_idx = _Argv.Str;
-      }
-
-      while (*_tidx.str_idx && !std::isspace(static_cast<unsigned char>(*_tidx.str_idx)))
-      { // advance stream to next token separator
-         _tidx.str_idx++;
-      }
-
-      while (*_tidx.str_idx && std::isspace(static_cast<unsigned char>(*_tidx.str_idx)))
-      { // advance stream to next token
-         _tidx.str_idx++;
-      }
-
-      if (*_tidx.str_idx)
-      { // found next cmd line arg
-         token = _tidx.str_idx;
-      }
-   }
-   else
-   { // cmd line args as passed into main()
-
-      if (_tidx.vec_idx == 0)
-      { // ignore the first argument
-         _tidx.vec_idx++;
-      }
-
-      if (_tidx.vec_idx < _Argc)
-      { // there is a next element
-         token = _Argv.Vec[_tidx.vec_idx];
-         _tidx.vec_idx++;
-      }
-   }
-
-   return token;
 }
 
 /** organizeAndValidateArgHandlerVector
@@ -484,26 +234,83 @@ void ym::ArgParser::displayHelpMenu(void) const
       }
    }
 
-   auto spaces_bptr = bptr(YM_STACK_ALLOC(char, maxKeyLen + 1uz));
+   auto const spaces_Bptr = BoundPtr(YM_STACK_ALLOC(char, maxKeyLen + 1uz));
 
    for (auto i = 0uz; i < maxKeyLen; ++i)
    { // init all elements to spaces
-      spaces_bptr[i] = ' ';
+      spaces_Bptr.get()[i] = ' ';
    }
-   spaces_bptr[maxKeyLen] = '\0';
+   spaces_Bptr.get()[maxKeyLen] = '\0';
 
    ymLog(VF::ArgParser, "ArgParser help menu:");
 
    for (auto it = BeginIt; it != EndIt; it++)
    { // go through all registered arguments
       auto const KeyLen = std::strlen(it->getName());
-      ymLog(VF::ArgParser, " --{}{} : {}", it->getName(), spaces_bptr + KeyLen, it->getDesc());
+      ymLog(VF::ArgParser, " --{}{} : {}", it->getName(), spaces_Bptr + KeyLen, it->getDesc());
 
       if (auto const Abbr = it->getAbbr(); isValidChar(Abbr))
       { // this arg has an abbreviation
          ymLog(VF::ArgParser, "   (-{})", Abbr);
       }
    }
+}
+
+/** getNextToken
+ *
+ * @brief Grabs the next token in the given command arguments.
+ *
+ * @returns rawstr -- Next token in the list, or nullptr if no next.
+ */
+auto ym::ArgParser::getNextToken(void) -> optstrlit
+{
+   optstrlit token{};
+
+   if (_Argc < 0)
+   { // cmd line args are in one string
+
+      if (_tidx.str_idx)
+      { // no selected cmd line arg yet - set to argument string
+         _tidx.str_idx = _Argv.Str;
+      }
+
+      // TODO
+      // " --build --clean"
+      // "--build --clean"
+      // "   "
+      // ""
+
+      while (_tidx.str_idx && !std::isspace(static_cast<unsigned char>(*_tidx.str_idx.unwrap_or(" "))))
+      { // advance stream to next token separator
+         _tidx.str_idx++;
+      }
+
+      while (_tidx.str_idx && std::isspace(static_cast<unsigned char>(*_tidx.str_idx)))
+      { // advance stream to next token
+         _tidx.str_idx++;
+      }
+
+      if (*_tidx.str_idx)
+      { // found next cmd line arg
+         token = _tidx.str_idx;
+      }
+   }
+   else
+   { // cmd line args as passed into main()
+
+      if (_tidx.vec_idx == 0)
+      { // ignore the first argument
+         _tidx.vec_idx++;
+      }
+
+      if (_tidx.vec_idx < _Argc)
+      { // there is a next element
+         token = _Argv.Vec[_tidx.vec_idx];
+         _tidx.vec_idx++;
+      }
+   }
+
+   return token;
 }
 
 /** getArgPtrFromPrefix
@@ -588,6 +395,201 @@ auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> Arg *
    YMASSERT(arg_Ptr, ParseError, YM_DAH, "Abbr '{}' not registered", Abbr);
 
    return arg_Ptr;
+}
+
+/** parseLonghand
+ *
+ * @brief Parses next long command.
+ *
+ * @throws Whatever the other functions throw.
+ *
+ * @param token -- Current token in stream.
+ *
+ * @returns ParseResult_T -- Result of the parse.
+ */
+auto ym::ArgParser::parseLonghand(str token) -> ParseResult_T
+{
+   YMASSERT(!ym_empty(token), ParseError, YM_DAH, "token missing after '--'")
+
+   auto result = ParseResult_T::Success; // until told otherwise
+
+   if (std::strcmp(token, "help") == 0) // must be full name - no prefix allowed
+   { // help menu requested
+      displayHelpMenu();
+      result = ParseResult_T::HelpMenuCalled;
+   }
+   else
+   { // standard arg
+      auto const IsNeg = (std::strncmp(token, "no-", 3uz) == 0);
+      token += (IsNeg) ? 3 : 0;
+      auto * const arg_Ptr = getArgPtrFromPrefix(token);
+      result = parseLonghand(arg_Ptr, IsNeg);
+   }
+
+   return result;
+}
+
+/** parseShorthand
+ *
+ * @brief Parses next short command.
+ *
+ * @throws ParseError -- If a parsing error occurs.
+ * @throws Whatever the other functions throw.
+ *
+ * @param token -- Current token in stream.
+ *
+ * @returns ParseResult_T -- Result of the parse.
+ */
+auto ym::ArgParser::parseShorthand(str token) -> ParseResult_T
+{
+   YMASSERT(!ym_empty(token), ParseError, YM_DAH, "token missing after '-'")
+
+   auto result = ParseResult_T::Success; // until told otherwise
+
+   auto const NAbbrs = std::strlen(token); // already tested this has non-zero size
+
+   for (auto i = 0uz; i < NAbbrs; ++i)
+   { // go through all abbrs in pack
+
+      auto const Abbr = token[i];
+
+      if (Abbr == 'h')
+      { // help menu requested
+         displayHelpMenu();
+         result = ParseResult_T::HelpMenuCalled;
+         break;
+      }
+      else
+      { // standard arg
+         auto * const arg_Ptr = getArgPtrFromAbbr(Abbr);
+         auto const MightHaveValue = (NAbbrs == 1uz);
+         result = parseShorthand(arg_Ptr, MightHaveValue);
+      }
+   }
+
+   return result;
+}
+
+/** parseLonghand
+ *
+ * @brief Sets the value depending on the type of argument.
+ *
+ * @throws ParseError -- If a parsing error occurs.
+ * @throws Whatever the other functions throw.
+ *
+ * @param arg_Ptr -- Arg handler refering to the current token.
+ * @param IsNeg   -- Is the flag negated.
+ *
+ * @returns ParseResult_T -- Result of the parse.
+ */
+auto ym::ArgParser::parseLonghand(
+   BoundPtr<Arg> const arg_BPtr,
+   bool          const IsNeg) -> ParseResult_T
+{
+   auto result = ParseResult_T::Failure; // until told otherwise
+
+   if (arg_Ptr)
+   { // found arg
+      if (arg_Ptr->isFlag())
+      { // enable argument - no explicit value
+         arg_Ptr->enbl(!IsNeg);
+      }
+      else
+      { // value is next command line argument
+
+         auto token = getNextToken();
+         YMASSERT(token, ParseError, YM_DAH, "No value for arg '{}'", arg_Ptr->getName());
+         arg_Ptr->defval(token);
+
+         if (arg_Ptr->isList())
+         { // argument is list
+
+            auto const NExpectedVals = std::strtoul(token, nullptr, 10);
+
+            YMASSERT(NExpectedVals != 0ul && NExpectedVals != ULONG_MAX, ParseError, YM_DAH,
+               "List '{}' has invalid hint for number of arguments", arg_Ptr->getName());
+
+            arg_Ptr->_nvals = static_cast<uint32>(NExpectedVals);
+
+            for (auto i = 0u; (i < arg_Ptr->_nvals) && (token = getNextToken()); i++)
+            { // fast forward the number of items in list
+               if (i == 0u)
+               { // record starting point of list
+                  arg_Ptr->defval(token);
+               }
+            }
+
+            YMASSERT(token, ParseError, YM_DAH, "List '{}' doesn't have {} elements as promised",
+               arg_Ptr->getName(), arg_Ptr->_nvals)
+         }
+      }
+   }
+
+   return result;
+}
+
+/** parse
+ *
+ * @brief Sets the value depending on the type of argument.
+ *
+ * @note This overload is for shorthand args.
+ *
+ * @throws ParseError -- If a parsing error occurs.
+ * @throws Whatever the other functions throw.
+ *
+ * @param arg_Ptr -- Arg handler refering to the current token.
+ * @param MightHaveValue -- True if abbr might have an associated value, false otherwise.
+ *
+ * @returns ParseResult_T -- Result of the parse.
+ */
+auto ym::ArgParser::parseShorthand(
+   BoundPtr<Arg> const arg_BPtr,
+   bool          const MightHaveValue) -> ParseResult_T
+{
+   auto result = ParseResult_T::Failure; // until told otherwise
+
+   if (MightHaveValue)
+   { // only 1 abbr - might have value
+      result = parseLonghand(arg_Ptr);
+   }
+   else
+   { // abbr found
+      YMASSERT(arg_Ptr->isFlag(), ParseError, YM_DAH,
+         "Arg '{}' not a flag", arg_Ptr->getName());
+      arg_Ptr->enbl(true);
+      result = ParseResult_T::Success;
+   }
+
+   return result;
+}
+
+/** get
+ *
+ * @brief Returns the registered argument info associated with the given key.
+ *
+ * @note std::binary_search doesn't return a pointer to the found object, which is
+ *       why we use a custom binary search function.
+ *
+ * @throws AccessError -- If no argument with the given name found.
+ *
+ * @param Key -- Name of argument.
+ *
+ * @returns Arg const * -- Found argument, or nullptr if none found.
+ */
+auto ym::ArgParser::get(str const Key) const -> Arg const *
+{
+   auto const BeginIt = _argHandlers.cbegin();
+   auto const EndIt   = _argHandlers.cend();
+
+   auto const It = ym_binarySearch(BeginIt, EndIt, Key,
+      [](str const Key, auto const & Arg) -> std::weak_ordering {
+         return std::strcmp(Key, Arg->getName()) <=> 0;
+      }
+   );
+
+   YMASSERT(&*It, AccessError, YM_DAH, "Key '{}' not found", Key);
+
+   return &*It;
 }
 
 // ---------------------------------- Arg ----------------------------------

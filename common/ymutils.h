@@ -263,6 +263,26 @@ public:
       return Derived_T(_value_ptr - N);
    }
 
+   /// @brief TODO
+   constexpr auto & operator += (std::integral auto const N) noexcept {
+      return *this = *this + N;
+   }
+
+   /// @brief TODO
+   constexpr auto operator -= (std::integral auto const N) noexcept {
+      return *this = *this - N;
+   }
+
+   /// @brief TODO
+   constexpr auto & operator ++ (std::integral auto const) noexcept {
+      return *this = *this + 1;
+   }
+
+   /// @brief TODO
+   constexpr auto operator -- (std::integral auto const) noexcept {
+      return *this = *this - 1;
+   }
+
 protected:
    T * _value_ptr{};
 };
@@ -335,7 +355,10 @@ public:
 
    /// @brief Casting constructor.
    template <typename U>
-   requires (std::is_convertible_v<U*, T*>) // enforce legal casting
+   requires (
+      std::is_convertible_v<U*, T*> || // enforce legal casting
+      std::is_same_v<T, uchar>      || // casting to byte representation is legal
+      std::is_same_v<T, std::byte>)    // ...
    implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept :
       BoundPtr_Base<T, BoundPtr<T>>(ym_castPtrTo<T>(Other.get()))
    { }
@@ -348,12 +371,12 @@ public:
          BoundPtr_Base<T, BoundPtr<T>>(ym_castPtrTo<T>(Other.get()))
    { }
 
-   /// @brief Decaying constructor. Pointer to array pointer is safe.
-   template <typename U = T>
-   requires (!std::is_void_v<std::remove_cv_t<U>>) // void[] is ill-formed
-   implicit constexpr BoundPtr(BoundPtr<U[]> const Other) noexcept :
-      BoundPtr_Base<T, BoundPtr<T>>(Other)
-   { }
+   /// @name Comparison operations.
+   /// @{
+   /// @brief Comparison overloads.
+   constexpr auto operator <=> (BoundPtr<T> const &) const noexcept = default;
+   constexpr auto operator == (std::nullptr_t) const noexcept { return false; }
+   /// @}
 };
 
 /** BoundPtr
@@ -415,6 +438,29 @@ public:
       Ptr_Base<T, FreePtr<T>>(value_BPtr.get())
    { }
 
+   /// @brief Casting constructor.
+   template <typename U>
+   requires (
+      std::is_convertible_v<U*, T*> || // enforce legal casting
+      std::is_same_v<T, uchar>      || // casting to byte representation is legal
+      std::is_same_v<T, std::byte>)    // ...
+   implicit constexpr FreePtr(FreePtr<U> const & Other) noexcept :
+      Ptr_Base<T, FreePtr<T>>(ym_castPtrTo<T>(Other.get()))
+   { }
+
+   /// @brief Casting constructor. Anything goes.
+   template <typename U>
+   implicit constexpr FreePtr(
+      FreePtr<U>        const & Other,
+      ym_PtrCastPassKey const) noexcept :
+         Ptr_Base<T, FreePtr<T>>(ym_castPtrTo<T>(Other.get()))
+   { }
+
+   /// @brief Unsafe to convert between the two.
+   template <typename U>
+   requires (std::is_array_v<U>)
+   implicit constexpr FreePtr(FreePtr<U> const & Other) noexcept = delete;
+
    /// @name Comparison operations.
    /// @{
    /// @brief Comparison overloads.
@@ -454,9 +500,14 @@ public:
    { }
 
    /// @brief Wrapper for non-null pointer.
-   template <std::size_t N>
+   template <std::size_t N> // TODO store N
    implicit constexpr FreePtr(T (&array) [N]) noexcept :
       Ptr_Base<T, FreePtr<T[]>>(array)
+   { }
+
+   /// @brief Constructor.
+   implicit constexpr FreePtr(BoundPtr<T[]> const value_BPtr) noexcept :
+      Ptr_Base<T, FreePtr<T[]>>(value_BPtr.get())
    { }
 
    /// @brief Casting constructor.

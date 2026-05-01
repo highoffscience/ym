@@ -177,12 +177,12 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
    [[maybe_unused]] optstrlit val3;
    val3 = "1";
 
-   // optstr val4 = val3; // doesn't compile - expected!
+   // optstr val4 = val3; // doesn't compile - expected! (optstrlit -> optstr)
 
    [[maybe_unused]] strlit val2 = "1";
    val2 = "0";
 
-   [[maybe_unused]] str val5 = val2; // does compile - *NOT* expected!
+   // [[maybe_unused]] str val5 = val2; // doesn't compile - expected! (strlit -> str)
 
    // BoundPtr<void> vb = ab;
 
@@ -191,7 +191,7 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
    auto const Is11 = true; // TODO (*bb == 11);
 
    [[maybe_unused]] strlit s = "Go! Torchic!";
-   [[maybe_unused]] str s2 = s;
+   // [[maybe_unused]] str s2 = s; // won't compile - good
    // strlit s3 = s2; won't compile - check.
 
    // struct stat st;

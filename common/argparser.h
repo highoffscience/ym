@@ -80,7 +80,6 @@ public:
       inline auto isList (void) const { return _flags.test(FList); }
       inline auto isReqd (void) const { return _flags.test(FReqd); }
 
-      // TODO defval assignment fails.
       inline Arg & desc  (strlit const Desc       ) { _desc = Desc;            return *this; }
       inline Arg & defval(strlit const DefaultVal ) { _val  = DefaultVal;      return *this; }
       inline Arg & abbr  (char   const Abbr       ) { _abbr = Abbr;            return *this; }
@@ -114,9 +113,9 @@ public:
    };
 
    explicit ArgParser(
-      int            const Argc,       // command line arg count
-      strlit const * const Argv_Ptr,   // command line args
-      std::span<Arg>       argHandlers // user-defined arg handlers
+      int              const Argc,       // command line arg count
+      BoundPtr<strlit> const Argv_BPtr,  // command line args
+      std::span<Arg>         argHandlers // user-defined arg handlers
    );
 
    explicit ArgParser(
@@ -129,8 +128,8 @@ public:
 
    ParseResult_T parse(void);
 
-          Arg const * get       (str const Key) const;
-   inline Arg const * operator[](str const Key) const { return get(Key); }
+          BoundPtr<Arg const> get       (str const Key) const;
+   inline BoundPtr<Arg const> operator[](str const Key) const { return get(Key); }
 
    YM_DECL_YMASSERT(Error)
    YM_DECL_YMASSERT(Error, ParseError )
@@ -138,59 +137,58 @@ public:
    YM_DECL_YMASSERT(Error, AccessError)
 
 private:
-   static constexpr auto s_NValidChars = static_cast<uint32>('~' - '!' + 1); // 126 - 33 + 1
-   static constexpr auto getNValidChars(void) { return s_NValidChars; }
-
    static constexpr auto isValidChar(char const Char) { return Char >= '!' && Char <= '~' && Char != '-'; }
-   static constexpr auto getAbbrIdx (char const Abbr) { return Abbr - '!'; }
+   static constexpr auto getAbbrIdx (char const Abbr) { return static_cast<unsigned>(Abbr - '!'); }
 
-   using AbbrSet_T = std::array<Arg *, s_NValidChars>;
+   static constexpr auto s_NValidChars = static_cast<unsigned>('~' - '!' + 1); // 126 - 33 + 1
+   using AbbrSet_T = std::array<FreePtr<Arg>, s_NValidChars>;
 
    void organizeAndValidateArgHandlerVector(void);
 
    void displayHelpMenu(void) const;
 
-   rawstr getNextToken(void);
+   optstrlit getNextToken(void);
 
-   Arg * getArgPtrFromPrefix(rawstr const Prefix);
-   Arg * getArgPtrFromAbbr  (char   const Abbr  );
+   BoundPtr<Arg> getArgPtrFromPrefix(str  const Prefix);
+   BoundPtr<Arg> getArgPtrFromAbbr  (char const Abbr  );
 
-   ParseResult_T parseLonghand (rawstr token);
-   ParseResult_T parseShorthand(rawstr token);
+   ParseResult_T parseLonghand (str token);
+   ParseResult_T parseShorthand(str token);
 
    ParseResult_T parseLonghand(
-      Arg * const arg_Ptr,
-      bool  const IsNeg = false);
+      BoundPtr<Arg> const arg_BPtr,
+      bool          const IsNeg = false);
 
    ParseResult_T parseShorthand(
-      Arg * const arg_Ptr,
-      bool  const MightHaveValue);
+      BoundPtr<Arg> const arg_BPtr,
+      bool          const MightHaveValue);
 
    /// @brief Helper type.
    union Argv_T
    {
-      constexpr Argv_T(strlit const * const Vec_) : Vec{Vec_} {}
-      constexpr Argv_T(str            const Str_) : Str{Str_} {}
+      constexpr Argv_T(BoundPtr<strlit> const Vec_) : Vec{Vec_} {}
+      constexpr Argv_T(str              const Str_) : Str{Str_} {}
 
-      strlit const * const Vec; // array of args (as passed to main)
-      str            const Str; // one string
+      BoundPtr<strlit> const Vec; // array of args (as passed to main)
+      str              const Str; // one string
    };
 
    /// @brief Helper type.
    union Idx_T
    {
-      constexpr Idx_T(int    const Vec_idx_) : vec_idx{Vec_idx_} {}
-      constexpr Idx_T(rawstr const Str_idx_) : str_idx{Str_idx_} {}
+      constexpr Idx_T(void) noexcept = default;
+      constexpr Idx_T(int const Vec_idx_) : vec_idx{Vec_idx_      } {}
+      constexpr Idx_T(str const Str_idx_) : str_idx{Str_idx_.get()} {}
 
-      int    vec_idx; // used for array of args (as passed to main)
-      rawstr str_idx; // used for one string
+      int    vec_idx{}; // used for array of args (as passed to main)
+      optstr str_idx;   // used for one string
    };
 
-   AbbrSet_T      _abbrs      {       };
-   std::span<Arg> _argHandlers{       };
-   int    const   _Argc       {       };
-   Argv_T const   _Argv       {nullptr};
-   Idx_T          _tidx       {nullptr};
+   AbbrSet_T      _abbrs      {};
+   std::span<Arg> _argHandlers{};
+   int    const   _Argc       {};
+   Argv_T const   _Argv       {};
+   Idx_T          _tidx       {};
 };
 
 } // ym
