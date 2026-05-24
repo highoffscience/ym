@@ -238,6 +238,8 @@ YM_CREATE_TAG_DISPATCH_TYPE(ym_PtrCastPassKey)
  *
  * @brief Common operations/fields for pointer wrapper classes.
  *
+ * @note BoundPtr and FreePtr are agnostic to ownership.
+ *
  * @tparam T         -- Type of pointer.
  * @tparam Derived_T -- Type of derived class.
  */
@@ -321,6 +323,19 @@ public:
    constexpr auto & operator *   (this auto && self) noexcept { return *self.get(); }
    constexpr auto * operator ->  (this auto && self) noexcept { return  self.get(); }
    /// @}
+
+   /**
+    * @brief Grabs the element at the specified index. No bounds checking.
+    *
+    * @note This, in theory, only belongs to BBoundPtr<T[]> classes, since it is important to
+    *       disambiguate between pointers to objects vs pointers to array of objects. Some examples
+    *       where this function is useful for BoundPtr<T>:
+    *       1) Many C level functions return T*, but actually represent arrays.
+    *       2) Conversion between strlit to str, but str is expected to behave like a character array.
+    */
+   constexpr auto & operator [] (this auto && self, std::integral auto const Idx) noexcept {
+      return self.get()[Idx];
+   }
 };
 
 /** BoundPtr
@@ -348,10 +363,15 @@ public:
          BoundPtr_Base<T, BoundPtr<T>>(value_Ptr)
    { }
 
-   /// @brief Unsafe to convert between the two.
+   /// @brief Unsafe to convert between the two - deallocation strategies differ.
    template <typename U>
-   requires (std::is_array_v<U>)
+   requires (std::is_array_v<U> && !ByteLikeable<T>)
    implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept = delete;
+
+   /// @brief Only allow if str - it is de facto usage to treat character arrays as character pointers.
+   template <typename U>
+   requires (std::is_array_v<U> && ByteLikeable<T>)
+   implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept = default;
 
    /// @brief Casting constructor.
    template <typename U>
@@ -403,11 +423,6 @@ public:
    implicit constexpr BoundPtr(BoundPtr<U[]> const & Other) noexcept :
       BoundPtr_Base<T, BoundPtr<T[]>>(Other)
    { }
-
-   /// @brief Grabs the element at the specified index. No bounds checking.
-   constexpr auto & operator [] (this auto && self, std::integral auto const Idx) noexcept {
-      return self.get()[Idx];
-   }
 };
 
 /// @brief Deduction guide - prevents pointer to array from decaying.
@@ -456,10 +471,25 @@ public:
          Ptr_Base<T, FreePtr<T>>(ym_castPtrTo<T>(Other.get()))
    { }
 
-   /// @brief Unsafe to convert between the two.
+   /// @brief Unsafe to convert between the two - deallocation strategies differ.
    template <typename U>
-   requires (std::is_array_v<U>)
+   requires (std::is_array_v<U> && !ByteLikeable<T>)
    implicit constexpr FreePtr(FreePtr<U> const & Other) noexcept = delete;
+
+   /// @brief Only allow if str - it is de facto usage to treat character arrays as character pointers.
+   template <typename U>
+   requires (std::is_array_v<U> && ByteLikeable<T>)
+   implicit constexpr FreePtr(FreePtr<U> const & Other) noexcept = default;
+
+   /// @brief Unsafe to convert between the two - deallocation strategies differ.
+   template <typename U>
+   requires (std::is_array_v<U> && !ByteLikeable<T>)
+   implicit constexpr FreePtr(BoundPtr<U> const & Other) noexcept = delete;
+
+   /// @brief Only allow if str - it is de facto usage to treat character arrays as character pointers.
+   template <typename U>
+   requires (std::is_array_v<U> && ByteLikeable<T>)
+   implicit constexpr FreePtr(BoundPtr<U> const & Other) noexcept = default;
 
    /// @name Comparison operations.
    /// @{

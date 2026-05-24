@@ -147,7 +147,7 @@ private:
 
    void displayHelpMenu(void) const;
 
-   optstrlit getNextToken(void);
+   optstr getNextToken(void);
 
    BoundPtr<Arg> getArgPtrFromPrefix(str  const Prefix);
    BoundPtr<Arg> getArgPtrFromAbbr  (char const Abbr  );

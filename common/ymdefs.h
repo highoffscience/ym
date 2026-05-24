@@ -225,6 +225,21 @@ using float32  = float      ; static_assert(std::numeric_limits<float32 >::digit
 using float64  = double     ; static_assert(std::numeric_limits<float64 >::digits == 53, "float64  (mantissa) not of expected size");
 using floatext = long double; static_assert(std::numeric_limits<floatext>::digits >= 53, "floatext (mantissa) not of expected size");
 
+/** ByteLikeable
+ *
+ * @brief Concept that describes a byte-like object.
+ *
+ * @tparam T -- Type to check against.
+ */
+template <typename T>
+concept ByteLikeable =
+   std::disjunction_v<
+      std::is_same<std::remove_cv_t<T>, std::byte>,
+      std::is_same<std::remove_cv_t<T>, char>,
+      std::is_same<std::remove_cv_t<T>, schar>,
+      std::is_same<std::remove_cv_t<T>, uchar>
+   >;
+
 /** YM_CREATE_TAG_DISPATCH_TYPE
  *
  * @brief Template for creating tag dispatch types.

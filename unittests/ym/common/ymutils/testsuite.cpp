@@ -167,10 +167,14 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
    BoundPtr ab(ap);
    *ab = 11;
 
+   auto ab2 = ab;
+
    ab = ap;
 
    int r[3]{};
-   BoundPtr<int> rp(r);
+   BoundPtr rp(r);
+
+   // BoundPtr<int> rp2 = rp; // doesn't compile - expected!
 
    [[maybe_unused]] optstrlit val = "3";
 
@@ -199,6 +203,16 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
    // {
 
    // }
+
+   str n = "hghg";
+   // strlit m = n; // doesn't compile - expected!
+
+
+
+   str v = s; // str array to string pointer - expected to compile but only with byte size types
+   optstr v2 = s;
+   optstr u = v;
+   optstr w = s.get();
 
    return {
       {"CanCast", Is11}

@@ -260,11 +260,11 @@ void ym::ArgParser::displayHelpMenu(void) const
  *
  * @brief Grabs the next token in the given command arguments.
  *
- * @returns rawstr -- Next token in the list, or nullptr if no next.
+ * @returns optstr -- Next token in the list, or nullptr if no next.
  */
-auto ym::ArgParser::getNextToken(void) -> optstrlit
+auto ym::ArgParser::getNextToken(void) -> optstr
 {
-   optstrlit token{};
+   optstr token{};
 
    if (_Argc < 0)
    { // cmd line args are in one string
@@ -272,28 +272,35 @@ auto ym::ArgParser::getNextToken(void) -> optstrlit
       if (_tidx.str_idx)
       { // no selected cmd line arg yet - set to argument string
          _tidx.str_idx = _Argv.Str;
+
+         while (
+            std::isspace(
+               static_cast<unsigned char>(
+                  *_tidx.str_idx.unwrap_or("-"))) != 0)
+         { // advance stream to next token
+            _tidx.str_idx++;
+         }
+      }
+      else
+      { // advance to next token in stream
+         while (
+            std::isspace(
+               static_cast<unsigned char>(
+                  *_tidx.str_idx.unwrap_or(" "))) == 0)
+         { // advance stream to next token separator
+            _tidx.str_idx++;
+         }
+
+         while (
+            std::isspace(
+               static_cast<unsigned char>(
+                  *_tidx.str_idx.unwrap_or("-"))) != 0)
+         { // advance stream to next token
+            _tidx.str_idx++;
+         }
       }
 
-      // TODO
-      // " --build --clean"
-      // "--build --clean"
-      // "   "
-      // ""
-
-      while (_tidx.str_idx && !std::isspace(static_cast<unsigned char>(*_tidx.str_idx.unwrap_or(" "))))
-      { // advance stream to next token separator
-         _tidx.str_idx++;
-      }
-
-      while (_tidx.str_idx && std::isspace(static_cast<unsigned char>(*_tidx.str_idx)))
-      { // advance stream to next token
-         _tidx.str_idx++;
-      }
-
-      if (*_tidx.str_idx)
-      { // found next cmd line arg
-         token = _tidx.str_idx;
-      }
+      token = _tidx.str_idx; // TODO optstrlit = optstr
    }
    else
    { // cmd line args as passed into main()
