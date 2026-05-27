@@ -81,7 +81,7 @@ public:
       inline auto isReqd (void) const { return _flags.test(FReqd); }
 
       inline Arg & desc  (strlit const Desc       ) { _desc = Desc;            return *this; }
-      inline Arg & defval(strlit const DefaultVal ) { _val  = DefaultVal;      return *this; }
+      inline Arg & defval(str    const DefaultVal ) { _val  = DefaultVal;      return *this; }
       inline Arg & abbr  (char   const Abbr       ) { _abbr = Abbr;            return *this; }
       inline Arg & enbl  (bool   const Enbl = true) { _flags.set(FFlag);
                                                       _flags.set(FEnbl, Enbl);
@@ -94,7 +94,7 @@ public:
       // no consts - see static assert below
       strlit     _name {""}; // arg name (used as the key)
       strlit     _desc {""}; // description
-      optstrlit  _val  {  }; // value
+      optstr     _val  {  }; // value
       uint32     _nvals{  }; // number of values, if list
       char       _abbr {  }; // abbreviation
       ByteBitset _flags{  }; // flags
@@ -166,8 +166,8 @@ private:
    /// @brief Helper type.
    union Argv_T
    {
-      constexpr Argv_T(BoundPtr<strlit> const Vec_) : Vec{Vec_} {}
-      constexpr Argv_T(str              const Str_) : Str{Str_} {}
+      constexpr Argv_T(BoundPtr<strlit> const Vec_) noexcept : Vec{Vec_} {}
+      constexpr Argv_T(str              const Str_) noexcept : Str{Str_} {}
 
       BoundPtr<strlit> const Vec; // array of args (as passed to main)
       str              const Str; // one string
@@ -177,17 +177,17 @@ private:
    union Idx_T
    {
       constexpr Idx_T(void) noexcept = default;
-      constexpr Idx_T(int const Vec_idx_) : vec_idx{Vec_idx_      } {}
-      constexpr Idx_T(str const Str_idx_) : str_idx{Str_idx_.get()} {}
+      constexpr Idx_T(int const Vec_idx_) noexcept : vec_idx{Vec_idx_} {}
+      constexpr Idx_T(str const Str_idx_) noexcept : str_idx{Str_idx_} {}
 
-      int    vec_idx{}; // used for array of args (as passed to main)
-      optstr str_idx;   // used for one string
+      int    vec_idx;   // used for array of args (as passed to main)
+      optstr str_idx{}; // used for one string
    };
 
    AbbrSet_T      _abbrs      {};
    std::span<Arg> _argHandlers{};
    int    const   _Argc       {};
-   Argv_T const   _Argv       {};
+   Argv_T const   _Argv;
    Idx_T          _tidx       {};
 };
 

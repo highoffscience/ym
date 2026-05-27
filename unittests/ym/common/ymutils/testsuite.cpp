@@ -161,6 +161,11 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
 {
    auto const SE = ymLogPushEnable(VF::UnitTest);
 
+   // static_assert(std::assignable_from<
+   //    BoundPtr<str>&,
+   //    BoundPtr<str>
+   // >);
+
    int a = 9;
    int * ap = &a;
 
@@ -173,6 +178,8 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
 
    int r[3]{};
    BoundPtr rp(r);
+
+   // str fgh = nullptr; // doesn't compile - expected!
 
    // BoundPtr<int> rp2 = rp; // doesn't compile - expected!
 

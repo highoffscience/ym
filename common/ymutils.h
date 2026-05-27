@@ -391,6 +391,13 @@ public:
          BoundPtr_Base<T, BoundPtr<T>>(ym_castPtrTo<T>(Other.get()))
    { }
 
+   /// @name Creation methods.
+   /// @{
+   /// @brief Compile time non-nullness checks.
+   constexpr BoundPtr                 (std::nullptr_t) = delete;
+   constexpr BoundPtr<T> & operator = (std::nullptr_t) = delete;
+   /// @}
+
    /// @name Comparison operations.
    /// @{
    /// @brief Comparison overloads.
@@ -423,6 +430,13 @@ public:
    implicit constexpr BoundPtr(BoundPtr<U[]> const & Other) noexcept :
       BoundPtr_Base<T, BoundPtr<T[]>>(Other)
    { }
+
+   /// @name Creation methods.
+   /// @{
+   /// @brief Compile time non-nullness checks.
+   constexpr BoundPtr                   (std::nullptr_t) = delete;
+   constexpr BoundPtr<T[]> & operator = (std::nullptr_t) = delete;
+   /// @}
 };
 
 /// @brief Deduction guide - prevents pointer to array from decaying.
@@ -530,7 +544,7 @@ public:
    { }
 
    /// @brief Wrapper for non-null pointer.
-   template <std::size_t N> // TODO store N
+   template <std::size_t N>
    implicit constexpr FreePtr(T (&array) [N]) noexcept :
       Ptr_Base<T, FreePtr<T[]>>(array)
    { }
