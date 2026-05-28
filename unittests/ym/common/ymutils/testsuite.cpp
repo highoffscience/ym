@@ -80,12 +80,15 @@ auto ym::unit::TestSuite::Funcs::run([[maybe_unused]] DataShuttle const & InData
    {
       rawstr s = nullptr;
       emptySuccess = ym_empty(s);
+      ymLog(VF::UnitTest, "empty 1) -- {}", ym_empty(s));
 
       s = "";
       emptySuccess &= ym_empty(s);
+      ymLog(VF::UnitTest, "empty 2) -- {}", ym_empty(s));
 
       s = "Go! Torchic!";
       emptySuccess &= !ym_empty(s);
+      ymLog(VF::UnitTest, "empty 3) -- {}", ym_empty(s));
    }
 
    auto binarySearchSuccess = false;
@@ -172,7 +175,7 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
    BoundPtr ab(ap);
    *ab = 11;
 
-   auto ab2 = ab;
+   [[maybe_unused]] auto ab2 = ab;
 
    ab = ap;
 
@@ -211,15 +214,15 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
 
    // }
 
-   str n = "hghg";
+   [[maybe_unused]] str n = "hghg";
    // strlit m = n; // doesn't compile - expected!
 
 
 
    str v = s; // str array to string pointer - expected to compile but only with byte size types
-   optstr v2 = s;
-   optstr u = v;
-   optstr w = s.get();
+   [[maybe_unused]] optstr v2 = s;
+   [[maybe_unused]] optstr u = v;
+   [[maybe_unused]] optstr w = s.get();
 
    return {
       {"CanCast", Is11}

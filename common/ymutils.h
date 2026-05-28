@@ -75,7 +75,7 @@ constexpr auto ym_empty(rawstr const S) noexcept
 {
    return
        S == nullptr || // if null
-      *S != '\0';      // if empty
+      *S == '\0';      // if empty
 }
 
 /** ym_binarySearch
@@ -371,7 +371,9 @@ public:
    /// @brief Only allow if str - it is de facto usage to treat character arrays as character pointers.
    template <typename U>
    requires (std::is_array_v<U> && ByteLikeable<T>)
-   implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept = default;
+   implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept :
+      BoundPtr<T>(Other.get(), ym_AssumePtrNotNull{})
+   { }
 
    /// @brief Casting constructor.
    template <typename U>
@@ -493,7 +495,9 @@ public:
    /// @brief Only allow if str - it is de facto usage to treat character arrays as character pointers.
    template <typename U>
    requires (std::is_array_v<U> && ByteLikeable<T>)
-   implicit constexpr FreePtr(FreePtr<U> const & Other) noexcept = default;
+   implicit constexpr FreePtr(FreePtr<U> const & Other) noexcept :
+      FreePtr<T>(Other.get())
+   { }
 
    /// @brief Unsafe to convert between the two - deallocation strategies differ.
    template <typename U>
@@ -503,7 +507,9 @@ public:
    /// @brief Only allow if str - it is de facto usage to treat character arrays as character pointers.
    template <typename U>
    requires (std::is_array_v<U> && ByteLikeable<T>)
-   implicit constexpr FreePtr(BoundPtr<U> const & Other) noexcept = default;
+   implicit constexpr FreePtr(BoundPtr<U> const & Other) noexcept :
+      FreePtr<T>(Other.get())
+   { }
 
    /// @name Comparison operations.
    /// @{
