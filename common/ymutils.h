@@ -63,21 +63,6 @@ constexpr auto * ym_castPtrTo(U * const data_Ptr) noexcept
          >(data_Ptr));
 }
 
-/** ym_empty
- *
- * @brief Determines if the parameter is consider empty.
- *
- * @note Can be overloaded for other types.
- *
- * @returns True if empty, false otherwise.
- */
-constexpr auto ym_empty(rawstr const S) noexcept
-{
-   return
-       S == nullptr || // if null
-      *S == '\0';      // if empty
-}
-
 /** ym_binarySearch
  *
  * @brief Returns an iterator to the searched for element, or last
@@ -98,7 +83,7 @@ template <
 constexpr auto ym_binarySearch(
    Iterator_T      first,
    Iterator_T      last,
-   Value_T const & Value,
+   Value_T const & Value, // key
    Compare_T       compare = Compare_T{}) noexcept
 requires (
    std::is_nothrow_invocable_v<Compare_T,

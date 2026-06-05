@@ -62,14 +62,14 @@ auto ym::unit::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & I
 {
    auto const SE = ymLogPushEnable(VF::UnitTest);
 
-   strlit const Argv[] = {"testsuite",
+   rawstr const Argv[] = {"testsuite",
       "--input",  "settings.json",
       "--output", "data.csv",
       "-cb",
       "-k", "Torchic1234",
       "--in-denial"
    };
-   auto const Argc = static_cast<int32>(std::size(Argv));
+   auto const Argc = static_cast<int>(std::size(Argv));
 
    std::array argHandlers{
       ArgParser::Arg("input"    ).desc("Input file"  ),
@@ -94,11 +94,11 @@ auto ym::unit::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & I
    {
       ap.parse();
 
-      val_input  = std::strcmp(ap["input"    ]->getVal(), "settings.json") == 0;
-      val_output = std::strcmp(ap["output"   ]->getVal(), "data.csv"     ) == 0;
+      val_input  = std::strcmp(ap["input"    ]->getVal().unwrap(), "settings.json") == 0;
+      val_output = std::strcmp(ap["output"   ]->getVal().unwrap(), "data.csv"     ) == 0;
       val_clean  =             ap["clean"    ]->isEnbl();
       val_build  =             ap["build"    ]->isEnbl();
-      val_key    = std::strcmp(ap["key"      ]->getVal(), "Torchic1234"  ) == 0;
+      val_key    = std::strcmp(ap["key"      ]->getVal().unwrap(), "Torchic1234"  ) == 0;
       val_denial =             ap["in-denial"]->isEnbl();
    }
    catch (ArgParser::Error const & E)

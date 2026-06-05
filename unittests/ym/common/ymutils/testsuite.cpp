@@ -224,6 +224,16 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
    [[maybe_unused]] optstr u = v;
    [[maybe_unused]] optstr w = s.get();
 
+   [[maybe_unused]]
+   rawstr const Argv[] = {"testsuite",
+      "--input",  "settings.json",
+      "--output", "data.csv",
+      "-cb",
+      "-k", "Torchic1234",
+      "--in-denial"
+   };
+   // BoundPtr<str> const Argv_BPtr = Argv;
+
    return {
       {"CanCast", Is11}
    };

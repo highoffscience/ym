@@ -18,7 +18,7 @@ function(srcbuild-ym.common Ctx_JSON)
    add_library(${Target} SHARED)
 
    set(Srcs
-      # argparser.cpp
+      argparser.cpp
       datalogger.cpp
       fileio.cpp
       globallogger.cpp

@@ -35,6 +35,7 @@ public:
       UnitTest,
       Warning,
       Error,
+      UserError,
 
       ArgParser,
       DataLogger,

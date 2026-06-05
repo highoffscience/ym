@@ -266,6 +266,21 @@ constexpr auto ym_getNBits(void) noexcept
    return sizeof(T) * static_cast<std::size_t>(CHAR_BIT);
 }
 
+/** ym_empty
+ *
+ * @brief Determines if the parameter is consider empty.
+ *
+ * @note Can be overloaded for other types.
+ *
+ * @returns True if empty, false otherwise.
+ */
+constexpr auto ym_empty(rawstr const S) noexcept
+{
+   return
+       S == nullptr || // if null
+      *S == '\0';      // if empty
+}
+
 // ----------------------------------------------------------------------------
 
 /** YM_HELPER_LITERAL_DECL

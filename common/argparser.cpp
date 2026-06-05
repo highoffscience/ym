@@ -32,9 +32,9 @@
  * @param argHandlers -- Array of argument handlers.
  */
 ym::ArgParser::ArgParser(
-   int              const Argc,
-   BoundPtr<strlit> const Argv_BPtr,
-   std::span<Arg>         argHandlers) :
+   int           const Argc,
+   BoundPtr<str> const Argv_BPtr,
+   std::span<Arg>      argHandlers) :
       _argHandlers {argHandlers},
       _Argc        {Argc       },
       _Argv        {Argv_BPtr  }
@@ -54,15 +54,15 @@ ym::ArgParser::ArgParser(
    str      const  Argv,
    std::span<Arg>  argHandlers) :
       _argHandlers {argHandlers},
-      _Argc        {-1         },
-      _Argv        {Argv       }
+      _Argc        {     -1    }, // -1 indicates argument vector is single string
+      _Argv        {    Argv   }
 { }
 
 /** parse
  *
  * @brief Parses through the command line arguments and populates registered args.
  *
- * @throws ParseError -- If a parsing error occurs.
+ * @throws Error -- If tokens are malformed.
  *
  * @returns ParseResult_T -- Result of the parse.
  */
@@ -95,7 +95,7 @@ auto ym::ArgParser::parse(void) -> ParseResult_T
       else
       { // unexpected command line argument
          result = ParseResult_T::Failure;
-         YMASSERT(false, Error, YM_DAH, "Argument '{}' was unexpected", token);
+         ymLog(VF::UserError, "Argument '{}' was unexpected", token);
       }
    }
 
@@ -144,7 +144,7 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 
       auto const Key  = it->getName();
       auto const Desc = it->getDesc();
-      auto const Val  = it->getVal ();
+      auto const Val  = it->getVal ().unwrap();
       auto const Abbr = it->getAbbr();
 
       // --- --- detect duplicate keys --- ---
@@ -276,7 +276,7 @@ auto ym::ArgParser::getNextToken(void) -> optstr
          while (
             std::isspace(
                static_cast<unsigned char>(
-                  *_tidx.str_idx.unwrap_or("-"))) != 0)
+                  *_tidx.str_idx.unwrap_or("~"))) != 0)
          { // advance stream to next token
             _tidx.str_idx++;
          }
@@ -294,7 +294,7 @@ auto ym::ArgParser::getNextToken(void) -> optstr
          while (
             std::isspace(
                static_cast<unsigned char>(
-                  *_tidx.str_idx.unwrap_or("-"))) != 0)
+                  *_tidx.str_idx.unwrap_or("~"))) != 0)
          { // advance stream to next token
             _tidx.str_idx++;
          }
@@ -335,51 +335,47 @@ auto ym::ArgParser::getArgPtrFromPrefix(str const Prefix) -> BoundPtr<Arg>
 {
    FreePtr<Arg> arg_fptr = nullptr;
 
-   if (Prefix)
-   { // valid prefix
+   auto BeginIt = _argHandlers.begin();
+   auto EndIt   = _argHandlers.end();
 
-      auto BeginIt = _argHandlers.begin();
-      auto EndIt   = _argHandlers.end();
+   std::string_view const PrefixSV(Prefix);
 
-      std::string_view const PrefixSV(Prefix);
+   // returns first iterator where comp() evals to false
+   auto const LowerBoundIt = std::lower_bound(BeginIt, EndIt, PrefixSV,
+      // should return true if Arg is ordered before Prefix
+      [](Arg const & Arg, std::string_view const & PrefixSV) -> bool {
+         return std::strncmp(Arg.getName(), PrefixSV.data(), PrefixSV.size()) < 0;
+      }
+   );
 
-      // returns first iterator where comp() evals to false
-      auto const LowerBoundIt = std::lower_bound(BeginIt, EndIt, PrefixSV,
-         // should return true if Arg is ordered before Prefix
-         [](Arg const & Arg, std::string_view const & PrefixSV) -> bool {
-            return std::strncmp(Arg.getName(), PrefixSV.data(), PrefixSV.size()) < 0;
-         }
-      );
+   for (auto it = LowerBoundIt; it != EndIt; it++)
+   { // search through all stored args
 
-      for (auto it = LowerBoundIt; it != EndIt; it++)
-      { // search through all stored args
+      auto const Cmp = std::strncmp(PrefixSV.data(), it->getName(), PrefixSV.size());
 
-         auto const Cmp = std::strncmp(PrefixSV.data(), it->getName(), PrefixSV.size());
-
-         if (Cmp == 0)
-         { // prefix found (whole prefix matched)
-            if (std::strlen(it->getName()) == PrefixSV.size())
-            { // entire key matched
-               arg_fptr = &*it;
-               break;
-            }
-            else
-            { // prefix matched but maybe others will match so continue search
-              // if another match is found it will trigger the assert below
-               YMASSERT(it == EndIt, ParseError, YM_DAH, "Prefix '{}' is ambiguous", PrefixSV);
-               arg_fptr = &*it;
-            }
-         }
-         else if (Cmp < 0)
-         { // not a match - end search
+      if (Cmp == 0)
+      { // prefix found (whole prefix matched)
+         if (std::strlen(it->getName()) == PrefixSV.size())
+         { // entire key matched
+            arg_fptr = &*it;
             break;
          }
+         else
+         { // prefix matched but maybe others will match so continue search
+            // if another match is found it will trigger the assert below
+            YMASSERT(it == EndIt, ParseError, YM_DAH, "Prefix '{}' is ambiguous", PrefixSV);
+            arg_fptr = &*it;
+         }
       }
-
-      YMASSERT(arg_fptr, ParseError, YM_DAH, "Prefix '{}' doesn't match any handlers", PrefixSV);
+      else if (Cmp < 0)
+      { // not a match - end search
+         break;
+      }
    }
 
-   return arg_fptr.un;
+   YMASSERT(arg_fptr, ParseError, YM_DAH, "Prefix '{}' doesn't match any handlers", PrefixSV);
+
+   return arg_fptr.unwrap();
 }
 
 /** getArgPtrFromAbbr
@@ -391,17 +387,17 @@ auto ym::ArgParser::getArgPtrFromPrefix(str const Prefix) -> BoundPtr<Arg>
  *
  * @param Abbr -- Abbreviation of argument.
  *
- * @returns Arg * -- Found argument.
+ * @returns BoundPtr<Arg> -- Found argument.
  */
-auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> Arg *
+auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> BoundPtr<Arg>
 {
    YMASSERT(isValidChar(Abbr), ParseError, YM_DAH, "Abbr 0x{:x} not valid", Abbr);
 
-   auto * const arg_Ptr = _abbrs[getAbbrIdx(Abbr)];
+   auto arg_fptr = _abbrs[getAbbrIdx(Abbr)];
 
-   YMASSERT(arg_Ptr, ParseError, YM_DAH, "Abbr '{}' not registered", Abbr);
+   YMASSERT(arg_fptr, ParseError, YM_DAH, "Abbr '{}' not registered", Abbr);
 
-   return arg_Ptr;
+   return arg_fptr.unwrap();
 }
 
 /** parseLonghand
@@ -502,16 +498,15 @@ auto ym::ArgParser::parseLonghand(
 
       auto token = getNextToken();
       YMASSERT(token, ParseError, YM_DAH, "No value for arg '{}'", arg_BPtr->getName());
-      // token.unwrap()! TODO how to inject this assert as a lambda into unwrap?
-      arg_BPtr->defval(token);
+      arg_BPtr->defval(token.unwrap());
 
       if (arg_BPtr->isList())
       { // argument is list
 
-         auto const NExpectedVals = std::strtoul(token, nullptr, 10);
+         auto const NExpectedVals = std::strtoul(token.unwrap(), nullptr, 10);
 
          YMASSERT(NExpectedVals != 0ul && NExpectedVals != ULONG_MAX, ParseError, YM_DAH,
-            "List '{}' has invalid hint for number of arguments", arg_Ptr->getName());
+            "List '{}' has invalid hint for number of arguments", arg_BPtr->getName());
 
          arg_BPtr->_nvals = static_cast<uint32>(NExpectedVals);
 
@@ -519,7 +514,7 @@ auto ym::ArgParser::parseLonghand(
          { // fast forward the number of items in list
             if (i == 0u)
             { // record starting point of list
-               arg_BPtr->defval(token);
+               arg_BPtr->defval(token.unwrap());
             }
          }
 
@@ -585,8 +580,8 @@ auto ym::ArgParser::get(str const Key) const -> BoundPtr<Arg const>
    auto const EndIt   = _argHandlers.cend();
 
    auto const It = ym_binarySearch(BeginIt, EndIt, Key.get(),
-      [](str const Key, auto const & Arg) -> std::weak_ordering {
-         return std::strcmp(Key, Arg->getName()) <=> 0;
+      [](auto const Key, auto const & Arg) noexcept -> std::weak_ordering {
+         return std::strcmp(Key, Arg.getName()) <=> 0;
       }
    );
 
