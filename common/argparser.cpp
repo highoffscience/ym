@@ -32,9 +32,9 @@
  * @param argHandlers -- Array of argument handlers.
  */
 ym::ArgParser::ArgParser(
-   int           const Argc,
-   BoundPtr<str> const Argv_BPtr,
-   std::span<Arg>      argHandlers) :
+   int                    const Argc,
+   BoundPtr<rawstr const> const Argv_BPtr,
+   std::span<Arg>               argHandlers) :
       _argHandlers {argHandlers},
       _Argc        {Argc       },
       _Argv        {Argv_BPtr  }

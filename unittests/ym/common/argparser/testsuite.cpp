@@ -128,7 +128,7 @@ auto ym::unit::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const 
 {
    auto const SE = ymLogPushEnable(VF::UnitTest);
 
-   strlit const Argv[] = {"testsuite",
+   rawstr const Argv[] = {"testsuite",
       "--verbose",
       "--width", "1"
    };

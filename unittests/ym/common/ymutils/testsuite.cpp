@@ -232,7 +232,9 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
       "-k", "Torchic1234",
       "--in-denial"
    };
-   // BoundPtr<str> const Argv_BPtr = Argv;
+   rawstr const * Argv_a = Argv;
+   [[maybe_unused]]
+   BoundPtr<rawstr const> const Argv_BPtr = Argv;
 
    return {
       {"CanCast", Is11}

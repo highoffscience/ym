@@ -113,9 +113,9 @@ public:
    };
 
    explicit ArgParser(
-      int           const Argc,       // command line arg count
-      BoundPtr<str> const Argv_BPtr,  // command line args
-      std::span<Arg>      argHandlers // user-defined arg handlers
+      int                    const Argc,       // command line arg count
+      BoundPtr<rawstr const> const Argv_BPtr,  // command line args
+      std::span<Arg>               argHandlers // user-defined arg handlers
    );
 
    explicit ArgParser(
@@ -166,11 +166,11 @@ private:
    /// @brief Helper type.
    union Argv_T
    {
-      constexpr Argv_T(BoundPtr<str> const Vec_) noexcept : Vec{Vec_} {}
-      constexpr Argv_T(str           const Str_) noexcept : Str{Str_} {}
+      constexpr Argv_T(BoundPtr<rawstr const> const Vec_) noexcept : Vec{Vec_} {}
+      constexpr Argv_T(str /* - - -  - - - */ const Str_) noexcept : Str{Str_} {}
 
-      BoundPtr<str> const Vec; // array of args (as passed to main)
-      str           const Str; // one string
+      BoundPtr<rawstr const> const Vec; // array of args (as passed to main)
+      str /* - - -  - - - */ const Str; // one string
    };
 
    /// @brief Helper type.
