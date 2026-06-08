@@ -69,8 +69,10 @@ auto ym::unit::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & I
       "-k", "Torchic1234",
       "--in-denial"
    };
+   [[maybe_unused]]
    auto const Argc = static_cast<int>(std::size(Argv));
 
+   [[maybe_unused]]
    std::array argHandlers{
       ArgParser::Arg("input"    ).desc("Input file"  ),
       ArgParser::Arg("output"   ).desc("Output file" ),
@@ -80,6 +82,7 @@ auto ym::unit::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & I
       ArgParser::Arg("in-denial").desc("My existence")          .enbl()
    };
 
+   [[maybe_unused]]
    ArgParser ap(Argc, Argv, argHandlers);
 
    auto excHappened = false;

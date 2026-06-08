@@ -144,7 +144,7 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 
       auto const Key  = it->getName();
       auto const Desc = it->getDesc();
-      auto const Val  = it->getVal ().unwrap();
+      auto const Val  = it->getVal ();
       auto const Abbr = it->getAbbr();
 
       // --- --- detect duplicate keys --- ---
@@ -185,7 +185,8 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 
       if (it->isFlag())
       { // marked as flag
-         YMASSERT(std::strcmp(Val, "0") == 0 || std::strcmp(Val, "1") == 0, ArgError, YM_DAH,
+         YMASSERT(Val, ArgError, YM_DAH, "Arg '{}' is a flag yet not initialized");
+         YMASSERT(std::strcmp(Val.unwrap(), "0") == 0 || std::strcmp(Val.unwrap(), "1") == 0, ArgError, YM_DAH,
             "Arg '{}' is a flag - cannot have arbitrary value", Key);
       }
       else

@@ -5,6 +5,8 @@ sudo apt install python3.13
 sudo apt install python3.13-venv
 sudo apt install python3.13-dev
 
+sudo apt install libstdc++-15-dev // for std::stacktrace
+
 can experiment with "$jupyter lab <name-of-file>" after activating venv
 
 $ python -m venv venv/

@@ -51,7 +51,7 @@ if (YM_CovEnabled)
    target_compile_options(YMRootIntLib INTERFACE ${YM_CovFlags})
    target_link_options(   YMRootIntLib INTERFACE ${YM_CovFlags})
    unset(YM_CovFlags)
-else()
+elseif (NOT YM_DEBUG)
    target_compile_options(YMRootIntLib INTERFACE -O2)
 endif()
 
@@ -70,6 +70,11 @@ math(EXPR YM_NO_EXCEPTIONS "1 - ${YM_ENABLE_EXCEPTIONS}")
 target_compile_definitions(YMRootIntLib INTERFACE YM_YES_EXCEPTIONS=${YM_ENABLE_EXCEPTIONS})
 target_compile_definitions(YMRootIntLib INTERFACE YM_NO_EXCEPTIONS=${YM_NO_EXCEPTIONS})
 unset(YM_NO_EXCEPTIONS)
+
+if (YM_DEBUG)
+   target_compile_options(YMRootIntLib INTERFACE -g)
+   target_link_libraries(YMRootIntLib INTERFACE stdc++exp)
+endif()
 
 find_library(YM_FMT_LIB
    NAMES fmt

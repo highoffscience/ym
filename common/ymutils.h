@@ -510,12 +510,12 @@ public:
 
    /// @brief Returns a BoundPtr to the contained pointer.
    /// @throws ym_NullPtrError -- If value is null.
-   constexpr BoundPtr<T> unwrap(void) {
+   constexpr BoundPtr<T> unwrap(void) const {
       return this->_value_ptr;
    }
 
    /// @brief Returns a BoundPtr to the contained pointer, or a default value if the contained pointer is null.
-   constexpr BoundPtr<T> unwrap_or(BoundPtr<T> const BPtr) noexcept {
+   constexpr BoundPtr<T> unwrap_or(BoundPtr<T> const BPtr) const noexcept {
       return (*this) ? unwrap() : BPtr;
    }
 };
