@@ -10,12 +10,12 @@
 
 #include "fmt/format.h"
 
-#if defined(YM_DEBUG)
-   #include <stacktrace>
-#endif
-
 #if (YM_NO_EXCEPTIONS)
    #include <csignal>
+#endif
+
+#if defined(YM_DEBUG)
+   #include <stacktrace>
 #endif
 
 /** write_Helper
@@ -31,34 +31,28 @@ void ym::ymassert_Base::write_Helper(
    rawstr const     Format,
    fmt::format_args args)
 {
-   auto const Result = fmt::vformat_to_n(
+   auto result = fmt::vformat_to_n(
       _msg,
       _s_MaxMsgSize_bytes - 1uz,
       Format,
       args);
-   *Result.out = '\0';
+   *result.out = '\n';
+   result.size++;
 
 #if defined(YM_DEBUG)
-   // std::cerr << std::stacktrace::current() << std::endl;
 
-   // char* out = result.out;
+   result.out++;
+   if (_s_MaxMsgSize_bytes > result.size)
+   {
+      result = fmt::format_to_n(
+         result.out,
+         _s_MaxMsgSize_bytes - result.size - 1uz,
+         "{}",
+         std::stacktrace::current());
+      *result.out = '\0';
+      result.size = std::distance(_msg, result.out);
+   }
 
-   // auto append = [&](fmt::format_string<std::stacktrace> fmtstr,
-   //                   std::stacktrace const& st)
-   // {
-   //    auto r = fmt::format_to_n(
-   //       out,
-   //       (_msg + _s_MaxMsgSize_bytes - 1) - out,
-   //       fmtstr,
-   //       st);
-
-   //    out = r.out;
-   // };
-
-   // append("\n\nStack trace:\n    {}\n",
-   //        std::stacktrace::current());
-
-   // *out = '\0';
 #endif
 }
 

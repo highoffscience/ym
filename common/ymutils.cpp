@@ -34,3 +34,16 @@ auto fmt::formatter<ym::mutstr>::format(ym::mutstr s, fmt::format_context & ctx_
 {
    return fmt::formatter<fmt::string_view>::format(s.get(), ctx_ref);
 }
+
+#if defined(YM_DEBUG)
+
+   /** formatter
+    *
+    * @brief Helper class to format ym::mutstr types for use in the fmt library.
+    */
+   auto fmt::formatter<std::stacktrace>::format(std::stacktrace s, fmt::format_context & ctx_ref) const -> fmt::format_context::iterator
+   {
+      return fmt::formatter<fmt::string_view>::format(std::to_string(s), ctx_ref);
+   }
+
+#endif

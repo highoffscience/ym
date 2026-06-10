@@ -130,7 +130,13 @@ public:
       logAssert(E); return v_uref;
    }
 
-   static constexpr auto _s_MaxMsgSize_bytes = 128uz;
+   static constexpr auto _s_MaxMsgSize_bytes =
+      #if defined(YM_DEBUG)
+         4096uz
+      #else
+         256uz
+      #endif
+      ;
 
    /// @brief Forwarding printf function.
    template <typename... Args_T>

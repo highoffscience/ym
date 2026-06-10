@@ -27,6 +27,10 @@
    #include <exception>
 #endif
 
+#if defined(YM_DEBUG)
+   #include <stacktrace>
+#endif
+
 namespace ym
 {
 
@@ -697,5 +701,19 @@ struct formatter<ym::mutstr> : public fmt::formatter<fmt::string_view>
 {
    auto format(ym::mutstr s, fmt::format_context & ctx_ref) const -> fmt::format_context::iterator;
 };
+
+#if defined(YM_DEBUG)
+
+   /** formatter
+    *
+    * @brief Helper class to format ym::mutstr types for use in the fmt library.
+    */
+   template <>
+   struct formatter<std::stacktrace> : public fmt::formatter<fmt::string_view>
+   {
+      auto format(std::stacktrace s, fmt::format_context & ctx_ref) const -> fmt::format_context::iterator;
+   };
+
+#endif
 
 } // fmt

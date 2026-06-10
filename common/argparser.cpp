@@ -158,8 +158,7 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
       // --- --- validate key name --- ---
 
       YMASSERT(*Key, ArgError, YM_DAH, "Name must be non-empty");
-      // TODO
-      // YMASSERT(Key[0] != '-', ArgError, YM_DAH, "Name '{}' cannot begin with '-'", Key);
+      YMASSERT(Key[0] != '-', ArgError, YM_DAH, "Name '{}' cannot begin with '-'", Key);
       YMASSERT(std::strcmp(Key, "help") != 0, ArgError, YM_DAH,
          "Arg cannot be named the reserved word 'help'");
 
