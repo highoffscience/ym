@@ -23,10 +23,10 @@ public:
    // this class takes ownership of the buffer
    explicit inline JsonIO(std::span<char> buffer) noexcept;
 
-   void parseInSitu();
+   void parseInSitu(void);
 
 private:
-   std::unique_ptr<char> _buffer_uptr{};
+   std::span<char> _buffer{};
 };
 
 } // ym
