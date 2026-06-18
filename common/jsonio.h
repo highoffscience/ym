@@ -13,6 +13,19 @@
 namespace ym
 {
 
+struct LinkedCarrier
+{
+   LinkedCarrier(class JsonIO * primary_ptr) : _primary_ptr {primary_ptr} {}
+   ~LinkedCarrier(void) {
+      if (_primary_ptr) {
+         _primary_ptr->destroyLinkedCarrier();
+      }
+   }
+
+   class JsonIO *  _primary_ptr;
+   std::span<char> _data;
+};
+
 /** JsonIO
  *
  * TODO
@@ -21,12 +34,17 @@ class JsonIO
 {
 public:
    // this class takes ownership of the buffer
-   explicit inline JsonIO(std::span<char> buffer) noexcept;
+   explicit inline JsonIO(BoundPtr<LinkedCarrier> lc_bptr) noexcept
+      : _lc_bptr {lc_bptr}
+   { }
+   ~JsonIO(void) {
+
+   }
 
    void parseInSitu(void);
 
 private:
-   std::span<char> _buffer{};
+   BoundPtr<LinkedCarrier> _lc_bptr; // This should be a free ptr - or std::optional
 };
 
 } // ym
