@@ -16,7 +16,23 @@
 struct Json : public StackBufferUser {...};
 
 Json form;
+
+// this version StackBuffer is agnostic to Json
 auto form_buffer = StackBuffer<std::array<char, 100>>('\0');
+
+// StackBuffer constructor will be passed Json object, CTAD will take over
+auto form_buffer = form.createStackBuffer<std::array<char, 100>>('\0');
+// the above form_buffer has a pointer to form.
+// possible implementation:
+// ---- begin ----
+
+template <typename T, typename... Args_T>
+inline auto StackBufferUser::createStackBuffer(Args_T &&... args) {
+   return StackBuffer(this, ...); // creates type T in place
+   // the constructor of StackBuffer will use "pointer this" to install itself
+}
+
+// ----- end -----
 
 form_buffer.installUser(form);
 // OR
@@ -57,9 +73,12 @@ class StackBuffer
 
 private:
    template <typename... Args_T>
-   constexpr explicit StackBuffer(Args_T &&... args)
-      : _buffer {std::forward<Args_T>(args)...}
-   { }
+   constexpr explicit StackBuffer(StackBufferUser * pmary_ptr, Args_T &&... args) :
+      _pmary_ptr {pmary_ptr},
+      _buffer    {std::forward<Args_T>(args)...}
+   {
+      _pmary_ptr->install(this);
+   }
 
    constexpr ~StackBuffer(void) {
       if (_pmary_ptr) {
