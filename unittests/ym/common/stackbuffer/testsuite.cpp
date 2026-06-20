@@ -1,0 +1,62 @@
+/**
+ * @file    testsuite.cpp
+ * @version 1.0.0
+ * @author  Forrest Jablonski
+ */
+
+#include "testsuite.h"
+
+#include "globallogger.h"
+#include "ymglobals.h"
+
+#include "stackbuffer.hpp" // Structures under test
+
+#include <array>
+
+/** TestSuite
+ *
+ * @brief Constructor.
+ */
+ym::unit::TestSuite::TestSuite(void) :
+   TestSuiteBase("StackBuffer")
+{
+   addTestCase<InteractiveInspection>();
+   addTestCase<SmokeTest>();
+}
+
+/** run
+ *
+ * @brief Interactive inspection - for debug purposes.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VF::UnitTest);
+   return {};
+}
+
+/** run
+ *
+ * @brief Basic integrity test.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const SE = ymLogPushEnable(VF::UnitTest);
+
+   struct Me : public StackBufferUser
+   {
+      void init(void) {
+         // TODO access buffer from within here
+      }
+   };
+
+   Me me;
+
+   [[maybe_unused]]
+   auto buffer = me.createStackBuffer<std::array<char, 100>>('\0');
+
+   return {};
+}

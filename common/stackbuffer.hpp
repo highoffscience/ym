@@ -8,7 +8,6 @@
 
 #include "ymglobals.h"
 
-#include <concepts>
 #include <utility>
 
 /*
@@ -47,50 +46,69 @@ namespace ym
  *
  * @brief TODO
  */
-struct StackBufferUser
+template <typename Buffer_T>
+class StackBuffer
 {
-   // bool installStackBuffer(FreePtr<StackBufferUser> const user_FPtr) {
-   //    return (_user_fptr) ? false : (_user_fptr = user_FPtr);
-   // }
+public:
+   template <typename... Args_T>
+   constexpr explicit StackBuffer(
+      BoundPtr<class StackBufferUser> const pmary_BPtr,
+      Args_T &&...                          args); // TODO I want this noexcept - guarantee constructor of Buffer_T is noexcept
 
-   // void uninstallStackBuffer(FreePtr<StackBufferUser> const user_FPtr) {
+   constexpr ~StackBuffer(void) noexcept;
 
-   // }
+// private: TODO
+   BoundPtr<class StackBufferUser> const _pmary_BPtr;
+   Buffer_T                              _buffer;
+};
 
-   FreePtr<class StackBuffer> _buffer_fptr{};
+/** StackBufferUser
+ *
+ * @brief TODO
+ */
+class StackBufferUser
+{
+public:
+   constexpr explicit StackBufferUser(void) noexcept = default;
+
+   /** createStackBuffer
+    *
+    * @brief TODO
+    */
+   template <
+      typename    Buffer_T,
+      typename... Args_T>
+   constexpr auto createStackBuffer(Args_T &&... args) {
+      return StackBuffer<Buffer_T>(this, std::forward<Args_T>(args)...);
+   }
+
+// protected: TODO
+   FreePtr<class StackBuffer> _buffer_fptr{}; // TODO I need template type here for StackBuffer
 };
 
 /** StackBuffer
  *
  * @brief TODO
  */
-template <
-   std::derived_from<StackBufferUser> Primary_T,
-   typename Buffer_T>
-class StackBuffer
+template <typename    Buffer_T>
+template <typename... Args_T>
+constexpr StackBuffer<Buffer_T>::StackBuffer(
+   BoundPtr<StackBufferUser> const pmary_BPtr,
+   Args_T &&...                    args) :
+      _pmary_BPtr {         pmary_BPtr          },
+      _buffer     {std::forward<Args_T>(args)...}
 {
-   friend class Primary_T;
+   _pmary_BPtr->_buffer_fptr = this;
+}
 
-private:
-   template <typename... Args_T>
-   constexpr explicit StackBuffer(StackBufferUser * pmary_ptr, Args_T &&... args) :
-      _pmary_ptr {pmary_ptr},
-      _buffer    {std::forward<Args_T>(args)...}
-   {
-      _pmary_ptr->install(this);
-   }
-
-   constexpr ~StackBuffer(void) {
-      if (_pmary_ptr) {
-         _pmary_ptr->uninstallStackBuffer(this);
-      }
-   }
-
-   void installUser()
-
-   Primary_T * _pmary_ptr;
-   Buffer_T _buffer;
-
-};
+/** ~StackBuffer
+ *
+ * @brief TODO
+ */
+template <typename Buffer_T>
+constexpr StackBuffer<Buffer_T>::~StackBuffer(void) noexcept
+{
+   _pmary_BPtr->_buffer_fptr = nullptr;
+}
 
 } // ym
