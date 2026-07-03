@@ -229,7 +229,7 @@ def gen_runner_file(args: argparse.Namespace):
       writeln(f"# kick-off                                                          ")
       writeln(f"if __name__ == \"__main__\":                                        ")
       writeln(f"   TestSuite.runSuite()                                             ")
-      writeln(f" else:                                                              ")
+      writeln(f"else:                                                               ")
       writeln(f"   TestSuite.runSuite()                                             ")
 
 def main():

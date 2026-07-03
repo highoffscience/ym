@@ -54,9 +54,11 @@ class StackBuffer : public StackBuffer_Base
 {
    friend class StackBufferUser;
 
+public:
+   constexpr ~StackBuffer(void) noexcept;
+
 private: // use StackBufferUser::createStackBuffer()
    constexpr explicit StackBuffer(BoundPtr<class StackBufferUser> const user_BPtr) noexcept;
-   constexpr ~StackBuffer(void) noexcept;
 
 private:
    std::array<std::byte, N> _buffer{};
@@ -68,6 +70,9 @@ private:
  */
 class StackBufferUser
 {
+   template <std::size_t>
+   friend class StackBuffer;
+
 public:
    constexpr explicit StackBufferUser(void) noexcept = default;
 
@@ -90,7 +95,7 @@ protected:
  */
 template <std::size_t N>
 constexpr StackBuffer<N>::StackBuffer(BoundPtr<StackBufferUser> const user_BPtr) noexcept :
-   StackBuffer_Base(user_BPtr)
+   StackBuffer_Base(_buffer.data(), _buffer.size(), user_BPtr)
 {
    _user_BPtr->_buffer_fptr = this;
 }

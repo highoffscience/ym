@@ -75,5 +75,5 @@ class TestSuite(testsuitebase.TestSuiteBase):
 # kick-off
 if __name__ == "__main__":
    TestSuite.runSuite()
- else:
+else:
    TestSuite.runSuite()

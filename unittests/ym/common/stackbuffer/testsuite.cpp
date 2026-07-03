@@ -56,7 +56,10 @@ auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & In
    Me me;
 
    [[maybe_unused]]
-   auto buffer = me.createStackBuffer<std::array<char, 100>>('\0');
+   auto buffer = me.createStackBuffer<100>();
+
+   // TODO also provide a macro for alloca()
+   //      YM_STACKBUFFER_DYN_ALLOC(me, 100);
 
    return {};
 }
