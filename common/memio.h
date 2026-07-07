@@ -10,6 +10,8 @@
 
 #include <alloca.h>
 
+#include <memory>
+
 namespace ym
 {
 
@@ -22,7 +24,7 @@ namespace ym
  *
  * @note Memory allocated by this function automatically gets freed when the
  *       embedding function goes out of scope.
- * 
+ *
  * @note Only allocates memory in current stack frame, so this must a macro,
  *       not an inline function.
  *
@@ -36,5 +38,34 @@ namespace ym
  */
 #define YM_STACK_ALLOC(Type_, NElements_) \
    static_cast<Type_ *>(alloca((NElements_) * sizeof(Type_)))
+
+/// @brief Global memory resource error.
+YM_DECL_YMASSERT(ym_MemResourceError)
+
+/**
+ * @brief TODO
+ *
+ */
+inline BoundPtr<std::pmr::memory_resource> ymGetNullMemResource(void) noexcept
+{
+   class type final : public std::pmr::memory_resource
+   {
+      virtual void * do_allocate(std::size_t, std::size_t) override {
+         YMASSERT(false, ym_MemResourceError, YM_DAH, "Null memory resource");
+         return nullptr;
+      }
+
+      virtual void do_deallocate(void *, std::size_t, std::size_t) noexcept override
+      { }
+
+      virtual bool do_is_equal(const std::pmr::memory_resource& __other) const noexcept override {
+         return this == &__other;
+      }
+   };
+
+   alignas(type) static unsigned char __buf[sizeof(type)];
+   static type * __r = new(__buf) type;
+   return BoundPtr(__r, ym_AssumePtrNotNull{});
+}
 
 } // ym
