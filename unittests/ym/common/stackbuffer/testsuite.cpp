@@ -54,8 +54,12 @@ auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & In
          _internal {buffer_BPtr.get()}
       { }
 
-      constexpr BoundPtr<std::pmr::string> operator -> (void) noexcept {
-         return &_internal;
+      constexpr auto operator -> (void) noexcept {
+         return BoundPtr<std::pmr::string>(&_internal, ym_AssumePtrNotNull{});
+      }
+
+      constexpr std::pmr::string & operator * (void) noexcept {
+         return _internal;
       }
 
       std::pmr::string _internal;
@@ -65,6 +69,10 @@ auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & In
    StackString form(&form_buffer); // TODO _internal's constructor needs stack buffer, so stack buffer needs
    // to be created before this class. Which means stack buffer's pointer to
    // it's user is free, and the user's pointer to the stack buffer is bound.
+
+   *form = "Go!";
+   form->append(" Torchic!");
+   ymLog(VF::UnitTest, "%s", *form);
 
    // [[maybe_unused]]
    // auto buffer = ss.createStackBuffer<100>();

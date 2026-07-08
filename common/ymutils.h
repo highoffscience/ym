@@ -237,6 +237,12 @@ template <
    typename Derived_T>
 class Ptr_Base
 {
+   template <typename U>
+   friend class FreePtr;
+
+   template <typename U>
+   friend class BoundPtr;
+
 protected:
    /// @brief Wrapper for custom pointer types.
    implicit constexpr Ptr_Base(T * const value_Ptr) noexcept :
@@ -465,7 +471,7 @@ public:
       std::is_same_v<T, uchar>      || // casting to byte representation is legal
       std::is_same_v<T, std::byte>)    // ...
    implicit constexpr FreePtr(FreePtr<U> const & Other) noexcept :
-      Ptr_Base<T, FreePtr<T>>(ym_castPtrTo<T>(Other.get()))
+      Ptr_Base<T, FreePtr<T>>(ym_castPtrTo<T>(Other._value_ptr))
    { }
 
    /// @brief Casting constructor. Anything goes.
@@ -473,7 +479,7 @@ public:
    implicit constexpr FreePtr(
       FreePtr<U>        const & Other,
       ym_PtrCastPassKey const) noexcept :
-         Ptr_Base<T, FreePtr<T>>(ym_castPtrTo<T>(Other.get()))
+         Ptr_Base<T, FreePtr<T>>(ym_castPtrTo<T>(Other._value_ptr))
    { }
 
    /// @brief Unsafe to convert between the two - deallocation strategies differ.
