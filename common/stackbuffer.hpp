@@ -47,19 +47,27 @@ class StackBuffer_Base : public std::pmr::monotonic_buffer_resource
 protected:
    explicit inline StackBuffer_Base(
       void *      const buffer_Ptr,
-      std::size_t const BufferSize_bytes) :
+      std::size_t const BufferSize_bytes) noexcept :
          std::pmr::monotonic_buffer_resource(
             buffer_Ptr,
             BufferSize_bytes,
             ymGetNullMemResource())
    { }
 
+   inline void setUser(FreePtr<class StackBufferUser> const user_FPtr) noexcept {
+      _user_fptr = user_FPtr;
+   }
+
 public:
-   constexpr ~StackBuffer_Base(void) noexcept {
+   inline virtual ~StackBuffer_Base(void) noexcept {
       _user_fptr = nullptr;
    }
 
-protected:
+   inline FreePtr<class StackBufferUser const> getUserFPtr(void) const noexcept {
+      return _user_fptr;
+   }
+
+private:
    FreePtr<class StackBufferUser> _user_fptr;
 };
 
@@ -100,7 +108,7 @@ public:
    { }
 
    constexpr ~StackBufferUser(void) noexcept {
-      _buffer_BPtr->_user_fptr = nullptr;
+      _buffer_BPtr->setUser(nullptr);
    }
 
 protected:
