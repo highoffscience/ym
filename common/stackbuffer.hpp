@@ -15,6 +15,8 @@
 
 /*
 
+TODO move to memio.h
+
 struct Json : public StackBufferUser {...};
 
 Json form;
@@ -56,6 +58,12 @@ protected:
 
    inline void setUser(FreePtr<class StackBufferUser> const user_FPtr) noexcept {
       _user_fptr = user_FPtr;
+   }
+
+   virtual void * do_allocate(size_t __bytes, size_t __alignment) override
+   {
+      ymLog(VF::UnitTest, "do_allocate requests {} bytes", __bytes);
+      return std::pmr::monotonic_buffer_resource::do_allocate(__bytes, __alignment);
    }
 
 public:

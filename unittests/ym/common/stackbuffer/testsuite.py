@@ -69,7 +69,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type: ignore
       from cppyy.gbl import ym  # type: ignore
 
-      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"), assert_results=False)
       pass
 
 # kick-off

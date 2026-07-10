@@ -65,14 +65,17 @@ auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & In
       std::pmr::string _internal;
    };
 
-   auto form_buffer = StackBuffer<100>();
+   auto form_buffer = StackBuffer<35>();
    StackString form(&form_buffer); // TODO _internal's constructor needs stack buffer, so stack buffer needs
    // to be created before this class. Which means stack buffer's pointer to
    // it's user is free, and the user's pointer to the stack buffer is bound.
 
+   // without "My hero!" small strong optimization means no allocation.
    *form = "Go!";
-   form->append(" Torchic!");
-   ymLog(VF::UnitTest, "%s", *form);
+   form->append(" Torchic! My hero!");
+   ymLog(VF::UnitTest, "{}", *form);
+   *form = "Go! Pumpkaboo! My hero!";
+   ymLog(VF::UnitTest, "{}", *form);
 
    // [[maybe_unused]]
    // auto buffer = ss.createStackBuffer<100>();
