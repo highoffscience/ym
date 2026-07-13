@@ -42,30 +42,106 @@ namespace ym
 /// @brief Global memory resource error.
 YM_DECL_YMASSERT(ym_MemResourceError)
 
-/**
- * @brief TODO
+// ---------------------- class list ----------------------
+
+// MemIO
+// StackBuffer_Base
+// StackBuffer
+// StackBufferUser
+
+// --------------------------------------------------------
+
+/** MemIO
  *
+ * @brief Provides memory management resources.
  */
-inline BoundPtr<std::pmr::memory_resource> ymGetNullMemResource(void) noexcept
+class MemIO
 {
-   class type final : public std::pmr::memory_resource
-   {
-      virtual void * do_allocate(std::size_t, std::size_t) override {
-         YMASSERT(false, ym_MemResourceError, YM_DAH, "Null memory resource");
-         return nullptr;
-      }
+public:
+   static BoundPtr<std::pmr::memory_resource> getNullMemResource(void) noexcept;
+};
 
-      virtual void do_deallocate(void *, std::size_t, std::size_t) noexcept override
-      { }
+/** StackBuffer_Base
+ *
+ * @brief Custom base class for stack based memory resource management.
+ *
+ * @note Users will have to register themselves using setUser(). A user cannot unregister themselves,
+ *       as this could lead to users without valid buffers to exist. A user trying to register to
+ *       an already claimed buffer will assert.
+ */
+class StackBuffer_Base : public std::pmr::monotonic_buffer_resource
+{
+   friend class StackBufferUser;
 
-      virtual bool do_is_equal(const std::pmr::memory_resource& __other) const noexcept override {
-         return this == &__other;
-      }
-   };
+public:
+   YM_DECL_YMASSERT(Error)
 
-   alignas(type) static unsigned char __buf[sizeof(type)];
-   static type * __r = new(__buf) type;
-   return BoundPtr(__r, ym_AssumePtrNotNull{});
-}
+protected:
+   /// @brief Constructor.
+   explicit constexpr StackBuffer_Base(
+      BoundPtr<void> const buffer_BPtr,
+      std::size_t    const BufferSize_bytes) noexcept :
+         std::pmr::monotonic_buffer_resource(
+            buffer_BPtr,
+            BufferSize_bytes,
+            MemIO::getNullMemResource())
+   { }
+
+   /// @brief Setter.
+   constexpr void setUser(BoundPtr<class StackBufferUser> const user_BPtr) {
+      YMASSERT(!_user_fptr, Error, YM_DAH, "StackBuffer already claimed by another user")
+      _user_fptr = user_BPtr;
+   }
+
+public:
+   /// @brief Getter.
+   constexpr FreePtr<class StackBufferUser const> getUserFPtr(void) const noexcept {
+      return _user_fptr;
+   }
+
+private:
+   FreePtr<class StackBufferUser> _user_fptr;
+};
+
+/** StackBuffer
+ *
+ * @brief Buffer to be placed on the stack and fed to a StackBufferUser.
+ *
+ * @note Do *not* dynamically allocate this class. The expected responsibility of this class
+ *       is to not out-live the user, and thus there is only a way one communication, user to
+ *       buffer, upon destruction to let the buffer know there is no user.
+ */
+template <std::size_t N>
+requires (N > 0uz)
+class StackBuffer : public StackBuffer_Base
+{
+   friend class StackBufferUser;
+
+public:
+   /// @brief Constructor.
+   constexpr explicit StackBuffer(void) noexcept :
+      StackBuffer_Base({_buffer.data(), ym_AssumePtrNotNull{}}, _buffer.size())
+   { }
+
+   static constexpr inline auto _Size = N;
+
+private:
+   std::array<std::byte, N> _buffer{};
+};
+
+/** StackBufferUser
+ *
+ * @brief TODO
+ */
+class StackBufferUser
+{
+public:
+   YM_DECL_YMASSERT(Error)
+
+   /// @brief Constructor.
+   constexpr explicit StackBufferUser(BoundPtr<StackBuffer_Base> const buffer_BPtr) {
+      buffer_BPtr->setUser(this);
+   }
+};
 
 } // ym

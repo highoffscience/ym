@@ -26,7 +26,8 @@ public:
    virtual ~TestSuite(void) = default;
 
    YM_UNIT_TESTCASE(InteractiveInspection)
-   YM_UNIT_TESTCASE(StackAlloc           )
+   YM_UNIT_TESTCASE(SmokeTest)
+   YM_UNIT_TESTCASE(StackAlloc)
 };
 
 } // ym::unit
