@@ -131,7 +131,7 @@ private:
 
 /** StackBufferUser
  *
- * @brief TODO
+ * @brief Class that represents a user of a StackBuffer instance.
  */
 class StackBufferUser
 {

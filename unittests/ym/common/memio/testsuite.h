@@ -8,6 +8,7 @@
 
 #pragma once
 
+#define YM_UNITTEST_ACTIVE_DEFINED
 #include "ymdefs.h"
 
 #include "testsuitebase.h"

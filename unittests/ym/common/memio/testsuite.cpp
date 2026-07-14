@@ -6,7 +6,7 @@
 
 #include "testsuite.h"
 
-#include "textlogger.h"
+#include "globallogger.h"
 #include "ymglobals.h"
 
 #include "memio.h" // Structures under test
@@ -19,7 +19,8 @@ ym::unit::TestSuite::TestSuite(void) :
    TestSuiteBase("MemIO")
 {
    addTestCase<InteractiveInspection>();
-   addTestCase<StackAlloc           >();
+   addTestCase<SmokeTest>();
+   addTestCase<StackAlloc>();
 }
 
 /** run
@@ -30,7 +31,7 @@ ym::unit::TestSuite::TestSuite(void) :
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest_Logger);
+   auto const SE = ymLogPushEnable(VF::UnitTest);
    return {};
 }
 
@@ -91,7 +92,7 @@ auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & In
  */
 auto ym::unit::TestSuite::StackAlloc::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest_MemIO);
+   auto const SE = ymLogPushEnable(VF::UnitTest);
 
    auto const Block0 = 0xCAFEBABE_u32;
 

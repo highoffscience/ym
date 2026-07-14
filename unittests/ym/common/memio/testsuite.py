@@ -59,7 +59,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym  # type:ignore
 
       # uncomment to run test
-      # results = self.run_test_case("InteractiveInspection")
+      # results = self.run_test_case(self._testMethodName.removeprefix("test_"), assert_results=False)
       pass
 
    def test_SmokeTest(self):
@@ -79,7 +79,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      results = self.run_test_case("StackAlloc")
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
 
       val = results.get[bool]("FirstElementOK")
       self.assertTrue(val, f"First element corrupted")
