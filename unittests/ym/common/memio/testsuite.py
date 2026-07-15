@@ -87,6 +87,16 @@ class TestSuite(testsuitebase.TestSuiteBase):
       val = results.get[bool]("BlockByteOK")
       self.assertTrue(val, f"Block bytes corrupted")
 
+   def test_StackString(self):
+      """
+      Analyzes results from test case.
+      """
+      from cppyy.gbl import std # type: ignore
+      from cppyy.gbl import ym  # type: ignore
+
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"), assert_results=False)
+      pass
+
 # kick-off
 if __name__ == "__main__":
    TestSuite.runSuite()

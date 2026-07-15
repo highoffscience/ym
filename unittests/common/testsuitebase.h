@@ -2,7 +2,7 @@
  * @file    testsuitebase.h
  * @version 1.0.0
  * @author  Forrest Jablonski
- * 
+ *
  * @note File used in unittests - maximum standard C++20.
  */
 
@@ -33,12 +33,12 @@ public:
    using TCArray_T = std::vector<std::unique_ptr<TestCase>>;
 
    explicit TestSuiteBase(std::string name);
-   virtual ~TestSuiteBase(void) = default;
+   virtual ~TestSuiteBase(void);
 
    template <
       typename    DerivedTestCase_T,
       typename... Args_T>
-   void addTestCase(Args_T &&... args_uref);
+   void addTestCase(Args_T &&... args_uref); // TODO we don't need uref suffix - it uses move constructor
 
    DataShuttle runTestCase(
       std::string const & Name,
@@ -51,10 +51,10 @@ private:
 /** addTestCase
  *
  * @brief Adds test case to list of known test cases.
- * 
+ *
  * @tparam DerivedTestCase_T -- Test case to add.
  * @tparam Args_T            -- Type of additional arguments to test case.
- * 
+ *
  * @param args_uref -- Additional arguments to test case.
  */
 template <

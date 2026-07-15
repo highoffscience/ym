@@ -6,6 +6,8 @@
 
 #include "testsuitebase.h"
 
+#include "globallogger.h"
+
 #include <algorithm>
 #include <stdexcept>
 #include <string>
@@ -16,20 +18,30 @@
  * @brief Constructor.
  */
 ym::unit::TestSuiteBase::TestSuiteBase(std::string name) :
-   PermaNameable_NV(std::move(name)),
-   _testCases {/*default*/}
-{ }
+   PermaNameable_NV(std::move(name))
+{
+   ymLogEnable(VF::UnitTest);
+}
+
+/** ~TestSuiteBase
+ *
+ * @brief Destructor.
+ */
+ym::unit::TestSuiteBase::~TestSuiteBase(void)
+{
+   ymLogDisable(VF::UnitTest);
+}
 
 /** runTestCase
  *
  * @brief Runs specified test case.
- * 
+ *
  * @throws std::runtime_error -- If requested test case is not found.
  * @throws Whatever TestCase::run throws.
- * 
+ *
  * @param Name   -- Name of test case to run.
  * @param InData -- Additional input data for test case.
- * 
+ *
  * @returns DataShuttle -- Results of test case.
  */
 auto ym::unit::TestSuiteBase::runTestCase(

@@ -24,11 +24,12 @@ class TestSuite : public TestSuiteBase
 {
 public:
    explicit TestSuite(void);
-   virtual ~TestSuite(void) = default;
+   virtual ~TestSuite(void) = default; // TODO we don't need this explicitly defaulted - it is virtual by default
 
    YM_UNIT_TESTCASE(InteractiveInspection)
    YM_UNIT_TESTCASE(SmokeTest)
    YM_UNIT_TESTCASE(StackAlloc)
+   YM_UNIT_TESTCASE(StackString)
 };
 
 } // ym::unit

@@ -232,6 +232,7 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
       "-k", "Torchic1234",
       "--in-denial"
    };
+   [[maybe_unused]]
    rawstr const * Argv_a = Argv;
    [[maybe_unused]]
    BoundPtr<rawstr const> const Argv_BPtr = Argv;
