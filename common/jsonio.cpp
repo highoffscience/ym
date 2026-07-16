@@ -6,14 +6,6 @@
 
 #include "jsonio.h"
 
-/** JsonIO
- *
- * @brief TODO
- */
-ym::JsonIO::JsonIO(std::span<char> buffer) noexcept
-   : _buffer {buffer}
-{ }
-
 /** parseInSitu
  *
  * @brief TODO

@@ -8,43 +8,29 @@
 
 #include "ymglobals.h"
 
-#include <span>
+#include "memio.h"
 
 namespace ym
 {
-
-struct LinkedCarrier
-{
-   LinkedCarrier(class JsonIO * primary_ptr) : _primary_ptr {primary_ptr} {}
-   ~LinkedCarrier(void) {
-      if (_primary_ptr) {
-         _primary_ptr->destroyLinkedCarrier();
-      }
-   }
-
-   class JsonIO *  _primary_ptr;
-   std::span<char> _data;
-};
 
 /** JsonIO
  *
  * TODO
  */
-class JsonIO
+class JsonIO : public StackBufferUser
 {
 public:
    // this class takes ownership of the buffer
-   explicit inline JsonIO(BoundPtr<LinkedCarrier> lc_bptr) noexcept
-      : _lc_bptr {lc_bptr}
+   explicit inline JsonIO(BoundPtr<StackBuffer_Base> const buffer_BPtr) noexcept :
+      StackBufferUser(buffer_BPtr),
+      _buffer_BPtr {buffer_BPtr}
    { }
-   ~JsonIO(void) {
 
-   }
-
+   void populateBuffer(/*some sort of stream*/);
    void parseInSitu(void);
 
 private:
-   BoundPtr<LinkedCarrier> _lc_bptr; // This should be a free ptr - or std::optional
+   BoundPtr<StackBuffer_Base> const _buffer_BPtr;
 };
 
 } // ym

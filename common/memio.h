@@ -140,7 +140,7 @@ public:
 
    /// @brief Constructor.
    constexpr explicit StackBufferUser(BoundPtr<StackBuffer_Base> const buffer_BPtr) {
-      buffer_BPtr->setUser(this);
+      buffer_BPtr->setUser({this, ym_AssumePtrNotNull{}});
    }
 };
 
