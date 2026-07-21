@@ -12,13 +12,13 @@
  * @note Macros used for a particular purpose are prefixed "YM_SPECIAL_".
  * @note Macros used as helper functions are prefixed "YM_HELPER_".
  * @note Macros that are defined/not defined are suffixed "_DEFINED".
- * @note Macros that use #if semantics should have definitive values, ie
- *       #define YM_MY_FLAG 0/1 -> #if (YM_MY_FLAG)
+ * @note Macros that use `#if` semantics should have definitive values, ie
+ *       `#define` YM_MY_FLAG 0/1 -> `#if` (YM_MY_FLAG)
  *          or should otherwise be
- *       #define YM_MY_FLAG_DEFINED -> #if defined(YM_MY_FLAG_DEFINED)
+ *       `#define` YM_MY_FLAG_DEFINED -> `#if` defined(YM_MY_FLAG_DEFINED)
  *          otherwise the following would be a bug
- *       #define YM_MY_FLAG 0/1 -> #if defined(YM_MY_FLAG)
- *       #define YM_MY_FLAG     -> #if (YM_MY_FLAG) // macro may not be defined
+ *       `#define` YM_MY_FLAG 0/1 -> `#if` defined(YM_MY_FLAG)
+ *       `#define` YM_MY_FLAG     -> `#if` (YM_MY_FLAG) // macro may not be defined
  */
 
 #pragma once
@@ -32,20 +32,24 @@
 
 // ----------------------------------------------------------------------------
 
-/**
- * @brief Helper define's for the current cpp standard.
- */
-#if (__cplusplus >= 202302L)
+#if defined(__DOXYGEN__)
+   /** YM_CPP_STANDARD
+    *
+    * @brief Helper define's for the current cpp standard.
+    *
+    * @note YM_UNITTEST_ACTIVE_DEFINED is to compile this header *only* in objects with
+    *       testsuites that include them.
+    *       YM_UNITTEST is a source-wide define that edits properties that make inspecting
+    *       code easier for clients easier.
+    */
+   #define YM_CPP_STANDARD 0
+#elif (__cplusplus >= 202302L)
    #if (__cplusplus > 202302L)
       #define YM_CPP_STANDARD 99
    #else
       #define YM_CPP_STANDARD 23
    #endif
 #else
-   /// @note YM_UNITTEST_ACTIVE_DEFINED is to compile this header *only* in objects with
-   ///       testsuites that include them.
-   ///       YM_UNITTEST is a source-wide define that edits properties that make inspecting
-   ///       code easier for clients easier.
    #if defined(YM_UNITTEST_ACTIVE_DEFINED)
       #if (__cplusplus == 202002L)
          #define YM_CPP_STANDARD 20
@@ -82,7 +86,7 @@
    /**
     * @brief MSVC shenanigans.
     *
-    * @link <https://docs.microsoft.com/en-us/cpp/preprocessor/warning>.
+    * @note [Reference Guide](https://docs.microsoft.com/en-us/cpp/preprocessor/warning).
     */
 
    #pragma warning(disable: 26812) // stop bugging me about unscoped enums
@@ -116,9 +120,12 @@ extern "C"
  */
 
 /**
+ * @name Big Five Declaration Deletion Macros.
+ * @{
+ *
  * @brief Helper macros for the "the big five".
  *
- * @link <https://en.cppreference.com/w/cpp/language/rule_of_three>.
+ * @note [Reference Guide](https://en.cppreference.com/w/cpp/language/rule_of_three).
  *
  * @param ClassName_ -- Name of class.
  */
@@ -129,16 +136,18 @@ extern "C"
 #define YM_NO_MOVE_COPY(   ClassName_ ) ClassName_              (ClassName_ &&     ) = delete;
 #define YM_NO_MOVE_ASSIGN( ClassName_ ) ClassName_ & operator = (ClassName_ &&     ) = delete;
 
+/// @}
+
 /** YM_MACRO_OVERLOAD
  *
  * @brief Helper macro to allow for macro overloading based on number of arguments.
  *
- * @link <https://stackoverflow.com/questions/11761703/overloading-macro-on-number-of-arguments>
+ * @note [Reference](https://stackoverflow.com/questions/11761703/overloading-macro-on-number-of-arguments).
  *
  * @note Example:
- *    #define YM_MY_MACRO(...) YM_MACRO_OVERLOAD(YM_MY_MACRO, __VA_ARGS__)
- *    #define YM_MY_MACRO1(First) ...
- *    #define YM_MY_MACRO2(First, Second) ...
+ *    `#define` YM_MY_MACRO(...) YM_MACRO_OVERLOAD(YM_MY_MACRO, __VA_ARGS__)
+ *    `#define` YM_MY_MACRO1(First) ...
+ *    `#define` YM_MY_MACRO2(First, Second) ...
  *
  * @param MACRO_ -- Name of macro to overload.
  * @param ...    -- Args to pass to macro.
@@ -187,6 +196,9 @@ namespace ym
 {
 
 /**
+ * @name Primitive Typedefs.
+ * @{
+ *
  * @brief Primitive typedefs.
  *
  * @note The static_asserts for the higher precision floating point defines
@@ -225,6 +237,8 @@ using float32  = float      ; static_assert(std::numeric_limits<float32 >::digit
 using float64  = double     ; static_assert(std::numeric_limits<float64 >::digits == 53, "float64  (mantissa) not of expected size");
 using floatext = long double; static_assert(std::numeric_limits<floatext>::digits >= 53, "floatext (mantissa) not of expected size");
 
+/// @}
+
 /** ByteLikeable
  *
  * @brief Concept that describes a byte-like object.
@@ -244,7 +258,7 @@ concept ByteLikeable =
  *
  * @brief Template for creating tag dispatch types.
  *
- * @link <https://www.fluentcpp.com/2018/04/27/tag-dispatching/>.
+ * @note [Reference Guide](https://www.fluentcpp.com/2018/04/27/tag-dispatching/).
  *
  * @param Name_ -- Name of type.
  */
@@ -287,7 +301,7 @@ constexpr auto ym_empty(rawstr const S) noexcept
  *
  * @brief Defines a set of user-defined literals for commonly used types.
  *
- * @link <https://en.cppreference.com/w/cpp/language/user_literal>.
+ * @note [Reference Guide](https://en.cppreference.com/w/cpp/language/user_literal).
  *
  * @param UDL_          -- Name of User Defined Literal.
  * @param TypeToCastTo_ -- Type to cast to.

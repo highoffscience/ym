@@ -8,6 +8,7 @@
 
 #include "ymglobals.h"
 
+#include "fileio.h"
 #include "memio.h"
 
 namespace ym
@@ -21,16 +22,18 @@ class JsonIO : public StackBufferUser
 {
 public:
    // this class takes ownership of the buffer
-   explicit inline JsonIO(BoundPtr<StackBuffer_Base> const buffer_BPtr) noexcept :
-      StackBufferUser(buffer_BPtr),
-      _buffer_BPtr {buffer_BPtr}
+   explicit inline JsonIO(BoundPtr<StackBuffer_Base> const buffer_Ptr) noexcept :
+      StackBufferUser(buffer_Ptr),
+      _buffer_Ptr {buffer_Ptr}
    { }
 
-   void populateBuffer(/*some sort of stream*/);
+   bool readFromFile(FileIO f) noexcept;
+
    void parseInSitu(void);
 
 private:
-   BoundPtr<StackBuffer_Base> const _buffer_BPtr;
+   // TODO Maybe StackBuffer should actually be StackResource - it is a resource, not a buffer!
+   BoundPtr<StackBuffer_Base> const _buffer_Ptr;
 };
 
 } // ym

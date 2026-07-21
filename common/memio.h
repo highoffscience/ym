@@ -28,8 +28,8 @@ namespace ym
  * @note Only allocates memory in current stack frame, so this must a macro,
  *       not an inline function.
  *
- * @link <https://man7.org/linux/man-pages/man3/alloca.3.html>.
- * @link <https://en.cppreference.com/w/c/language/array>. See section on VLA's.
+ * @note [Man Page](https://man7.org/linux/man-pages/man3/alloca.3.html).
+ *       [Reference Guide](https://en.cppreference.com/w/c/language/array). See section on VLA's.
  *
  * @param Type_      -- Type to allocate.
  * @param NElements_ -- Number of T elements to allocate room for.
@@ -40,7 +40,7 @@ namespace ym
    static_cast<Type_ *>(alloca((NElements_) * sizeof(Type_)))
 
 /// @brief Global memory resource error.
-YM_DECL_YMASSERT(ym_MemResourceError)
+YM_DECL_YMASSERT(ym_MemResourceError);
 
 // ---------------------- class list ----------------------
 
@@ -74,7 +74,7 @@ class StackBuffer_Base : public std::pmr::monotonic_buffer_resource
    friend class StackBufferUser;
 
 public:
-   YM_DECL_YMASSERT(Error)
+   YM_DECL_YMASSERT(Error);
 
 protected:
    /// @brief Constructor.
@@ -89,7 +89,7 @@ protected:
 
    /// @brief Setter.
    constexpr void setUser(BoundPtr<class StackBufferUser> const user_BPtr) {
-      YMASSERT(!_user_fptr, Error, YM_DAH, "StackBuffer already claimed by another user")
+      YMASSERT(!_user_fptr, Error, YM_DAH, "StackBuffer already claimed by another user");
       _user_fptr = user_BPtr;
    }
 
@@ -136,7 +136,7 @@ private:
 class StackBufferUser
 {
 public:
-   YM_DECL_YMASSERT(Error)
+   YM_DECL_YMASSERT(Error);
 
    /// @brief Constructor.
    constexpr explicit StackBufferUser(BoundPtr<StackBuffer_Base> const buffer_BPtr) {

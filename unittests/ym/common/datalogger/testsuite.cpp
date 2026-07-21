@@ -30,8 +30,7 @@ ym::unit::TestSuite::TestSuite(void) :
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest);
-   return {{}};
+   return {};
 }
 
 /** run
@@ -42,8 +41,6 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
  */
 auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest);
-
    DataLogger blackbox(10uz, 10uz);
 
    auto a = 0;

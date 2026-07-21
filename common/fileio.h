@@ -25,7 +25,7 @@ class FileIO
 {
 public:
    explicit inline FileIO(void) noexcept = default;
-   explicit inline FileIO(
+   implicit inline FileIO(
       str const Filename,
       str const Mode = "rb") noexcept;
 

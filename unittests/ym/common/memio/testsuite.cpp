@@ -32,8 +32,6 @@ ym::unit::TestSuite::TestSuite(void) :
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   // TODO we don't need push enable anymore - log level enable is handled in base class
-   auto const SE = ymLogPushEnable(VF::UnitTest);
    return {};
 }
 
@@ -45,8 +43,6 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
  */
 auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest);
-
    return {};
 }
 
@@ -58,8 +54,6 @@ auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & In
  */
 auto ym::unit::TestSuite::StackAlloc::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest);
-
    auto const Block0 = 0xCAFEBABE_u32;
 
    constexpr auto BuffSize = 10_u32;
@@ -98,8 +92,6 @@ auto ym::unit::TestSuite::StackAlloc::run([[maybe_unused]] DataShuttle const & I
  */
 auto ym::unit::TestSuite::StackString::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest);
-
    struct StackString : public StackBufferUser
    {
       constexpr StackString(BoundPtr<StackBuffer_Base> const buffer_BPtr) :

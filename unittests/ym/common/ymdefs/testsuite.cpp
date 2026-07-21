@@ -34,8 +34,7 @@ ym::unit::TestSuite::TestSuite(void) :
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest);
-   return {{}};
+   return {};
 }
 
 /** run
@@ -46,8 +45,7 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
  */
 auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest);
-   return {{}};
+   return {};
 }
 
 /** run
@@ -58,8 +56,6 @@ auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & In
  */
 auto ym::unit::TestSuite::BigFiveDeleteMacros::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest);
-
    struct Test
    {
       YM_NO_DEFAULT    (Test)
@@ -82,8 +78,6 @@ auto ym::unit::TestSuite::BigFiveDeleteMacros::run([[maybe_unused]] DataShuttle 
  */
 auto ym::unit::TestSuite::OverloadMacros::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest);
-
    #define YM_SUM(...) YM_MACRO_OVERLOAD(YM_SUM, __VA_ARGS__)
    #define YM_SUM1(First) (First)
    #define YM_SUM2(First, Second) (YM_SUM1(First) + YM_SUM1(Second))
@@ -105,8 +99,6 @@ auto ym::unit::TestSuite::OverloadMacros::run([[maybe_unused]] DataShuttle const
  */
 auto ym::unit::TestSuite::PrimitiveDefs::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest);
-
    [[maybe_unused]] volatile rawstr s0 = "Go! Torchic!";
    [[maybe_unused]] volatile uchar  s1 = 7;
    [[maybe_unused]] volatile schar  s2 = 9;
@@ -137,8 +129,6 @@ auto ym::unit::TestSuite::PrimitiveDefs::run([[maybe_unused]] DataShuttle const 
  */
 auto ym::unit::TestSuite::Funcs::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest);
-
    auto const I = 0_i32;
    auto const NBits = ym_getNBits<decltype(I)>();
 

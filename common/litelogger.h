@@ -1,5 +1,5 @@
 /**
- * @file    litetextlogger.h
+ * @file    litelogger.h
  * @version 1.0.0
  * @author  Forrest Jablonski
  */
@@ -48,7 +48,7 @@ protected:
    virtual void producer(
       strlit const     Format,
       fmt::format_args args) noexcept override;
-   
+
 private:
    strlit    const _Filename{"unnamed_ll.uhoh"};
    Options_T const _Options {  /* default */  };

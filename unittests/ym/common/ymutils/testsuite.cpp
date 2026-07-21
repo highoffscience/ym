@@ -40,8 +40,7 @@ ym::unit::TestSuite::TestSuite(void) :
  */
 auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest);
-   return {{}};
+   return {};
 }
 
 /** run
@@ -52,8 +51,7 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
  */
 auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest);
-   return {{}};
+   return {};
 }
 
 /** run
@@ -64,8 +62,6 @@ auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & In
  */
 auto ym::unit::TestSuite::Funcs::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest);
-
    auto castPtrToSuccess = false;
    {
       int a = 9;
@@ -116,8 +112,6 @@ auto ym::unit::TestSuite::Funcs::run([[maybe_unused]] DataShuttle const & InData
  */
 auto ym::unit::TestSuite::PtrIntClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest);
-
    int32 vals[] {9, 7};
 
    PtrInt_T p2i{vals};
@@ -136,8 +130,6 @@ auto ym::unit::TestSuite::PtrIntClass::run([[maybe_unused]] DataShuttle const & 
  */
 auto ym::unit::TestSuite::ByteBitsetClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest);
-
    // Bitset b{};
    // ymLog(VF::UnitTest, "1) TODO --> {}", b.getUnderlying());
    // b.set(0);
@@ -151,7 +143,7 @@ auto ym::unit::TestSuite::ByteBitsetClass::run([[maybe_unused]] DataShuttle cons
    // auto b2 = b;
    // ymLog(VF::UnitTest, "6) TODO --> {}", b2.getUnderlying());
 
-   return {{}};
+   return {};
 }
 
 /** run
@@ -162,8 +154,6 @@ auto ym::unit::TestSuite::ByteBitsetClass::run([[maybe_unused]] DataShuttle cons
  */
 auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest);
-
    // static_assert(std::assignable_from<
    //    BoundPtr<str>&,
    //    BoundPtr<str>
@@ -250,8 +240,6 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
  */
 auto ym::unit::TestSuite::PolyRawClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest);
-
    // struct Base
    // {
    //    virtual ~Base(void) = default;

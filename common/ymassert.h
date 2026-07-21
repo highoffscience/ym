@@ -86,6 +86,8 @@
       Handler_;                                                     \
    }
 
+/// @brief Optionally enable assert functionality.
+/// @ref YMASSERT
 #if (YM_DEBUG)
    #define YMASSERTDBG(Cond_, Derived_, Handler_, Format_, ...) YMASSERT(Cond_, Derived_, Handler_, Format_, __VA_ARGS__)
 #else
@@ -93,15 +95,23 @@
 #endif
 
 /** YM_DECL_YMASSERT
-*
-* @brief Declares a custom error class.
-*
-* @param Name_     -- Name of derived class.
-* @param BaseName_ -- Name of base class.
-*/
+ *
+ * @name Declaration assert macros.
+ * @{
+ *
+ * @brief Declares a custom error class.
+ */
+
 #define YM_DECL_YMASSERT(...) YM_MACRO_OVERLOAD(YM_HELPER_DECL_YMASSERT, __VA_ARGS__)
+
+/// @param Name_     -- Name of derived class.
 #define YM_HELPER_DECL_YMASSERT1(Name_) YM_HELPER_DECL_YMASSERT2(ymassert_Base, Name_)
+
+/// @param Name_     -- Name of derived class.
+/// @param BaseName_ -- Name of base class.
 #define YM_HELPER_DECL_YMASSERT2(BaseName_, Name_) class Name_ : public BaseName_ { };
+
+/// @}
 
 namespace ym
 {
