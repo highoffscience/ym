@@ -7,12 +7,14 @@
    },
    "configurePresets": [
       {
-         "name": "default",
-         "displayName": "Top Level Build Commands",
-         "description": "Top Level Build Commands",
+         "name": "docs",
+         "displayName": "doxygen",
          "generator": "Ninja",
          "binaryDir": "${sourceDir}/build",
-         "cacheVariables": {}
+         "toolchainFile": "${sourceDir}/toolchain.cmake",
+         "cacheVariables": {
+            "YM_ExtLibsDir": "${sourceDir}/extlibs"
+         }
       }
    ]
 }

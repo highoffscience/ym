@@ -4,13 +4,45 @@
 # @author  Forrest Jablonski
 #
 
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.27)
 
 project(
-   Ym
+   Ym-Doxy
    VERSION     1.0.0
-   DESCRIPTION "Top level build commands"
-   LANGUAGES NONE) # delete when more commands get added
+   DESCRIPTION "Generates compile_commands.json for doxygen to consume")
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS True)
+
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+add_library(YMDoxyDummy INTERFACE)
+
+target_include_directories(YMDoxyDummy INTERFACE
+   ${CMAKE_CURRENT_SOURCE_DIR}/common)
+
+target_compile_definitions(YMDoxyDummy INTERFACE YM_UNITTEST=OFF)
+target_compile_definitions(YMDoxyDummy INTERFACE YM_PRINT_TO_SCREEN=OFF)
+target_compile_definitions(YMDoxyDummy INTERFACE YM_DEBUG=OFF)
+target_compile_definitions(YMDoxyDummy INTERFACE YM_LITE=OFF)
+target_compile_definitions(YMDoxyDummy INTERFACE YM_USE_HEAP_AS_FALLBACK=ON)
+target_compile_definitions(YMDoxyDummy INTERFACE YM_YES_EXCEPTIONS=ON)
+target_compile_definitions(YMDoxyDummy INTERFACE YM_NO_EXCEPTIONS=OFF)
+
+find_library(YM_FMT_LIB
+   NAMES fmt
+   PATHS ${YM_ExtLibsDir}/build/fmt)
+
+if (YM_FMT_LIB)
+   target_link_libraries(YMDoxyDummy INTERFACE ${YM_FMT_LIB})
+   target_include_directories(YMDoxyDummy INTERFACE ${YM_ExtLibsDir}/fmt/include)
+else()
+   message(FATAL_ERROR "fmt lib not found. Must build external libraries first.")
+endif()
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/common/build.cmake)
+cmake_language(CALL srcbuild-ym.common "")
+target_link_libraries(ym.common INTERFACE YMDoxyDummy)
 
 find_package(Doxygen)
 
@@ -20,11 +52,16 @@ if(DOXYGEN_FOUND)
 
    configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
 
-   add_custom_target(doc
+   add_custom_target(docs
       COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+      DEPENDS ${CMAKE_BINARY_DIR}/compile_commands.json
       COMMENT "Generating API documentation with Doxygen"
       VERBATIM)
 else()
    message(WARNING "Doxygen not found. 'doc' target not available.")
 endif()
+
+add_custom_target(dist-clean
+   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+   COMMAND rm -rf build/)

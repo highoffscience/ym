@@ -205,9 +205,9 @@ inline void ym::GlobalLogger::printf(
  *
  * @tparam Args_T -- Argument types.
  *
- * @param VF     -- Verbosity flag.
+ * @param VFlag  -- Verbosity flag.
  * @param Format -- Format string.
- * @param Args   -- Arguments.
+ * @param args   -- Arguments.
  */
 template <typename... Args_T>
 inline void ymLog(
@@ -226,7 +226,7 @@ inline void ymLog(
  *
  * @tparam VFs_T -- VF typename.
  *
- * @param VF -- Verbosity flag to enable.
+ * @param VFlags -- Verbosity flag to enable.
  */
 template <std::same_as<VF>... VFs_T>
 inline void ymLogEnable(VFs_T const... VFlags)
@@ -242,7 +242,7 @@ inline void ymLogEnable(VFs_T const... VFlags)
  *
  * @tparam VFs_T -- VF typename.
  *
- * @param VF -- Verbosity flag to disable.
+ * @param VFlags -- Verbosity flag to disable.
  */
 template <std::same_as<VF>... VFs_T>
 inline void ymLogDisable(VFs_T const... VFlags)
@@ -256,7 +256,7 @@ inline void ymLogDisable(VFs_T const... VFlags)
  *
  * @throws Whatever getGlobalInstance() throws.
  *
- * @param VF -- Verbosity flag.
+ * @param VFlag -- Verbosity flag.
  *
  * @returns ScopedEnable -- RAII mechanism that only keeps the enabled VF while in scope.
  */

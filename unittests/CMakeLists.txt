@@ -7,7 +7,7 @@
 #       Yeah? Then explain Europe to me.
 #
 
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.27)
 
 project(
    UnitTest
@@ -95,9 +95,9 @@ add_custom_command(TARGET check-venv # specialized command to run at build (run)
    WORKING_DIRECTORY ${YM_UnitTestDir}
    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/check_venv.cmake)
 
-add_custom_target(distclean
-   WORKING_DIRECTORY ${YM_UnitTestDir}
-   COMMAND rm -rf build/*)
+add_custom_target(dist-clean
+   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+   COMMAND rm -rf build/)
 
 add_subdirectory(${YM_UnitTestDir}/common)
 target_link_libraries(YMRootIntLib INTERFACE unit.common)

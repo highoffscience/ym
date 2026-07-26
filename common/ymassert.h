@@ -20,11 +20,10 @@
    #include <exception>
 #endif
 
+/// @brief Convenience macro. Default Assert Handler.
 #if (YM_YES_EXCEPTIONS)
-   /// @brief Convenience macro. Default Assert Handler.
    #define YM_DAH ymassert_Base::defaultYesExceptHandler(e__)
 #else
-   /// @brief Convenience macro. Default Assert Handler.
    #define YM_DAH ymassert_Base::defaultNoExceptHandler(e__)
 #endif
 
@@ -96,13 +95,13 @@
 
 /** YM_DECL_YMASSERT
  *
- * @name Declaration assert macros.
- * @{
- *
  * @brief Declares a custom error class.
+ *
+ * @param ... -- Args to pass to macro.
  */
-
 #define YM_DECL_YMASSERT(...) YM_MACRO_OVERLOAD(YM_HELPER_DECL_YMASSERT, __VA_ARGS__)
+
+/// @cond INTERNAL
 
 /// @param Name_     -- Name of derived class.
 #define YM_HELPER_DECL_YMASSERT1(Name_) YM_HELPER_DECL_YMASSERT2(ymassert_Base, Name_)
@@ -111,7 +110,7 @@
 /// @param BaseName_ -- Name of base class.
 #define YM_HELPER_DECL_YMASSERT2(BaseName_, Name_) class Name_ : public BaseName_ { };
 
-/// @}
+/// @endcond
 
 namespace ym
 {
@@ -136,6 +135,11 @@ public:
 #endif
 
    static void logAssert(ymassert_Base const & E);
+
+   /// @brief
+   /// @param E
+   /// @param v_uref
+   /// @returns
    static inline auto logAndReturn(ymassert_Base const & E, auto && v_uref) {
       logAssert(E); return v_uref;
    }

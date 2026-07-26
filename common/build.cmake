@@ -4,7 +4,7 @@
 # @author  Forrest Jablonski
 #
 
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.27)
 
 ## srcbuild-ym.common
 #
