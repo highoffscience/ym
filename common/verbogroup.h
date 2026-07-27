@@ -17,6 +17,12 @@
 namespace ym
 {
 
+/// @todo TODO
+static constexpr auto trunc_up(unsigned const V, unsigned const D) {
+   auto const Q = V / D;
+   return ((V % D) == 0u) ? Q : Q + 1u;
+}
+
 /** VerboGroup
  *
  * @brief Top-level group of registered objects (verbosity group).
@@ -62,11 +68,10 @@ public:
 private:
    std::array<
       std::atomic<unsigned>, // type
-      static_cast<unsigned>( // size
-         std::ceil(
-            static_cast<float>(
-               std::to_underlying(Flag_T::Errstream) // exclude Errstream intentional - special handling required
-            ) / ym_getNBits<unsigned>()))
+      trunc_up(
+         std::to_underlying(Flag_T::Errstream), // exclude Errstream intentional - special handling required
+         ym_getNBits<unsigned>()
+      )
    > _flags{};
 };
 

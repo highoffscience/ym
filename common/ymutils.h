@@ -512,7 +512,7 @@ public:
    /// @{
    /// @brief Comparison overloads.
    constexpr auto operator <=> (FreePtr<T> const &) const noexcept = default;
-   constexpr auto operator == (std::nullptr_t) const noexcept { return this->_value_ptr == nullptr; }
+   constexpr bool operator == (std::nullptr_t) const noexcept { return this->_value_ptr == nullptr; }
    /// @}
 
    /// @brief True if contained pointer is not null, false otherwise.

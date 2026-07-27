@@ -13,12 +13,12 @@
  * @note Macros used as helper functions are prefixed "YM_HELPER_".
  * @note Macros that are defined/not defined are suffixed "_DEFINED".
  * @note Macros that use `#if` semantics should have definitive values, ie
- *       `#define` YM_MY_FLAG 0/1 -> `#if` (YM_MY_FLAG)
- *          or should otherwise be
- *       `#define` YM_MY_FLAG_DEFINED -> `#if` defined(YM_MY_FLAG_DEFINED)
- *          otherwise the following would be a bug
- *       `#define` YM_MY_FLAG 0/1 -> `#if` defined(YM_MY_FLAG)
- *       `#define` YM_MY_FLAG     -> `#if` (YM_MY_FLAG) // macro may not be defined
+ *       - `#define` YM_MY_FLAG 0/1 -> `#if` (YM_MY_FLAG)
+ *       -    or should otherwise be
+ *       - `#define` YM_MY_FLAG_DEFINED -> `#if` defined(YM_MY_FLAG_DEFINED)
+ *       -    otherwise the following would be a bug
+ *       - `#define` YM_MY_FLAG 0/1 -> `#if` defined(YM_MY_FLAG)
+ *       - `#define` YM_MY_FLAG     -> `#if` (YM_MY_FLAG) // macro may not be defined
  */
 
 #pragma once
@@ -32,7 +32,7 @@
 
 // ----------------------------------------------------------------------------
 
-#if defined(__DOXYGEN__)
+// #if defined(__DOXYGEN__)
    /** YM_CPP_STANDARD
     *
     * @brief Set to the current cpp standard.
@@ -42,8 +42,8 @@
     *       YM_UNITTEST is a source-wide define that edits properties that make inspecting
     *       code easier for clients easier.
     */
-   #define YM_CPP_STANDARD 0
-#elif (__cplusplus >= 202302L)
+   // #define YM_CPP_STANDARD 0
+#if (__cplusplus >= 202302L)
    #if (__cplusplus > 202302L)
       #define YM_CPP_STANDARD 99
    #else

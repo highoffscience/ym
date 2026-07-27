@@ -21,13 +21,13 @@ add_library(YMDoxyDummy INTERFACE)
 target_include_directories(YMDoxyDummy INTERFACE
    ${CMAKE_CURRENT_SOURCE_DIR}/common)
 
-target_compile_definitions(YMDoxyDummy INTERFACE YM_UNITTEST=OFF)
-target_compile_definitions(YMDoxyDummy INTERFACE YM_PRINT_TO_SCREEN=OFF)
-target_compile_definitions(YMDoxyDummy INTERFACE YM_DEBUG=OFF)
-target_compile_definitions(YMDoxyDummy INTERFACE YM_LITE=OFF)
-target_compile_definitions(YMDoxyDummy INTERFACE YM_USE_HEAP_AS_FALLBACK=ON)
-target_compile_definitions(YMDoxyDummy INTERFACE YM_YES_EXCEPTIONS=ON)
-target_compile_definitions(YMDoxyDummy INTERFACE YM_NO_EXCEPTIONS=OFF)
+target_compile_definitions(YMDoxyDummy INTERFACE YM_UNITTEST=0)
+target_compile_definitions(YMDoxyDummy INTERFACE YM_PRINT_TO_SCREEN=0)
+target_compile_definitions(YMDoxyDummy INTERFACE YM_DEBUG=0)
+target_compile_definitions(YMDoxyDummy INTERFACE YM_LITE=0)
+target_compile_definitions(YMDoxyDummy INTERFACE YM_USE_HEAP_AS_FALLBACK=1)
+target_compile_definitions(YMDoxyDummy INTERFACE YM_YES_EXCEPTIONS=1)
+target_compile_definitions(YMDoxyDummy INTERFACE YM_NO_EXCEPTIONS=0)
 
 find_library(YM_FMT_LIB
    NAMES fmt
@@ -42,7 +42,7 @@ endif()
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/common/build.cmake)
 cmake_language(CALL srcbuild-ym.common "")
-target_link_libraries(ym.common INTERFACE YMDoxyDummy)
+target_link_libraries(ym.common PRIVATE YMDoxyDummy)
 
 find_package(Doxygen)
 
