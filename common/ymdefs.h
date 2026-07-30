@@ -32,17 +32,15 @@
 
 // ----------------------------------------------------------------------------
 
-// #if defined(__DOXYGEN__)
-   /** YM_CPP_STANDARD
-    *
-    * @brief Set to the current cpp standard.
-    *
-    * @note YM_UNITTEST_ACTIVE_DEFINED is to compile this header *only* in objects with
-    *       testsuites that include them.
-    *       YM_UNITTEST is a source-wide define that edits properties that make inspecting
-    *       code easier for clients easier.
-    */
-   // #define YM_CPP_STANDARD 0
+/** YM_CPP_STANDARD
+ *
+ * @brief Set to the current cpp standard.
+ *
+ * @internal YM_UNITTEST_ACTIVE_DEFINED is to compile this header *only* in objects with
+ *           testsuites that include them.
+ *           YM_UNITTEST is a source-wide define that edits properties that make inspecting
+ *           code easier for clients easier.
+ */
 #if (__cplusplus >= 202302L)
    #if (__cplusplus > 202302L)
       #define YM_CPP_STANDARD 99
@@ -54,7 +52,7 @@
       #if (__cplusplus == 202002L)
          #define YM_CPP_STANDARD 20
       #else
-         #error "C++20 standard required"
+         #error "C++20 standard required for cppyy based unittests"
       #endif
    #else
       #error "At least C++23 standard required"
