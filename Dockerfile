@@ -31,7 +31,8 @@ RUN apt-get update && apt-get install -y \
    clang \
    cmake \
    vim \
-   graphviz
+   graphviz \
+   doxygen
 
 # Get repo with error handling
 RUN git clone https://github.com/highoffscience/ym.git

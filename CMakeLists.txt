@@ -12,22 +12,13 @@ project(
    DESCRIPTION "Generates doxygen docs"
    LANGUAGES   NONE)
 
+set(CMAKE_CXX_COMPILER clang++)
+set(CMAKE_C_COMPILER   clang)
+set(CMAKE_ASM_COMPILER clang)
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-if(CMAKE_CXX_EXTENSIONS)
-   set(DOXYGEN_CXX_STANDARD_FLAG "-std=gnu++${CMAKE_CXX_STANDARD}")
-else()
-   set(DOXYGEN_CXX_STANDARD_FLAG "-std=c++${CMAKE_CXX_STANDARD}")
-endif()
-
-set(YM_UNITTEST             0)
-set(YM_PRINT_TO_SCREEN      0)
-set(YM_DEBUG                0)
-set(YM_LITE                 0)
-set(YM_USE_HEAP_AS_FALLBACK 1)
-set(YM_YES_EXCEPTIONS       1)
-set(YM_NO_EXCEPTIONS        0)
+set(CMAKE_CXX_EXTENSIONS True)
 
 find_package(Doxygen)
 if(DOXYGEN_FOUND)

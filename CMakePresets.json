@@ -9,11 +9,8 @@
       {
          "name": "docs",
          "displayName": "doxygen",
-         "generator": "Ninja",
          "binaryDir": "${sourceDir}/build",
-         "toolchainFile": "${sourceDir}/toolchain.cmake",
          "cacheVariables": {
-            "YM_ExtLibsDir": "${sourceDir}/extlibs"
          }
       }
    ]

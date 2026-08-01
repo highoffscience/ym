@@ -41,7 +41,9 @@
  *           YM_UNITTEST is a source-wide define that edits properties that make inspecting
  *           code easier for clients easier.
  */
-#if (__cplusplus >= 202302L)
+#if defined(__DOXYGEN__)
+   #define YM_CPP_STANDARD CMAKE_CXX_STANDARD
+#elif (__cplusplus >= 202302L)
    #if (__cplusplus > 202302L)
       #define YM_CPP_STANDARD 99
    #else
@@ -90,12 +92,16 @@
    #pragma warning(error:    4227) // reference of const should be pointer to const
 #endif
 
-#if defined(YM_UNITTEST_ACTIVE_DEFINED)
+#if defined(YM_UNITTEST_ACTIVE_DEFINED) || defined(__DOXYGEN__)
    extern "C"
    {
       /** ym_unit_cleanup_GlobalLogger
        *
        * @brief Cppyy needs a hook from outside the GlobalLogger class to initiate shutdown.
+       *
+       * @note Only defined if YM_UNITTEST_ACTIVE_DEFINED is defined. Headers in unittests
+       *       will define this internal macro before including this header to change the
+       *       processing in a way unittests can consume.
        */
       void ym_unit_cleanup_GlobalLogger(void);
    }
