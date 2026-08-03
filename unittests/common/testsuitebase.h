@@ -30,41 +30,45 @@ namespace ym::unit
 class TestSuiteBase : public PermaNameable_NV<>
 {
 public:
-   using TCArray_T = std::vector<std::unique_ptr<TestCase>>;
+   using TestCaseArray_T = std::vector<std::unique_ptr<TestCase>>;
 
-   explicit TestSuiteBase(std::string name);
-   virtual ~TestSuiteBase(void);
+   explicit TestSuiteBase(std::string name) noexcept;
+   virtual ~TestSuiteBase(void) = default;
 
    template <
       typename    DerivedTestCase_T,
       typename... Args_T>
-   void addTestCase(Args_T &&... args_uref); // TODO we don't need uref suffix - it uses move constructor
+   void addTestCase(Args_T &&... args);
 
    DataShuttle runTestCase(
       std::string const & Name,
       DataShuttle const & InData = {});
 
 private:
-   TCArray_T _testCases{};
+   TestCaseArray_T _testCases{};
 };
 
 /** addTestCase
  *
  * @brief Adds test case to list of known test cases.
  *
+ * @throws Whatever std::make_unique() throws.
+ *
  * @tparam DerivedTestCase_T -- Test case to add.
  * @tparam Args_T            -- Type of additional arguments to test case.
  *
- * @param args_uref -- Additional arguments to test case.
+ * @param args -- Additional arguments to test case.
  */
 template <
    typename    DerivedTestCase_T,
    typename... Args_T>
-void TestSuiteBase::addTestCase(Args_T &&... args_uref)
+void TestSuiteBase::addTestCase(Args_T &&... args)
 {
    static_assert(std::is_base_of_v<TestCase, DerivedTestCase_T>, "Can only add TestCase types");
 
-   _testCases.emplace_back(new DerivedTestCase_T(std::forward<Args_T>(args_uref)...));
+   _testCases.emplace_back(
+      std::make_unique<DerivedTestCase_T>(
+         std::forward<Args_T>(args)...));
 }
 
 } // ym::unit

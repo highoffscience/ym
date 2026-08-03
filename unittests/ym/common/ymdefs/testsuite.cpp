@@ -5,15 +5,17 @@
  */
 
 #include "testsuite.h"
-
-#include "globallogger.h"
 #include "ymglobals.h"
 
 #include "ymdefs.h" // Structures under test
 
+#include "fmt/format.h"
+
 /** TestSuite
  *
  * @brief Constructor.
+ *
+ * @throws Whatever addTestCase() throws.
  */
 ym::unit::TestSuite::TestSuite(void) :
    TestSuiteBase("YmDefs")

@@ -39,5 +39,3 @@ endif()
 set_target_properties(unit.common PROPERTIES
    VERSION ${PROJECT_VERSION}
    LIBRARY_OUTPUT_DIRECTORY ${YM_CustomLibsDir})
-
-add_custom_target(dist-clean ${CMAKE_COMMAND} -E rm -rf ${CMAKE_BINARY_DIR}/*)

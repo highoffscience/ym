@@ -6,38 +6,23 @@
 
 #include "testsuitebase.h"
 
-#include "globallogger.h"
-
 #include <algorithm>
 #include <stdexcept>
-#include <string>
-#include <utility>
 
 /** TestSuiteBase
  *
  * @brief Constructor.
  */
-ym::unit::TestSuiteBase::TestSuiteBase(std::string name) :
+ym::unit::TestSuiteBase::TestSuiteBase(std::string name) noexcept :
    PermaNameable_NV(std::move(name))
-{
-   ymLogEnable(VF::UnitTest);
-}
-
-/** ~TestSuiteBase
- *
- * @brief Destructor.
- */
-ym::unit::TestSuiteBase::~TestSuiteBase(void)
-{
-   ymLogDisable(VF::UnitTest);
-}
+{ }
 
 /** runTestCase
  *
  * @brief Runs specified test case.
  *
  * @throws std::runtime_error -- If requested test case is not found.
- * @throws Whatever TestCase::run throws.
+ * @throws std::runtime_error -- If TestCase::run throws.
  *
  * @param Name   -- Name of test case to run.
  * @param InData -- Additional input data for test case.
@@ -51,7 +36,7 @@ auto ym::unit::TestSuiteBase::runTestCase(
    DataShuttle ds{};
 
    auto const It = std::find_if(_testCases.begin(), _testCases.end(),
-      [Name](TCArray_T::value_type const & Uptr) {
+      [Name](TestCaseArray_T::value_type const & Uptr) {
          return Uptr->getName() == Name;
       }
    );

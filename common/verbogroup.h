@@ -17,8 +17,8 @@
 namespace ym
 {
 
-/// @todo TODO
-static constexpr auto trunc_up(unsigned const V, unsigned const D) {
+/// @internal llvm's std::ceil is not constexpr
+constexpr unsigned ym_vg_Helper_div_ceil(unsigned const V, unsigned const D) {
    auto const Q = V / D;
    return ((V % D) == 0u) ? Q : Q + 1u;
 }
@@ -68,7 +68,7 @@ public:
 private:
    std::array<
       std::atomic<unsigned>, // type
-      trunc_up(
+      ym_vg_Helper_div_ceil(
          std::to_underlying(Flag_T::Errstream), // exclude Errstream intentional - special handling required
          ym_getNBits<unsigned>()
       )

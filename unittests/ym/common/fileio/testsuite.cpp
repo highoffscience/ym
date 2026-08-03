@@ -5,11 +5,11 @@
  */
 
 #include "testsuite.h"
-
-#include "globallogger.h"
 #include "ymglobals.h"
 
 #include "fileio.h" // Structures under test
+
+#include "fmt/format.h"
 
 #include <array>
 #include <cstring>
@@ -63,8 +63,8 @@ auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & In
    { // read file in one chunk at a time
    }
 
-   // ymLog(VF::UnitTest, "{}\n", buffer);
-   // ymLog(VF::UnitTest, "{}\n", buffer2);
+   // fmt::println("{}\n", buffer);
+   // fmt::println("{}\n", buffer2);
 
    auto const Equal = (std::strncmp(buffer, buffer2, MaxSize) == 0);
 

@@ -5,11 +5,11 @@
  */
 
 #include "testsuite.h"
-
-#include "globallogger.h"
 #include "ymglobals.h"
 
 #include "verbogroup.h" // Structures under test
+
+#include "fmt/format.h"
 
 /** TestSuite
  *

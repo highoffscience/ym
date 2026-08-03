@@ -5,15 +5,14 @@
  */
 
 #include "testsuite.h"
-
-#include "globallogger.h"
 #include "ymglobals.h"
 
 #include "ymutils.h" // Structures under test
 
-#include <sys/stat.h>
+#include "fmt/format.h"
 
 #include <string>
+#include <sys/stat.h>
 #include <vector>
 
 /** TestSuite
@@ -76,15 +75,15 @@ auto ym::unit::TestSuite::Funcs::run([[maybe_unused]] DataShuttle const & InData
    {
       rawstr s = nullptr;
       emptySuccess = ym_empty(s);
-      ymLog(VF::UnitTest, "empty 1) -- {}", ym_empty(s));
+      fmt::println("empty 1) -- {}", ym_empty(s));
 
       s = "";
       emptySuccess &= ym_empty(s);
-      ymLog(VF::UnitTest, "empty 2) -- {}", ym_empty(s));
+      fmt::println("empty 2) -- {}", ym_empty(s));
 
       s = "Go! Torchic!";
       emptySuccess &= !ym_empty(s);
-      ymLog(VF::UnitTest, "empty 3) -- {}", ym_empty(s));
+      fmt::println("empty 3) -- {}", ym_empty(s));
    }
 
    auto binarySearchSuccess = false;
@@ -131,17 +130,17 @@ auto ym::unit::TestSuite::PtrIntClass::run([[maybe_unused]] DataShuttle const & 
 auto ym::unit::TestSuite::ByteBitsetClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    // Bitset b{};
-   // ymLog(VF::UnitTest, "1) TODO --> {}", b.getUnderlying());
+   // fmt::println("1) TODO --> {}", b.getUnderlying());
    // b.set(0);
-   // ymLog(VF::UnitTest, "2) TODO --> {}", b.getUnderlying());
+   // fmt::println("2) TODO --> {}", b.getUnderlying());
    // b.set(1);
-   // ymLog(VF::UnitTest, "3) TODO --> {}", b.getUnderlying());
+   // fmt::println("3) TODO --> {}", b.getUnderlying());
    // b.clear(1);
-   // ymLog(VF::UnitTest, "4) TODO --> {}", b.getUnderlying());
+   // fmt::println("4) TODO --> {}", b.getUnderlying());
    // b.set(1, true);
-   // ymLog(VF::UnitTest, "5) TODO --> {}", b.getUnderlying());
+   // fmt::println("5) TODO --> {}", b.getUnderlying());
    // auto b2 = b;
-   // ymLog(VF::UnitTest, "6) TODO --> {}", b2.getUnderlying());
+   // fmt::println("6) TODO --> {}", b2.getUnderlying());
 
    return {};
 }
@@ -257,7 +256,7 @@ auto ym::unit::TestSuite::PolyRawClass::run([[maybe_unused]] DataShuttle const &
 
    // std::vector<PolyRaw<Base, sizeof(Derived)>> v;
    // v.reserve(1);
-   // ymLog(VF::UnitTest, "Vector capacity is {}", v.capacity());
+   // fmt::println("Vector capacity is {}", v.capacity());
    // auto const OldCapacity = v.capacity();
    // for (auto i = 0uz; i < OldCapacity + 1uz; i++)
    // { // force reallocation

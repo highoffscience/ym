@@ -5,11 +5,11 @@
  */
 
 #include "testsuite.h"
-
-#include "globallogger.h"
 #include "ymglobals.h"
 
 #include "logger.h" // Structures under test
+
+#include "fmt/format.h"
 
 /** TestSuite
  *
@@ -41,7 +41,7 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
  */
 auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   ymLog(VF::UnitTest, "Go! Torchic!");
+   fmt::println("Go! Torchic!");
    return {
       {"IsOpen", GlobalLogger::getGlobalInstance()->isOpen()}
    };

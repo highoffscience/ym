@@ -5,11 +5,11 @@
  */
 
 #include "testsuite.h"
-
-#include "globallogger.h"
 #include "ymglobals.h"
 
 #include "argparser.h" // Structures under test
+
+#include "fmt/format.h"
 
 #include <array>
 #include <cstring>
@@ -102,7 +102,7 @@ auto ym::unit::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & I
    }
    catch (ArgParser::Error const & E)
    {
-      ymLog(VF::UnitTest, "--> {}", E.what());
+      fmt::println("--> {}", E.what());
       excHappened = true;
    }
 
@@ -151,7 +151,7 @@ auto ym::unit::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const 
    }
    catch (ArgParser::Error const & E)
    {
-      ymLog(VF::UnitTest, "--> {}", E.what());
+      fmt::println("--> {}", E.what());
       excHappened = true;
    }
 

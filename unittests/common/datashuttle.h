@@ -2,7 +2,7 @@
  * @file    datashuttle.h
  * @version 1.0.0
  * @author  Forrest Jablonski
- * 
+ *
  * @note File used in unittests - maximum standard C++20.
  */
 
@@ -20,7 +20,7 @@ namespace ym::unit
 {
 
 /** DataShuttle
- * 
+ *
  * @brief A dictionary to aid in communicating data between the server (source code) and
  *        the client (python script).
  */
@@ -29,10 +29,10 @@ class DataShuttle
 public:
    using Data_T = std::unordered_map<std::string, std::any>;
 
-   implicit DataShuttle(void) = default;
-   implicit DataShuttle(std::initializer_list<Data_T::value_type> && data_uref);
+   implicit DataShuttle(void) noexcept = default;
+   implicit DataShuttle(std::initializer_list<Data_T::value_type> && data) noexcept;
 
-   inline auto * operator -> (void) { return &_data; }
+   inline auto * operator -> (void) noexcept { return &_data; }
 
    template <typename T>
    inline T get(std::string const & Name);
@@ -40,22 +40,23 @@ public:
    template <typename T>
    T get(
       std::string const & Name,
-      T           const   DefaultValue);
+      T           const   DefaultValue) noexcept;
 
 private:
    Data_T _data{};
 };
 
 /** get
- * 
+ *
  * @brief Returns value of named variable.
- * 
+ *
+ * @throws Whatever Data_T::at() throws.
  * @throws Whatever std::any_cast() throws.
- * 
+ *
  * @tparam T -- Type to cast named variable to.
- * 
+ *
  * @param Name -- Name of variable.
- * 
+ *
  * @returns Value of named variable as type T.
  */
 template <typename T>
@@ -65,23 +66,21 @@ inline T DataShuttle::get(std::string const & Name)
 }
 
 /** get
- * 
+ *
  * @brief Returns value of named variable. If the variable doesn't exists return the
  *        specified default value.
- * 
- * @throws Whatever std::any_cast() throws.
- * 
+ *
  * @tparam T -- Type to cast named variable to.
- * 
+ *
  * @param Name         -- Name of variable.
  * @param DefaultValue -- Value to return if named variable cannot be found.
- * 
+ *
  * @returns Value of named variable as type T.
  */
 template <typename T>
 T DataShuttle::get(
    std::string const & Name,
-   T           const   DefaultValue)
+   T           const   DefaultValue) noexcept
 {
    auto val = DefaultValue;
 

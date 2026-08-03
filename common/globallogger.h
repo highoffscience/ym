@@ -31,8 +31,8 @@ inline void ymLog(
    strlit const Format,
    Args_T &&... args);
 
-template <std::same_as<VF>... VFs_T> inline void ymLogEnable (VFs_T const... VFlags);
-template <std::same_as<VF>... VFs_T> inline void ymLogDisable(VFs_T const... VFlags);
+template <std::same_as<VF>... VFs_T> inline void ymLogEnable (VFs_T const... VFlags) noexcept;
+template <std::same_as<VF>... VFs_T> inline void ymLogDisable(VFs_T const... VFlags) noexcept;
 
 // inline class ScopedEnable ymLogPushEnable(VF const VFlag);
 // Above is implemented below - ScopedEnable isn't yet defined.
@@ -229,7 +229,7 @@ inline void ymLog(
  * @param VFlags -- Verbosity flag to enable.
  */
 template <std::same_as<VF>... VFs_T>
-inline void ymLogEnable(VFs_T const... VFlags)
+inline void ymLogEnable(VFs_T const... VFlags) noexcept
 {
    GlobalLogger::getGlobalInstance()->enable(VFlags...);
 }
@@ -245,7 +245,7 @@ inline void ymLogEnable(VFs_T const... VFlags)
  * @param VFlags -- Verbosity flag to disable.
  */
 template <std::same_as<VF>... VFs_T>
-inline void ymLogDisable(VFs_T const... VFlags)
+inline void ymLogDisable(VFs_T const... VFlags) noexcept
 {
    GlobalLogger::getGlobalInstance()->disable(VFlags...);
 }

@@ -5,11 +5,11 @@
  */
 
 #include "testsuite.h"
-
-#include "globallogger.h"
 #include "ymglobals.h"
 
 #include "memio.h" // Structures under test
+
+#include "fmt/format.h"
 
 /** TestSuite
  *
@@ -116,9 +116,9 @@ auto ym::unit::TestSuite::StackString::run([[maybe_unused]] DataShuttle const & 
    // without "My hero!" small strong optimization means no allocation.
    *form = "Go!";
    form->append(" Torchic! My hero!");
-   ymLog(VF::UnitTest, "{}", *form);
+   fmt::println("{}", *form);
    *form = "Go! Pumpkaboo! My hero!";
-   ymLog(VF::UnitTest, "{}", *form);
+   fmt::println("{}", *form);
 
    // [[maybe_unused]]
    // auto buffer = ss.createStackBuffer<100>();

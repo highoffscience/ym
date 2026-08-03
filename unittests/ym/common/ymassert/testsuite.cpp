@@ -5,11 +5,11 @@
  */
 
 #include "testsuite.h"
-
-#include "globallogger.h"
 #include "ymglobals.h"
 
 #include "ymassert.h" // Structures under test
+
+#include "fmt/format.h"
 
 #include <cstring>
 #include <string>
