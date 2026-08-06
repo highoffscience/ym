@@ -229,7 +229,7 @@ YM_CREATE_TAG_DISPATCH_TYPE(ym_PtrCastPassKey)
  *
  * @brief Common operations/fields for pointer wrapper classes.
  *
- * @note BoundPtr and FreePtr are agnostic to ownership.
+ * @note BoundPtr and LoosePtr are agnostic to ownership.
  *
  * @tparam T         -- Type of pointer.
  * @tparam Derived_T -- Type of derived class.
@@ -240,7 +240,7 @@ template <
 class Ptr_Base
 {
    template <typename U>
-   friend class FreePtr;
+   friend class LoosePtr;
 
    template <typename U>
    friend class BoundPtr;
@@ -401,7 +401,7 @@ public:
    /// @{
    /// @brief Comparison overloads.
    constexpr auto operator <=> (BoundPtr<T> const &) const noexcept = default;
-   constexpr auto operator == (std::nullptr_t) const noexcept { return false; }
+   constexpr bool operator == (std::nullptr_t) const noexcept { return false; }
    /// @}
 };
 
@@ -442,28 +442,28 @@ public:
 template <typename T, std::size_t N>
 BoundPtr(T (&)[N]) -> BoundPtr<T[]>;
 
-/** FreePtr
+/** LoosePtr
  *
  * @brief Wrapper class that represents a possibly null pointer. No access is allowed without first
  *        converting to a BoundPtr.
  */
 template <typename T>
-class FreePtr : public Ptr_Base<T, FreePtr<T>>
+class LoosePtr : public Ptr_Base<T, LoosePtr<T>>
 {
 public:
    /// @brief Constructor.
-   implicit constexpr FreePtr(void) noexcept :
-      FreePtr<T>(nullptr)
+   implicit constexpr LoosePtr(void) noexcept :
+      LoosePtr<T>(nullptr)
    { }
 
    /// @brief Constructor.
-   implicit constexpr FreePtr(T * const value_Ptr) noexcept :
-      Ptr_Base<T, FreePtr<T>>(value_Ptr)
+   implicit constexpr LoosePtr(T * const value_Ptr) noexcept :
+      Ptr_Base<T, LoosePtr<T>>(value_Ptr)
    { }
 
    /// @brief Constructor.
-   implicit constexpr FreePtr(BoundPtr<T> const value_BPtr) noexcept :
-      Ptr_Base<T, FreePtr<T>>(value_BPtr.get())
+   implicit constexpr LoosePtr(BoundPtr<T> const value_Ptr) noexcept :
+      Ptr_Base<T, LoosePtr<T>>(value_Ptr.get())
    { }
 
    /// @brief Casting constructor.
@@ -472,46 +472,46 @@ public:
       std::is_convertible_v<U*, T*> || // enforce legal casting
       std::is_same_v<T, uchar>      || // casting to byte representation is legal
       std::is_same_v<T, std::byte>)    // ...
-   implicit constexpr FreePtr(FreePtr<U> const & Other) noexcept :
-      Ptr_Base<T, FreePtr<T>>(ym_castPtrTo<T>(Other._value_ptr))
+   implicit constexpr LoosePtr(LoosePtr<U> const & Other) noexcept :
+      Ptr_Base<T, LoosePtr<T>>(ym_castPtrTo<T>(Other._value_ptr))
    { }
 
    /// @brief Casting constructor. Anything goes.
    template <typename U>
-   implicit constexpr FreePtr(
-      FreePtr<U>        const & Other,
+   implicit constexpr LoosePtr(
+      LoosePtr<U>        const & Other,
       ym_PtrCastPassKey const) noexcept :
-         Ptr_Base<T, FreePtr<T>>(ym_castPtrTo<T>(Other._value_ptr))
+         Ptr_Base<T, LoosePtr<T>>(ym_castPtrTo<T>(Other._value_ptr))
    { }
 
    /// @brief Unsafe to convert between the two - deallocation strategies differ.
    template <typename U>
    requires (std::is_array_v<U> && !ByteLikeable<T>)
-   implicit constexpr FreePtr(FreePtr<U> const & Other) noexcept = delete;
+   implicit constexpr LoosePtr(LoosePtr<U> const & Other) noexcept = delete;
 
    /// @brief Only allow if str - it is de facto usage to treat character arrays as character pointers.
    template <typename U>
    requires (std::is_array_v<U> && ByteLikeable<T>)
-   implicit constexpr FreePtr(FreePtr<U> const & Other) noexcept :
-      FreePtr<T>(Other.get())
+   implicit constexpr LoosePtr(LoosePtr<U> const & Other) noexcept :
+      LoosePtr<T>(Other.get())
    { }
 
    /// @brief Unsafe to convert between the two - deallocation strategies differ.
    template <typename U>
    requires (std::is_array_v<U> && !ByteLikeable<T>)
-   implicit constexpr FreePtr(BoundPtr<U> const & Other) noexcept = delete;
+   implicit constexpr LoosePtr(BoundPtr<U> const & Other) noexcept = delete;
 
    /// @brief Only allow if str - it is de facto usage to treat character arrays as character pointers.
    template <typename U>
    requires (std::is_array_v<U> && ByteLikeable<T>)
-   implicit constexpr FreePtr(BoundPtr<U> const & Other) noexcept :
-      FreePtr<T>(Other.get())
+   implicit constexpr LoosePtr(BoundPtr<U> const & Other) noexcept :
+      LoosePtr<T>(Other.get())
    { }
 
    /// @name Comparison operations.
    /// @{
    /// @brief Comparison overloads.
-   constexpr auto operator <=> (FreePtr<T> const &) const noexcept = default;
+   constexpr auto operator <=> (LoosePtr<T> const &) const noexcept = default;
    constexpr bool operator == (std::nullptr_t) const noexcept { return this->_value_ptr == nullptr; }
    /// @}
 
@@ -527,41 +527,41 @@ public:
    }
 
    /// @brief Returns a BoundPtr to the contained pointer, or a default value if the contained pointer is null.
-   constexpr BoundPtr<T> unwrap_or(BoundPtr<T> const BPtr) const noexcept {
-      return (*this) ? unwrap() : BPtr;
+   constexpr BoundPtr<T> unwrap_or(BoundPtr<T> const Ptr) const noexcept {
+      return (*this) ? unwrap() : Ptr;
    }
 };
 
-/** FreePtr
+/** LoosePtr
  *
  * @brief Wrapper class that represents a possibly null pointer. No access is allowed without first
  *        converting to a BoundPtr.
  */
 template <typename T>
-class FreePtr<T[]> : public Ptr_Base<T, FreePtr<T[]>>
+class LoosePtr<T[]> : public Ptr_Base<T, LoosePtr<T[]>>
 {
 public:
    /// @brief Constructor.
-   implicit constexpr FreePtr(void) noexcept :
-      Ptr_Base<T, FreePtr<T[]>>(nullptr)
+   implicit constexpr LoosePtr(void) noexcept :
+      Ptr_Base<T, LoosePtr<T[]>>(nullptr)
    { }
 
    /// @brief Wrapper for non-null pointer.
    template <std::size_t N>
-   implicit constexpr FreePtr(T (&array) [N]) noexcept :
-      Ptr_Base<T, FreePtr<T[]>>(array)
+   implicit constexpr LoosePtr(T (&array) [N]) noexcept :
+      Ptr_Base<T, LoosePtr<T[]>>(array)
    { }
 
    /// @brief Constructor.
-   implicit constexpr FreePtr(BoundPtr<T[]> const value_BPtr) noexcept :
-      Ptr_Base<T, FreePtr<T[]>>(value_BPtr.get())
+   implicit constexpr LoosePtr(BoundPtr<T[]> const value_Ptr) noexcept :
+      Ptr_Base<T, LoosePtr<T[]>>(value_Ptr.get())
    { }
 
    /// @brief Casting constructor.
    template <typename U>
    requires (std::is_convertible_v<U*, T*>) // enforce legal casting
-   implicit constexpr FreePtr(FreePtr<U[]> const & Other) noexcept :
-      Ptr_Base<T, FreePtr<T[]>>(Other)
+   implicit constexpr LoosePtr(LoosePtr<U[]> const & Other) noexcept :
+      Ptr_Base<T, LoosePtr<T[]>>(Other)
    { }
 
    /// @brief Grabs the element at the specified index. No bounds checking.
@@ -572,7 +572,17 @@ public:
 
 /// @brief Deduction guide - prevents pointer to array from decaying.
 template <typename T, std::size_t N>
-FreePtr(T (&)[N]) -> FreePtr<T[]>;
+LoosePtr(T (&)[N]) -> LoosePtr<T[]>;
+
+/// @name Pointer aliases.
+/// @{
+/// @brief Convenience alias.
+template <typename T>
+using bound = BoundPtr<T>;
+
+template <typename T>
+using loose = LoosePtr<T>;
+/// @}
 
 /// @name C-style string aliases.
 /// @{
@@ -580,9 +590,9 @@ FreePtr(T (&)[N]) -> FreePtr<T[]>;
 using str       = BoundPtr<char const>;   // string
 using strlit    = BoundPtr<char const[]>; // string literal
 using mutstr    = BoundPtr<char>;         // mutable string
-using optstr    = FreePtr<char const>;    // optional string
-using optstrlit = FreePtr<char const[]>;  // optional string literal
-using optmutstr = FreePtr<char>;          // optional mutable string
+using optstr    = LoosePtr<char const>;    // optional string
+using optstrlit = LoosePtr<char const[]>;  // optional string literal
+using optmutstr = LoosePtr<char>;          // optional mutable string
 /// @}
 
 /** PolyRaw

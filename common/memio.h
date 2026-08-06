@@ -58,7 +58,7 @@ YM_DECL_YMASSERT(ym_MemResourceError);
 class MemIO
 {
 public:
-   static BoundPtr<std::pmr::memory_resource> getNullMemResource(void) noexcept;
+   static bound<std::pmr::memory_resource> getNullMemResource(void) noexcept;
 };
 
 /** StackBuffer_Base
@@ -79,7 +79,7 @@ public:
 protected:
    /// @brief Constructor.
    explicit constexpr StackBuffer_Base(
-      BoundPtr<void> const buffer_BPtr,
+      bound<void> const buffer_BPtr,
       std::size_t    const BufferSize_bytes) noexcept :
          std::pmr::monotonic_buffer_resource(
             buffer_BPtr,
@@ -95,12 +95,12 @@ protected:
 
 public:
    /// @brief Getter.
-   constexpr FreePtr<class StackBufferUser const> getUserFPtr(void) const noexcept {
+   constexpr loose<class StackBufferUser const> getUserFPtr(void) const noexcept {
       return _user_fptr;
    }
 
 private:
-   FreePtr<class StackBufferUser> _user_fptr;
+   LoosePtr<class StackBufferUser> _user_fptr;
 };
 
 /** StackBuffer

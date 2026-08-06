@@ -38,7 +38,7 @@ public:
    };
 
    /** OverwriteMode
-    * 
+    *
     * @brief Mode to indicate if file can be overwritten.
     */
    enum class OverwriteMode_T
@@ -48,7 +48,7 @@ public:
    };
 
    /** Options_T
-    * 
+    *
     * @brief Options surrounding opening a file.
     */
    struct Options_T
@@ -103,8 +103,8 @@ protected:
 
    bool openOutfile(std::string_view const Filename) noexcept;
    void closeOutfile(void) noexcept;
-   
-   FreePtr<std::FILE> _file{nullptr};
+
+   LoosePtr<std::FILE> _file{nullptr};
 
 private:
    void openOutfile_core           (std::string_view const Filename) noexcept;

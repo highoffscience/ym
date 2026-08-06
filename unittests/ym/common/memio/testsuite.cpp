@@ -94,9 +94,9 @@ auto ym::unit::TestSuite::StackString::run([[maybe_unused]] DataShuttle const & 
 {
    struct StackString : public StackBufferUser
    {
-      constexpr StackString(BoundPtr<StackBuffer_Base> const buffer_BPtr) :
-         StackBufferUser(buffer_BPtr),
-         _internal {buffer_BPtr.get()}
+      constexpr StackString(BoundPtr<StackBuffer_Base> const buffer_Ptr) :
+         StackBufferUser(buffer_Ptr),
+         _internal {buffer_Ptr.get()}
       { }
 
       constexpr auto operator -> (void) noexcept {

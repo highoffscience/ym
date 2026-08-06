@@ -57,7 +57,7 @@ public:
    std::optional<std::span<char>> fillBufferPiecewise(std::span<char> buffer) noexcept;
 
 private:
-   FreePtr<std::FILE> _file{};
+   LoosePtr<std::FILE> _file{};
    std::size_t        _size{};
 };
 

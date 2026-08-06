@@ -21,6 +21,8 @@ namespace ym
  *
  * TODO add commands, like
  *      ./a.out status -a (note that status doesn't require a preceeding --).
+ *      Commands should stack, like
+ *      ./a.out report status console
  * TODO add completion hints ("--statis" leads to "did you mean --status?")
  *      of course this functionality will be guarded in a NOT_LITE build.
  *
@@ -113,9 +115,9 @@ public:
    };
 
    explicit ArgParser(
-      int                    const Argc,       // command line arg count
-      BoundPtr<rawstr const> const Argv_BPtr,  // command line args
-      std::span<Arg>               argHandlers // user-defined arg handlers
+      int                 const Argc,       // command line arg count
+      bound<rawstr const> const Argv_Ptr,   // command line args
+      std::span<Arg>            argHandlers // user-defined arg handlers
    );
 
    explicit ArgParser(
@@ -128,20 +130,17 @@ public:
 
    ParseResult_T parse(void);
 
-          BoundPtr<Arg const> get       (str const Key) const;
-   inline BoundPtr<Arg const> operator[](str const Key) const { return get(Key); }
+          bound<Arg const> get       (str const Key) const;
+   inline bound<Arg const> operator[](str const Key) const { return get(Key); }
 
    YM_DECL_YMASSERT(Error)
-   YM_DECL_YMASSERT(Error, ParseError )
-   YM_DECL_YMASSERT(Error, ArgError   )
-   YM_DECL_YMASSERT(Error, AccessError)
 
 private:
    static constexpr auto isValidChar(char const Char) { return Char >= '!' && Char <= '~' && Char != '-'; }
    static constexpr auto getAbbrIdx (char const Abbr) { return static_cast<unsigned>(Abbr - '!'); }
 
    static constexpr auto s_NValidChars = static_cast<unsigned>('~' - '!' + 1); // 126 - 33 + 1
-   using AbbrSet_T = std::array<FreePtr<Arg>, s_NValidChars>;
+   using AbbrSet_T = std::array<loose<Arg>, s_NValidChars>;
 
    void organizeAndValidateArgHandlerVector(void);
 
@@ -149,28 +148,28 @@ private:
 
    optstr getNextToken(void);
 
-   BoundPtr<Arg> getArgPtrFromPrefix(str  const Prefix);
-   BoundPtr<Arg> getArgPtrFromAbbr  (char const Abbr  );
+   bound<Arg> getArgPtrFromPrefix(str  const Prefix);
+   bound<Arg> getArgPtrFromAbbr  (char const Abbr  );
 
    ParseResult_T parseLonghand (str token);
    ParseResult_T parseShorthand(str token);
 
    ParseResult_T parseLonghand(
-      BoundPtr<Arg> const arg_BPtr,
-      bool          const IsNeg = false);
+      bound<Arg> const arg_Ptr,
+      bool       const IsNeg = false);
 
    ParseResult_T parseShorthand(
-      BoundPtr<Arg> const arg_BPtr,
-      bool          const MightHaveValue);
+      bound<Arg> const arg_Ptr,
+      bool       const MightHaveValue);
 
    /// @brief Helper type.
    union Argv_T
    {
-      constexpr Argv_T(BoundPtr<rawstr const> const Vec_) noexcept : Vec{Vec_} {}
-      constexpr Argv_T(str /* - - -  - - - */ const Str_) noexcept : Str{Str_} {}
+      constexpr Argv_T(bound<rawstr const> const Vec_) noexcept : Vec{Vec_} {}
+      constexpr Argv_T(str /* - - - - - */ const Str_) noexcept : Str{Str_} {}
 
-      BoundPtr<rawstr const> const Vec; // array of args (as passed to main)
-      str /* - - -  - - - */ const Str; // one string
+      bound<rawstr const> const Vec; // array of args (as passed to main)
+      str /* - - - - - */ const Str; // one string
    };
 
    /// @brief Helper type.
@@ -187,7 +186,7 @@ private:
    AbbrSet_T      _abbrs      {};
    std::span<Arg> _argHandlers{};
    int    const   _Argc       {};
-   Argv_T const   _Argv;
+   Argv_T const   _Argv; // no default ctor
    Idx_T          _tidx       {};
 };
 

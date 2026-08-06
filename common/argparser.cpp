@@ -32,12 +32,12 @@
  * @param argHandlers -- Array of argument handlers.
  */
 ym::ArgParser::ArgParser(
-   int                    const Argc,
-   BoundPtr<rawstr const> const Argv_BPtr,
-   std::span<Arg>               argHandlers) :
+   int                 const Argc,
+   bound<rawstr const> const Argv_Ptr,
+   std::span<Arg>            argHandlers) :
       _argHandlers {argHandlers},
       _Argc        {Argc       },
-      _Argv        {Argv_BPtr  }
+      _Argv        {Argv_Ptr   }
 { }
 
 /** ArgParser
@@ -107,12 +107,12 @@ auto ym::ArgParser::parse(void) -> ParseResult_T
  * @brief Sorts and checks for duplicate args.
  *
  * @throws Error    -- If std::sort fails.
- * @throws ArgError -- If there is a duplicate argument (argument with the same name).
- * @throws ArgError -- If name is null or empty or invalid.
- * @throws ArgError -- If description is null or empty.
- * @throws ArgError -- If the abbreviation is invalid or has been previously set.
- * @throws ArgError -- If flag has been set and value is invalid.
- * @throws ArgError -- If Enabled but not marked as a flag.
+ * @throws Error -- If there is a duplicate argument (argument with the same name).
+ * @throws Error -- If name is null or empty or invalid.
+ * @throws Error -- If description is null or empty.
+ * @throws Error -- If the abbreviation is invalid or has been previously set.
+ * @throws Error -- If flag has been set and value is invalid.
+ * @throws Error -- If Enabled but not marked as a flag.
  */
 void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 {
@@ -153,20 +153,20 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 
       if (it != BeginIt)
       { // compare current key to previous key
-         YMASSERT(std::strcmp(Key, (it - 1)->getName()) != 0, ArgError, YM_DAH,
+         YMASSERT(std::strcmp(Key, (it - 1)->getName()) != 0, Error, YM_DAH,
             "Duplicate key '{}'", Key);
       }
 
       // --- --- validate key name --- ---
 
-      YMASSERT(*Key, ArgError, YM_DAH, "Name must be non-empty");
-      YMASSERT(Key[0] != '-', ArgError, YM_DAH, "Name '{}' cannot begin with '-'", Key);
-      YMASSERT(std::strcmp(Key, "help") != 0, ArgError, YM_DAH,
+      YMASSERT(*Key, Error, YM_DAH, "Name must be non-empty");
+      YMASSERT(Key[0] != '-', Error, YM_DAH, "Name '{}' cannot begin with '-'", Key);
+      YMASSERT(std::strcmp(Key, "help") != 0, Error, YM_DAH,
          "Arg cannot be named the reserved word 'help'");
 
       // --- --- validate description --- ---
 
-      YMASSERT(*Desc, ArgError, YM_DAH, "Description must be non-empty");
+      YMASSERT(*Desc, Error, YM_DAH, "Description must be non-empty");
 
       // --- --- validate value --- ---
 
@@ -176,8 +176,8 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 
       if (Abbr != '\0')
       { // assigned abbr
-         YMASSERT(isValidChar(Abbr), ArgError, YM_DAH, "Abbr 0x{:x} not valid for arg '{}'", Abbr, Key);
-         YMASSERT(!_abbrs[getAbbrIdx(Abbr)], ArgError, YM_DAH,
+         YMASSERT(isValidChar(Abbr), Error, YM_DAH, "Abbr 0x{:x} not valid for arg '{}'", Abbr, Key);
+         YMASSERT(!_abbrs[getAbbrIdx(Abbr)], Error, YM_DAH,
             "Key '{}' tried to take already occupied Abbr '{}'", Key, Abbr);
          _abbrs[getAbbrIdx(Abbr)] = &*it;
       }
@@ -186,13 +186,13 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 
       if (it->isFlag())
       { // marked as flag
-         YMASSERT(Val, ArgError, YM_DAH, "Arg '{}' is a flag yet not initialized");
-         YMASSERT(std::strcmp(Val.unwrap(), "0") == 0 || std::strcmp(Val.unwrap(), "1") == 0, ArgError, YM_DAH,
+         YMASSERT(Val, Error, YM_DAH, "Arg '{}' is a flag yet not initialized");
+         YMASSERT(std::strcmp(Val.unwrap(), "0") == 0 || std::strcmp(Val.unwrap(), "1") == 0, Error, YM_DAH,
             "Arg '{}' is a flag - cannot have arbitrary value", Key);
       }
       else
       { // not a flag
-         YMASSERT(!it->isEnbl(), ArgError, YM_DAH,
+         YMASSERT(!it->isEnbl(), Error, YM_DAH,
             "Arg '{}' cannot be enabled and not marked as a flag", Key);
       }
 
@@ -200,15 +200,15 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 
       if (it->isEnbl())
       { // enabled - better be a flag
-         YMASSERT( it->isFlag(), ArgError, YM_DAH, "Arg '{}' is marked as enabled but is not a flag", Key);
-         YMASSERT(!it->isList(), ArgError, YM_DAH, "Arg '{}' is marked enabled but also a list", Key);
+         YMASSERT( it->isFlag(), Error, YM_DAH, "Arg '{}' is marked as enabled but is not a flag", Key);
+         YMASSERT(!it->isList(), Error, YM_DAH, "Arg '{}' is marked enabled but also a list", Key);
       }
 
       // --- --- validate list --- ---
 
       if (it->isList())
       { // list
-         YMASSERT(!it->isFlag(), ArgError, YM_DAH, "Arg '{}' is marked as a list and a flag", Key);
+         YMASSERT(!it->isFlag(), Error, YM_DAH, "Arg '{}' is marked as a list and a flag", Key);
 
          // list/enbl exclusion already tested
       }
@@ -236,20 +236,20 @@ void ym::ArgParser::displayHelpMenu(void) const
       }
    }
 
-   auto const spaces_Bptr = BoundPtr(YM_STACK_ALLOC(char, maxKeyLen + 1uz));
+   auto const spaces_Ptr = bound(YM_STACK_ALLOC(char, maxKeyLen + 1uz));
 
    for (auto i = 0uz; i < maxKeyLen; ++i)
    { // init all elements to spaces
-      spaces_Bptr[i] = ' ';
+      spaces_Ptr[i] = ' ';
    }
-   spaces_Bptr[maxKeyLen] = '\0';
+   spaces_Ptr[maxKeyLen] = '\0';
 
    ymLog(VF::ArgParser, "ArgParser help menu:");
 
    for (auto it = BeginIt; it != EndIt; it++)
    { // go through all registered arguments
       auto const KeyLen = std::strlen(it->getName());
-      ymLog(VF::ArgParser, " --{}{} : {}", it->getName(), spaces_Bptr + KeyLen, it->getDesc());
+      ymLog(VF::ArgParser, " --{}{} : {}", it->getName(), spaces_Ptr + KeyLen, it->getDesc());
 
       if (auto const Abbr = it->getAbbr(); isValidChar(Abbr))
       { // this arg has an abbreviation
@@ -326,16 +326,16 @@ auto ym::ArgParser::getNextToken(void) -> optstr
  *
  * @brief Returns the registered argument info associated with the given prefix.
  *
- * @throws ParseError -- If prefix is ambiguous.
- * @throws ParseError -- If prefix is not found.
+ * @throws Error -- If prefix is ambiguous.
+ * @throws Error -- If prefix is not found.
  *
  * @param Prefix -- Prefix of argument.
  *
- * @returns BoundPtr<Arg> -- Found argument.
+ * @returns bound<Arg> -- Found argument.
  */
-auto ym::ArgParser::getArgPtrFromPrefix(str const Prefix) -> BoundPtr<Arg>
+auto ym::ArgParser::getArgPtrFromPrefix(str const Prefix) -> bound<Arg>
 {
-   FreePtr<Arg> arg_fptr = nullptr;
+   LoosePtr<Arg> arg_fptr = nullptr;
 
    auto BeginIt = _argHandlers.begin();
    auto EndIt   = _argHandlers.end();
@@ -365,7 +365,7 @@ auto ym::ArgParser::getArgPtrFromPrefix(str const Prefix) -> BoundPtr<Arg>
          else
          { // prefix matched but maybe others will match so continue search
             // if another match is found it will trigger the assert below
-            YMASSERT(it == EndIt, ParseError, YM_DAH, "Prefix '{}' is ambiguous", PrefixSV);
+            YMASSERT(it == EndIt, Error, YM_DAH, "Prefix '{}' is ambiguous", PrefixSV);
             arg_fptr = &*it;
          }
       }
@@ -375,7 +375,7 @@ auto ym::ArgParser::getArgPtrFromPrefix(str const Prefix) -> BoundPtr<Arg>
       }
    }
 
-   YMASSERT(arg_fptr, ParseError, YM_DAH, "Prefix '{}' doesn't match any handlers", PrefixSV);
+   YMASSERT(arg_fptr, Error, YM_DAH, "Prefix '{}' doesn't match any handlers", PrefixSV);
 
    return arg_fptr.unwrap();
 }
@@ -384,20 +384,20 @@ auto ym::ArgParser::getArgPtrFromPrefix(str const Prefix) -> BoundPtr<Arg>
  *
  * @brief Returns the registered argument info associated with the given abbreviation.
  *
- * @throws ParseError -- If the requested Abbr is invalid.
- * @throws ParseError -- If the requested Abbr is not registered.
+ * @throws Error -- If the requested Abbr is invalid.
+ * @throws Error -- If the requested Abbr is not registered.
  *
  * @param Abbr -- Abbreviation of argument.
  *
- * @returns BoundPtr<Arg> -- Found argument.
+ * @returns bound<Arg> -- Found argument.
  */
-auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> BoundPtr<Arg>
+auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> bound<Arg>
 {
-   YMASSERT(isValidChar(Abbr), ParseError, YM_DAH, "Abbr 0x{:x} not valid", Abbr);
+   YMASSERT(isValidChar(Abbr), Error, YM_DAH, "Abbr 0x{:x} not valid", Abbr);
 
    auto arg_fptr = _abbrs[getAbbrIdx(Abbr)];
 
-   YMASSERT(arg_fptr, ParseError, YM_DAH, "Abbr '{}' not registered", Abbr);
+   YMASSERT(arg_fptr, Error, YM_DAH, "Abbr '{}' not registered", Abbr);
 
    return arg_fptr.unwrap();
 }
@@ -414,7 +414,7 @@ auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> BoundPtr<Arg>
  */
 auto ym::ArgParser::parseLonghand(str token) -> ParseResult_T
 {
-   YMASSERT(!ym_empty(token), ParseError, YM_DAH, "token missing after '--'")
+   YMASSERT(!ym_empty(token), Error, YM_DAH, "token missing after '--'")
 
    auto result = ParseResult_T::Success; // until told otherwise
 
@@ -437,7 +437,7 @@ auto ym::ArgParser::parseLonghand(str token) -> ParseResult_T
  *
  * @brief Parses next short command.
  *
- * @throws ParseError -- If a parsing error occurs.
+ * @throws Error -- If a parsing error occurs.
  * @throws Whatever the other functions throw.
  *
  * @param token -- Current token in stream.
@@ -446,7 +446,7 @@ auto ym::ArgParser::parseLonghand(str token) -> ParseResult_T
  */
 auto ym::ArgParser::parseShorthand(str token) -> ParseResult_T
 {
-   YMASSERT(!ym_empty(token), ParseError, YM_DAH, "token missing after '-'")
+   YMASSERT(!ym_empty(token), Error, YM_DAH, "token missing after '-'")
 
    auto result = ParseResult_T::Success; // until told otherwise
 
@@ -477,7 +477,7 @@ auto ym::ArgParser::parseShorthand(str token) -> ParseResult_T
  *
  * @brief Sets the value depending on the type of argument.
  *
- * @throws ParseError -- If a parsing error occurs.
+ * @throws Error -- If a parsing error occurs.
  * @throws Whatever the other functions throw.
  *
  * @param arg_Ptr -- Arg handler refering to the current token.
@@ -486,42 +486,42 @@ auto ym::ArgParser::parseShorthand(str token) -> ParseResult_T
  * @returns ParseResult_T -- Result of the parse.
  */
 auto ym::ArgParser::parseLonghand(
-   BoundPtr<Arg> const arg_BPtr,
-   bool          const IsNeg) -> ParseResult_T
+   bound<Arg> const arg_Ptr,
+   bool       const IsNeg) -> ParseResult_T
 {
    auto result = ParseResult_T::Failure; // until told otherwise
 
-   if (arg_BPtr->isFlag())
+   if (arg_Ptr->isFlag())
    { // enable argument - no explicit value
-      arg_BPtr->enbl(!IsNeg);
+      arg_Ptr->enbl(!IsNeg);
    }
    else
    { // value is next command line argument
 
       auto token = getNextToken();
-      YMASSERT(token, ParseError, YM_DAH, "No value for arg '{}'", arg_BPtr->getName());
-      arg_BPtr->defval(token.unwrap());
+      YMASSERT(token, Error, YM_DAH, "No value for arg '{}'", arg_Ptr->getName());
+      arg_Ptr->defval(token.unwrap());
 
-      if (arg_BPtr->isList())
+      if (arg_Ptr->isList())
       { // argument is list
 
          auto const NExpectedVals = std::strtoul(token.unwrap(), nullptr, 10);
 
-         YMASSERT(NExpectedVals != 0ul && NExpectedVals != ULONG_MAX, ParseError, YM_DAH,
-            "List '{}' has invalid hint for number of arguments", arg_BPtr->getName());
+         YMASSERT(NExpectedVals != 0ul && NExpectedVals != ULONG_MAX, Error, YM_DAH,
+            "List '{}' has invalid hint for number of arguments", arg_Ptr->getName());
 
-         arg_BPtr->_nvals = static_cast<uint32>(NExpectedVals);
+         arg_Ptr->_nvals = static_cast<uint32>(NExpectedVals);
 
-         for (auto i = 0u; (i < arg_BPtr->_nvals) && (token = getNextToken()); i++)
+         for (auto i = 0u; (i < arg_Ptr->_nvals) && (token = getNextToken()); i++)
          { // fast forward the number of items in list
             if (i == 0u)
             { // record starting point of list
-               arg_BPtr->defval(token.unwrap());
+               arg_Ptr->defval(token.unwrap());
             }
          }
 
-         YMASSERT(token, ParseError, YM_DAH, "List '{}' doesn't have {} elements as promised",
-            arg_BPtr->getName(), arg_BPtr->_nvals)
+         YMASSERT(token, Error, YM_DAH, "List '{}' doesn't have {} elements as promised",
+            arg_Ptr->getName(), arg_Ptr->_nvals)
       }
    }
 
@@ -534,7 +534,7 @@ auto ym::ArgParser::parseLonghand(
  *
  * @note This overload is for shorthand args.
  *
- * @throws ParseError -- If a parsing error occurs.
+ * @throws Error -- If a parsing error occurs.
  * @throws Whatever the other functions throw.
  *
  * @param arg_Ptr -- Arg handler refering to the current token.
@@ -543,20 +543,20 @@ auto ym::ArgParser::parseLonghand(
  * @returns ParseResult_T -- Result of the parse.
  */
 auto ym::ArgParser::parseShorthand(
-   BoundPtr<Arg> const arg_BPtr,
-   bool          const MightHaveValue) -> ParseResult_T
+   bound<Arg> const arg_Ptr,
+   bool       const MightHaveValue) -> ParseResult_T
 {
    auto result = ParseResult_T::Failure; // until told otherwise
 
    if (MightHaveValue)
    { // only 1 abbr - might have value
-      result = parseLonghand(arg_BPtr);
+      result = parseLonghand(arg_Ptr);
    }
    else
    { // abbr found
-      YMASSERT(arg_BPtr->isFlag(), ParseError, YM_DAH,
-         "Arg '{}' not a flag", arg_BPtr->getName());
-      arg_BPtr->enbl(true);
+      YMASSERT(arg_Ptr->isFlag(), Error, YM_DAH,
+         "Arg '{}' not a flag", arg_Ptr->getName());
+      arg_Ptr->enbl(true);
       result = ParseResult_T::Success;
    }
 
@@ -570,13 +570,13 @@ auto ym::ArgParser::parseShorthand(
  * @note std::binary_search doesn't return a pointer to the found object, which is
  *       why we use a custom binary search function.
  *
- * @throws AccessError -- If no argument with the given name found.
+ * @throws Error -- If no argument with the given name found.
  *
  * @param Key -- Name of argument.
  *
- * @returns BoundPtr<Arg const> -- Found argument, or nullptr if none found.
+ * @returns bound<Arg const> -- Found argument, or nullptr if none found.
  */
-auto ym::ArgParser::get(str const Key) const -> BoundPtr<Arg const>
+auto ym::ArgParser::get(str const Key) const -> bound<Arg const>
 {
    auto const BeginIt = _argHandlers.cbegin();
    auto const EndIt   = _argHandlers.cend();
@@ -587,7 +587,7 @@ auto ym::ArgParser::get(str const Key) const -> BoundPtr<Arg const>
       }
    );
 
-   YMASSERT(&*It, AccessError, YM_DAH, "Key '{}' not found", Key);
+   YMASSERT(&*It, Error, YM_DAH, "Key '{}' not found", Key);
 
    return &*It;
 }
