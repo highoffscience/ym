@@ -12,10 +12,6 @@
 
 #include <type_traits>
 
-#if ((YM_YES_EXCEPTIONS) + (YM_NO_EXCEPTIONS) != 1)
-   #error "Conflicting exception rule or none specified"
-#endif
-
 #if (YM_YES_EXCEPTIONS)
    #include <exception>
 #endif
@@ -28,6 +24,7 @@
 #endif
 
 /// @brief Convenience macro. Default Assert Handler - Return Error Value.
+/// @param ReturnVal_ -- The return value.
 #define YM_DAH_REV(ReturnVal_) return ymassert_Base::logAndReturn(e__, ReturnVal_)
 
 /** YMASSERT
@@ -86,7 +83,7 @@
    }
 
 /// @brief Optionally enable assert functionality.
-/// @ref YMASSERT
+/// TODO how to reference
 #if (YM_DEBUG)
    #define YMASSERTDBG(Cond_, Derived_, Handler_, Format_, ...) YMASSERT(Cond_, Derived_, Handler_, Format_, __VA_ARGS__)
 #else
@@ -102,14 +99,8 @@
 #define YM_DECL_YMASSERT(...) YM_MACRO_OVERLOAD(YM_HELPER_DECL_YMASSERT, __VA_ARGS__)
 
 /// @cond INTERNAL
-
-/// @param Name_     -- Name of derived class.
-#define YM_HELPER_DECL_YMASSERT1(Name_) YM_HELPER_DECL_YMASSERT2(ymassert_Base, Name_)
-
-/// @param Name_     -- Name of derived class.
-/// @param BaseName_ -- Name of base class.
-#define YM_HELPER_DECL_YMASSERT2(BaseName_, Name_) class Name_ : public BaseName_ { };
-
+#define YM_HELPER_DECL_YMASSERT1(DerivedName_) YM_HELPER_DECL_YMASSERT2(ymassert_Base, DerivedName_)
+#define YM_HELPER_DECL_YMASSERT2(BaseName_, DerivedName_) class DerivedName_ : public BaseName_ { };
 /// @endcond
 
 namespace ym
@@ -131,17 +122,17 @@ public:
    static inline void defaultYesExceptHandler(auto const & E) { throw E; }
 #else // YM_NO_EXCEPTIONS
    rawstr what(void) const noexcept;
-   static void defaultNoExceptHandler(ymassert_Base const & E);
+   static void defaultNoExceptHandler(ymassert_Base const & E) noexcept;
 #endif
 
    static void logAssert(ymassert_Base const & E);
 
    /// @brief
    /// @param E
-   /// @param v_uref
+   /// @param v
    /// @returns
-   static inline auto logAndReturn(ymassert_Base const & E, auto && v_uref) {
-      logAssert(E); return v_uref;
+   static inline auto logAndReturn(ymassert_Base const & E, auto && v) {
+      logAssert(E); return v;
    }
 
    static constexpr auto _s_MaxMsgSize_bytes =
@@ -156,8 +147,8 @@ public:
    template <typename... Args_T>
    inline void write(
       rawstr const Format,
-      Args_T &&... args_uref) {
-         write_Helper(Format, fmt::make_format_args(args_uref...));
+      Args_T &&... args) {
+         write_Helper(Format, fmt::make_format_args(args...));
    }
 
    // delay calling format to avoid including fmt/format.h in the header file

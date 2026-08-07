@@ -75,7 +75,7 @@ void ym::ymassert_Base::write_Helper(
     *
     * @param E -- Raised error.
     */
-   void ym::ymassert_Base::defaultNoExceptHandler(ymassert_Base const & E)
+   void ym::ymassert_Base::defaultNoExceptHandler(ymassert_Base const & E) noexcept
    {
       logAssert(E);
       std::raise(SIGTERM);

@@ -181,6 +181,11 @@
    #define YMNOEXC noexcept
 #endif
 
+// These are mutually exclusive flags
+#if ((YM_YES_EXCEPTIONS) + (YM_NO_EXCEPTIONS) != 1)
+   #error "Conflicting exception rule or none specified"
+#endif
+
 // ----------------------------------------------------------------------------
 
 namespace ym
