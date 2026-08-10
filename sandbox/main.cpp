@@ -16,16 +16,25 @@
 
 void test(int i)
 {
-   char buf[i];
-   buf[i-1] = '\0';
-   std::cout << buf << std::endl;
+   // throw std::runtime_error("Yo");
+   auto e = std::runtime_error("Yo");
 }
+
+struct Point {
+   int x, y;
+};
 
 int main(void)
 {
-   std::cout << BUFSIZ << std::endl;
-
-   test(10);
+   Point p{.x=1, .y=2};
+   // try
+   // {
+   //    test(9);
+   // }
+   // catch (std::exception const & E)
+   // {
+   //    std::cout << E.what() << std::endl;
+   // }
 
    return 0;
 }

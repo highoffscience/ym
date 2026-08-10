@@ -3,22 +3,22 @@
  * @version 1.0.0
  * @author  Forrest Jablonski
  *
- * @note This file should be included in every file of the project. It provides
- *       standard declarations to be shared throughout.
+ * - This file should be included in every file of the project. It provides
+ *   standard declarations to be shared throughout.
  *
- * @note File used in unittests - maximum standard C++20.
+ * - File used in unittests - maximum standard C++20.
  *
- * @note Macros are prefixed "YM_".
- * @note Macros used for a particular purpose are prefixed "YM_SPECIAL_".
- * @note Macros used as helper functions are prefixed "YM_HELPER_".
- * @note Macros that are defined/not defined are suffixed "_DEFINED".
- * @note Macros that use `#if` semantics should have definitive values, ie
- *       - `#define` YM_MY_FLAG 0/1 -> `#if` (YM_MY_FLAG)
- *       -    or should otherwise be
- *       - `#define` YM_MY_FLAG_DEFINED -> `#if` defined(YM_MY_FLAG_DEFINED)
- *       -    otherwise the following would be a bug
- *       - `#define` YM_MY_FLAG 0/1 -> `#if` defined(YM_MY_FLAG)
- *       - `#define` YM_MY_FLAG     -> `#if` (YM_MY_FLAG) // macro may not be defined
+ * - Macros are prefixed "YM_".
+ * - Macros used for a particular purpose are prefixed "YM_SPECIAL_".
+ * - Macros used as helper functions are prefixed "YM_HELPER_".
+ * - Macros that are defined/not defined are suffixed "_DEFINED".
+ * - Macros that use `#if` semantics should have definitive values, ie
+ *    - `#define` YM_MY_FLAG 0/1 -> `#if` (YM_MY_FLAG)
+ *    -    or should otherwise be
+ *    - `#define` YM_MY_FLAG_DEFINED -> `#if` defined(YM_MY_FLAG_DEFINED)
+ *    -    otherwise the following would be a bug
+ *    - `#define` YM_MY_FLAG 0/1 -> `#if` defined(YM_MY_FLAG)
+ *    - `#define` YM_MY_FLAG     -> `#if` (YM_MY_FLAG) // macro may not be defined
  */
 
 #pragma once
@@ -66,15 +66,15 @@
 /*
  * @brief Helper macros for compiler detection.
  */
-#if defined(__clang__) // must be before GNU test because clang also defines __GNUG__
+#if defined(_MSC_VER) // must be before CLANG test because clang-cl also defines _MSC_VER
+   /// @brief Compiled with msvc compiler.
+   #define YM_MSVC_COMPILER_DEFINED
+#elif defined(__clang__) // must be before GNU test because clang also defines __GNUG__
    /// @brief Compiled with clang compiler.
    #define YM_CLANG_COMPILER_DEFINED
 #elif defined(__GNUG__)
    /// @brief Compiled with gnu compiler.
    #define YM_GNU_COMPILER_DEFINED
-#elif defined(_MSC_VER)
-   /// @brief Compiled with msvc compiler.
-   #define YM_MSVC_COMPILER_DEFINED
 #else
    #warning "Unknown compiler detected"
 #endif
@@ -85,7 +85,7 @@
    /*
     * @brief MSVC shenanigans.
     *
-    * @note [Reference Guide](https://docs.microsoft.com/en-us/cpp/preprocessor/warning).
+    * - [Reference Guide](https://docs.microsoft.com/en-us/cpp/preprocessor/warning).
     */
    #pragma warning(disable: 26812) // stop bugging me about unscoped enums
    #pragma warning(error:    4062) // switch on all enum values
@@ -99,7 +99,7 @@
  *
  * @param Id_ -- Identifying tag.
  */
-#define YM_DBG_PRINT(Id_) { std::printf("DBG --<> "#Id_" <>--\n"); std::fflush(stdout); }
+#define YM_DBG_PRINT(Id_) { std::fprintf(stdout, "DBG --<> "#Id_" <>--\n"); std::fflush(stdout); }
 
 // ----------------------------------------------------------------------------
 
@@ -113,7 +113,9 @@
  *
  * @brief Helper macros for the "the big five".
  *
- * @note [Reference Guide](https://en.cppreference.com/w/cpp/language/rule_of_three).
+ * - [Reference Guide](https://en.cppreference.com/w/cpp/language/rule_of_three).
+ *
+ * @param ClassName_ -- Class name.
  */
 #define YM_NO_DEFAULT(     ClassName_ ) ClassName_              (void              ) = delete;
 #define YM_NO_COPY(        ClassName_ ) ClassName_              (ClassName_ const &) = delete;
@@ -122,11 +124,10 @@
 #define YM_NO_MOVE_ASSIGN( ClassName_ ) ClassName_ & operator = (ClassName_ &&     ) = delete;
 /// @}
 
-/**
- * @name Helper Param Expansion Macros.
- * @{
+/*
+ * Helper Param Expansion Macros.
+ * Get number of arguments with __NARG__
  */
-// get number of arguments with __NARG__
 /// @cond INTERNAL
 #define YM_HELPER__NARG__(...)  YM_HELPER__NARG_I_(__VA_ARGS__, YM_HELPER__RSEQ_N())
 #define YM_HELPER__NARG_I_(...) YM_HELPER__ARG_N(__VA_ARGS__)
@@ -137,18 +138,19 @@
 #define YM_HELPER_1_MACRO_OVERLOAD(Name_, N_) Name_##N_
 #define YM_HELPER_2_MACRO_OVERLOAD(Name_, N_) YM_HELPER_1_MACRO_OVERLOAD(Name_, N_)
 /// @endcond
-///@}
 
 /** YM_MACRO_OVERLOAD
  *
  * @brief Helper macro to allow for macro overloading based on number of arguments.
  *
- * @note [Reference](https://stackoverflow.com/questions/11761703/overloading-macro-on-number-of-arguments).
+ * - [Reference](https://stackoverflow.com/questions/11761703/overloading-macro-on-number-of-arguments).
  *
- * @note Example:
- *    - `#define` YM_MY_MACRO(...) YM_MACRO_OVERLOAD(YM_MY_MACRO, __VA_ARGS__)
- *    - `#define` YM_MY_MACRO1(First) ...
- *    - `#define` YM_MY_MACRO2(First, Second) ...
+ * - Example:
+ * @code{cpp}
+ *    #define YM_MY_MACRO(...) YM_MACRO_OVERLOAD(YM_MY_MACRO, __VA_ARGS__)
+ *    #define YM_MY_MACRO1(First) ...
+ *    #define YM_MY_MACRO2(First, Second) ...
+ * @endcode
  *
  * @param MACRO_ -- Name of macro to overload.
  * @param ...    -- Args to pass to macro.
@@ -164,7 +166,7 @@
     *
     * @brief Used to make constructors explicitly implicit.
     *
-    * @remark Name is not "YM_IMPLICIT" because it is more natural to write "implicit".
+    * - Name is not "YM_IMPLICIT" because it is more natural to write "implicit".
     */
    #define implicit
 #endif
@@ -173,17 +175,12 @@
  *
  * @brief Conditional noexcept specifier.
  *
- * @note Mostly for use with functions with debug assertions, eg. YMASSERTDBG.
+ * - Mostly for use with functions with debug assertions, eg. @ref YMASSERTDBG.
  */
 #if (YM_DEBUG)
    #define YMNOEXC
 #else
    #define YMNOEXC noexcept
-#endif
-
-// These are mutually exclusive flags
-#if ((YM_YES_EXCEPTIONS) + (YM_NO_EXCEPTIONS) != 1)
-   #error "Conflicting exception rule or none specified"
 #endif
 
 // ----------------------------------------------------------------------------
@@ -197,8 +194,8 @@ namespace ym
  *
  * @brief Primitive typedefs.
  *
- * @note The static_asserts for the higher precision floating point defines
- *       are structured unorthodoxically so all supported compilers can parse it.
+ * - The static_asserts for the higher precision floating point defines
+ *   are structured unorthodoxically so all supported compilers can parse it.
  */
 
 using rawstr = char const *;
@@ -254,7 +251,7 @@ concept ByteLikeable =
  *
  * @brief Template for creating tag dispatch types.
  *
- * @note [Reference Guide](https://www.fluentcpp.com/2018/04/27/tag-dispatching/).
+ * - [Reference Guide](https://www.fluentcpp.com/2018/04/27/tag-dispatching/).
  *
  * @param Name_ -- Name of type.
  */
@@ -280,15 +277,15 @@ constexpr auto ym_getNBits(void) noexcept
  *
  * @brief Determines if the parameter is consider empty.
  *
- * @note Can be overloaded for other types.
+ * - Can be overloaded for other types.
  *
  * @returns True if empty, false otherwise.
  */
 constexpr auto ym_empty(rawstr const S) noexcept
 {
    return
-       S == nullptr || // if null
-      *S == '\0';      // if empty
+      ( S == nullptr) || // if null
+      (*S == '\0'   );   // if empty
 }
 
 // ----------------------------------------------------------------------------
@@ -297,7 +294,7 @@ constexpr auto ym_empty(rawstr const S) noexcept
  *
  * @brief Defines a set of user-defined literals for commonly used types.
  *
- * @note [Reference Guide](https://en.cppreference.com/w/cpp/language/user_literal).
+ * - [Reference Guide](https://en.cppreference.com/w/cpp/language/user_literal).
  *
  * @param UDL_          -- Name of User Defined Literal.
  * @param TypeToCastTo_ -- Type to cast to.

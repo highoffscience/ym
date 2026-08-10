@@ -276,7 +276,7 @@ END_OF_CONSUMER_LABEL:
  *
  * @param VF -- Verbosity flag.
  */
-ym::GlobalLogger::ScopedEnable::ScopedEnable(VF const VFlag) :
+ym::GlobalLogger::ScopedEnable::ScopedEnable(VF const VFlag) noexcept :
    _VFlag      {VFlag},
    _WasEnabled {getGlobalInstance()->isVFlagEnabled(VFlag)}
 {

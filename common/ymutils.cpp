@@ -35,7 +35,7 @@ auto fmt::formatter<ym::mutstr>::format(ym::mutstr s, fmt::format_context & ctx_
    return fmt::formatter<fmt::string_view>::format(s.get(), ctx_ref);
 }
 
-#if defined(YM_DEBUG)
+#if (YM_DEBUG)
 
    /** formatter
     *

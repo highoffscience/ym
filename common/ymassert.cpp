@@ -6,68 +6,32 @@
 
 #include "ymassert.h"
 
-#include "textlogger.h"
+#include "globallogger.h"
 
 #include "fmt/format.h"
 
-#if (YM_NO_EXCEPTIONS)
+#if (YM_EXCEPTIONS_ENABLED == 0)
    #include <csignal>
 #endif
 
-#if defined(YM_DEBUG)
+#if (YM_CPP_STANDARD >= 23) && (YM_LITE == 0)
    #include <stacktrace>
 #endif
 
-/** write_Helper
- *
- * @brief Write message into buffer.
- *
- * @param Format -- Format string.
- * @param args   -- Arguments.
- *
- * @todo std::stacktrace.
- */
-void ym::ymassert_Base::write_Helper(
-   rawstr const     Format,
-   fmt::format_args args)
-{
-   auto result = fmt::vformat_to_n(
-      _msg,
-      _s_MaxMsgSize_bytes - 1uz,
-      Format,
-      args);
-   *result.out = '\n';
-   result.size++;
-
-#if defined(YM_DEBUG)
-
-   result.out++;
-   if (_s_MaxMsgSize_bytes > result.size)
-   {
-      result = fmt::format_to_n(
-         result.out,
-         _s_MaxMsgSize_bytes - result.size - 1uz,
-         "{}",
-         std::stacktrace::current());
-      *result.out = '\0';
-      result.size = std::distance(_msg, result.out);
-   }
-
-#endif
-}
-
-#if (YM_YES_EXCEPTIONS)
+#if (YM_EXCEPTIONS_ENABLED)
 
    /** what
     *
     * @brief Returns an identifying message.
+    *
+    * @returns rawstr -- Stored message.
     */
    auto ym::ymassert_Base::what(void) const noexcept -> rawstr
    {
-      return _msg;
+      return _msg.data();
    }
 
-#else // YM_NO_EXCEPTIONS
+#else // exceptions disabled
 
    /** defaultNoExceptHandler
     *
@@ -87,9 +51,55 @@ void ym::ymassert_Base::write_Helper(
     *
     * @param E -- Assert to log.
     */
-   void ym::ymassert_Base::logAssert(ymassert_Base const & E)
+   void ym::ymassert_Base::logAssert(ymassert_Base const & E) noexcept
    {
       ymLog(VF::Error, E.what());
    }
 
 #endif
+
+/** write_Helper
+ *
+ * @brief Write message into buffer.
+ *
+ * @param Format -- Format string.
+ * @param args   -- Arguments.
+ */
+void ym::ymassert_Base::write_Helper(
+   rawstr const     Format,
+   fmt::format_args args) noexcept
+{
+#if (YM_EXCEPTIONS_ENABLED)
+   try
+   { // formatting may fail - library functions are not marked noexcept
+#endif
+      auto result = fmt::vformat_to_n(
+         _msg.data(),
+         _msg.size() - 1uz,
+         Format,
+         args);
+      *result.out = '\n';
+      result.size++;
+
+   #if (YM_CPP_STANDARD >= 23) && (YM_LITE == 0)
+      result.out++;
+      if (_msg.size() > result.size)
+      {
+         result = fmt::format_to_n(
+            result.out,
+            _msg.size() - result.size - 1uz,
+            "{}",
+            std::stacktrace::current());
+         *result.out = '\0';
+         result.size = std::distance(_msg.data(), result.out);
+      }
+   #endif
+   }
+#if (YM_EXCEPTIONS_ENABLED)
+   catch (std::exception const & E)
+   { // formatting message failed - try printing to error stream
+      ymLog(VF::Warning,
+         "Exception message could not be formatted! Format was '{}'. E.what() is '{}'", Format, E.what());
+   }
+#endif
+}

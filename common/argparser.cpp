@@ -92,12 +92,19 @@ auto ym::ArgParser::parse(void) -> ParseResult_T
             break;
          }
       }
+      // TODO
+      // else if (/*is command*/)
+      // { // command found
+
+      // }
       else
       { // unexpected command line argument
          result = ParseResult_T::Failure;
          ymLog(VF::UserError, "Argument '{}' was unexpected", token);
       }
    }
+
+   // TODO check all reqd args have been listed
 
    return result;
 }
@@ -147,8 +154,6 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
       auto const Val  = it->getVal ();
       auto const Abbr = it->getAbbr();
 
-      Val.unwrap(); // TODO
-
       // --- --- detect duplicate keys --- ---
 
       if (it != BeginIt)
@@ -170,7 +175,8 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 
       // --- --- validate value --- ---
 
-      // nothing to check here - value/flag consistency tested below
+      // value/flag consistency tested in flag validation
+      // requirement check tested in required validation
 
       // --- --- validate abbreviation --- ---
 
@@ -209,8 +215,14 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
       if (it->isList())
       { // list
          YMASSERT(!it->isFlag(), Error, YM_DAH, "Arg '{}' is marked as a list and a flag", Key);
-
          // list/enbl exclusion already tested
+      }
+
+      // --- --- validate required --- ---
+
+      if (it->isReqd())
+      { // required argument
+         YMASSERT(Val, Error, YM_DAH, "Arg '{}' is required but not set");
       }
    }
 }

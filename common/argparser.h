@@ -61,11 +61,13 @@ public:
       friend ArgParser;
 
    private:
-      enum Flags_T {
+      /// @brief Options for arguments. Flags are stored in bitset so enum class would be cumbersome.
+      enum Flags_T : std::size_t {
          FFlag,
          FEnbl,
          FList,
-         FReqd
+         FReqd,
+         FCmd // TODO not yet implemented
       };
 
    public:
@@ -81,6 +83,7 @@ public:
       inline auto isEnbl (void) const { return _flags.test(FEnbl); }
       inline auto isList (void) const { return _flags.test(FList); }
       inline auto isReqd (void) const { return _flags.test(FReqd); }
+      inline auto isCmd  (void) const { return _flags.test(FCmd ); }
 
       inline Arg & desc  (strlit const Desc       ) { _desc = Desc;            return *this; }
       inline Arg & defval(str    const DefaultVal ) { _val  = DefaultVal;      return *this; }
@@ -89,7 +92,10 @@ public:
                                                       _flags.set(FEnbl, Enbl);
                                                       _val  = Enbl ? "1":"0";  return *this; }
       inline Arg & list  (bool   const List = true) { _flags.set(FList, List); return *this; }
+      inline Arg & reqd  (bool   const Reqd = true) { _flags.set(FReqd, Reqd); return *this; }
+      inline Arg & cmd   (bool   const Cmd  = true) { _flags.set(FCmd,  Cmd ); return *this; }
 
+      // TODO with lite build can just have error and alias ArgError, AccesError, and ParseError
       YM_DECL_YMASSERT(Error)
 
    private:

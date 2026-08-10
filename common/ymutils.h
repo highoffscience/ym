@@ -16,6 +16,7 @@
 #include <cstdlib>
 #include <compare>
 #include <concepts>
+#include <exception>
 #include <functional>
 #include <iterator>
 #include <memory>
@@ -23,11 +24,7 @@
 #include <type_traits>
 #include <utility>
 
-#if (YM_YES_EXCEPTIONS)
-   #include <exception>
-#endif
-
-#if defined(YM_DEBUG)
+#if (YM_CPP_STANDARD >= 23) && (YM_LITE == 0)
    #include <stacktrace>
 #endif
 
@@ -38,32 +35,30 @@ namespace ym
  *
  * @brief Casts given pointer to byte pointer.
  *
- * @note According to <https://en.cppreference.com/w/cpp/language/object>, any object can be
- *       inspected assuming an underlying representation of bytes.
+ * - According to [Reference](https://en.cppreference.com/w/cpp/language/object), any object can be
+ *   inspected assuming an underlying representation of bytes.
  *
- * @note A reinterpret_cast will not convert a pointer of arbitrary type to another, must cast
- *       to void first. We can avoid an explicit cast to void by just accepting a void * since
- *       pointers can be implicitely cast to void.
+ * - A reinterpret_cast will not convert a pointer of arbitrary type to another, must cast
+ *   to void first. We can avoid an explicit cast to void by just accepting a void * since
+ *   pointers can be implicitely cast to void.
  *
- * @note U can be either const or non-const.
+ * - U can be either const or non-const.
  *
- * @tparam T -- Data type to cast to.
- * @tparam U -- Deduced data type (implicit).
+ * @tparam To_T   -- Data type to cast to.
+ * @tparam From_T -- (Deduced) data type to cast from.
  *
  * @param data_Ptr -- Pointer to object(s).
  *
- * @returns T (const) * -- Pointer to object(s) represented as an array of T.
- *
- * @test void * input yields char * output. TODO
+ * @returns To_T (const) * -- Pointer to object(s) represented as an array of T.
  */
 template <
-   typename T,
-   typename U>
-constexpr auto * ym_castPtrTo(U * const data_Ptr) noexcept
+   typename To_T,
+   typename From_T>
+constexpr auto * ym_castPtrTo(From_T * const data_Ptr) noexcept
 {
-   return static_cast<T *>(
+   return static_cast<To_T *>(
       static_cast<typename std::conditional_t<
-         std::is_const_v<U>,
+         std::is_const_v<From_T>,
             void const *,
             void *>
          >(data_Ptr));
@@ -73,6 +68,10 @@ constexpr auto * ym_castPtrTo(U * const data_Ptr) noexcept
  *
  * @brief Returns an iterator to the searched for element, or last
  *        if no element is found. Range must be in ascending order.
+ *
+ * @note Requires input range to be in lexicographic order.
+ *
+ * @throws std::exception -- From std::distance(). Compare_T{}() is also allowed to throw.
  *
  * @tparam Iterator_T -- Iterator type.
  * @tparam Compare_T  -- Comparator(Key, It). Key <=> *It.
@@ -102,16 +101,7 @@ requires (
    while (first != last)
    { // while there are still elements unchecked
 
-      try
-      { // iterator traversal is allowed to throw
-         mid = first + (std::distance(first, last) / 2);
-      }
-      catch(std::exception const & E)
-      { // something went wrong
-         elemIt = last;
-         break;
-      }
-
+      mid = first + (std::distance(first, last) / 2);
       auto const Cmp = compare(Value, *mid);
 
       if (Cmp == std::weak_ordering::less)
@@ -138,21 +128,21 @@ requires (
  *
  * @brief Casts non-member pointer to an appropriately sized integral type.
  *
- * @note [Reference Guide](https://en.cppreference.com/w/cpp/types/integer).
+ * - [Reference Guide](https://en.cppreference.com/w/cpp/types/integer).
  *
- * @note It is important to make sure the size of the pointer is the exact size of the
- *       type we're trying to cast too. Too small or large will lead to undefined
- *       behaviour and subtle bugs.
+ * - It is important to make sure the size of the pointer is the exact size of the
+ *   type we're trying to cast too. Too small or large will lead to undefined
+ *   behaviour and subtle bugs.
  *
- * @note It is unrecommended to store function pointers as a pointer to void, and thus
- *       as a uint. However many compilers allow it because of the days of C, and so
- *       a reinterpret_cast is recommended instead of a static_cast if you really feel
- *       the need to. As long as the type we are casting is the same size we should be
- *       ok, but function pointers are treated differently on some architectures than
- *       data pointers. We explicitly disqualify member function pointers because they
- *       usually occupy 16 bytes. If necessary a convenience casting method similar to
- *       this one can be made and placed in the experimental block but there is no need
- *       and usually cleaner solutions exist.
+ * - It is unrecommended to store function pointers as a pointer to void, and thus
+ *   as a uint. However many compilers allow it because of the days of C, and so
+ *   a reinterpret_cast is recommended instead of a static_cast if you really feel
+ *   the need to. As long as the type we are casting is the same size we should be
+ *   ok, but function pointers are treated differently on some architectures than
+ *   data pointers. We explicitly disqualify member function pointers because they
+ *   usually occupy 16 bytes. If necessary a convenience casting method similar to
+ *   this one can be made and placed in the experimental block but there is no need
+ *   and usually cleaner solutions exist.
  *
  * @tparam T -- Pointer type.
  */
@@ -160,10 +150,10 @@ template <typename T>
 requires (!std::is_member_function_pointer_v<T>)
 union PtrInt_T
 {
-   T            * ptr_val{};
-   T          * * ptr_ptr_val;
-   std::uintptr_t uint_val;
-   std::ptrdiff_t diff_val;
+   T            * _ptr_val{nullptr};
+   T          * * _ptr_ptr_val;
+   std::uintptr_t _uint_val;
+   std::ptrdiff_t _diff_val;
 };
 
 // ----------------------------------------------------------------------------
@@ -172,8 +162,8 @@ union PtrInt_T
  *
  * @brief A more compact version of std::bitset.
  *
- * @note This should only be if std::bitset (which uses u64), is too expensive.
- *       ie, if you only need a byte.
+ * - This should only be if std::bitset (which uses u64), is too expensive.
+ *   ie, if you only need a byte.
  *
  * @tparam T -- Underlying type.
  */
@@ -183,33 +173,66 @@ public:
    /// @brief Constructor.
    explicit constexpr ByteBitset(void) noexcept = default;
 
-   /// @brief True if the bit is set, false otherwise.
+   /** test
+    *
+    * @brief True if the bit is set, false otherwise.
+    *
+    * @param Idx -- Desired bit position/index.
+    *
+    * @returns bool -- True if the requested bit is set, false otherwise.
+    */
    constexpr bool test(std::size_t const Idx) const noexcept {
       return (std::to_integer<std::size_t>(_bits) & (1uz << Idx)) != 0uz;
    }
 
-   /// @brief Sets the bit to 0.
+   /** clear
+    *
+    * @brief Sets the bit to 0.
+    *
+    * @param Idx -- Desired bit position/index.
+    */
    constexpr void clear(std::size_t const Idx) noexcept {
       _bits &= ~static_cast<std::byte>(1uz << Idx);
    }
 
-   /// @brief Flips the bit.
+   /** flip
+    *
+    * @brief Flips the bit.
+    *
+    * @param Idx -- Desired bit position/index.
+    */
    constexpr void flip(std::size_t const Idx) noexcept {
       _bits ^= static_cast<std::byte>(1uz << Idx);
    }
 
-   /// @brief Flips the bit.
+   /** set
+    *
+    * @brief Sets the bit.
+    *
+    * @param Idx -- Desired bit position/index.
+    */
    constexpr void set(std::size_t const Idx) noexcept {
       _bits |= static_cast<std::byte>(1uz << Idx);
    }
 
-   /// @brief Sets the bit to the specified value.
+   /** set
+    *
+    * @brief Sets the bit to the specified value.
+    *
+    * @param Idx -- Desired bit position/index.
+    * @param Val -- Desired value.
+    */
    constexpr void set(std::size_t const Idx, bool const Val) noexcept {
       clear(Idx);
       _bits |= (static_cast<std::byte>(Val) << Idx); // sets/clears bit
    }
 
-   /// @brief Returns a copy of the underlying data.
+   /** getUnderlying
+    *
+    * @brief Returns a copy of the underlying data.
+    *
+    * @returns auto -- The underlying type used to store the bites.
+    */
    constexpr auto getUnderlying(void) const noexcept { return _bits; }
 
 private:
@@ -229,7 +252,7 @@ YM_CREATE_TAG_DISPATCH_TYPE(ym_PtrCastPassKey)
  *
  * @brief Common operations/fields for pointer wrapper classes.
  *
- * @note BoundPtr and LoosePtr are agnostic to ownership.
+ * - BoundPtr and LoosePtr are agnostic to ownership.
  *
  * @tparam T         -- Type of pointer.
  * @tparam Derived_T -- Type of derived class.
@@ -246,44 +269,41 @@ class Ptr_Base
    friend class BoundPtr;
 
 protected:
-   /// @brief Wrapper for custom pointer types.
+   /** Ptr_Base
+    *
+    * @brief Constructor. Wrapper for custom pointer types.
+    *
+    * @param value_Ptr -- Pointer value to wrap.
+    */
    implicit constexpr Ptr_Base(T * const value_Ptr) noexcept :
       _value_ptr {value_Ptr}
    { }
 
 public:
-   /// @brief Returns the value of the incremented underlying pointer value.
-   constexpr auto operator + (std::integral auto const N) const noexcept {
-      return Derived_T(_value_ptr + N);
-   }
+   /**
+    * @name Ptr_Base Arithmetic Functions.
+    * @{
+    *
+    * @brief Returns the value of the incremented/decremented pointer value.
+    *
+    * @param N -- Value to increment/decrement by.
+    *
+    * @returns auto -- A new derived pointer value wrapper.
+    */
 
-   /// @brief Returns the value of the decremented underlying pointer value.
-   constexpr auto operator - (std::integral auto const N) const noexcept {
-      return Derived_T(_value_ptr - N);
-   }
+   constexpr auto operator + (std::integral auto const N) const noexcept { return Derived_T(_value_ptr + N); }
+   constexpr auto operator - (std::integral auto const N) const noexcept { return Derived_T(_value_ptr - N); }
 
-   /// @brief TODO
-   constexpr auto & operator += (std::integral auto const N) noexcept {
-      return *this = *this + N;
-   }
+   constexpr auto & operator += (std::integral auto const N) noexcept { return *this = *this + N; }
+   constexpr auto & operator -= (std::integral auto const N) noexcept { return *this = *this - N; }
 
-   /// @brief TODO
-   constexpr auto operator -= (std::integral auto const N) noexcept {
-      return *this = *this - N;
-   }
+   constexpr auto & operator ++ (std::integral auto const) noexcept { return *this = *this + 1; }
+   constexpr auto & operator -- (std::integral auto const) noexcept { return *this = *this - 1; }
 
-   /// @brief TODO
-   constexpr auto & operator ++ (std::integral auto const) noexcept {
-      return *this = *this + 1;
-   }
-
-   /// @brief TODO
-   constexpr auto operator -- (std::integral auto const) noexcept {
-      return *this = *this - 1;
-   }
+   /// @}
 
 protected:
-   T * _value_ptr{};
+   T * _value_ptr{nullptr};
 };
 
 /** BoundPtr
@@ -299,36 +319,46 @@ template <
 class BoundPtr_Base : public Ptr_Base<T, Derived_T>
 {
 protected:
-   /// @brief Wrapper for non-null pointer.
+   /** BoundPtr_Base
+    *
+    * @brief Constructor. Wrapper for custom bound pointer types.
+    *
+    * @param value_Ptr -- Pointer value to wrap.
+    */
    implicit constexpr BoundPtr_Base(T * const value_Ptr) noexcept :
       Ptr_Base<T, Derived_T>(value_Ptr)
    { }
 
 public:
-   /// @name Creation methods.
+   /// @name BoundPtr_Base Compile Time Nullness Checks.
    /// @{
-   /// @brief Compile time non-nullness checks.
    constexpr BoundPtr_Base                            (std::nullptr_t) = delete;
    constexpr BoundPtr_Base<T, Derived_T> & operator = (std::nullptr_t) = delete;
    /// @}
 
-   /// @name Getters.
+   /// @name BoundPtr_Base Getter Functions.
    /// @{
-   /// @brief Getter.
+   /// @brief Gets underlying pointer value.
+   /// @returns auto (*) -- Underlying pointer value.
    constexpr auto * get          (this auto && self) noexcept { return  self._value_ptr; }
    constexpr        operator T * (this auto && self) noexcept { return  self.get(); }
    constexpr auto & operator *   (this auto && self) noexcept { return *self.get(); }
    constexpr auto * operator ->  (this auto && self) noexcept { return  self.get(); }
    /// @}
 
-   /**
+   /** operator []
+    *
     * @brief Grabs the element at the specified index. No bounds checking.
     *
-    * @note This, in theory, only belongs to BBoundPtr<T[]> classes, since it is important to
-    *       disambiguate between pointers to objects vs pointers to array of objects. Some examples
-    *       where this function is useful for BoundPtr<T>:
-    *       1) Many C level functions return T*, but actually represent arrays.
-    *       2) Conversion between strlit to str, but str is expected to behave like a character array.
+    * - This, in theory, only belongs to @ref BoundPtr<T[]> classes, since it is important to
+    *   disambiguate between pointers to objects vs pointers to array of objects. Some examples
+    *   where this function is useful for @ref BoundPtr<T>:
+    *    - Many C level functions return T*, but actually represent arrays.
+    *    - Conversion between strlit to str, but str is expected to behave like a character array.
+    *
+    * @param Idx -- Index of desired object.
+    *
+    * @returns auto & -- Reference to desired object.
     */
    constexpr auto & operator [] (this auto && self, std::integral auto const Idx) noexcept {
       return self.get()[Idx];
@@ -339,14 +369,23 @@ public:
  *
  * @brief Warpper class for non-null pointers. Checked at construction.
  *
- * @note Throwing in the constructor is preferable because you cannot swallow the
- *       exception and use BoundPtr in an unacceptable state.
+ * - Throwing in the constructor is preferable because you cannot swallow the
+ *   exception and use BoundPtr in an unacceptable state.
+ *
+ * @tparam T -- Type of pointer.
  */
 template <typename T>
 class BoundPtr : public BoundPtr_Base<T, BoundPtr<T>>
 {
 public:
-   /// @brief Constructor. Throws if pointer is null.
+   /** BoundPtr
+    *
+    * @brief Constructor. Wrapper for custom bound pointer types.
+    *
+    * @throws ym_NullPtrError -- If value_Ptr is null.
+    *
+    * @param value_Ptr -- Pointer value to wrap.
+    */
    implicit constexpr BoundPtr(T * const value_Ptr) :
       BoundPtr_Base<T, BoundPtr<T>>(value_Ptr)
    {
@@ -360,12 +399,12 @@ public:
          BoundPtr_Base<T, BoundPtr<T>>(value_Ptr)
    { }
 
-   /// @brief Unsafe to convert between the two - deallocation strategies differ.
+   /// @brief Constructor. Unsafe to convert between the two - deallocation strategies differ.
    template <typename U>
    requires (std::is_array_v<U> && !ByteLikeable<T>)
    implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept = delete;
 
-   /// @brief Only allow if str - it is de facto usage to treat character arrays as character pointers.
+   /// @brief Constructor. Only allow if str - it is de facto usage to treat character arrays as character pointers.
    template <typename U>
    requires (std::is_array_v<U> && ByteLikeable<T>)
    implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept :
@@ -390,14 +429,14 @@ public:
          BoundPtr_Base<T, BoundPtr<T>>(ym_castPtrTo<T>(Other.get()))
    { }
 
-   /// @name Creation methods.
+   /// @name BoundPtr<> Creation Methods.
    /// @{
    /// @brief Compile time non-nullness checks.
    constexpr BoundPtr                 (std::nullptr_t) = delete;
    constexpr BoundPtr<T> & operator = (std::nullptr_t) = delete;
    /// @}
 
-   /// @name Comparison operations.
+   /// @name BoundPtr<> Comparison Operations.
    /// @{
    /// @brief Comparison overloads.
    constexpr auto operator <=> (BoundPtr<T> const &) const noexcept = default;
@@ -417,7 +456,7 @@ template <typename T>
 class BoundPtr<T[]> : public BoundPtr_Base<T, BoundPtr<T[]>>
 {
 public:
-   /// @brief Wrapper for non-null pointer.
+   /// @brief Constructor. Wrapper for non-null pointer.
    template <std::size_t N>
    implicit constexpr BoundPtr(T (&array) [N]) noexcept :
       BoundPtr_Base<T, BoundPtr<T[]>>(array)
@@ -430,7 +469,7 @@ public:
       BoundPtr_Base<T, BoundPtr<T[]>>(Other)
    { }
 
-   /// @name Creation methods.
+   /// @name BoundPtr<[]> Creation Methods.
    /// @{
    /// @brief Compile time non-nullness checks.
    constexpr BoundPtr                   (std::nullptr_t) = delete;
@@ -445,7 +484,7 @@ BoundPtr(T (&)[N]) -> BoundPtr<T[]>;
 /** LoosePtr
  *
  * @brief Wrapper class that represents a possibly null pointer. No access is allowed without first
- *        converting to a BoundPtr.
+ *        converting to a @ref BoundPtr.
  */
 template <typename T>
 class LoosePtr : public Ptr_Base<T, LoosePtr<T>>
@@ -484,49 +523,60 @@ public:
          Ptr_Base<T, LoosePtr<T>>(ym_castPtrTo<T>(Other._value_ptr))
    { }
 
-   /// @brief Unsafe to convert between the two - deallocation strategies differ.
+   /// @brief Constructor. Unsafe to convert between the two - deallocation strategies differ.
    template <typename U>
    requires (std::is_array_v<U> && !ByteLikeable<T>)
    implicit constexpr LoosePtr(LoosePtr<U> const & Other) noexcept = delete;
 
-   /// @brief Only allow if str - it is de facto usage to treat character arrays as character pointers.
+   /// @brief Constructor. Only allow if str - it is de facto usage to treat character arrays as character pointers.
    template <typename U>
    requires (std::is_array_v<U> && ByteLikeable<T>)
    implicit constexpr LoosePtr(LoosePtr<U> const & Other) noexcept :
       LoosePtr<T>(Other.get())
    { }
 
-   /// @brief Unsafe to convert between the two - deallocation strategies differ.
+   /// @brief Constructor. Unsafe to convert between the two - deallocation strategies differ.
    template <typename U>
    requires (std::is_array_v<U> && !ByteLikeable<T>)
    implicit constexpr LoosePtr(BoundPtr<U> const & Other) noexcept = delete;
 
-   /// @brief Only allow if str - it is de facto usage to treat character arrays as character pointers.
+   /// @brief Constructor. Only allow if str - it is de facto usage to treat character arrays as character pointers.
    template <typename U>
    requires (std::is_array_v<U> && ByteLikeable<T>)
    implicit constexpr LoosePtr(BoundPtr<U> const & Other) noexcept :
       LoosePtr<T>(Other.get())
    { }
 
-   /// @name Comparison operations.
+   /// @name LoosePtr Comparison Operations.
    /// @{
    /// @brief Comparison overloads.
    constexpr auto operator <=> (LoosePtr<T> const &) const noexcept = default;
    constexpr bool operator == (std::nullptr_t) const noexcept { return this->_value_ptr == nullptr; }
    /// @}
 
-   /// @brief True if contained pointer is not null, false otherwise.
+   /// @brief Returns true if contained pointer is not null, false otherwise.
    constexpr operator bool(void) const noexcept {
       return *this != nullptr;
    }
 
-   /// @brief Returns a BoundPtr to the contained pointer.
-   /// @throws ym_NullPtrError -- If value is null.
+   /** unwrap
+    *
+    * @brief Returns a @ref BoundPtr to the contained pointer.
+    *
+    * @throws ym_NullPtrError -- If value is null.
+    *
+    * @returns BoundPtr<T> -- A BoundPtr of the underlying pointer value.
+    */
    constexpr BoundPtr<T> unwrap(void) const {
       return this->_value_ptr;
    }
 
-   /// @brief Returns a BoundPtr to the contained pointer, or a default value if the contained pointer is null.
+   /** unwrap_or
+    *
+    * @brief Returns a @ref BoundPtr to the contained pointer, or a default value if the contained pointer is null.
+    *
+    * @returns BoundPtr<T> -- A BoundPtr of the underlying pointer value.
+    */
    constexpr BoundPtr<T> unwrap_or(BoundPtr<T> const Ptr) const noexcept {
       return (*this) ? unwrap() : Ptr;
    }
@@ -564,7 +614,14 @@ public:
       Ptr_Base<T, LoosePtr<T[]>>(Other)
    { }
 
-   /// @brief Grabs the element at the specified index. No bounds checking.
+   /** operator []
+    *
+    *  @brief Grabs the element at the specified index. No bounds checking.
+    *
+    * @param Idx -- Index of desired object.
+    *
+    * @returns auto & -- Reference to desired object.
+    */
    constexpr auto & operator [] (this auto && self, std::integral auto const Idx) noexcept {
       return self.get()[Idx];
    }
@@ -616,7 +673,14 @@ requires (requires(
 class PolyRaw
 {
 public:
-   /// @brief Constructor.
+   /** PolyRaw
+    *
+    * @brief Constructor.
+    *
+    * @throws std::exception -- From construct().
+    *
+    * @param args -- Arguments to forward in construction of derived type.
+    */
    template <
       typename    Derived_T,
       typename... Args_T>
@@ -630,7 +694,15 @@ public:
       construct(std::in_place_type<Derived_T>, std::forward<Args_T>(args)...);
    }
 
-   /// @brief Returns const base object pointer.
+   /** operator ->
+    *
+    * @name PolyRaw Access Operations.
+    * @{
+    *
+    * @brief Returns (const) base object pointer.
+    *
+    * @return BoundPtr<> -- Bound pointer to underlying object.
+    */
    constexpr BoundPtr<Base_T const> operator -> (void) const noexcept {
       return {
          std::launder(
@@ -640,11 +712,11 @@ public:
       };
    }
 
-   /// @brief Returns base object pointer.
-   /// TODO why doesn't this implementation match the above one?
    constexpr BoundPtr<Base_T> operator -> (void) noexcept {
       return std::launder(ym_castPtrTo<Base_T>(_buffer.data()));
    }
+
+   /// @}
 
    /// @brief Copy constructor.
    constexpr PolyRaw(PolyRaw<Base_T, MaxDerivedSize> const & Other) {
@@ -659,14 +731,21 @@ public:
       return *this;
    }
 
-   /// @name Move semantics.
+   /// @name PolyRaw Move Semantics.
    /// @{
    /// @brief Move constructor & move assignment doesn't make sense for use cases.
    constexpr PolyRaw(PolyRaw<Base_T, MaxDerivedSize> && other) = delete;
    constexpr PolyRaw<Base_T, MaxDerivedSize> & operator = (PolyRaw<Base_T, MaxDerivedSize> && other) = delete;
    /// @}
 
-   /// @brief Constructs derived object in place.
+   /** construct
+    *
+    * @brief Constructs derived object in place.
+    *
+    * @throws std::exception -- From Derived_T's constructor.
+    *
+    * @param args -- Arguments to forward in construction of derived type.
+    */
    template <
       typename    Derived_T,
       typename... Args_T>
@@ -720,7 +799,7 @@ struct formatter<ym::mutstr> : public fmt::formatter<fmt::string_view>
    auto format(ym::mutstr s, fmt::format_context & ctx_ref) const -> fmt::format_context::iterator;
 };
 
-#if defined(YM_DEBUG)
+#if (YM_CPP_STANDARD >= 23) && (YM_LITE == 0)
 
    /** formatter
     *

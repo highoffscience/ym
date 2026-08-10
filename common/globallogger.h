@@ -29,7 +29,7 @@ template <typename... Args_T>
 inline void ymLog(
    VF     const VFlag,
    strlit const Format,
-   Args_T &&... args);
+   Args_T &&... args) noexcept;
 
 template <std::same_as<VF>... VFs_T> inline void ymLogEnable (VFs_T const... VFlags) noexcept;
 template <std::same_as<VF>... VFs_T> inline void ymLogDisable(VFs_T const... VFlags) noexcept;
@@ -72,7 +72,7 @@ public:
    inline void printf(
       VF const     VFlag,
       strlit       Format,
-      Args_T &&... args);
+      Args_T &&... args) noexcept;
 
    /** ScopedEnable
     *
@@ -88,8 +88,8 @@ public:
    class ScopedEnable
    {
    public:
-      explicit ScopedEnable(VF const VFlag);
-      inline ~ScopedEnable(void) {
+      explicit ScopedEnable(VF const VFlag) noexcept;
+      inline ~ScopedEnable(void) noexcept {
          popEnable();
       }
 
@@ -106,7 +106,7 @@ public:
    inline void disable(VFs_T const... VFlags) noexcept { ((_vGroup.clear(VFlags)), ...); }
 
    inline bool isVFlagEnabled(VF const VFlag) const noexcept { return _vGroup.test(VFlag); }
-   inline ScopedEnable pushEnable(VF const VFlag) { return ScopedEnable(VFlag); }
+   inline ScopedEnable pushEnable(VF const VFlag) const noexcept { return ScopedEnable(VFlag); }
 
 private:
    explicit GlobalLogger(
@@ -176,20 +176,27 @@ template <typename... Args_T>
 inline void ym::GlobalLogger::printf(
    VF const     VFlag,
    strlit       Format,
-   Args_T &&... args)
+   Args_T &&... args) noexcept
 {
-   if (VFlag == VF::Errstream)
-   { // error printing - print to err stream console
-      fmt::print(stderr, "WARNING: ");
-      fmt::vprintln(stderr, Format.get(), fmt::make_format_args(args...));
+   try
+   { // printf can fail
+      if (VFlag == VF::Errstream)
+      { // error printing - print to err stream console
+         fmt::print(stderr, "WARNING: ");
+         fmt::vprintln(stderr, Format.get(), fmt::make_format_args(args...));
+      }
+      else if (VFlag == VF::Console)
+      { // print to console
+         fmt::vprintln(stdout, Format.get(), fmt::make_format_args(args...));
+      }
+      else if (isVFlagEnabled(VFlag))
+      { // verbosity level is enabled - print!
+         GlobalLogger::getGlobalInstance()->producer(Format, fmt::make_format_args(args...));
+      }
    }
-   else if (VFlag == VF::Console)
-   { // print to console
-      fmt::vprintln(stdout, Format.get(), fmt::make_format_args(args...));
-   }
-   else if (isVFlagEnabled(VFlag))
-   { // verbosity level is enabled - print!
-      GlobalLogger::getGlobalInstance()->producer(Format, fmt::make_format_args(args...));
+   catch (std::exception const &)
+   { // printf failed - abort or cry
+      // cry - something is very wrong and it will be noticed soon
    }
 }
 
@@ -213,7 +220,7 @@ template <typename... Args_T>
 inline void ymLog(
    VF     const VFlag,
    strlit const Format,
-   Args_T &&... args)
+   Args_T &&... args) noexcept
 {
    GlobalLogger::getGlobalInstance()->printf(VFlag, Format, std::forward<Args_T>(args)...);
 }
@@ -260,7 +267,7 @@ inline void ymLogDisable(VFs_T const... VFlags) noexcept
  *
  * @returns ScopedEnable -- RAII mechanism that only keeps the enabled VF while in scope.
  */
-inline GlobalLogger::ScopedEnable ymLogPushEnable(VF const VFlag)
+inline GlobalLogger::ScopedEnable ymLogPushEnable(VF const VFlag) noexcept
 {
    return GlobalLogger::getGlobalInstance()->pushEnable(VFlag);
 }

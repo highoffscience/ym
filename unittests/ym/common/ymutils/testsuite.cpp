@@ -114,10 +114,10 @@ auto ym::unit::TestSuite::PtrIntClass::run([[maybe_unused]] DataShuttle const & 
    int32 vals[] {9, 7};
 
    PtrInt_T p2i{vals};
-   p2i.uint_val += 4u;
+   p2i._uint_val += 4u;
 
    return {
-      {"UnionWorks", *p2i.ptr_val == 7}
+      {"UnionWorks", *p2i._ptr_val == 7}
    };
 }
 
