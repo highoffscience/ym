@@ -47,4 +47,4 @@ global*.txt
 venv/
 
 # sandbox
-sandbox/*
+sandbox/
