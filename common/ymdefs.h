@@ -266,6 +266,8 @@ concept ByteLikeable =
  * @tparam T -- Type.
  *
  * @returns std::size_t -- The number of bits in type T.
+ *
+ * @test Shall return 32 when called with an i32 type.
  */
 template <typename T>
 constexpr auto ym_getNBits(void) noexcept

@@ -101,7 +101,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       results = self.run_test_case(self._testMethodName.removeprefix("test_"))
       self.assertTrue(results.get[bool]("Defined"), "De facto primitives not defined")
 
-   def test_Funcs(self):
+   def test_Test_getNBits(self):
       """
       Analyzes results from test case.
       """

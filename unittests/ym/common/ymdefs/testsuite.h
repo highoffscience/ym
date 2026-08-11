@@ -31,7 +31,7 @@ public:
    YM_UNIT_TESTCASE(BigFiveDeleteMacros)
    YM_UNIT_TESTCASE(OverloadMacros)
    YM_UNIT_TESTCASE(PrimitiveDefs)
-   YM_UNIT_TESTCASE(Funcs)
+   YM_UNIT_TESTCASE(Test_getNBits)
 };
 
 } // ym::unit
