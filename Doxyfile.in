@@ -1027,7 +1027,8 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = \
-   "@CMAKE_CURRENT_SOURCE_DIR@/common"
+   "@CMAKE_SOURCE_DIR@/common" \
+   "@CMAKE_SOURCE_DIR@/unittests/ym/common/ymdefs"
 
 # This tag can be used to specify the character encoding of the source files
 # that Doxygen parses. Internally Doxygen uses the UTF-8 encoding. Doxygen uses
@@ -1331,7 +1332,16 @@ CLANG_ADD_INC_PATHS    = YES
 # specified with INPUT and INCLUDE_PATH.
 # This tag requires that the tag CLANG_ASSISTED_PARSING is set to YES.
 
-CLANG_OPTIONS          =
+CLANG_OPTIONS          = \
+   -DYM_DEBUG=0 \
+   -DYM_EXCEPTIONS_ENABLED=1 \
+   -DYM_LITE=0 \
+   -DYM_PRINT_TO_SCREEN=0 \
+   -DYM_UNITTEST=1 \
+   -DYM_USE_HEAP_AS_FALLBACK=1 \
+   -Dym_common_EXPORTS \
+   -I/home/forrest/code/ym/extlibs/fmt/include \
+   -std=gnu++23 -fPIC -Werror -Wall -Wextra -Wno-format-security
 
 # If clang assisted parsing is enabled you can provide the clang parser with the
 # path to the directory containing a file called compile_commands.json. This
@@ -1344,7 +1354,7 @@ CLANG_OPTIONS          =
 # Note: The availability of this option depends on whether or not Doxygen was
 # generated with the -Duse_libclang=ON option for CMake.
 
-CLANG_DATABASE_PATH    = @CMAKE_BINARY_DIR@
+CLANG_DATABASE_PATH    =
 
 #---------------------------------------------------------------------------
 # Configuration options related to the alphabetical class index
@@ -2521,7 +2531,8 @@ SEARCH_INCLUDES        = YES
 # RECURSIVE has no effect here.
 # This tag requires that the tag SEARCH_INCLUDES is set to YES.
 
-INCLUDE_PATH           =
+INCLUDE_PATH           = \
+   "@CMAKE_SOURCE_DIR@/unittests/common"
 
 # You can use the INCLUDE_FILE_PATTERNS tag to specify one or more wildcard
 # patterns (like *.h and *.hpp) to filter out the header-files in the

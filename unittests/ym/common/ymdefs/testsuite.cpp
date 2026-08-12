@@ -123,14 +123,11 @@ auto ym::unit::TestSuite::PrimitiveDefs::run([[maybe_unused]] DataShuttle const 
    };
 }
 
-/** run
- *
- * @brief Tests ym_getNBits function. @ref ym::ym_getNBits().
+/**
+ * - @ref ym::ym_getNBits() Shall return 16 when called with an i16 (2-byte) type.
+ * - @ref ym::ym_getNBits() Shall return 32 when called with an i32 (4-byte) type.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
- *
- * @tests Shall return 16 when called with an i16 (2-byte) type.
- * @tests Shall return 32 when called with an i32 (4-byte) type.
  */
 auto ym::unit::TestSuite::Test_getNBits::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
