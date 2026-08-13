@@ -32,8 +32,7 @@
 
 // ----------------------------------------------------------------------------
 
-/** YM_CPP_STANDARD
- *
+/**
  * @brief Set to the current cpp standard.
  *
  * @internal YM_UNITTEST_ACTIVE_DEFINED is to compile this header *only* in objects with
@@ -92,8 +91,7 @@
    #pragma warning(error:    4227) // reference of const should be pointer to const
 #endif
 
-/** YM_DBG_PRINT
- *
+/**
  * @brief Convenience method to print debug statements to console. Usually this macro is used
  *        to debug the global logger.
  *
@@ -116,6 +114,15 @@
  * - [Reference Guide](https://en.cppreference.com/w/cpp/language/rule_of_three).
  *
  * @param ClassName_ -- Class name.
+ *
+ * __Unit Test__
+ * - @ref ym::unit::TestSuite::BigFiveDeleteMacros.
+ *
+ * @test Shall delete the default constructor.
+ * @test Shall delete the copy constructor.
+ * @test Shall delete the assignment operator.
+ * @test Shall delete the move constructor.
+ * @test Shall delete the move operator.
  */
 #define YM_NO_DEFAULT(     ClassName_ ) ClassName_              (void              ) = delete;
 #define YM_NO_COPY(        ClassName_ ) ClassName_              (ClassName_ const &) = delete;
@@ -154,6 +161,11 @@
  *
  * @param MACRO_ -- Name of macro to overload.
  * @param ...    -- Args to pass to macro.
+ *
+ * __Unit Test__
+ * - @ref ym::unit::TestSuite::OverloadMacros
+ *
+ * @test Shall allow custom macros to have overloads.
  */
 #define YM_MACRO_OVERLOAD(MACRO_, ...) \
    YM_HELPER_2_MACRO_OVERLOAD(MACRO_, YM_HELPER__NARG__(__VA_ARGS__)) (__VA_ARGS__)
@@ -267,7 +279,7 @@ concept ByteLikeable =
  * @returns std::size_t -- The number of bits in type T.
  *
  * __Unit Test__
- * > @ref ym::unit::TestSuite::Test_getNBits.
+ * - @ref ym::unit::TestSuite::Test_getNBits.
  *
  * @test Shall return 16 when called with an i16 (2-byte) type.
  * @test Shall return 32 when called with an i32 (4-byte) type.

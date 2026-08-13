@@ -11,11 +11,8 @@
 
 #include "fmt/format.h"
 
-/** TestSuite
- *
+/**
  * @brief Constructor.
- *
- * @throws Whatever addTestCase() throws.
  */
 ym::unit::TestSuite::TestSuite(void) :
    TestSuiteBase("YmDefs")
@@ -28,8 +25,7 @@ ym::unit::TestSuite::TestSuite(void) :
    addTestCase<Funcs>();
 }
 
-/** run
- *
+/**
  * @brief Interactive inspection - for debug purposes.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
@@ -39,8 +35,7 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
    return {};
 }
 
-/** run
- *
+/**
  * @brief Basic integrity test.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
@@ -50,9 +45,12 @@ auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & In
    return {};
 }
 
-/** run
- *
- * @brief Tests the "big five" delete macros.
+/**
+ * - @ref YM_NO_DEFAULT() Shall delete the default constructor.
+ * - @ref YM_NO_COPY() Shall delete the copy constructor.
+ * - @ref YM_NO_ASSIGN() Shall delete the assignment operator.
+ * - @ref YM_NO_MOVE_COPY() Shall delete the move constructor.
+ * - @ref YM_NO_MOVE_ASSIGN() Shall delete the move operator.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
@@ -72,9 +70,8 @@ auto ym::unit::TestSuite::BigFiveDeleteMacros::run([[maybe_unused]] DataShuttle 
    };
 }
 
-/** run
- *
- * @brief Tests overload macro hack.
+/**
+ * - @ref YM_MACRO_OVERLOAD() Shall allow custom macros to have overloads.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
