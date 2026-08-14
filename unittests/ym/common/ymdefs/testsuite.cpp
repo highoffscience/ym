@@ -11,6 +11,8 @@
 
 #include "fmt/format.h"
 
+#include <cstdint>
+
 /**
  * @brief Constructor.
  */
@@ -21,8 +23,9 @@ ym::unit::TestSuite::TestSuite(void) :
    addTestCase<SmokeTest>();
    addTestCase<BigFiveDeleteMacros>();
    addTestCase<OverloadMacros>();
+   addTestCase<Func_getNBits>();
+   addTestCase<Func_empty>();
    addTestCase<PrimitiveDefs>();
-   addTestCase<Funcs>();
 }
 
 /**
@@ -90,6 +93,43 @@ auto ym::unit::TestSuite::OverloadMacros::run([[maybe_unused]] DataShuttle const
    };
 }
 
+/**
+ * - @ref ym::ym_getNBits() Shall return 16 when called with an i16 (2-byte) type.
+ * - @ref ym::ym_getNBits() Shall return 32 when called with an i32 (4-byte) type.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::unit::TestSuite::Func_getNBits::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   auto const I16 = std::int16_t{};
+   auto const Ni16Bits = ym_getNBits<decltype(I16)>();
+
+   auto const I32 = std::int32_t{};
+   auto const Ni32Bits = ym_getNBits<decltype(I32)>();
+
+   return {
+      {"CorrectNBits", (Ni16Bits == 2uz) && (Ni32Bits == 4uz)}
+   };
+}
+
+/**
+ * - @ref ym::ym_empty() Shall return true when passed a nullptr.
+ * - @ref ym::ym_empty() Shall return true when passed an empty string.
+ * - @ref ym::ym_empty() Shall return false when passed the string "Torchic".
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::unit::TestSuite::Func_empty::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   return {
+      {"CorrectResults",
+         (ym_empty(nullptr)   == true) &&
+         (ym_empty("")        == true) &&
+         (ym_empty("Torchic") == false)
+      }
+   };
+}
+
 /** run
  *
  * @brief Tests that primitive sized defs are defined.
@@ -117,21 +157,5 @@ auto ym::unit::TestSuite::PrimitiveDefs::run([[maybe_unused]] DataShuttle const 
 
    return {
       {"Defined", true}
-   };
-}
-
-/**
- * - @ref ym::ym_getNBits() Shall return 16 when called with an i16 (2-byte) type.
- * - @ref ym::ym_getNBits() Shall return 32 when called with an i32 (4-byte) type.
- *
- * @returns DataShuttle -- Important values acquired during run of test.
- */
-auto ym::unit::TestSuite::Test_getNBits::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
-{
-   auto const I = 0_i32;
-   auto const NBits = ym_getNBits<decltype(I)>();
-
-   return {
-      {"CorrectNBits", NBits == 32uz}
    };
 }

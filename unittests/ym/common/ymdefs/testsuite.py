@@ -91,6 +91,26 @@ class TestSuite(testsuitebase.TestSuiteBase):
       results = self.run_test_case(self._testMethodName.removeprefix("test_"))
       self.assertTrue(results.get[bool]("DefinedAndWorks"), "Macro overloads not behaving as expected")
 
+   def test_Func_getNBits(self):
+      """
+      Analyzes results from test case.
+      """
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
+      self.assertTrue(results.get[bool]("CorrectNBits"), "ym_getNBits() does not behave as expected")
+
+   def test_Func_empty(self):
+      """
+      Analyzes results from test case.
+      """
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
+      self.assertTrue(results.get[bool]("CorrectResults"), "ym_empty() does not behave as expected")
+
    def test_PrimitiveDefs(self):
       """
       Analyzes results from test case.
@@ -100,16 +120,6 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
       results = self.run_test_case(self._testMethodName.removeprefix("test_"))
       self.assertTrue(results.get[bool]("Defined"), "De facto primitives not defined")
-
-   def test_Test_getNBits(self):
-      """
-      Analyzes results from test case.
-      """
-      from cppyy.gbl import std # type:ignore
-      from cppyy.gbl import ym  # type:ignore
-
-      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
-      self.assertTrue(results.get[bool]("CorrectNBits"), "ym_getNBits() does not behave as expected")
 
 # kick-off
 if __name__ == "__main__":

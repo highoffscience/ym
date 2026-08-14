@@ -30,8 +30,9 @@ public:
    YM_UNIT_TESTCASE(SmokeTest)
    YM_UNIT_TESTCASE(BigFiveDeleteMacros)
    YM_UNIT_TESTCASE(OverloadMacros)
+   YM_UNIT_TESTCASE(Func_getNBits)
+   YM_UNIT_TESTCASE(Func_empty)
    YM_UNIT_TESTCASE(PrimitiveDefs)
-   YM_UNIT_TESTCASE(Test_getNBits)
 };
 
 } // ym::unit

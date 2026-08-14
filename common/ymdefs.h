@@ -146,8 +146,7 @@
 #define YM_HELPER_2_MACRO_OVERLOAD(Name_, N_) YM_HELPER_1_MACRO_OVERLOAD(Name_, N_)
 /// @endcond
 
-/** YM_MACRO_OVERLOAD
- *
+/**
  * @brief Helper macro to allow for macro overloading based on number of arguments.
  *
  * - [Reference](https://stackoverflow.com/questions/11761703/overloading-macro-on-number-of-arguments).
@@ -174,8 +173,7 @@
    // if we get here consider using YM_IMPLICIT (or ymimplicit)
    #error "implicit macro already defined"
 #else
-   /** implicit
-    *
+   /**
     * @brief Used to make constructors explicitly implicit.
     *
     * - Name is not "YM_IMPLICIT" because it is more natural to write "implicit".
@@ -183,8 +181,7 @@
    #define implicit
 #endif
 
-/** YMNOEXC
- *
+/**
  * @brief Conditional noexcept specifier.
  *
  * - Mostly for use with functions with debug assertions, eg. @ref YMASSERTDBG.
@@ -204,7 +201,7 @@ namespace ym
  * @name Primitive Typedefs.
  * @{
  *
- * @brief Primitive typedefs.
+ * @brief Typedefs for primitive data types.
  *
  * - The static_asserts for the higher precision floating point defines
  *   are structured unorthodoxically so all supported compilers can parse it.
@@ -244,8 +241,7 @@ using floatext = long double; static_assert(std::numeric_limits<floatext>::digit
 
 /// @}
 
-/** ByteLikeable
- *
+/**
  * @brief Concept that describes a byte-like object.
  *
  * @tparam T -- Type to check against.
@@ -259,8 +255,7 @@ concept ByteLikeable =
       std::is_same<std::remove_cv_t<T>, uchar>
    >;
 
-/** YM_CREATE_TAG_DISPATCH_TYPE
- *
+/**
  * @brief Template for creating tag dispatch types.
  *
  * - [Reference Guide](https://www.fluentcpp.com/2018/04/27/tag-dispatching/).
@@ -290,13 +285,21 @@ constexpr auto ym_getNBits(void) noexcept
    return sizeof(T) * static_cast<std::size_t>(CHAR_BIT);
 }
 
-/** ym_empty
- *
+/**
  * @brief Determines if the parameter is consider empty.
  *
  * - Can be overloaded for other types.
  *
+ * @param S -- String to check.
+ *
  * @returns True if empty, false otherwise.
+ *
+ * __Unit Test__
+ * - @ref ym::unit::TestSuite::Func_empty.
+ *
+ * @test Shall return true when passed a nullptr.
+ * @test Shall return true when passed an empty string.
+ * @test Shall return false when passed the string "Torchic".
  */
 constexpr auto ym_empty(rawstr const S) noexcept
 {
@@ -307,8 +310,7 @@ constexpr auto ym_empty(rawstr const S) noexcept
 
 // ----------------------------------------------------------------------------
 
-/** YM_HELPER_LITERAL_DECL
- *
+/**
  * @brief Defines a set of user-defined literals for commonly used types.
  *
  * - [Reference Guide](https://en.cppreference.com/w/cpp/language/user_literal).
@@ -325,6 +327,8 @@ constexpr auto ym_empty(rawstr const S) noexcept
    static_assert(std::is_same<decltype(  0_##UDL_), TypeToCastTo_>::value &&                                      \
                  std::is_same<decltype(0.0_##UDL_), TypeToCastTo_>::value,                                        \
                  "User defined literal "#UDL_" failed to cast");
+
+// TODO test naming group (Primitive Def Suffixes)
 
 YM_HELPER_LITERAL_DECL(i8,   int8    )
 YM_HELPER_LITERAL_DECL(i16,  int16   )
