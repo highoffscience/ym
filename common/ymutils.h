@@ -31,8 +31,7 @@
 namespace ym
 {
 
-/** ym_castPtrTo
- *
+/**
  * @brief Casts given pointer to byte pointer.
  *
  * - According to [Reference](https://en.cppreference.com/w/cpp/language/object), any object can be
@@ -50,6 +49,11 @@ namespace ym
  * @param data_Ptr -- Pointer to object(s).
  *
  * @returns To_T (const) * -- Pointer to object(s) represented as an array of T.
+ *
+ * TODO These testsuites are not unique - doxy needs a way to find the correct one.
+ *
+ * __Unit Test__
+ * - @ref ym::unit::TestSuite::Func_castPtrTo.
  */
 template <
    typename To_T,
@@ -64,8 +68,7 @@ constexpr auto * ym_castPtrTo(From_T * const data_Ptr) noexcept
          >(data_Ptr));
 }
 
-/** ym_binarySearch
- *
+/**
  * @brief Returns an iterator to the searched for element, or last
  *        if no element is found. Range must be in ascending order.
  *
@@ -124,8 +127,7 @@ requires (
 
 // ----------------------------------------------------------------------------
 
-/** PtrInt_T
- *
+/**
  * @brief Casts non-member pointer to an appropriately sized integral type.
  *
  * - [Reference Guide](https://en.cppreference.com/w/cpp/types/integer).
@@ -158,8 +160,7 @@ union PtrInt_T
 
 // ----------------------------------------------------------------------------
 
-/** ByteBitset
- *
+/**
  * @brief A more compact version of std::bitset.
  *
  * - This should only be if std::bitset (which uses u64), is too expensive.
@@ -173,8 +174,7 @@ public:
    /// @brief Constructor.
    explicit constexpr ByteBitset(void) noexcept = default;
 
-   /** test
-    *
+   /**
     * @brief True if the bit is set, false otherwise.
     *
     * @param Idx -- Desired bit position/index.
@@ -185,8 +185,7 @@ public:
       return (std::to_integer<std::size_t>(_bits) & (1uz << Idx)) != 0uz;
    }
 
-   /** clear
-    *
+   /**
     * @brief Sets the bit to 0.
     *
     * @param Idx -- Desired bit position/index.
@@ -195,8 +194,7 @@ public:
       _bits &= ~static_cast<std::byte>(1uz << Idx);
    }
 
-   /** flip
-    *
+   /**
     * @brief Flips the bit.
     *
     * @param Idx -- Desired bit position/index.
@@ -205,8 +203,7 @@ public:
       _bits ^= static_cast<std::byte>(1uz << Idx);
    }
 
-   /** set
-    *
+   /**
     * @brief Sets the bit.
     *
     * @param Idx -- Desired bit position/index.
@@ -215,8 +212,7 @@ public:
       _bits |= static_cast<std::byte>(1uz << Idx);
    }
 
-   /** set
-    *
+   /**
     * @brief Sets the bit to the specified value.
     *
     * @param Idx -- Desired bit position/index.
@@ -227,8 +223,7 @@ public:
       _bits |= (static_cast<std::byte>(Val) << Idx); // sets/clears bit
    }
 
-   /** getUnderlying
-    *
+   /**
     * @brief Returns a copy of the underlying data.
     *
     * @returns auto -- The underlying type used to store the bites.
@@ -248,8 +243,7 @@ YM_CREATE_TAG_DISPATCH_TYPE(ym_AssumePtrNotNull)
 /// @brief Enables users to cast pointer to anything.
 YM_CREATE_TAG_DISPATCH_TYPE(ym_PtrCastPassKey)
 
-/** Ptr_Base
- *
+/**
  * @brief Common operations/fields for pointer wrapper classes.
  *
  * - BoundPtr and LoosePtr are agnostic to ownership.
@@ -269,8 +263,7 @@ class Ptr_Base
    friend class BoundPtr;
 
 protected:
-   /** Ptr_Base
-    *
+   /**
     * @brief Constructor. Wrapper for custom pointer types.
     *
     * @param value_Ptr -- Pointer value to wrap.
@@ -306,8 +299,7 @@ protected:
    T * _value_ptr{nullptr};
 };
 
-/** BoundPtr
- *
+/**
  * @brief Common operations for bound pointer wrapper classes.
  *
  * @tparam T         -- Type of pointer.
@@ -319,8 +311,7 @@ template <
 class BoundPtr_Base : public Ptr_Base<T, Derived_T>
 {
 protected:
-   /** BoundPtr_Base
-    *
+   /**
     * @brief Constructor. Wrapper for custom bound pointer types.
     *
     * @param value_Ptr -- Pointer value to wrap.
@@ -346,8 +337,7 @@ public:
    constexpr auto * operator ->  (this auto && self) noexcept { return  self.get(); }
    /// @}
 
-   /** operator []
-    *
+   /**
     * @brief Grabs the element at the specified index. No bounds checking.
     *
     * - This, in theory, only belongs to @ref BoundPtr<T[]> classes, since it is important to
@@ -365,8 +355,7 @@ public:
    }
 };
 
-/** BoundPtr
- *
+/**
  * @brief Warpper class for non-null pointers. Checked at construction.
  *
  * - Throwing in the constructor is preferable because you cannot swallow the
@@ -378,8 +367,7 @@ template <typename T>
 class BoundPtr : public BoundPtr_Base<T, BoundPtr<T>>
 {
 public:
-   /** BoundPtr
-    *
+   /**
     * @brief Constructor. Wrapper for custom bound pointer types.
     *
     * @throws ym_NullPtrError -- If value_Ptr is null.
@@ -444,8 +432,7 @@ public:
    /// @}
 };
 
-/** BoundPtr
- *
+/**
  * @brief Wrapper class for pointers to C-style arrays. See note about non-nullness.
  *
  * @note Compiling with the pedantic flag is recommended to prevent allowing arrays
@@ -481,8 +468,7 @@ public:
 template <typename T, std::size_t N>
 BoundPtr(T (&)[N]) -> BoundPtr<T[]>;
 
-/** LoosePtr
- *
+/**
  * @brief Wrapper class that represents a possibly null pointer. No access is allowed without first
  *        converting to a @ref BoundPtr.
  */
@@ -559,8 +545,7 @@ public:
       return *this != nullptr;
    }
 
-   /** unwrap
-    *
+   /**
     * @brief Returns a @ref BoundPtr to the contained pointer.
     *
     * @throws ym_NullPtrError -- If value is null.
@@ -571,8 +556,7 @@ public:
       return this->_value_ptr;
    }
 
-   /** unwrap_or
-    *
+   /**
     * @brief Returns a @ref BoundPtr to the contained pointer, or a default value if the contained pointer is null.
     *
     * @returns BoundPtr<T> -- A BoundPtr of the underlying pointer value.
@@ -582,8 +566,7 @@ public:
    }
 };
 
-/** LoosePtr
- *
+/**
  * @brief Wrapper class that represents a possibly null pointer. No access is allowed without first
  *        converting to a BoundPtr.
  */
@@ -614,8 +597,7 @@ public:
       Ptr_Base<T, LoosePtr<T[]>>(Other)
    { }
 
-   /** operator []
-    *
+   /**
     *  @brief Grabs the element at the specified index. No bounds checking.
     *
     * @param Idx -- Index of desired object.
@@ -652,8 +634,7 @@ using optstrlit = LoosePtr<char const[]>;  // optional string literal
 using optmutstr = LoosePtr<char>;          // optional mutable string
 /// @}
 
-/** PolyRaw
- *
+/**
  * @brief Holds a polymorphic object that share a common base and whose sizes are all equivalent.
  *
  * @tparam Base_T -- Base class.
@@ -673,8 +654,7 @@ requires (requires(
 class PolyRaw
 {
 public:
-   /** PolyRaw
-    *
+   /**
     * @brief Constructor.
     *
     * @throws std::exception -- From construct().
@@ -694,8 +674,7 @@ public:
       construct(std::in_place_type<Derived_T>, std::forward<Args_T>(args)...);
    }
 
-   /** operator ->
-    *
+   /**
     * @name PolyRaw Access Operations.
     * @{
     *
@@ -738,8 +717,7 @@ public:
    constexpr PolyRaw<Base_T, MaxDerivedSize> & operator = (PolyRaw<Base_T, MaxDerivedSize> && other) = delete;
    /// @}
 
-   /** construct
-    *
+   /**
     * @brief Constructs derived object in place.
     *
     * @throws std::exception -- From Derived_T's constructor.
@@ -769,8 +747,7 @@ private:
 namespace fmt
 {
 
-/** formatter
- *
+/**
  * @brief Helper class to format ym::str types for use in the fmt library.
  */
 template <>
@@ -779,8 +756,7 @@ struct formatter<ym::str> : public fmt::formatter<fmt::string_view>
    auto format(ym::str s, fmt::format_context & ctx_ref) const -> fmt::format_context::iterator;
 };
 
-/** formatter
- *
+/**
  * @brief Helper class to format ym::strlit types for use in the fmt library.
  */
 template <>
@@ -789,8 +765,7 @@ struct formatter<ym::strlit> : public fmt::formatter<fmt::string_view>
    auto format(ym::strlit s, fmt::format_context & ctx_ref) const -> fmt::format_context::iterator;
 };
 
-/** formatter
- *
+/**
  * @brief Helper class to format ym::mutstr types for use in the fmt library.
  */
 template <>
@@ -801,8 +776,7 @@ struct formatter<ym::mutstr> : public fmt::formatter<fmt::string_view>
 
 #if (YM_CPP_STANDARD >= 23) && (YM_LITE == 0)
 
-   /** formatter
-    *
+   /**
     * @brief Helper class to format ym::mutstr types for use in the fmt library.
     */
    template <>

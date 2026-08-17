@@ -12,6 +12,7 @@
 #include "fmt/format.h"
 
 #include <cstdint>
+#include <type_traits>
 
 /**
  * @brief Constructor.
@@ -25,7 +26,7 @@ ym::unit::TestSuite::TestSuite(void) :
    addTestCase<OverloadMacros>();
    addTestCase<Func_getNBits>();
    addTestCase<Func_empty>();
-   addTestCase<PrimitiveDefs>();
+   addTestCase<PrimitiveDefSuffixes>();
 }
 
 /**
@@ -130,32 +131,66 @@ auto ym::unit::TestSuite::Func_empty::run([[maybe_unused]] DataShuttle const & I
    };
 }
 
-/** run
+/**
+ * - @ref YM_USER_LITERAL_DECL() Shall define int8 user defined literal.
+ * - @ref YM_USER_LITERAL_DECL() Shall define int16 user defined literal.
+ * - @ref YM_USER_LITERAL_DECL() Shall define int32 user defined literal.
+ * - @ref YM_USER_LITERAL_DECL() Shall define int64 user defined literal.
  *
- * @brief Tests that primitive sized defs are defined.
+ * - @ref YM_USER_LITERAL_DECL() Shall define uint8 user defined literal.
+ * - @ref YM_USER_LITERAL_DECL() Shall define uint16 user defined literal.
+ * - @ref YM_USER_LITERAL_DECL() Shall define uint32 user defined literal.
+ * - @ref YM_USER_LITERAL_DECL() Shall define uint64 user defined literal.
+ *
+ * - @ref YM_USER_LITERAL_DECL() Shall define float32 user defined literal.
+ * - @ref YM_USER_LITERAL_DECL() Shall define float64 user defined literal.
+ * - @ref YM_USER_LITERAL_DECL() Shall define floatext user defined literal.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::PrimitiveDefs::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::TestSuite::PrimitiveDefSuffixes::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   [[maybe_unused]] volatile rawstr s0 = "Go! Torchic!";
-   [[maybe_unused]] volatile uchar  s1 = 7;
-   [[maybe_unused]] volatile schar  s2 = 9;
+   rawstr s  = "Go! Torchic!";
+   uchar  uc = 7;
+   schar  sc = 9;
 
-   [[maybe_unused]] volatile int8 i1 = 1_i8;
-   [[maybe_unused]] volatile int16 i2 = 1_i16;
-   [[maybe_unused]] volatile int32 i3 = 1_i32;
-   [[maybe_unused]] volatile int64 i4 = 1_i64;
+   auto i8  = 1_i8;
+   auto i16 = 1_i16;
+   auto i32 = 1_i32;
+   auto i64 = 1_i64;
 
-   [[maybe_unused]] volatile uint8 u1 = 1_u8;
-   [[maybe_unused]] volatile uint16 u2 = 1_u16;
-   [[maybe_unused]] volatile uint32 u3 = 1_u32;
-   [[maybe_unused]] volatile uint64 u4 = 1_u64;
+   auto u8  = 1_u8;
+   auto u16 = 1_u16;
+   auto u32 = 1_u32;
+   auto u64 = 1_u64;
 
-   [[maybe_unused]] volatile float32 f1 = 1.0_f32;
-   [[maybe_unused]] volatile float64 f2 = 1.0_f64;
+   auto f32  = 1.0_f32;
+   auto f64  = 1.0_f64;
+   auto fext = 1.0_fext;
+
+   constexpr auto TypesAreOfExpectedTypes =
+      std::conjunction_v<
+         std::is_same<decltype(s),  char const * >,
+         std::is_same<decltype(uc), unsigned char>,
+         std::is_same<decltype(sc), signed char  >,
+
+         std::is_same<decltype(i8 ), std::int8_t >,
+         std::is_same<decltype(i16), std::int16_t>,
+         std::is_same<decltype(i32), std::int32_t>,
+         std::is_same<decltype(i64), std::int64_t>,
+
+         std::is_same<decltype(u8 ), std::uint8_t >,
+         std::is_same<decltype(u16), std::uint16_t>,
+         std::is_same<decltype(u32), std::uint32_t>,
+         std::is_same<decltype(u64), std::uint64_t>,
+
+         // precision of floats checked at definition site
+         std::is_same<decltype(f32 ), float32 >,
+         std::is_same<decltype(f64 ), float64 >,
+         std::is_same<decltype(fext), floatext>
+      >;
 
    return {
-      {"Defined", true}
+      {"TypesAreOfExpectedTypes", TypesAreOfExpectedTypes}
    };
 }

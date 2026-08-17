@@ -111,7 +111,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       results = self.run_test_case(self._testMethodName.removeprefix("test_"))
       self.assertTrue(results.get[bool]("CorrectResults"), "ym_empty() does not behave as expected")
 
-   def test_PrimitiveDefs(self):
+   def test_PrimitiveDefSuffixes(self):
       """
       Analyzes results from test case.
       """
@@ -119,7 +119,8 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym  # type:ignore
 
       results = self.run_test_case(self._testMethodName.removeprefix("test_"))
-      self.assertTrue(results.get[bool]("Defined"), "De facto primitives not defined")
+      self.assertTrue(results.get[bool]("TypesAreOfExpectedTypes"),
+         "De facto primitive user defined literals don't give expected types (or other typedefs)")
 
 # kick-off
 if __name__ == "__main__":

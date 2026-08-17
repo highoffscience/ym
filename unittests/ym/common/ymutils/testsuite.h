@@ -16,8 +16,7 @@
 namespace ym::unit
 {
 
-/** TestSuite
- *
+/**
  * @brief Test suite for YmUtils.
  */
 class TestSuite : public TestSuiteBase
@@ -28,6 +27,8 @@ public:
 
    YM_UNIT_TESTCASE(InteractiveInspection)
    YM_UNIT_TESTCASE(SmokeTest)
+   YM_UNIT_TESTCASE(Func_castPtrTo)
+
    YM_UNIT_TESTCASE(Funcs)
    YM_UNIT_TESTCASE(PtrIntClass)
    YM_UNIT_TESTCASE(ByteBitsetClass)

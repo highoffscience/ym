@@ -15,8 +15,7 @@
 #include <sys/stat.h>
 #include <vector>
 
-/** TestSuite
- *
+/**
  * @brief Constructor.
  */
 ym::unit::TestSuite::TestSuite(void) :

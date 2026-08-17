@@ -16,8 +16,7 @@
 namespace ym::unit
 {
 
-/** TestSuite
- *
+/**
  * @brief Test suite for YmDefs.
  */
 class TestSuite : public TestSuiteBase
@@ -32,7 +31,7 @@ public:
    YM_UNIT_TESTCASE(OverloadMacros)
    YM_UNIT_TESTCASE(Func_getNBits)
    YM_UNIT_TESTCASE(Func_empty)
-   YM_UNIT_TESTCASE(PrimitiveDefs)
+   YM_UNIT_TESTCASE(PrimitiveDefSuffixes)
 };
 
 } // ym::unit

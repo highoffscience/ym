@@ -162,7 +162,7 @@
  * @param ...    -- Args to pass to macro.
  *
  * __Unit Test__
- * - @ref ym::unit::TestSuite::OverloadMacros
+ * - @ref ym::unit::TestSuite::OverloadMacros.
  *
  * @test Shall allow custom macros to have overloads.
  */
@@ -198,13 +198,15 @@ namespace ym
 {
 
 /**
- * @name Primitive Typedefs.
+ * @name Global Primitives & User Defined Literals.
  * @{
  *
  * @brief Typedefs for primitive data types.
  *
  * - The static_asserts for the higher precision floating point defines
  *   are structured unorthodoxically so all supported compilers can parse it.
+ *
+ * @internal Tests are defined in 2nd grouping below.
  */
 
 using rawstr = char const *;
@@ -311,6 +313,9 @@ constexpr auto ym_empty(rawstr const S) noexcept
 // ----------------------------------------------------------------------------
 
 /**
+ * @name Global Primitives & User Defined Literals.
+ * @{
+ *
  * @brief Defines a set of user-defined literals for commonly used types.
  *
  * - [Reference Guide](https://en.cppreference.com/w/cpp/language/user_literal).
@@ -319,8 +324,25 @@ constexpr auto ym_empty(rawstr const S) noexcept
  * @param TypeToCastTo_ -- Type to cast to.
  *
  * @returns auto -- Input casted to TypeToCastTo_.
+ *
+ * __Unit Test__
+ * - @ref ym::unit::TestSuite::PrimitiveDefSuffixes.
+ *
+ * @test Shall define int8 user defined literal.
+ * @test Shall define int16 user defined literal.
+ * @test Shall define int32 user defined literal.
+ * @test Shall define int64 user defined literal.
+ *
+ * @test Shall define uint8 user defined literal.
+ * @test Shall define uint16 user defined literal.
+ * @test Shall define uint32 user defined literal.
+ * @test Shall define uint64 user defined literal.
+ *
+ * @test Shall define float32 user defined literal.
+ * @test Shall define float64 user defined literal.
+ * @test Shall define floatext user defined literal.
  */
-#define YM_HELPER_LITERAL_DECL(UDL_, TypeToCastTo_)                                                               \
+#define YM_USER_LITERAL_DECL(UDL_, TypeToCastTo_)                                                               \
    constexpr inline auto operator""_##UDL_(unsigned long long int    u) { return static_cast<TypeToCastTo_>(u); } \
    constexpr inline auto operator""_##UDL_(              long double d) { return static_cast<TypeToCastTo_>(d); } \
                                                                                                                   \
@@ -328,21 +350,21 @@ constexpr auto ym_empty(rawstr const S) noexcept
                  std::is_same<decltype(0.0_##UDL_), TypeToCastTo_>::value,                                        \
                  "User defined literal "#UDL_" failed to cast");
 
-// TODO test naming group (Primitive Def Suffixes)
+YM_USER_LITERAL_DECL(i8,   int8 )
+YM_USER_LITERAL_DECL(i16,  int16)
+YM_USER_LITERAL_DECL(i32,  int32)
+YM_USER_LITERAL_DECL(i64,  int64)
 
-YM_HELPER_LITERAL_DECL(i8,   int8    )
-YM_HELPER_LITERAL_DECL(i16,  int16   )
-YM_HELPER_LITERAL_DECL(i32,  int32   )
-YM_HELPER_LITERAL_DECL(i64,  int64   )
+YM_USER_LITERAL_DECL(u8,   uint8 )
+YM_USER_LITERAL_DECL(u16,  uint16)
+YM_USER_LITERAL_DECL(u32,  uint32)
+YM_USER_LITERAL_DECL(u64,  uint64)
 
-YM_HELPER_LITERAL_DECL(u8,   uint8   )
-YM_HELPER_LITERAL_DECL(u16,  uint16  )
-YM_HELPER_LITERAL_DECL(u32,  uint32  )
-YM_HELPER_LITERAL_DECL(u64,  uint64  )
-
-YM_HELPER_LITERAL_DECL(f32,  float32 )
-YM_HELPER_LITERAL_DECL(f64,  float64 )
-YM_HELPER_LITERAL_DECL(fext, floatext)
+YM_USER_LITERAL_DECL(f32,  float32 )
+YM_USER_LITERAL_DECL(f64,  float64 )
+YM_USER_LITERAL_DECL(fext, floatext)
 // you're on your own initializing float128
+
+/// @}
 
 } // ym
