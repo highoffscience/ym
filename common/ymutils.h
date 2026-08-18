@@ -50,10 +50,8 @@ namespace ym
  *
  * @returns To_T (const) * -- Pointer to object(s) represented as an array of T.
  *
- * TODO These testsuites are not unique - doxy needs a way to find the correct one.
- *
  * __Unit Test__
- * - @ref ym::unit::TestSuite::Func_castPtrTo.
+ * - @ref ym::unit::ymutils::TestSuite::Func_castPtrTo.
  */
 template <
    typename To_T,

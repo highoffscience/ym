@@ -13,7 +13,7 @@
 
 #include "testsuitebase.h"
 
-namespace ym::unit
+namespace ym::unit::ymutils
 {
 
 /**

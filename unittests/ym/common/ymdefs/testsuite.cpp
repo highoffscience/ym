@@ -17,7 +17,7 @@
 /**
  * @brief Constructor.
  */
-ym::unit::TestSuite::TestSuite(void) :
+ym::unit::ymdefs::TestSuite::TestSuite(void) :
    TestSuiteBase("YmDefs")
 {
    addTestCase<InteractiveInspection>();
@@ -34,7 +34,7 @@ ym::unit::TestSuite::TestSuite(void) :
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymdefs::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {};
 }
@@ -44,7 +44,7 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymdefs::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {};
 }
@@ -58,7 +58,7 @@ auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & In
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::BigFiveDeleteMacros::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymdefs::TestSuite::BigFiveDeleteMacros::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    struct Test
    {
@@ -79,7 +79,7 @@ auto ym::unit::TestSuite::BigFiveDeleteMacros::run([[maybe_unused]] DataShuttle 
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::OverloadMacros::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymdefs::TestSuite::OverloadMacros::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    #define YM_SUM(...) YM_MACRO_OVERLOAD(YM_SUM, __VA_ARGS__)
    #define YM_SUM1(First) (First)
@@ -100,7 +100,7 @@ auto ym::unit::TestSuite::OverloadMacros::run([[maybe_unused]] DataShuttle const
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::Func_getNBits::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymdefs::TestSuite::Func_getNBits::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const I16 = std::int16_t{};
    auto const Ni16Bits = ym_getNBits<decltype(I16)>();
@@ -120,7 +120,7 @@ auto ym::unit::TestSuite::Func_getNBits::run([[maybe_unused]] DataShuttle const 
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::Func_empty::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymdefs::TestSuite::Func_empty::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {
       {"CorrectResults",
@@ -148,7 +148,7 @@ auto ym::unit::TestSuite::Func_empty::run([[maybe_unused]] DataShuttle const & I
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::PrimitiveDefSuffixes::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymdefs::TestSuite::PrimitiveDefSuffixes::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    rawstr s  = "Go! Torchic!";
    uchar  uc = 7;

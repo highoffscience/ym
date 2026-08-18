@@ -43,7 +43,7 @@ def gen_header_file(args: argparse.Namespace):
       writeln(f"                                            ")
       writeln(f"#include \"testsuitebase.h\"                ")
       writeln(f"                                            ")
-      writeln(f"namespace ym::unit                          ")
+      writeln(f"namespace ym::unit::{args.filename}         ")
       writeln(f"{{                                          ")
       writeln(f"                                            ")
       writeln(f"/**                                         ")
@@ -96,7 +96,7 @@ def gen_source_file(args: argparse.Namespace):
       writeln(f"/**                                                                       ")
       writeln(f" * @brief Constructor.                                                    ")
       writeln(f" */                                                                       ")
-      writeln(f"ym::unit::TestSuite::TestSuite(void) :                                    ")
+      writeln(f"ym::unit::{args.filename}::TestSuite::TestSuite(void) :                   ")
       writeln(f"   TestSuiteBase(\"{args.suitename}\")                                    ")
       writeln(f"{{                                                                        ")
       writeln(f"   addTestCase<InteractiveInspection>();                                  ")
@@ -108,7 +108,7 @@ def gen_source_file(args: argparse.Namespace):
       writeln(f" *                                                                        ")
       writeln(f" * @returns DataShuttle -- Important values acquired during run of test.  ")
       writeln(f" */                                                                       ")
-      writeln(f"auto ym::unit::TestSuite::InteractiveInspection" \
+      writeln(f"auto ym::unit::{args.filename}::TestSuite::InteractiveInspection" \
               f"::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle         ")
       writeln(f"{{                                                                        ")
       writeln(f"   return {{}};                                                           ")
@@ -119,7 +119,7 @@ def gen_source_file(args: argparse.Namespace):
       writeln(f" *                                                                        ")
       writeln(f" * @returns DataShuttle -- Important values acquired during run of test.  ")
       writeln(f" */                                                                       ")
-      writeln(f"auto ym::unit::TestSuite::SmokeTest" \
+      writeln(f"auto ym::unit::{args.filename}::TestSuite::SmokeTest" \
               f"::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle         ")
       writeln(f"{{                                                                        ")
       writeln(f"   return {{}};                                                           ")

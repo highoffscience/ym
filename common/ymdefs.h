@@ -116,7 +116,7 @@
  * @param ClassName_ -- Class name.
  *
  * __Unit Test__
- * - @ref ym::unit::TestSuite::BigFiveDeleteMacros.
+ * - @ref ym::unit::ymdefs::TestSuite::BigFiveDeleteMacros.
  *
  * @test Shall delete the default constructor.
  * @test Shall delete the copy constructor.
@@ -162,7 +162,7 @@
  * @param ...    -- Args to pass to macro.
  *
  * __Unit Test__
- * - @ref ym::unit::TestSuite::OverloadMacros.
+ * - @ref ym::unit::ymdefs::TestSuite::OverloadMacros.
  *
  * @test Shall allow custom macros to have overloads.
  */
@@ -276,7 +276,7 @@ concept ByteLikeable =
  * @returns std::size_t -- The number of bits in type T.
  *
  * __Unit Test__
- * - @ref ym::unit::TestSuite::Test_getNBits.
+ * - @ref ym::unit::ymdefs::TestSuite::Test_getNBits.
  *
  * @test Shall return 16 when called with an i16 (2-byte) type.
  * @test Shall return 32 when called with an i32 (4-byte) type.
@@ -297,7 +297,7 @@ constexpr auto ym_getNBits(void) noexcept
  * @returns True if empty, false otherwise.
  *
  * __Unit Test__
- * - @ref ym::unit::TestSuite::Func_empty.
+ * - @ref ym::unit::ymdefs::TestSuite::Func_empty.
  *
  * @test Shall return true when passed a nullptr.
  * @test Shall return true when passed an empty string.
@@ -326,7 +326,7 @@ constexpr auto ym_empty(rawstr const S) noexcept
  * @returns auto -- Input casted to TypeToCastTo_.
  *
  * __Unit Test__
- * - @ref ym::unit::TestSuite::PrimitiveDefSuffixes.
+ * - @ref ym::unit::ymdefs::TestSuite::PrimitiveDefSuffixes.
  *
  * @test Shall define int8 user defined literal.
  * @test Shall define int16 user defined literal.

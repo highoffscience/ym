@@ -18,7 +18,7 @@
 /**
  * @brief Constructor.
  */
-ym::unit::TestSuite::TestSuite(void) :
+ym::unit::ymutils::TestSuite::TestSuite(void) :
    TestSuiteBase("YmUtils")
 {
    addTestCase<InteractiveInspection>();
@@ -36,7 +36,7 @@ ym::unit::TestSuite::TestSuite(void) :
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymutils::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {};
 }
@@ -47,7 +47,7 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymutils::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {};
 }
@@ -58,7 +58,7 @@ auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & In
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::Funcs::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymutils::TestSuite::Funcs::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto castPtrToSuccess = false;
    {
@@ -108,7 +108,7 @@ auto ym::unit::TestSuite::Funcs::run([[maybe_unused]] DataShuttle const & InData
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::PtrIntClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymutils::TestSuite::PtrIntClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    int32 vals[] {9, 7};
 
@@ -126,7 +126,7 @@ auto ym::unit::TestSuite::PtrIntClass::run([[maybe_unused]] DataShuttle const & 
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::ByteBitsetClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymutils::TestSuite::ByteBitsetClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    // Bitset b{};
    // fmt::println("1) TODO --> {}", b.getUnderlying());
@@ -150,7 +150,7 @@ auto ym::unit::TestSuite::ByteBitsetClass::run([[maybe_unused]] DataShuttle cons
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymutils::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    // static_assert(std::assignable_from<
    //    BoundPtr<str>&,
@@ -236,7 +236,7 @@ auto ym::unit::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle cons
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::PolyRawClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymutils::TestSuite::PolyRawClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    // struct Base
    // {
