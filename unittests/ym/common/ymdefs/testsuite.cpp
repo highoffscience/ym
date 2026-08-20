@@ -36,7 +36,9 @@ ym::unit::ymdefs::TestSuite::TestSuite(void) :
  */
 auto ym::unit::ymdefs::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   return {};
+   return {
+      {"True", true}
+   };
 }
 
 /**

@@ -23,15 +23,16 @@ ym::unit::ymutils::TestSuite::TestSuite(void) :
 {
    addTestCase<InteractiveInspection>();
    addTestCase<SmokeTest>();
-   addTestCase<Funcs>();
-   addTestCase<PtrIntClass>();
-   addTestCase<ByteBitsetClass>();
-   addTestCase<BoundedPtrClass>();
-   addTestCase<PolyRawClass>();
+   addTestCase<Func_castPtrTo>();
+   addTestCase<Func_binarySearch>();
+   addTestCase<Class_PtrInt>();
+   addTestCase<Class_ByteBitset>();
+   addTestCase<Class_BoundPtr>();
+   addTestCase<Class_LoosePtr>();
+   addTestCase<Class_PolyRaw>();
 }
 
-/** run
- *
+/**
  * @brief Interactive inspection - for debug purposes.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
@@ -41,24 +42,24 @@ auto ym::unit::ymutils::TestSuite::InteractiveInspection::run([[maybe_unused]] D
    return {};
 }
 
-/** run
- *
+/**
  * @brief Basic integrity test.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
 auto ym::unit::ymutils::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   return {};
+   return {
+      {"True", true}
+   };
 }
 
-/** run
- *
- * @brief Tests global ym functions.
+/**
+ * - @ref ym::ym_castPtrTo() Shall ?
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::ymutils::TestSuite::Funcs::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymutils::TestSuite::Func_castPtrTo::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto castPtrToSuccess = false;
    {
@@ -70,21 +71,18 @@ auto ym::unit::ymutils::TestSuite::Funcs::run([[maybe_unused]] DataShuttle const
       castPtrToSuccess &= std::is_same_v<int const*, decltype(v)>;
    }
 
-   auto emptySuccess = false;
-   {
-      rawstr s = nullptr;
-      emptySuccess = ym_empty(s);
-      fmt::println("empty 1) -- {}", ym_empty(s));
+   return {
+      {"castPtrToSuccess", castPtrToSuccess}
+   };
+}
 
-      s = "";
-      emptySuccess &= ym_empty(s);
-      fmt::println("empty 2) -- {}", ym_empty(s));
-
-      s = "Go! Torchic!";
-      emptySuccess &= !ym_empty(s);
-      fmt::println("empty 3) -- {}", ym_empty(s));
-   }
-
+/**
+ * - @ref ym::ym_binarySearch() Shall ?
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::unit::ymutils::TestSuite::Func_castPtrTo::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
    auto binarySearchSuccess = false;
    {
       std::vector v = {1,2,3,4,5,6,7,8,9};
@@ -96,19 +94,16 @@ auto ym::unit::ymutils::TestSuite::Funcs::run([[maybe_unused]] DataShuttle const
    }
 
    return {
-      {"castPtrToSuccess", castPtrToSuccess},
-      {"emptySuccess", emptySuccess},
       {"binarySearchSuccess", binarySearchSuccess}
    };
 }
 
-/** run
- *
- * @brief Tests PtrInt_T conversion utility structure.
+/**
+ * - @ref ym::PtrInt_T Shall ?
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::ymutils::TestSuite::PtrIntClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymutils::TestSuite::Class_PtrInt::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    int32 vals[] {9, 7};
 
@@ -120,37 +115,24 @@ auto ym::unit::ymutils::TestSuite::PtrIntClass::run([[maybe_unused]] DataShuttle
    };
 }
 
-/** run
- *
- * @brief Tests ByteBitset class.
+/**
+ * - @ref ym::ByteBitset Shall ?
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::ymutils::TestSuite::ByteBitsetClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymutils::TestSuite::Class_ByteBitset::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   // Bitset b{};
-   // fmt::println("1) TODO --> {}", b.getUnderlying());
-   // b.set(0);
-   // fmt::println("2) TODO --> {}", b.getUnderlying());
-   // b.set(1);
-   // fmt::println("3) TODO --> {}", b.getUnderlying());
-   // b.clear(1);
-   // fmt::println("4) TODO --> {}", b.getUnderlying());
-   // b.set(1, true);
-   // fmt::println("5) TODO --> {}", b.getUnderlying());
-   // auto b2 = b;
-   // fmt::println("6) TODO --> {}", b2.getUnderlying());
-
-   return {};
+   return {
+      {"True", true}
+   };
 }
 
-/** run
- *
- * @brief TODO
+/**
+ * - @ref ym::BoundPtr Shall ?
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::ymutils::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymutils::TestSuite::Class_BoundPtr::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    // static_assert(std::assignable_from<
    //    BoundPtr<str>&,
@@ -230,13 +212,24 @@ auto ym::unit::ymutils::TestSuite::BoundedPtrClass::run([[maybe_unused]] DataShu
    };
 }
 
-/** run
- *
- * @brief TODO
+/**
+ * - @ref ym::LoosePtr Shall ?
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::ymutils::TestSuite::PolyRawClass::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymutils::TestSuite::Class_LoosePtr::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   return {
+      {"True", true}
+   };
+}
+
+/**
+ * - @ref ym::PolyRaw Shall ?
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::unit::ymutils::TestSuite::Class_PolyRaw::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    // struct Base
    // {

@@ -52,6 +52,8 @@ namespace ym
  *
  * __Unit Test__
  * - @ref ym::unit::ymutils::TestSuite::Func_castPtrTo.
+ *
+ * @test Shall ?
  */
 template <
    typename To_T,
@@ -81,6 +83,11 @@ constexpr auto * ym_castPtrTo(From_T * const data_Ptr) noexcept
  * @param last    -- One past the end of the range.
  * @param Value   -- Value to find in range.
  * @param compare -- Compare function. See above.
+ *
+ * __Unit Test__
+ * - @ref ym::unit::ymutils::TestSuite::Func_binarySearch.
+ *
+ * @test Shall ?
  */
 template <
    typename Iterator_T,
@@ -145,6 +152,11 @@ requires (
  *   and usually cleaner solutions exist.
  *
  * @tparam T -- Pointer type.
+ *
+ * __Unit Test__
+ * - @ref ym::unit::ymutils::TestSuite::Class_PtrInt.
+ *
+ * @test Shall ?
  */
 template <typename T>
 requires (!std::is_member_function_pointer_v<T>)
@@ -165,6 +177,11 @@ union PtrInt_T
  *   ie, if you only need a byte.
  *
  * @tparam T -- Underlying type.
+ *
+ * __Unit Test__
+ * - @ref ym::unit::ymutils::TestSuite::Class_ByteBitset.
+ *
+ * @test Shall ?
  */
 class ByteBitset
 {
@@ -360,6 +377,11 @@ public:
  *   exception and use BoundPtr in an unacceptable state.
  *
  * @tparam T -- Type of pointer.
+ *
+ * __Unit Test__
+ * - @ref ym::unit::ymutils::TestSuite::Class_BoundPtr.
+ *
+ * @test Shall ?
  */
 template <typename T>
 class BoundPtr : public BoundPtr_Base<T, BoundPtr<T>>
@@ -436,6 +458,11 @@ public:
  * @note Compiling with the pedantic flag is recommended to prevent allowing arrays
  *       with zero size. If you are using 0-sized arrays, you'll need to modify
  *       the check conditions of this class.
+ *
+ * __Unit Test__
+ * - @ref ym::unit::ymutils::TestSuite::Class_BoundPtr.
+ *
+ * @test Shall ?
  */
 template <typename T>
 class BoundPtr<T[]> : public BoundPtr_Base<T, BoundPtr<T[]>>
@@ -469,6 +496,11 @@ BoundPtr(T (&)[N]) -> BoundPtr<T[]>;
 /**
  * @brief Wrapper class that represents a possibly null pointer. No access is allowed without first
  *        converting to a @ref BoundPtr.
+ *
+ * __Unit Test__
+ * - @ref ym::unit::ymutils::TestSuite::Class_LoosePtr.
+ *
+ * @test Shall ?
  */
 template <typename T>
 class LoosePtr : public Ptr_Base<T, LoosePtr<T>>
@@ -567,6 +599,11 @@ public:
 /**
  * @brief Wrapper class that represents a possibly null pointer. No access is allowed without first
  *        converting to a BoundPtr.
+ *
+ * __Unit Test__
+ * - @ref ym::unit::ymutils::TestSuite::Class_LoosePtr.
+ *
+ * @test Shall ?
  */
 template <typename T>
 class LoosePtr<T[]> : public Ptr_Base<T, LoosePtr<T[]>>
@@ -637,6 +674,11 @@ using optmutstr = LoosePtr<char>;          // optional mutable string
  *
  * @tparam Base_T -- Base class.
  * @tparam N      -- Size of derived classes (in bytes).
+ *
+ * __Unit Test__
+ * - @ref ym::unit::ymutils::TestSuite::Class_PolyRaw.
+ *
+ * @test Shall ?
  */
 template <
    typename    Base_T,

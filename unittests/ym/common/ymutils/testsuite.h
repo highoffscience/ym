@@ -28,12 +28,12 @@ public:
    YM_UNIT_TESTCASE(InteractiveInspection)
    YM_UNIT_TESTCASE(SmokeTest)
    YM_UNIT_TESTCASE(Func_castPtrTo)
-
-   YM_UNIT_TESTCASE(Funcs)
-   YM_UNIT_TESTCASE(PtrIntClass)
-   YM_UNIT_TESTCASE(ByteBitsetClass)
-   YM_UNIT_TESTCASE(BoundedPtrClass)
-   YM_UNIT_TESTCASE(PolyRawClass)
+   YM_UNIT_TESTCASE(Func_binarySearch)
+   YM_UNIT_TESTCASE(Class_PtrInt)
+   YM_UNIT_TESTCASE(Class_ByteBitset)
+   YM_UNIT_TESTCASE(Class_BoundPtr)
+   YM_UNIT_TESTCASE(Class_LoosePtr)
+   YM_UNIT_TESTCASE(Class_PolyRaw)
 };
 
 } // ym::unit

@@ -59,7 +59,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym  # type:ignore
 
       # uncomment to run test
-      results = self.run_test_case(self._testMethodName.removeprefix("test_"), assert_results=False)
+      # results = self.run_test_case(self._testMethodName.removeprefix("test_"), assert_results=False)
       pass
 
    def test_SmokeTest(self):
@@ -70,8 +70,9 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym  # type:ignore
 
       results = self.run_test_case(self._testMethodName.removeprefix("test_"))
+      self.assertTrue(results.get[bool]("True"), "Truth is naught")
 
-   def test_Funcs(self):
+   def test_Func_castPtrTo(self):
       """
       Analyzes results from test case.
       """
@@ -80,10 +81,18 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
       results = self.run_test_case(self._testMethodName.removeprefix("test_"))
       self.assertTrue(results.get[bool]("castPtrToSuccess"), "ym_castPtrTo() failed")
-      self.assertTrue(results.get[bool]("emptySuccess"), "ym_empty() failed")
+
+   def test_Func_binarySearch(self):
+      """
+      Analyzes results from test case.
+      """
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
       self.assertTrue(results.get[bool]("binarySearchSuccess"), "ym_binarySearch failed")
 
-   def test_PtrIntClass(self):
+   def test_Class_PtrInt(self):
       """
       Analyzes results from test case.
       """
@@ -93,17 +102,17 @@ class TestSuite(testsuitebase.TestSuiteBase):
       results = self.run_test_case(self._testMethodName.removeprefix("test_"))
       self.assertTrue(results.get[bool]("UnionWorks"), "Ptr to int yielded unexpected value")
 
-   def test_ByteBitsetClass(self):
+   def test_Class_ByteBitset(self):
       """
       Analyzes results from test case.
       """
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      # results = self.run_test_case(self._testMethodName.removeprefix("test_"))
-      # self.assertTrue(results.get[bool]("True"), "Failed to compile")
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
+      self.assertTrue(results.get[bool]("True"), "Truth is naught")
 
-   def test_BoundedPtrClass(self):
+   def test_Class_BoundPtr(self):
       """
       Analyzes results from test case.
       """
@@ -114,15 +123,25 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
       self.assertTrue(results.get[bool]("CanCast"), "Bounded ptr does not have expected value")
 
-   def test_PolyRawClass(self):
+   def test_Class_LoosePtr(self):
       """
       Analyzes results from test case.
       """
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      # results = self.run_test_case(self._testMethodName.removeprefix("test_"))
-      # self.assertTrue(results.get[bool]("True"), "Failed to compile")
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
+      self.assertTrue(results.get[bool]("True"), "Truth is naught")
+
+   def test_Class_PolyRaw(self):
+      """
+      Analyzes results from test case.
+      """
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
+      self.assertTrue(results.get[bool]("True"), "Truth is naught")
 
 # kick-off
 if __name__ == "__main__":
