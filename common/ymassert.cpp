@@ -20,8 +20,7 @@
 
 #if (YM_EXCEPTIONS_ENABLED)
 
-   /** what
-    *
+   /**
     * @brief Returns an identifying message.
     *
     * @returns rawstr -- Stored message.
@@ -33,8 +32,7 @@
 
 #else // exceptions disabled
 
-   /** defaultNoExceptHandler
-    *
+   /**
     * @brief Logs the error message and raises interrupt.
     *
     * @param E -- Raised error.
@@ -45,8 +43,7 @@
       std::raise(SIGTERM);
    }
 
-   /** logAssert
-    *
+   /**
     * @brief Logs the assert to the global logger.
     *
     * @param E -- Assert to log.
@@ -58,8 +55,7 @@
 
 #endif
 
-/** write_Helper
- *
+/**
  * @brief Write message into buffer.
  *
  * @param Format -- Format string.

@@ -15,8 +15,7 @@
 namespace ym
 {
 
-/** ArgParser
- *
+/**
  * @brief A parsing utility for use for command line arguments.
  *
  * TODO add commands, like
@@ -32,6 +31,11 @@ namespace ym
  *       -o <value>      // (output) short hand arg with desired value
  *       -c              // (clean) short hand flag set to enable
  *       -cb             // (clean; build) short hand (abbr pack) flags set to enable
+ *
+ * __Unit Test__
+ * - @ref ym::unit::argparser::TestSuite::BasicParse.
+ *
+ * @test Shall ?
  */
 class ArgParser
 {

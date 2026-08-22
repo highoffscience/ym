@@ -16,8 +16,7 @@
 namespace ym
 {
 
-/** Logger
- *
+/**
  * @brief Base class for logging related classes.
  *
  * @note We don't pass the file in via the constructor because we don't want to
@@ -27,8 +26,7 @@ namespace ym
 class Logger
 {
 public:
-   /** FilenameMode_T
-    *
+   /**
     * @brief Mode to determine how to mangle the filename.
     */
    enum class FilenameMode_T
@@ -37,8 +35,7 @@ public:
       AppendTimeStamp
    };
 
-   /** OverwriteMode
-    *
+   /**
     * @brief Mode to indicate if file can be overwritten.
     */
    enum class OverwriteMode_T
@@ -47,8 +44,7 @@ public:
       Disallow
    };
 
-   /** Options_T
-    *
+   /**
     * @brief Options surrounding opening a file.
     */
    struct Options_T

@@ -8,10 +8,9 @@
 
 #include <tuple> // some standards don't have std::ignore in <utility>
 
-/** set
- * 
+/**
  * @brief Sets the specified flag (flips to 1).
- * 
+ *
  * @param F -- Flag to set.
  */
 void ym::VerboGroup::set(Flag_T const F) noexcept
@@ -22,10 +21,9 @@ void ym::VerboGroup::set(Flag_T const F) noexcept
    std::ignore = _flags[I].fetch_or(1u << M, std::memory_order_relaxed);
 }
 
-/** clear
- * 
+/**
  * @brief Clears the specified flag (flips to 0).
- * 
+ *
  * @param F -- Flag to clear.
  */
 void ym::VerboGroup::clear(Flag_T const F) noexcept
@@ -36,12 +34,11 @@ void ym::VerboGroup::clear(Flag_T const F) noexcept
    std::ignore = _flags[I].fetch_and(~(1u << M), std::memory_order_relaxed);
 }
 
-/** test
- * 
+/**
  * @brief Test if the specified flag is enabled or not.
- * 
+ *
  * @param F -- Flag to test.
- * 
+ *
  * @returns bool -- True if flag is set, false otherwise.
  */
 bool ym::VerboGroup::test(Flag_T const F) const noexcept

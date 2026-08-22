@@ -13,11 +13,10 @@
 
 #include "testsuitebase.h"
 
-namespace ym::unit
+namespace ym::unit::verbogroup
 {
 
-/** TestSuite
- *
+/**
  * @brief Test suite for VerboGroup.
  */
 class TestSuite : public TestSuiteBase
@@ -30,4 +29,4 @@ public:
    YM_UNIT_TESTCASE(SmokeTest)
 };
 
-} // ym::unit
+} // ym::unit::verbogroup

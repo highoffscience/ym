@@ -14,35 +14,32 @@
 #include <array>
 #include <cstring>
 
-/** TestSuite
- *
+/**
  * @brief Constructor.
  */
-ym::unit::TestSuite::TestSuite(void) :
+ym::unit::fileio::TestSuite::TestSuite(void) :
    TestSuiteBase("FileIO")
 {
    addTestCase<InteractiveInspection>();
    addTestCase<SmokeTest>();
 }
 
-/** run
- *
- * @brief TODO.
+/**
+ * @brief Interactive inspection - for debug purposes.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::fileio::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {};
 }
 
-/** run
- *
+/**
  * @brief Basic integrity test.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::fileio::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    strlit const Filename = "ym/common/fileio/data.txt";
    auto const Exists = FileIO::exists(Filename);

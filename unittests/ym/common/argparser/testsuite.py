@@ -59,7 +59,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym  # type:ignore
 
       # uncomment to run test
-      # results = self.run_test_case("InteractiveInspection", assert_results=False)
+      # results = self.run_test_case(self._testMethodName.removeprefix("test_"), assert_results=False)
       pass
 
    def test_SmokeTest(self):
@@ -69,7 +69,8 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      # results = self.run_test_case("SmokeTest")
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
+      self.assertTrue(results.get[bool]("True"), "Truth is naught")
 
    def test_BasicParse(self):
       """
@@ -78,7 +79,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      results = self.run_test_case("BasicParse")
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
 
       expectedArgs = ["Input", "Output", "Clean", "Build", "Key", "Denial"]
 
@@ -96,7 +97,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      results = self.run_test_case("FlagIntegrity")
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
 
       expectedArgs = ["Verbose", "Width"]
 
@@ -114,7 +115,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      results = self.run_test_case("SizeOfArg")
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
 
       size = results.get[std.size_t]("Size")
       self.assertEqual(size, 32, "Unexpected Arg size")

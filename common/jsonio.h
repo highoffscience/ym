@@ -14,8 +14,7 @@
 namespace ym
 {
 
-/** JsonIO
- *
+/**
  * TODO
  */
 class JsonIO : public StackBufferUser

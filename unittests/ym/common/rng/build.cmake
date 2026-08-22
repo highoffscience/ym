@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 3.27)
 function(unitbuild-ym.common.rng Ctx_JSON)
 
    set(BaseBuild ym.common.rng)
-   set(Target    ${BaseBuild}-unittest)
+   set(Target    ${BaseBuild}-unittests)
    set(TargetRun ${BaseBuild}-run)
 
    string(REPLACE "." "/" BaseBuildDir ${BaseBuild})

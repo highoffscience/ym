@@ -13,8 +13,7 @@
 #include <filesystem>
 #include <tuple>
 
-/** exists
- *
+/**
  * @brief Resets the file handle.
  *
  * TODO
@@ -38,8 +37,7 @@ bool ym::FileIO::exists(str const Filename) noexcept
    return found;
 }
 
-/** reset
- *
+/**
  * @brief Resets the file handle.
  *
  * TODO
@@ -83,8 +81,7 @@ bool ym::FileIO::reset(
    return isOpen();
 }
 
-/** createAndFillBuffer
- *
+/**
  * @brief Reads in file contents into an std::string.
  *
  * @returns std::optional<std::string> -- File contents, or null if an error occured.
@@ -108,8 +105,7 @@ bool ym::FileIO::reset(
    }
 #endif
 
-/** fillBuffer
- *
+/**
  * @brief Reads entire file contents into a supplied buffer.
  *
  * @note The size of the file is already calculated and query-able. If and only if
@@ -152,8 +148,7 @@ bool ym::FileIO::fillBuffer(
    return success;
 }
 
-/** fillBufferPiecewise
- *
+/**
  * @brief Reads in file contents incrementally into a supplied buffer.
  *
  * @note Since the user has the file size available to them, it is the user's responsibility

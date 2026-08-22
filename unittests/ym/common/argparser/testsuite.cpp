@@ -14,11 +14,10 @@
 #include <array>
 #include <cstring>
 
-/** TestSuite
- *
+/**
  * @brief Constructor.
  */
-ym::unit::TestSuite::TestSuite(void) :
+ym::unit::argparser::TestSuite::TestSuite(void) :
    TestSuiteBase("ArgParser")
 {
    addTestCase<InteractiveInspection>();
@@ -28,35 +27,32 @@ ym::unit::TestSuite::TestSuite(void) :
    addTestCase<SizeOfArg>();
 }
 
-/** run
- *
+/**
  * @brief Interactive inspection - for debug purposes.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::argparser::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {};
 }
 
-/** run
- *
+/**
  * @brief Basic integrity test.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::argparser::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {};
 }
 
-/** run
- *
- * @brief Tests if ArgParser can parse.
- *
+/**
  * @returns DataShuttle -- Important values acquired during run of test.
+ *
+ * - @ref ym::ArgParser Shall ?
  */
-auto ym::unit::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::argparser::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    rawstr const Argv[] = {"testsuite",
       "--input",  "settings.json",
@@ -117,13 +113,10 @@ auto ym::unit::TestSuite::BasicParse::run([[maybe_unused]] DataShuttle const & I
    };
 }
 
-/** run
- *
- * @brief Tests if ArgParser can parse.
- *
+/**
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::argparser::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    rawstr const Argv[] = {"testsuite",
       "--verbose",
@@ -162,13 +155,10 @@ auto ym::unit::TestSuite::FlagIntegrity::run([[maybe_unused]] DataShuttle const 
    };
 }
 
-/** run
- *
- * @brief Tests if ArgParser can parse.
- *
+/**
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::SizeOfArg::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::argparser::TestSuite::SizeOfArg::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    constexpr auto Size = sizeof(ym::ArgParser::Arg);
 

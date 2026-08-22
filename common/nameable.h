@@ -23,8 +23,7 @@ namespace ym
  * class PermaNameable_NV
  */
 
-/** Nameable_NV
- *
+/**
  * @brief Provides a mutably named object.
  *
  * @note NV = Non-Virtual
@@ -35,8 +34,7 @@ template <typename String_T = std::string>
 class Nameable_NV
 {
 public:
-   /** Nameable_NV
-    *
+   /**
     * @brief Constructor.
     *
     * @param name -- Initial name.
@@ -45,16 +43,14 @@ public:
       _name {std::move(name)}
    { }
 
-   /** getName
-    *
+   /**
     * @brief Returns the current name.
     *
     * @returns auto const & -- Current name.
     */
    inline auto const & getName(void) const noexcept { return _name; }
 
-   /** setName
-    *
+   /**
     * @brief Sets the current name.
     *
     * @param name -- Desired name.
@@ -65,8 +61,7 @@ private:
    String_T _name{};
 };
 
-/** PermaNameable_NV
- *
+/**
  * @brief Provides a permanently named object.
  *
  * @note NV = Non-Virtual
@@ -77,8 +72,7 @@ template <typename String_T = std::string>
 class PermaNameable_NV
 {
 public:
-   /** PermaNameable_NV
-    *
+   /**
     * @brief Constructor.
     *
     * @param name -- Initial name.
@@ -87,8 +81,7 @@ public:
       _Name {std::move(name)}
    { }
 
-   /** getName
-    *
+   /**
     *  @brief Returns the current name.
     *
     * @returns auto const & -- Current name.

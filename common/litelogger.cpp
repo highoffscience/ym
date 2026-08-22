@@ -12,10 +12,9 @@
 
 #include <utility>
 
-/** LiteLogger
- *
+/**
  * @brief Constructor.
- * 
+ *
  * @param Filename -- Name of file to open.
  * @param Options  -- List of optional modes.
  */
@@ -26,10 +25,9 @@ ym::LiteLogger::LiteLogger(
       _Options  {Options }
 { }
 
-/** isOpen
- * 
+/**
  * @brief Returns whether the logger is ready to print to or not.
- * 
+ *
  * @returns True if logger can be printed to, false otherwise.
  */
 bool ym::LiteLogger::isOpen(void) const noexcept
@@ -37,10 +35,9 @@ bool ym::LiteLogger::isOpen(void) const noexcept
    return isOutfileOpened();
 }
 
-/** open
- * 
+/**
  * @brief Prepares the logger to be written to.
- * 
+ *
  * @returns True if logger can be printed to, false otherwise.
  */
 bool ym::LiteLogger::open(void) noexcept
@@ -48,8 +45,7 @@ bool ym::LiteLogger::open(void) noexcept
    return openOutfile(getFilename().get());
 }
 
-/** close
- * 
+/**
  * @brief Closes the logger.
  */
 void ym::LiteLogger::close(void) noexcept
@@ -57,10 +53,9 @@ void ym::LiteLogger::close(void) noexcept
    closeOutfile();
 }
 
-/** producer
- * 
+/**
  * @brief Writes the Format string to file.
- * 
+ *
  * @param Format -- Format string.
  * @param args   -- Arguments.
  */

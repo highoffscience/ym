@@ -14,26 +14,25 @@
 #include <cstring>
 #include <string>
 
-/** TestSuite
- *
+/**
  * @brief Constructor.
  */
-ym::unit::TestSuite::TestSuite(void) :
+ym::unit::ymassert::TestSuite::TestSuite(void) :
    TestSuiteBase("YmAssert")
 {
    addTestCase<InteractiveInspection>();
    addTestCase<SmokeTest>();
    addTestCase<What>();
    addTestCase<Assertion>();
+   addTestCase<Class_ymassert_Base>();
 }
 
-/** run
- *
+/**
  * @brief Basic integrity test.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymassert::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    YM_DECL_YMASSERT(Error)
 
@@ -56,24 +55,20 @@ auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttl
    };
 }
 
-/** run
- *
+/**
  * @brief Basic integrity test.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymassert::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {};
 }
 
-/** run
- *
- * @brief TODO.
- *
+/**
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::What::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymassert::TestSuite::What::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    bool expectedMsg = false;
 
@@ -95,13 +90,10 @@ auto ym::unit::TestSuite::What::run([[maybe_unused]] DataShuttle const & InData)
    };
 }
 
-/** run
- *
- * @brief TODO.
- *
+/**
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::Assertion::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymassert::TestSuite::Assertion::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    bool expectedFalseAssert = false;
    bool expectedTrueAssert  = true;
@@ -129,5 +121,17 @@ auto ym::unit::TestSuite::Assertion::run([[maybe_unused]] DataShuttle const & In
    return {
       {"ExpectedFalseAssert", expectedFalseAssert},
       {"ExpectedTrueAssert",  expectedTrueAssert }
+   };
+}
+
+/**
+ * - @ref ym::ymassert_Base Shall ?
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::unit::ymassert::TestSuite::Class_ymassert_Base::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   return {
+      {"True", true}
    };
 }

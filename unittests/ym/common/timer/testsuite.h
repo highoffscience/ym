@@ -13,11 +13,10 @@
 
 #include "testsuitebase.h"
 
-namespace ym::unit
+namespace ym::unit::timer
 {
 
-/** TestSuite
- *
+/**
  * @brief Test suite for Timer.
  */
 class TestSuite : public TestSuiteBase
@@ -31,4 +30,4 @@ public:
    YM_UNIT_TESTCASE(VerifyTimer)
 };
 
-} // ym::unit
+} // ym::unit::timer

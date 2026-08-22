@@ -40,7 +40,7 @@ function(unitbuild-ym.common Ctx_JSON)
    foreach(SubBuild ${SubBuilds})
 
       set(SubBaseBuild ${BaseBuild}.${SubBuild})
-      set(SubTarget    ${BaseBuild}.${SubBuild}-unittest)
+      set(SubTarget    ${BaseBuild}.${SubBuild}-unittests)
       set(SubTargetRun ${BaseBuild}.${SubBuild}-run)
 
       set(SubBuildDir ${YM_UnitTestDir}/${BaseBuildDir}/${SubBuild})

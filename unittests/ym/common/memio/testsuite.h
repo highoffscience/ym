@@ -13,7 +13,7 @@
 
 #include "testsuitebase.h"
 
-namespace ym::unit
+namespace ym::unit::memio
 {
 
 /** TestSuite
@@ -32,4 +32,4 @@ public:
    YM_UNIT_TESTCASE(StackString)
 };
 
-} // ym::unit
+} // ym::unit::memio

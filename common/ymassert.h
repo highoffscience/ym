@@ -14,9 +14,10 @@
 #include <exception>
 #include <type_traits>
 
-/** YM_DAH
- *
+/**
  * @brief Convenience macro. Default Assert Handler.
+ *    - @ref ym::ymassert_Base::defaultYesExceptHandler()
+ *    - @ref ym::ymassert_Base::defaultNoExceptHandler()
  */
 #if (YM_EXCEPTIONS_ENABLED)
    #define YM_DAH ymassert_Base::defaultYesExceptHandler(e__)
@@ -24,16 +25,15 @@
    #define YM_DAH ymassert_Base::defaultNoExceptHandler(e__)
 #endif
 
-/** YM_DAH_REV
- *
+/**
  * @brief Convenience macro. Default Assert Handler - Return Error Value.
+ *    - @ref ym::ymassert_Base::logAndReturn()
  *
  * @param ReturnVal_ -- The return value.
  */
 #define YM_DAH_REV(ReturnVal_) return ymassert_Base::logAndReturn(e__, ReturnVal_)
 
-/** YMASSERT
- *
+/**
  * @brief Macro to assert on a condition.
  *
  * - Handlers that return non-void will return it's value from the calling
@@ -90,8 +90,7 @@
       Handler_;                                                     \
    }
 
-/** YMASSERTDBG
- *
+/**
  * @brief Optionally enable assert functionality. See @ref YMASSERT.
  */
 #if (YM_DEBUG)
@@ -100,8 +99,7 @@
    #define YMASSERTDBG(Cond_, Derived_, Handler_, Format_, ...) (void)0;
 #endif
 
-/** YM_DECL_YMASSERT
- *
+/**
  * @brief Declares a custom error class.
  *
  * @param ... -- Args to pass to macro.
@@ -116,9 +114,13 @@
 namespace ym
 {
 
-/** ymassert_Base
- *
+/**
  * @brief Base assert class. Will either set an error flag or throw an exception.
+ *
+ * __Unit Test__
+ * - @ref ym::unit::ymassert::TestSuite::Class_ymassert_Base.
+ *
+ * @test Shall ?
  */
 class ymassert_Base : public std::exception
 {
@@ -134,8 +136,7 @@ public:
 
    static void logAssert(ymassert_Base const & E) noexcept;
 
-   /** logAndReturn
-    *
+   /**
     * @brief Logs the error and returns the desired value.
     *
     * @param E -- Thrown exception.
@@ -147,8 +148,7 @@ public:
       logAssert(E); return r;
    }
 
-   /** write
-    *
+   /**
     * @brief Writes message to internal buffer.
     *
     * @param Format -- Format string.
@@ -161,8 +161,7 @@ public:
          write_Helper(Format, fmt::make_format_args(args...));
    }
 
-   /** write_Helper
-    *
+   /**
     * @brief Writes message to internal buffer.
     *
     * - Delay calling format to avoid including fmt/format.h in the header file

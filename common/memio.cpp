@@ -6,8 +6,7 @@
 
 #include "memio.h"
 
-/** getNullMemResource
- *
+/**
  * @brief Returns a static pointer to a custom memory resource.
  *
  * @returns BoundPtr<std::pmr::memory_resource> -- Pointer to custom null memory resource.

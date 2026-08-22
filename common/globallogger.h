@@ -39,8 +39,7 @@ template <std::same_as<VF>... VFs_T> inline void ymLogDisable(VFs_T const... VFl
 
 /* -------------------------------------------------------------------------- */
 
-/** GlobalLogger
- *
+/**
  * @brief Logs text to the given outfile - similary to std::printf.
  */
 class GlobalLogger : public TextLogger
@@ -74,8 +73,7 @@ public:
       strlit       Format,
       Args_T &&... args) noexcept;
 
-   /** ScopedEnable
-    *
+   /**
     * @brief Allows managed temporary enabling of a verbosity group.
     *
     * @note Uses RAII to storing/restoring enabling verbosity groups.
@@ -159,8 +157,7 @@ private:
  * GlobalLogger member functions.
  * -------------------------------------------------------------------------- */
 
-/** printf
- *
+/**
  * @brief Conditionally prints.
  *
  * @tparam Args_T -- Argument types.
@@ -204,8 +201,7 @@ inline void ym::GlobalLogger::printf(
  * Global convenience functions.
  * -------------------------------------------------------------------------- */
 
-/** ymLog
- *
+/**
  * @brief Prints to the active logger.
  *
  * @throws Whatever getGlobalInstance() throws.
@@ -225,8 +221,7 @@ inline void ymLog(
    GlobalLogger::getGlobalInstance()->printf(VFlag, Format, std::forward<Args_T>(args)...);
 }
 
-/** ymLogEnable
- *
+/**
  * @brief Enables specified verbosity group for the global logger.
  *
  * @throws Whatever getGlobalInstance() throws.
@@ -241,8 +236,7 @@ inline void ymLogEnable(VFs_T const... VFlags) noexcept
    GlobalLogger::getGlobalInstance()->enable(VFlags...);
 }
 
-/** ymLogDisable
- *
+/**
  * @brief Disables specified verbosity group for the global logger.
  *
  * @throws Whatever getGlobalInstance() throws.
@@ -257,8 +251,7 @@ inline void ymLogDisable(VFs_T const... VFlags) noexcept
    GlobalLogger::getGlobalInstance()->disable(VFlags...);
 }
 
-/** ymLogPushEnable
- *
+/**
  * @brief Enables given verbosity group only in the current scope for the global logger.
  *
  * @throws Whatever getGlobalInstance() throws.

@@ -13,11 +13,10 @@
 
 #include "testsuitebase.h"
 
-namespace ym::unit
+namespace ym::unit::argparser
 {
 
-/** TestSuite
- *
+/**
  * @brief Test suite for ArgParser.
  */
 class TestSuite : public TestSuiteBase
@@ -33,4 +32,4 @@ public:
    YM_UNIT_TESTCASE(SizeOfArg)
 };
 
-} // ym::unit
+} // ym::unit::argparser

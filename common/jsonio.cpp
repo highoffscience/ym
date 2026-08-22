@@ -8,8 +8,7 @@
 
 #include "globallogger.h"
 
-/** readFromFile
- *
+/**
  * @brief TODO
  */
 bool ym::JsonIO::readFromFile(FileIO f) noexcept
@@ -35,8 +34,7 @@ bool ym::JsonIO::readFromFile(FileIO f) noexcept
    return success;
 }
 
-/** parseInSitu
- *
+/**
  * @brief TODO
  */
 void ym::JsonIO::parseInSitu(void)

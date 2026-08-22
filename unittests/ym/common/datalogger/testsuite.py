@@ -64,7 +64,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym  # type:ignore
 
       # uncomment to run test
-      # results = self.run_test_case("InteractiveInspection", assert_results=False)
+      # results = self.run_test_case(self._testMethodName.removeprefix("test_"), assert_results=False)
 
    def test_SmokeTest(self):
       """
@@ -73,7 +73,8 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      results = self.run_test_case("SmokeTest")
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
+      self.assertTrue(results.get[bool]("True"), "Truth is naught")
 
 # kick-off
 if __name__ == "__main__":

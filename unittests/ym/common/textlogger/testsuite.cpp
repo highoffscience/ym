@@ -11,11 +11,10 @@
 
 #include "fmt/format.h"
 
-/** TestSuite
- *
+/**
  * @brief Constructor.
  */
-ym::unit::TestSuite::TestSuite(void) :
+ym::unit::textlogger::TestSuite::TestSuite(void) :
    TestSuiteBase("TextLogger")
 {
    addTestCase<InteractiveInspection>();
@@ -23,35 +22,32 @@ ym::unit::TestSuite::TestSuite(void) :
    addTestCase<OpenAndClose>();
 }
 
-/** run
- *
+/**
  * @brief Interactive inspection - for debug purposes.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::textlogger::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {};
 }
 
-/** run
- *
+/**
  * @brief Basic integrity test.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::textlogger::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   return {};
+   return {
+      {"True", true}
+   };
 }
 
-/** run
- *
- * @brief Opens and closes the text logger.
- *
+/**
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::OpenAndClose::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::textlogger::TestSuite::OpenAndClose::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    // TextLogger t("ym/common/textlogger/log.txt");
    // auto const IsOpen = t.open();

@@ -11,7 +11,7 @@
 
 #include "testsuitebase.h"
 
-namespace ym::unit
+namespace ym::unit::datalogger
 {
 
 /** TestSuite
@@ -28,4 +28,4 @@ public:
    YM_UNIT_TESTCASE(SmokeTest)
 };
 
-} // ym::unit
+} // ym::unit::datalogger

@@ -13,11 +13,10 @@
 
 #include "testsuitebase.h"
 
-namespace ym::unit
+namespace ym::unit::ymassert
 {
 
-/** TestSuite
- *
+/**
  * @brief Test suite for YmAssert.
  */
 class TestSuite : public TestSuiteBase
@@ -30,6 +29,7 @@ public:
    YM_UNIT_TESTCASE(SmokeTest)
    YM_UNIT_TESTCASE(What)
    YM_UNIT_TESTCASE(Assertion)
+   YM_UNIT_TESTCASE(Class_ymassert_Base)
 };
 
-} // ym::unit
+} // ym::unit::ymassert

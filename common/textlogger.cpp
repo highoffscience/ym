@@ -11,8 +11,7 @@
 #include <chrono>
 #include <cstdio>
 
-/** TextLogger
- *
+/**
  * @brief Constructor.
  *
  * @param Filename -- Name of file to open.
@@ -21,8 +20,7 @@ ym::TextLogger::TextLogger(strlit const Filename) noexcept :
    _Filename {Filename}
 { }
 
-/** populateFormattedTime
- *
+/**
  * @brief Writes the elapsed time in the specified buffer.
  *
  * @note Does *not* write null terminator.

@@ -15,8 +15,7 @@
 #include <numeric>
 #include <utility>
 
-/** DataLogger
- *
+/**
  * @brief Constructor. See ready().
  *
  * @throws Error -- If requested depth is 0.
@@ -38,8 +37,7 @@ ym::DataLogger::DataLogger(
    }
 }
 
-/** init
- *
+/**
  * @brief Initializes the data logger.
  */
 bool ym::DataLogger::init(void) noexcept
@@ -82,8 +80,7 @@ bool ym::DataLogger::init(void) noexcept
    return _initialized;
 }
 
-/** acquire
- *
+/**
  * @brief Reads all registered variables and stores them in the latest slot in the buffer.
  */
 void ym::DataLogger::acquire(void) noexcept
@@ -114,8 +111,7 @@ void ym::DataLogger::acquire(void) noexcept
    }
 }
 
-/** reset
- *
+/**
  * @brief Resets black box buffer.
  */
 void ym::DataLogger::reset(void) noexcept
@@ -125,8 +121,7 @@ void ym::DataLogger::reset(void) noexcept
    _initialized   = false;
 }
 
-/** dump
- *
+/**
  * @brief Dumps blackbox to file.
  *
  * @throws Error -- If entry index is not of expected value.
@@ -209,8 +204,7 @@ bool ym::DataLogger::dump(strlit const Filename)
    return Opened;
 }
 
-/** toStr_Handler
- *
+/**
  * @brief Writes arguments to the supplied buffer.
  *
  * @param buffer -- Output buffer.

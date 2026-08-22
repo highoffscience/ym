@@ -17,8 +17,7 @@
 namespace ym
 {
 
-/** FileIO
- *
+/**
  * @brief Provides file IO and manipulation functions.
  */
 class FileIO
@@ -40,7 +39,7 @@ public:
       str const Filename,
       str const Mode = "rb") noexcept;
 
-   /// @name Getters.
+   /// @name FileIO Getters.
    /// @{
    /// @brief Getter. Guaranteed not null.
    /// @throws ym_NullPtrError -- If underlying file handle is null.
@@ -61,8 +60,7 @@ private:
    std::size_t        _size{};
 };
 
-/** FileIO
- *
+/**
  * @brief Constructor.
  */
 inline FileIO::FileIO(

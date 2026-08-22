@@ -118,7 +118,7 @@ class TestSuiteBase(unittest.TestCase):
       cppyy.include(os.path.join(cls.abs_unit_suite_path, "testsuite.h"))
 
       cppyy.add_library_path(os.path.join(cls.builddir, "customlibs/"))
-      cppyy.load_library(f"lib{os.path.join(cls.filepath, cls.filename).replace('/', '.')}-unittest")
+      cppyy.load_library(f"lib{os.path.join(cls.filepath, cls.filename).replace('/', '.')}-unittests")
 
    @classmethod
    def runSuite(cls):

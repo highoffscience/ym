@@ -10,8 +10,7 @@
 
 #include <cstdio>
 
-/** GlobalLogger
- *
+/**
  * @brief Constructor.
  *
  * @param Filename -- Name of file to open.
@@ -33,8 +32,7 @@ ym::GlobalLogger::GlobalLogger(
    open();
 }
 
-/** ~GlobalLogger
- *
+/**
  * @brief Destructor.
  */
 ym::GlobalLogger::~GlobalLogger(void) noexcept
@@ -42,8 +40,7 @@ ym::GlobalLogger::~GlobalLogger(void) noexcept
    close();
 }
 
-/** isOpen
- *
+/**
  * @brief Returns if outfile is open and able to be written to.
  *
  * @returns True if outfile is open and able to be written to, false otherwise.
@@ -53,8 +50,7 @@ bool ym::GlobalLogger::isOpen(void) const noexcept
    return _state.load(std::memory_order_relaxed) == State_T::Open;
 }
 
-/** getGlobalInstance
- *
+/**
  * @brief Gets the global logger instance.
  *
  * @note Used as the global logger for the program. Not expected to close until the end.
@@ -67,8 +63,7 @@ auto ym::GlobalLogger::getGlobalInstance(void) noexcept -> BoundPtr<GlobalLogger
    return BoundPtr(&s_instance, ym_AssumePtrNotNull{});
 }
 
-/** open
- *
+/**
  * @brief Opens and prepares the logger to be written to.
  *
  * @returns bool -- Whether the outfile was opened successfully, false otherwise.
@@ -92,8 +87,7 @@ bool ym::GlobalLogger::open(void) noexcept
    return isOpen();
 }
 
-/** close
- *
+/**
  * @brief Closes the outfile and shuts the logger down.
  *
  * @note Only one caller of close() should initiate shutdown, everyone else will wait
@@ -127,8 +121,7 @@ void ym::GlobalLogger::close(void) noexcept
    }
 }
 
-/** producer
- *
+/**
  * @brief Writes the Format string to file.
  *
  * @param Format -- Format string.
@@ -209,8 +202,7 @@ void ym::GlobalLogger::producer(
    slot_Ptr->_seqN.notify_one();
 }
 
-/** printer
- *
+/**
  * @brief Writes messages from the queue.
  */
 void ym::GlobalLogger::printer(void) noexcept
@@ -268,8 +260,7 @@ END_OF_CONSUMER_LABEL:
  * Inner Class ScopedEnable functions.
  * -------------------------------------------------------------------------- */
 
-/** ScopedEnable
- *
+/**
  * @brief Constructor.
  *
  * @note Enables upon construction.
@@ -283,8 +274,7 @@ ym::GlobalLogger::ScopedEnable::ScopedEnable(VF const VFlag) noexcept :
    getGlobalInstance()->enable(_VFlag);
 }
 
-/** popEnable
- *
+/**
  * @brief Restores the enable state of the stored VF.
  *
  * @note This object could only have been created if getGlobalInstance() didn't throw, so we are

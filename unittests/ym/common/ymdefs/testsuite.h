@@ -34,4 +34,4 @@ public:
    YM_UNIT_TESTCASE(PrimitiveDefSuffixes)
 };
 
-} // ym::unit
+} // ym::unit::ymdefs

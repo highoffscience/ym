@@ -59,7 +59,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym  # type:ignore
 
       # uncomment to run test
-      # results = self.run_test_case("InteractiveInspection", assert_results=False)
+      # results = self.run_test_case(self._testMethodName.removeprefix("test_"), assert_results=False)
       # self.assertTrue(results.get[bool]("Errored"), "Exception was not thrown as expected")
       pass
 
@@ -70,7 +70,8 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      # results = self.run_test_case("SmokeTest")
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
+      self.assertTrue(results.get[bool]("True"), "Truth is naught")
 
    def test_What(self):
       """
@@ -79,7 +80,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      results = self.run_test_case("What")
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
       self.assertTrue(results.get[bool]("ExpectedMsg"), f"Msg not formatted as unexpected")
 
    def test_Assertion(self):
@@ -89,10 +90,22 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      results = self.run_test_case("Assertion")
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
 
       self.assertTrue(results.get[bool]("ExpectedFalseAssert"), f"Expected assert")
       self.assertTrue(results.get[bool]("ExpectedTrueAssert" ), f"Did not expect assert")
+
+   def test_Class_ymassert_Base(self):
+      """
+      Analyzes results from test case.
+      """
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
+
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
+      self.assertTrue(results.get[bool]("True"), "Truth is naught")
 
 # kick-off
 if __name__ == "__main__":

@@ -13,11 +13,10 @@
 
 #include "testsuitebase.h"
 
-namespace ym::unit
+namespace ym::unit::textlogger
 {
 
-/** TestSuite
- *
+/**
  * @brief Test suite for TextLogger.
  */
 class TestSuite : public TestSuiteBase
@@ -31,4 +30,4 @@ public:
    YM_UNIT_TESTCASE(OpenAndClose)
 };
 
-} // ym::unit
+} // ym::unit::textlogger

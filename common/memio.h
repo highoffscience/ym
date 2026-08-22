@@ -15,8 +15,7 @@
 namespace ym
 {
 
-/** YM_STACK_ALLOC
- *
+/**
  * @brief Allocates requested amount of bytes on the stack at runtime.
  *
  * @note Functionally moves the stack pointer to where you want. We mimic the
@@ -51,8 +50,7 @@ YM_DECL_YMASSERT(ym_MemResourceError);
 
 // --------------------------------------------------------
 
-/** MemIO
- *
+/**
  * @brief Provides memory management resources.
  */
 class MemIO
@@ -61,8 +59,7 @@ public:
    static bound<std::pmr::memory_resource> getNullMemResource(void) noexcept;
 };
 
-/** StackBuffer_Base
- *
+/**
  * @brief Custom base class for stack based memory resource management.
  *
  * @note Users will have to register themselves using setUser(). A user cannot unregister themselves,
@@ -103,8 +100,7 @@ private:
    LoosePtr<class StackBufferUser> _user_fptr;
 };
 
-/** StackBuffer
- *
+/**
  * @brief Buffer to be placed on the stack and fed to a StackBufferUser.
  *
  * @note Do *not* dynamically allocate this class. The expected responsibility of this class
@@ -129,8 +125,7 @@ private:
    std::array<std::byte, N> _buffer{};
 };
 
-/** StackBufferUser
- *
+/**
  * @brief Class that represents a user of a StackBuffer instance.
  */
 class StackBufferUser

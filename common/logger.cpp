@@ -20,8 +20,7 @@
 #include <system_error>
 #include <utility>
 
-/** ~Logger
- * 
+/**
  * @brief Destructor.
  */
 ym::Logger::~Logger(void) noexcept
@@ -32,12 +31,11 @@ ym::Logger::~Logger(void) noexcept
    }
 }
 
-/** openOutfile
- *
+/**
  * @brief Attempts to open a write-file.
- * 
+ *
  * @param Filename -- Name of file.
- * 
+ *
  * @note We open the file here instead of the constructor to allow flexibility with
  *       derived classes handling the file operations. Also it's awkward to code
  *       constructors that throw.
@@ -61,8 +59,7 @@ bool ym::Logger::openOutfile(std::string_view const Filename) noexcept
    return isOutfileOpened();
 }
 
-/** closeOutfile
- * 
+/**
  * @brief Closes file if open.
  */
 void ym::Logger::closeOutfile(void) noexcept
@@ -74,10 +71,9 @@ void ym::Logger::closeOutfile(void) noexcept
    }
 }
 
-/** openOutfile_core
- *
+/**
  * @brief Attempts to open a write-file.
- * 
+ *
  * @param Filename -- Name of file.
  */
 void ym::Logger::openOutfile_core(std::string_view const Filename) noexcept
@@ -98,10 +94,9 @@ void ym::Logger::openOutfile_core(std::string_view const Filename) noexcept
    }
 }
 
-/** openOutfile_appendTimeStamp
- *
+/**
  * @brief Attempts to open the file with the current time appended to the file name.
- * 
+ *
  * @param Filename -- Name of file.
  */
 void ym::Logger::openOutfile_appendTimeStamp(std::string_view const Filename) noexcept

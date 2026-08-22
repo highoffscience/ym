@@ -11,11 +11,10 @@
 
 #include "fmt/format.h"
 
-/** TestSuite
- *
+/**
  * @brief Constructor.
  */
-ym::unit::TestSuite::TestSuite(void) :
+ym::unit::memio::TestSuite::TestSuite(void) :
    TestSuiteBase("MemIO")
 {
    addTestCase<InteractiveInspection>();
@@ -24,35 +23,30 @@ ym::unit::TestSuite::TestSuite(void) :
    addTestCase<StackString>();
 }
 
-/** run
- *
+/**
  * @brief Interactive inspection - for debug purposes.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::memio::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {};
 }
 
-/** run
- *
- * @brief Smoke test.
+/**
+ * @brief Basic integrity test
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::memio::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {};
 }
 
-/** run
- *
- * @brief TODO.
- *
+/**
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::StackAlloc::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::memio::TestSuite::StackAlloc::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto const Block0 = 0xCAFEBABE_u32;
 
@@ -84,13 +78,10 @@ auto ym::unit::TestSuite::StackAlloc::run([[maybe_unused]] DataShuttle const & I
    };
 }
 
-/** run
- *
- * @brief TODO
- *
+/**
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::StackString::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::memio::TestSuite::StackString::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    struct StackString : public StackBufferUser
    {

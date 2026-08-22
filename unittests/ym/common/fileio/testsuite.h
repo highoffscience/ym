@@ -11,11 +11,10 @@
 
 #include "testsuitebase.h"
 
-namespace ym::unit
+namespace ym::unit::fileio
 {
 
-/** TestSuite
- *
+/**
  * @brief Test suite for FileIO.
  */
 class TestSuite : public TestSuiteBase
@@ -28,4 +27,4 @@ public:
    YM_UNIT_TESTCASE(SmokeTest)
 };
 
-} // ym::unit
+} // ym::unit::fileio

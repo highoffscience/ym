@@ -11,35 +11,32 @@
 
 #include "fmt/format.h"
 
-/** TestSuite
- *
+/**
  * @brief Constructor.
  */
-ym::unit::TestSuite::TestSuite(void) :
+ym::unit::datalogger::TestSuite::TestSuite(void) :
    TestSuiteBase("DataLogger")
 {
    addTestCase<InteractiveInspection>();
    addTestCase<SmokeTest>();
 }
 
-/** run
- *
+/**
  * @brief Interactive inspection - for debug purposes.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::datalogger::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {};
 }
 
-/** run
- *
+/**
  * @brief Basic integrity test.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::datalogger::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    DataLogger blackbox(10uz, 10uz);
 
@@ -65,9 +62,9 @@ auto ym::unit::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & In
    // // options._dumpMode = DataLogger::DumpMode_T::Binary;
    // options._openingOptions._filenameMode  = Logger::FilenameMode_T::KeepOriginal;
    // options._openingOptions._overwriteMode = Logger::OverwriteMode_T::Allow;
-   auto const DataDumpSuccessful = blackbox.dump("logs/data.csv");
+   [[maybe_unused]] auto const DataDumpSuccessful = blackbox.dump("logs/data.csv");
 
    return {
-      {"Success", DataDumpSuccessful}
+      {"True", true}
    };
 }

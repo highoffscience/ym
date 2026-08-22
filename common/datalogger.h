@@ -19,8 +19,7 @@
 namespace ym
 {
 
-/** DataLogger
- *
+/**
  * @brief A blackbox.
  *
  * @note Implemented as a circular buffer. Stores the last X data entries for each tracked variable.
@@ -97,8 +96,7 @@ protected:
       [[maybe_unused]] fmt::format_args args) noexcept override {};
 
 private:
-   /** TrackedValBase
-    *
+   /**
     * @brief Meta data carrier.
     *
     * @note We store a raw pointer to the data we wish to capture. Optionally using a lambda
@@ -144,8 +142,7 @@ private:
          fmt::format_args args) const;
    };
 
-   /** TrackedVal
-    *
+   /**
     * @brief Stores a reference to a variable and provides stringification.
     */
    template <typename T>
@@ -180,8 +177,7 @@ private:
    bool                    _initialized{false};
 };
 
-/** track
- *
+/**
  * @brief Adds a data variable to be tracked.
  *
  * @tparam T -- Data type to add.
@@ -197,8 +193,7 @@ void DataLogger::track(
    _trackedVals.emplace_back(std::in_place_type<TrackedVal<T>>, Name, Read_BPtr);
 }
 
-/** TrackedValBase
- *
+/**
  * @brief Constructor.
  */
 inline DataLogger::TrackedValBase::TrackedValBase(
@@ -210,8 +205,7 @@ inline DataLogger::TrackedValBase::TrackedValBase(
       _Size_bytes {Size_bytes}
 { }
 
-/** TrackedVal
- *
+/**
  * @brief Constructor.
  */
 template <typename T>
@@ -221,8 +215,7 @@ DataLogger::TrackedVal<T>::TrackedVal(
       TrackedValBase(Name, Read_BPtr, sizeof(T))
 { }
 
-/** cloneAt
- *
+/**
  * @brief Clones class at specified location (copy idiom for polymorphic types).
  *
  * @param val_BPtr   -- Pointer to variable to bbe tracked.
@@ -240,8 +233,7 @@ void DataLogger::TrackedVal<T>::cloneAt(
    ::new (val_BPtr.get()) TrackedVal<T>(getName(), _Read_BPtr);
 }
 
-/** toStr
- *
+/**
  * @brief Stringifies the given data type.
  *
  * @tparam T -- Type of variable to convert to.

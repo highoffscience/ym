@@ -23,8 +23,7 @@ constexpr unsigned ym_vg_Helper_div_ceil(unsigned const V, unsigned const D) {
    return ((V % D) == 0u) ? Q : Q + 1u;
 }
 
-/** VerboGroup
- *
+/**
  * @brief Top-level group of registered objects (verbosity group).
  *
  * @note This is a wrapped scoped enum to prevent accidental bitwise or'ing with

@@ -17,15 +17,13 @@
 namespace ym
 {
 
-/** TextLogger
- *
+/**
  * @brief Logs text to the given outfile - similary to std::printf.
  */
 class TextLogger : public Logger
 {
 public:
-   /** PrintMode_T
-    *
+   /**
     * @brief Mode to determine how to mangle the printable message.
     */
    enum class PrintMode_T
@@ -35,8 +33,7 @@ public:
       PrependHumanReadableTimeStamp
    };
 
-   /** RedirectMode_T
-    * 
+   /**
     * @brief Specifies what streams to pipe the output to.
     */
    enum class RedirectMode_T
@@ -45,8 +42,7 @@ public:
       ToLogAndStdOut // for debugging
    };
 
-   /** Options_T
-    * 
+   /**
     * @brief Options surrounding opening and writing to a file.
     */
    struct Options_T : public Logger::Options_T

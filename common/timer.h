@@ -13,8 +13,7 @@
 namespace ym
 {
 
-/** Timer
- *
+/**
  * @brief Provides basic timing functionality.
  */
 class Timer
@@ -34,8 +33,7 @@ private:
    Time_T _startTime;
 };
 
-/** getElapsedTime
- *
+/**
  * @brief Returns the elapsed time.
  *
  * @returns Duration_T -- Duration of elapsed time.

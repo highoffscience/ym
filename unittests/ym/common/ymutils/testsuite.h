@@ -36,4 +36,4 @@ public:
    YM_UNIT_TESTCASE(Class_PolyRaw)
 };
 
-} // ym::unit
+} // ym::unit::ymutils

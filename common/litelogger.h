@@ -14,8 +14,7 @@
 namespace ym
 {
 
-/** LiteLogger
- *
+/**
  * @brief Logs text to the given outfile - similary to std::printf.
  */
 class LiteLogger : public Logger
