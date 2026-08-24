@@ -70,10 +70,9 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym  # type:ignore
 
       results = self.run_test_case(self._testMethodName.removeprefix("test_"))
-      self.assertTrue (results.get[bool]("Exists"), "Buffer not populated")
-      self.assertFalse(results.get[bool]("NotExists"), "Buffer populated")
-      self.assertTrue (results.get[bool]("Buffer_1_Filled"), "Buffer not populated")
-      self.assertTrue (results.get[bool]("BuffersEqual"), "Buffers do not contain the same data")
+      self.assertTrue (results.get[bool]("Exists"), "File should exist but doesn't")
+      self.assertFalse(results.get[bool]("NotExists"), "File shouldn't exist but does")
+      self.assertTrue (results.get[bool]("BuffersEqualTestData"), "Buffers should equal test data")
 
 # kick-off
 if __name__ == "__main__":

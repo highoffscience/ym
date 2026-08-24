@@ -16,7 +16,7 @@
 /**
  * @brief Resets the file handle.
  *
- * TODO
+ * @param Filename -- Name of file to open.
  */
 bool ym::FileIO::exists(str const Filename) noexcept
 {
@@ -30,7 +30,7 @@ bool ym::FileIO::exists(str const Filename) noexcept
 #if (YM_USE_HEAP_AS_FALLBACK)
    else
    {
-      found = std::filesystem::is_regular_file(Filename.get()); // uses heap
+      found = std::filesystem::is_regular_file(Filename.get());
    }
 #endif
 
@@ -40,7 +40,8 @@ bool ym::FileIO::exists(str const Filename) noexcept
 /**
  * @brief Resets the file handle.
  *
- * TODO
+ * @param Filename -- Name of file to open.
+ * @param Mode     -- Opening mode (read/write/append, etc.)
  */
 bool ym::FileIO::reset(
    str const Filename,
@@ -54,7 +55,7 @@ bool ym::FileIO::reset(
    _file = std::fopen(Filename, Mode);
 
    struct stat st;
-   if (stat(Filename, &st) == 0)
+   if (fstat(fileno(_file), &st) == 0)
    { // got file size
       _size = static_cast<std::size_t>(st.st_size);
    }
@@ -62,7 +63,7 @@ bool ym::FileIO::reset(
    else
    { // failed to query file size - use alternative method
       std::error_code ec;
-      _size = std::filesystem::file_size(Filename.get(), ec); // uses heap
+      _size = std::filesystem::file_size(Filename.get(), ec);
 
       if (ec)
       { // failed to query file size - again
@@ -79,6 +80,43 @@ bool ym::FileIO::reset(
    }
 
    return isOpen();
+}
+
+/**
+ * @brief TODO unwrapping _file can throw - account for this.
+ *             just use the below code in getSize()
+ *
+ * #include <fcntl.h>
+#include <unistd.h>
+
+int fd = fileno(file);
+
+int flags = fcntl(fd, F_GETFL);
+if (flags == -1) {
+    // error
+}
+
+switch (flags & O_ACCMODE) {
+    case O_RDONLY:
+        // read only
+        break;
+
+    case O_WRONLY:
+        // write only
+        break;
+
+    case O_RDWR:
+        // read/write
+        break;
+}
+ */
+std::size_t ym::FileIO::calculateSize(void) const noexcept
+{
+   struct stat st;
+   if (fstat(fileno(_file), &st) == 0)
+   { // got file size
+      _size = static_cast<std::size_t>(st.st_size);
+   }
 }
 
 /**
@@ -163,7 +201,7 @@ bool ym::FileIO::fillBuffer(
  */
 std::optional<std::span<char>> ym::FileIO::fillBufferPiecewise(std::span<char> buffer) noexcept
 {
-   std::optional<std::span<char>> data; // default is nullopt
+   std::optional<std::span<char>> data{std::nullopt};
 
    if (isOpen())
    { // file opened

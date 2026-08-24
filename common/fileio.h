@@ -30,14 +30,21 @@ public:
 
    static bool exists(str const Filename) noexcept;
 
+   /// @name FileIO Queryers.
+   /// @{
+   /// @brief Getters.
+   /// @returns auto -- Self explanatory.
    inline bool isOpen(void) const noexcept { return _file; }
    inline operator bool(void) const noexcept { return isOpen(); }
 
    inline auto getSize(void) const noexcept { return _size; }
+   /// @}
 
    bool reset(
       str const Filename,
       str const Mode = "rb") noexcept;
+
+   std::size_t calculateSize(void) const noexcept;
 
    /// @name FileIO Getters.
    /// @{
@@ -56,12 +63,15 @@ public:
    std::optional<std::span<char>> fillBufferPiecewise(std::span<char> buffer) noexcept;
 
 private:
-   LoosePtr<std::FILE> _file{};
-   std::size_t        _size{};
+   LoosePtr<std::FILE> _file{nullptr};
+   std::size_t         _size{  0uz  };
 };
 
 /**
  * @brief Constructor.
+ *
+ * @param Filename -- Name of file to open.
+ * @param Mode     -- Opening mode (read/write/append, etc.)
  */
 inline FileIO::FileIO(
    str const Filename,

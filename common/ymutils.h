@@ -246,7 +246,7 @@ public:
    constexpr auto getUnderlying(void) const noexcept { return _bits; }
 
 private:
-   std::byte _bits{};
+   std::byte _bits{0};
 };
 
 /// @brief Global null pointer error.
