@@ -28,6 +28,12 @@ public:
       str const Filename,
       str const Mode = "rb") noexcept;
 
+   /// @brief Access mode bit positions.
+   enum AccessModeFlags_T {
+      Read,
+      Write
+   };
+
    static bool exists(str const Filename) noexcept;
 
    /// @name FileIO Queryers.
@@ -37,14 +43,13 @@ public:
    inline bool isOpen(void) const noexcept { return _file; }
    inline operator bool(void) const noexcept { return isOpen(); }
 
+   // TODO move to own function
    inline auto getSize(void) const noexcept { return _size; }
    /// @}
 
    bool reset(
       str const Filename,
       str const Mode = "rb") noexcept;
-
-   std::size_t calculateSize(void) const noexcept;
 
    /// @name FileIO Getters.
    /// @{
@@ -63,8 +68,12 @@ public:
    std::optional<std::span<char>> fillBufferPiecewise(std::span<char> buffer) noexcept;
 
 private:
-   LoosePtr<std::FILE> _file{nullptr};
-   std::size_t         _size{  0uz  };
+   LoosePtr<std::FILE> _file {nullptr};
+   std::size_t         _size {  0uz  };
+   ByteBitset          _flags{       };
+
+   // TODO should return std::optional
+   std::size_t calculateSize(void) const noexcept;
 };
 
 /**

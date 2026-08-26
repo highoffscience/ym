@@ -8,10 +8,11 @@
 
 #include "globallogger.h"
 
-#include <sys/stat.h>
-
+#include <fcntl.h>
 #include <filesystem>
+#include <sys/stat.h>
 #include <tuple>
+#include <unistd.h>
 
 /**
  * @brief Resets the file handle.
@@ -53,31 +54,38 @@ bool ym::FileIO::reset(
    }
 
    _file = std::fopen(Filename, Mode);
+   auto const FD = fileno(_file);
 
-   struct stat st;
-   if (fstat(fileno(_file), &st) == 0)
-   { // got file size
-      _size = static_cast<std::size_t>(st.st_size);
-   }
-#if (YM_USE_HEAP_AS_FALLBACK)
-   else
-   { // failed to query file size - use alternative method
-      std::error_code ec;
-      _size = std::filesystem::file_size(Filename.get(), ec);
+   switch (fcntl(FD, F_GETFL) & O_ACCMODE)
+   {
+      case O_RDONLY:
+      { // read permissions
+         _flags.set(AccessModeFlags_T::Read);
+         break;
+      }
 
-      if (ec)
-      { // failed to query file size - again
-         ymLog(VF::Warning, "Couldn't get size for file {}", Filename);
-         _size = 0uz;
+      case O_WRONLY:
+      { // write permissions
+         _flags.set(AccessModeFlags_T::Write);
+         break;
+      }
+
+      case O_RDWR:
+      { // read/write permissions
+         _flags.set(AccessModeFlags_T::Read);
+         _flags.set(AccessModeFlags_T::Write);
+         break;
+      }
+
+      default:
+      { // error
+         std::ignore = std::fclose(get());
+         ymLog(VF::Warning, "Could not get permissions for file {}", Filename);
+         return;
       }
    }
-#endif
 
-   if (getSize() == 0uz)
-   { // failed to acquire size
-      std::ignore = std::fclose(get());
-      _file = nullptr;
-   }
+   _size = calculateSize();
 
    return isOpen();
 }
@@ -85,37 +93,19 @@ bool ym::FileIO::reset(
 /**
  * @brief TODO unwrapping _file can throw - account for this.
  *             just use the below code in getSize()
- *
- * #include <fcntl.h>
-#include <unistd.h>
-
-int fd = fileno(file);
-
-int flags = fcntl(fd, F_GETFL);
-if (flags == -1) {
-    // error
-}
-
-switch (flags & O_ACCMODE) {
-    case O_RDONLY:
-        // read only
-        break;
-
-    case O_WRONLY:
-        // write only
-        break;
-
-    case O_RDWR:
-        // read/write
-        break;
-}
  */
 std::size_t ym::FileIO::calculateSize(void) const noexcept
 {
+   auto size = 0uz;
+
    struct stat st;
    if (fstat(fileno(_file), &st) == 0)
    { // got file size
-      _size = static_cast<std::size_t>(st.st_size);
+      size = static_cast<std::size_t>(st.st_size);
+   }
+   else
+   { // error
+      ymLog(VF::Warning, "Could not get permissions for file {}", Filename);
    }
 }
 
