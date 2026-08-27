@@ -51,6 +51,8 @@ public:
       str const Filename,
       str const Mode = "rb") noexcept;
 
+   std::optional<std::size_t> calculateSize(void) const noexcept;
+
    /// @name FileIO Getters.
    /// @{
    /// @brief Getter. Guaranteed not null.
@@ -71,9 +73,6 @@ private:
    LoosePtr<std::FILE> _file {nullptr};
    std::size_t         _size {  0uz  };
    ByteBitset          _flags{       };
-
-   // TODO should return std::optional
-   std::size_t calculateSize(void) const noexcept;
 };
 
 /**

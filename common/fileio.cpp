@@ -54,59 +54,74 @@ bool ym::FileIO::reset(
    }
 
    _file = std::fopen(Filename, Mode);
-   auto const FD = fileno(_file);
 
-   switch (fcntl(FD, F_GETFL) & O_ACCMODE)
-   {
-      case O_RDONLY:
-      { // read permissions
-         _flags.set(AccessModeFlags_T::Read);
-         break;
+   if (_file)
+   { // file successfully opened
+      if (auto Size = calculateSize(); Size)
+      { // got size
+         _size = *Size;
+
+         switch (fcntl(fileno(_file.unwrap()), F_GETFL) & O_ACCMODE)
+         { // get file permissions
+            case O_RDONLY:
+            { // read permissions
+               _flags.set(AccessModeFlags_T::Read);
+               break;
+            }
+
+            case O_WRONLY:
+            { // write permissions
+               _flags.set(AccessModeFlags_T::Write);
+               break;
+            }
+
+            case O_RDWR:
+            { // read/write permissions
+               _flags.set(AccessModeFlags_T::Read);
+               _flags.set(AccessModeFlags_T::Write);
+               break;
+            }
+
+            default:
+            { // error
+               ymLog(VF::Warning, "Could not get permissions for file {}", Filename);
+               std::ignore = std::fclose(get());
+            }
+         }
       }
-
-      case O_WRONLY:
-      { // write permissions
-         _flags.set(AccessModeFlags_T::Write);
-         break;
-      }
-
-      case O_RDWR:
-      { // read/write permissions
-         _flags.set(AccessModeFlags_T::Read);
-         _flags.set(AccessModeFlags_T::Write);
-         break;
-      }
-
-      default:
-      { // error
+      else
+      { // error getting size
+         ymLog(VF::Warning, "Could not get size for file {}", Filename);
          std::ignore = std::fclose(get());
-         ymLog(VF::Warning, "Could not get permissions for file {}", Filename);
-         return;
       }
    }
-
-   _size = calculateSize();
+   else
+   { // file not opened
+      ymLog(VF::Warning, "Could not open file {}", Filename);
+   }
 
    return isOpen();
 }
 
 /**
- * @brief TODO unwrapping _file can throw - account for this.
- *             just use the below code in getSize()
+ * @brief Gets the size of the current file.
+ *
+ * @returns std::optional<std::size_t> -- Size of file or nullopt if an error occurred.
  */
-std::size_t ym::FileIO::calculateSize(void) const noexcept
+std::optional<std::size_t> ym::FileIO::calculateSize(void) const noexcept
 {
-   auto size = 0uz;
+   std::optional<std::size_t> size{std::nullopt};
 
-   struct stat st;
-   if (fstat(fileno(_file), &st) == 0)
-   { // got file size
-      size = static_cast<std::size_t>(st.st_size);
+   if (_file)
+   { // valid file
+      struct stat st;
+      if (fstat(fileno(_file.unwrap()), &st) == 0)
+      { // got file size
+         size = static_cast<std::size_t>(st.st_size);
+      }
    }
-   else
-   { // error
-      ymLog(VF::Warning, "Could not get permissions for file {}", Filename);
-   }
+
+   return size;
 }
 
 /**
@@ -117,7 +132,7 @@ std::size_t ym::FileIO::calculateSize(void) const noexcept
 #if (YM_USE_HEAP_AS_FALLBACK)
    std::optional<std::string> ym::FileIO::createAndFillBuffer(void) noexcept
    {
-      std::optional<std::string> buffer; // default is nullopt
+      std::optional<std::string> buffer{std::nullopt};
 
       if (isOpen())
       { // file opened
