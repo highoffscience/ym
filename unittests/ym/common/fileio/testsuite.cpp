@@ -56,7 +56,14 @@ auto ym::unit::fileio::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle co
    std::array<char, 1024uz> buffer_1{'\0'};
    { // read file
       FileIO infile(Filename);
-      std::ignore = infile.fillBuffer(buffer_1);
+      if (infile.fillBuffer(buffer_1))
+      {
+         fmt::println("-->buffer_1_success {}<--", buffer_1.data());
+      }
+      else
+      {
+         fmt::println("-->buffer_1_fail<--");
+      }
    }
 
    std::array<char, buffer_1.size()> buffer_2{'\0'};
@@ -69,6 +76,10 @@ auto ym::unit::fileio::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle co
       { // read file in one chunk at a time
       }
    }
+
+   fmt::println("-->{}<--", TestData);
+   fmt::println("-->{}<--", buffer_1.data());
+   fmt::println("-->{}<--", buffer_2.data());
 
    auto const Equaled =
       (std::strncmp(buffer_1.data(), buffer_2.data(), buffer_2.size()) == 0) &&

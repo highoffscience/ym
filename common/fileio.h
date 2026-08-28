@@ -42,15 +42,13 @@ public:
    /// @returns auto -- Self explanatory.
    inline bool isOpen(void) const noexcept { return _file; }
    inline operator bool(void) const noexcept { return isOpen(); }
-
-   // TODO move to own function
-   inline auto getSize(void) const noexcept { return _size; }
    /// @}
 
    bool reset(
       str const Filename,
       str const Mode = "rb") noexcept;
 
+   std::size_t getSize(void) noexcept;
    std::optional<std::size_t> calculateSize(void) const noexcept;
 
    /// @name FileIO Getters.

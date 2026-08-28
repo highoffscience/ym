@@ -106,6 +106,33 @@ bool ym::FileIO::reset(
 /**
  * @brief Gets the size of the current file.
  *
+ * @returns std::size_t -- Size of file.
+ */
+std::size_t ym::FileIO::getSize(void) noexcept
+{
+   if (_flags.test(AccessModeFlags_T::Write))
+   { // size can change - recalculate
+      if (auto const Size = calculateSize(); Size)
+      { //
+         _size = *Size;
+      }
+      else
+      {
+         ymLog(VF::Warning, "Could not get size of file");
+      }
+   }
+
+   // TODO
+   // we can pass in a stackbuffer that stores the filename. file handles are often
+   // only opened in one scope, so just create a stackbuffer in that scope as the name.
+
+   return _size;
+}
+
+/** TODO we can probably absorb this into just getSize()
+ *
+ * @brief Gets the size of the current file.
+ *
  * @returns std::optional<std::size_t> -- Size of file or nullopt if an error occurred.
  */
 std::optional<std::size_t> ym::FileIO::calculateSize(void) const noexcept
@@ -177,6 +204,7 @@ bool ym::FileIO::fillBuffer(
             if (buffer.size() > getSize())
             { // we have room
                buffer[NRead] = '\0';
+               fmt::println("-->buffer_1_place ({})({})({})<--", buffer.data(), buffer.size(), getSize());
             }
             else
             { // not enough room afterall
