@@ -78,11 +78,33 @@ auto ym::unit::memio::TestSuite::StackAlloc::run([[maybe_unused]] DataShuttle co
    };
 }
 
+struct StackStringLiteral : public ym::StackBuffer_Base
+{
+   template <std::size_t N>
+   implicit constexpr StackStringLiteral(char const (&array) [N]) noexcept :
+      _ptr{array}
+   { }
+
+   inline operator StackBuffer_Base * (void) {
+
+   }
+
+   // TODO this will be in StackBuffer_Base::_data_ptr.
+   // FileIO can store union StackBuffer_Base * or StackStringLiteral.
+   // seems excessive - we'll need an std::variant to determine which it is holding.
+   ym::rawstr _ptr{nullptr};
+};
+
 /**
  * @returns DataShuttle -- Important values acquired during run of test.
  */
 auto ym::unit::memio::TestSuite::StackString::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
+   auto f = [](bound<StackBuffer_Base> buf) {
+
+   };
+   f(StackStringLiteral("Hello"));
+
    struct StackString : public StackBufferUser
    {
       constexpr StackString(BoundPtr<StackBuffer_Base> const buffer_Ptr) :
@@ -110,6 +132,9 @@ auto ym::unit::memio::TestSuite::StackString::run([[maybe_unused]] DataShuttle c
    fmt::println("{}", *form);
    *form = "Go! Pumpkaboo! My hero!";
    fmt::println("{}", *form);
+
+   [[maybe_unused]]
+   auto const Name = StackStringLiteral("Torchic");
 
    // [[maybe_unused]]
    // auto buffer = ss.createStackBuffer<100>();

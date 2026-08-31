@@ -8,6 +8,8 @@
 
 #include "ymglobals.h"
 
+#include "memio.h"
+
 #include <cstdio>
 #include <optional>
 #include <span>
@@ -19,13 +21,18 @@ namespace ym
 
 /**
  * @brief Provides file IO and manipulation functions.
+ *
+ * TODO usage outline
+ *
+ * auto filename = StackBuffer("ym/common/fileio/data.txt");
+ * auto file = FileIO(&filename, "w");
  */
 class FileIO
 {
 public:
    explicit inline FileIO(void) noexcept = default;
    implicit inline FileIO(
-      str const Filename,
+      strlit const Filename,
       str const Mode = "rb") noexcept;
 
    /// @brief Access mode bit positions.
@@ -68,9 +75,9 @@ public:
    std::optional<std::span<char>> fillBufferPiecewise(std::span<char> buffer) noexcept;
 
 private:
-   LoosePtr<std::FILE> _file {nullptr};
-   std::size_t         _size {  0uz  };
-   ByteBitset          _flags{       };
+   loose<std::FILE> _file {nullptr};
+   std::size_t      _size {  0uz  };
+   ByteBitset       _flags{       };
 };
 
 /**

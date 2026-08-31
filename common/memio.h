@@ -9,7 +9,6 @@
 #include "ymglobals.h"
 
 #include <alloca.h>
-
 #include <memory>
 
 namespace ym
@@ -18,17 +17,17 @@ namespace ym
 /**
  * @brief Allocates requested amount of bytes on the stack at runtime.
  *
- * @note Functionally moves the stack pointer to where you want. We mimic the
- *       behaviour of variable length arrays.
+ * - Functionally moves the stack pointer to where you want. We mimic the
+ *   behaviour of variable length arrays.
  *
- * @note Memory allocated by this function automatically gets freed when the
- *       embedding function goes out of scope.
+ * - Memory allocated by this function automatically gets freed when the
+ *   embedding function goes out of scope.
  *
- * @note Only allocates memory in current stack frame, so this must a macro,
- *       not an inline function.
+ * - Only allocates memory in current stack frame, so this must a macro,
+ *   not an inline function.
  *
- * @note [Man Page](https://man7.org/linux/man-pages/man3/alloca.3.html).
- *       [Reference Guide](https://en.cppreference.com/w/c/language/array). See section on VLA's.
+ * - [Man Page](https://man7.org/linux/man-pages/man3/alloca.3.html).
+ * - [Reference Guide](https://en.cppreference.com/w/c/language/array). See section on VLA's.
  *
  * @param Type_      -- Type to allocate.
  * @param NElements_ -- Number of T elements to allocate room for.
@@ -62,9 +61,9 @@ public:
 /**
  * @brief Custom base class for stack based memory resource management.
  *
- * @note Users will have to register themselves using setUser(). A user cannot unregister themselves,
- *       as this could lead to users without valid buffers to exist. A user trying to register to
- *       an already claimed buffer will assert.
+ * - Users will have to register themselves using @ref setUser(). A user cannot unregister themselves,
+ *   as this could lead to users without valid buffers to exist. A user trying to register to
+ *   an already claimed buffer will assert.
  */
 class StackBuffer_Base : public std::pmr::monotonic_buffer_resource
 {
@@ -74,30 +73,56 @@ public:
    YM_DECL_YMASSERT(Error);
 
 protected:
-   /// @brief Constructor.
-   explicit constexpr StackBuffer_Base(
-      bound<void> const buffer_BPtr,
-      std::size_t    const BufferSize_bytes) noexcept :
+   /**
+    * @brief Constructor.
+    *
+    * @param buffer_Ptr       -- Pointer to stack allocated buffer.
+    * @param BufferSize_bytes -- Size of buffer.
+    */
+   explicit inline StackBuffer_Base(
+      bound<void> const buffer_Ptr,
+      std::size_t const BufferSize_bytes) noexcept :
          std::pmr::monotonic_buffer_resource(
-            buffer_BPtr,
+            buffer_Ptr,
             BufferSize_bytes,
             MemIO::getNullMemResource())
    { }
 
+   /**
+    * @brief Constructor.
+    */
+   explicit inline StackBuffer_Base(void) noexcept :
+      std::pmr::monotonic_buffer_resource(
+         MemIO::getNullMemResource())
+   { }
+
+   inline virtual ~StackBuffer_Base(void) noexcept = default;
+
    /// @brief Setter.
-   constexpr void setUser(BoundPtr<class StackBufferUser> const user_BPtr) {
-      YMASSERT(!_user_fptr, Error, YM_DAH, "StackBuffer already claimed by another user");
-      _user_fptr = user_BPtr;
+   constexpr void setUser(bound<class StackBufferUser> const user_Ptr) {
+      YMASSERT(!_user_ptr, Error, YM_DAH, "StackBuffer already claimed by another user");
+      _user_ptr = user_Ptr;
    }
 
 public:
    /// @brief Getter.
-   constexpr loose<class StackBufferUser const> getUserFPtr(void) const noexcept {
-      return _user_fptr;
+   constexpr loose<class StackBufferUser const> getUserPtr(void) const noexcept {
+      return _user_ptr;
+   }
+
+   template <typename T>
+   inline loose<T> getDataPtr(void) const noexcept {
+      if (_data_ptr) {
+         return std::start_lifetime_as<T>(_data_ptr.get());
+      }
+      else {
+         return nullptr;
+      }
    }
 
 private:
-   LoosePtr<class StackBufferUser> _user_fptr;
+   loose<class StackBufferUser> _user_ptr{nullptr};
+   loose<void>                  _data_ptr{nullptr};
 };
 
 /**
@@ -131,12 +156,24 @@ private:
 class StackBufferUser
 {
 public:
-   YM_DECL_YMASSERT(Error);
-
    /// @brief Constructor.
-   constexpr explicit StackBufferUser(BoundPtr<StackBuffer_Base> const buffer_BPtr) {
-      buffer_BPtr->setUser({this, ym_AssumePtrNotNull{}});
+   constexpr explicit StackBufferUser(bound<StackBuffer_Base> const buffer_Ptr) {
+      buffer_Ptr->setUser({this, ym_AssumePtrNotNull{}});
    }
+};
+
+// ----------------------------------------------------------------------------
+//                             Convenience classes
+// ----------------------------------------------------------------------------
+
+struct StackStrLit : public StackBuffer_Base
+{
+   template <std::size_t N>
+   implicit inline StackStrLit(char const (&array) [N]) noexcept :
+      _ptr{array}
+   { }
+
+   ym::rawstr _ptr{nullptr};
 };
 
 } // ym
