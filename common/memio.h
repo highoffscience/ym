@@ -110,19 +110,8 @@ public:
       return _user_ptr;
    }
 
-   template <typename T>
-   inline loose<T> getDataPtr(void) const noexcept {
-      if (_data_ptr) {
-         return std::start_lifetime_as<T>(_data_ptr.get());
-      }
-      else {
-         return nullptr;
-      }
-   }
-
 private:
    loose<class StackBufferUser> _user_ptr{nullptr};
-   loose<void>                  _data_ptr{nullptr};
 };
 
 /**
@@ -146,6 +135,12 @@ public:
 
    static constexpr inline auto _Size = N;
 
+   // TODO
+   // template <typename T>
+   // inline loose<T> get(void) const noexcept {
+   //    return std::start_lifetime_as<T>(_buffer.data());
+   // }
+
 private:
    std::array<std::byte, N> _buffer{};
 };
@@ -166,14 +161,28 @@ public:
 //                             Convenience classes
 // ----------------------------------------------------------------------------
 
-struct StackStrLit : public StackBuffer_Base
+class StackStrLit : public StackBuffer_Base
 {
+public:
    template <std::size_t N>
    implicit inline StackStrLit(char const (&array) [N]) noexcept :
-      _ptr{array}
+      _Ptr {array}
    { }
 
-   ym::rawstr _ptr{nullptr};
+   implicit inline StackStrLit(rawstr const S, [[maybe_unused]] std::size_t const N, TAG) noexcept :
+      _Ptr {S}
+   { }
+
+   inline auto * get(void) const noexcept { return _Ptr; }
+   inline operator rawstr(void) const noexcept { return get(); }
+
+private:
+   rawstr _Ptr{nullptr};
 };
+
+/// @brief TODO
+constexpr inline auto operator""_ssl(rawstr const S, std::size_t const N) {
+   return StackStrLit(S, N, );
+}
 
 } // ym

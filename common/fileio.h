@@ -24,7 +24,7 @@ namespace ym
  *
  * TODO usage outline
  *
- * auto filename = StackBuffer("ym/common/fileio/data.txt");
+ * auto filename = StackStrLit("ym/common/fileio/data.txt");
  * auto file = FileIO(&filename, "w");
  */
 class FileIO
@@ -32,7 +32,7 @@ class FileIO
 public:
    explicit inline FileIO(void) noexcept = default;
    implicit inline FileIO(
-      strlit const Filename,
+      str const Filename,
       str const Mode = "rb") noexcept;
 
    /// @brief Access mode bit positions.
