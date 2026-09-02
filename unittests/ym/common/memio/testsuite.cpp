@@ -118,7 +118,7 @@ auto ym::unit::memio::TestSuite::StackString::run([[maybe_unused]] DataShuttle c
    fmt::println("{}", *form);
 
    [[maybe_unused]]
-   auto const Name = StackStringLiteral("Torchic");
+   auto const Name = StackStrLit("Torchic");
 
    // [[maybe_unused]]
    // auto buffer = ss.createStackBuffer<100>();

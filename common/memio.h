@@ -64,6 +64,10 @@ public:
  * - Users will have to register themselves using @ref setUser(). A user cannot unregister themselves,
  *   as this could lead to users without valid buffers to exist. A user trying to register to
  *   an already claimed buffer will assert.
+ *
+ * @note Do *not* dynamically allocate this class. The expected responsibility of this class
+ *       is to not out-live the user, and thus there is only a way one communication, user to
+ *       buffer, upon destruction to let the buffer know there is no user.
  */
 class StackBuffer_Base : public std::pmr::monotonic_buffer_resource
 {
@@ -96,16 +100,27 @@ protected:
          MemIO::getNullMemResource())
    { }
 
+   /// @brief Destructor.
    inline virtual ~StackBuffer_Base(void) noexcept = default;
 
-   /// @brief Setter.
+   /**
+    * @brief Sets the user.
+    *
+    * @throws Error -- If this buffer already belongs to a user.
+    *
+    * @param user_Ptr -- User of this buffer.
+    */
    constexpr void setUser(bound<class StackBufferUser> const user_Ptr) {
       YMASSERT(!_user_ptr, Error, YM_DAH, "StackBuffer already claimed by another user");
       _user_ptr = user_Ptr;
    }
 
 public:
-   /// @brief Getter.
+   /**
+    * @brief Get the User Ptr object
+    *
+    * @returns loose<StackBufferUser const> -- User of this buffer.
+    */
    constexpr loose<class StackBufferUser const> getUserPtr(void) const noexcept {
       return _user_ptr;
    }
@@ -115,11 +130,9 @@ private:
 };
 
 /**
- * @brief Buffer to be placed on the stack and fed to a StackBufferUser.
+ * @brief Buffer to be placed on the stack and fed to a @ref StackBufferUser.
  *
- * @note Do *not* dynamically allocate this class. The expected responsibility of this class
- *       is to not out-live the user, and thus there is only a way one communication, user to
- *       buffer, upon destruction to let the buffer know there is no user.
+ * @tparam N -- Size of buffer, in bytes.
  */
 template <std::size_t N>
 requires (N > 0uz)
@@ -135,11 +148,17 @@ public:
 
    static constexpr inline auto _Size = N;
 
-   // TODO
-   // template <typename T>
-   // inline loose<T> get(void) const noexcept {
-   //    return std::start_lifetime_as<T>(_buffer.data());
-   // }
+   /**
+    * @brief Interprets the data as another type.
+    *
+    * @tparam T -- Type to interpret the bytes as.
+    *
+    * @returns loose<T> -- Pointer to data as the desired type.
+    */
+   template <typename T>
+   inline loose<T> get(void) const noexcept {
+      return std::start_lifetime_as<T>(_buffer.data());
+   }
 
 private:
    std::array<std::byte, N> _buffer{};
@@ -151,7 +170,11 @@ private:
 class StackBufferUser
 {
 public:
-   /// @brief Constructor.
+   /**
+    * @brief Constructor.
+    *
+    * @param buffer_Ptr -- Buffer this user claims.
+    */
    constexpr explicit StackBufferUser(bound<StackBuffer_Base> const buffer_Ptr) {
       buffer_Ptr->setUser({this, ym_AssumePtrNotNull{}});
    }
@@ -169,8 +192,8 @@ public:
       _Ptr {array}
    { }
 
-   implicit inline StackStrLit(rawstr const S, [[maybe_unused]] std::size_t const N, TAG) noexcept :
-      _Ptr {S}
+   implicit inline StackStrLit(rawstr const Array, [[maybe_unused]] std::size_t const N) noexcept :
+      _Ptr {Array}
    { }
 
    inline auto * get(void) const noexcept { return _Ptr; }
@@ -182,7 +205,7 @@ private:
 
 /// @brief TODO
 constexpr inline auto operator""_ssl(rawstr const S, std::size_t const N) {
-   return StackStrLit(S, N, );
+   return StackStrLit(S, N);
 }
 
 } // ym
