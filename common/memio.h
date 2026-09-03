@@ -142,7 +142,7 @@ class StackBuffer : public StackBuffer_Base
 
 public:
    /// @brief Constructor.
-   constexpr explicit StackBuffer(void) noexcept :
+   inline explicit StackBuffer(void) noexcept :
       StackBuffer_Base({_buffer.data(), ym_AssumePtrNotNull{}}, _buffer.size())
    { }
 
@@ -176,7 +176,10 @@ public:
     * @param buffer_Ptr -- Buffer this user claims.
     */
    constexpr explicit StackBufferUser(bound<StackBuffer_Base> const buffer_Ptr) {
-      buffer_Ptr->setUser({this, ym_AssumePtrNotNull{}});
+      buffer_Ptr->setUser({this, ym_AssumePtrNotNull{}}); // TODO allow for multiple users?
+      // like unique_ptr vs shared_ptr?
+      // FileIO is a StackBufferUser, but holding a string literal buffer should allow multiple
+      //   users access because it is const data.
    }
 };
 
@@ -184,6 +187,10 @@ public:
 //                             Convenience classes
 // ----------------------------------------------------------------------------
 
+/**
+ * @brief Represents a string literal
+ *
+ */
 class StackStrLit : public StackBuffer_Base
 {
 public:
@@ -195,6 +202,8 @@ public:
    implicit inline StackStrLit(rawstr const Array, [[maybe_unused]] std::size_t const N) noexcept :
       _Ptr {Array}
    { }
+
+   inline virtual ~StackStrLit(void) noexcept = default;
 
    inline auto * get(void) const noexcept { return _Ptr; }
    inline operator rawstr(void) const noexcept { return get(); }
