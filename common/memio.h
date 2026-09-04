@@ -9,6 +9,7 @@
 #include "ymglobals.h"
 
 #include <alloca.h>
+#include <limits>
 #include <memory>
 
 namespace ym
@@ -71,10 +72,21 @@ public:
  */
 class StackBuffer_Base : public std::pmr::monotonic_buffer_resource
 {
-   friend class StackBufferUser;
-
 public:
    YM_DECL_YMASSERT(Error);
+
+   /**
+    * @brief Marks this buffer as claimed.
+    *
+    * @returns bool -- True if successfully claimed, false if there is already an assigned user.
+    */
+   // TODO move this to cpp file
+   bool setUser(void) noexcept {
+      auto success = false; // until told otherwise
+      if (_nUsers == SingleUser_Unclaimed) {
+         _nUsers = SingleUser_Claimed;
+      }
+   }
 
 protected:
    /**
@@ -83,19 +95,20 @@ protected:
     * @param buffer_Ptr       -- Pointer to stack allocated buffer.
     * @param BufferSize_bytes -- Size of buffer.
     */
-   explicit inline StackBuffer_Base(
+   explicit constexpr StackBuffer_Base(
       bound<void> const buffer_Ptr,
       std::size_t const BufferSize_bytes) noexcept :
          std::pmr::monotonic_buffer_resource(
             buffer_Ptr,
             BufferSize_bytes,
-            MemIO::getNullMemResource())
+            MemIO::getNullMemResource()),
+         _nUsers {std::numeric_limits<decltype(_nUsers)>::max()}
    { }
 
    /**
     * @brief Constructor.
     */
-   explicit inline StackBuffer_Base(void) noexcept :
+   explicit constexpr StackBuffer_Base(void) noexcept :
       std::pmr::monotonic_buffer_resource(
          MemIO::getNullMemResource())
    { }
@@ -103,30 +116,12 @@ protected:
    /// @brief Destructor.
    inline virtual ~StackBuffer_Base(void) noexcept = default;
 
-   /**
-    * @brief Sets the user.
-    *
-    * @throws Error -- If this buffer already belongs to a user.
-    *
-    * @param user_Ptr -- User of this buffer.
-    */
-   constexpr void setUser(bound<class StackBufferUser> const user_Ptr) {
-      YMASSERT(!_user_ptr, Error, YM_DAH, "StackBuffer already claimed by another user");
-      _user_ptr = user_Ptr;
-   }
-
-public:
-   /**
-    * @brief Get the User Ptr object
-    *
-    * @returns loose<StackBufferUser const> -- User of this buffer.
-    */
-   constexpr loose<class StackBufferUser const> getUserPtr(void) const noexcept {
-      return _user_ptr;
-   }
-
 private:
-   loose<class StackBufferUser> _user_ptr{nullptr};
+   static constexpr inline auto SingleUser_Unclaimed = std::numeric_limits<std::size_t>::max();
+   static constexpr inline auto SingleUser_Claimed   = SingleUser_Unclaimed - 1uz;
+   static constexpr inline auto MultiUser_Init       = 0uz;
+
+   std::size_t _nUsers {SingleUser_Unclaimed};
 };
 
 /**
@@ -195,12 +190,16 @@ class StackStrLit : public StackBuffer_Base
 {
 public:
    template <std::size_t N>
-   implicit inline StackStrLit(char const (&array) [N]) noexcept :
-      _Ptr {array}
+   implicit inline StackStrLit(char const (&Array) [N]) noexcept :
+      _Ptr  {Array},
+      _Size {  N  }
    { }
 
-   implicit inline StackStrLit(rawstr const Array, [[maybe_unused]] std::size_t const N) noexcept :
-      _Ptr {Array}
+   implicit inline StackStrLit(
+      rawstr      const Array,
+      std::size_t const N) noexcept :
+         _Ptr  {Array},
+         _Size {  N  }
    { }
 
    inline virtual ~StackStrLit(void) noexcept = default;
@@ -209,7 +208,8 @@ public:
    inline operator rawstr(void) const noexcept { return get(); }
 
 private:
-   rawstr _Ptr{nullptr};
+   rawstr      const _Ptr  {nullptr};
+   std::size_t const _Size {  0uz  };
 };
 
 /// @brief TODO
