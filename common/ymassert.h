@@ -27,11 +27,16 @@
 
 /**
  * @brief Convenience macro. Default Assert Handler - Return Error Value.
+ *    - @ref ym::ymassert_Base::throwAndReturn()
  *    - @ref ym::ymassert_Base::logAndReturn()
  *
  * @param ReturnVal_ -- The return value.
  */
-#define YM_DAH_REV(ReturnVal_) return ymassert_Base::logAndReturn(e__, ReturnVal_)
+#if (YM_EXCEPTIONS_ENABLED)
+   #define YM_DAH_RV(ReturnVal_) return ymassert_Base::throwAndReturn(e__, ReturnVal_)
+#else
+   #define YM_DAH_RV(ReturnVal_) return ymassert_Base::logAndReturn(e__, ReturnVal_)
+#endif
 
 /**
  * @brief Macro to assert on a condition.
@@ -48,7 +53,7 @@
  *   invocableness is too messy. If the user provides an invalid Handler function then
  *   the compile error will lead them to this note ... hopefully.
  *
- * - Handler_ will typically be @ref YM_DAH or @ref YM_DAH_REV (defined above). To install your
+ * - Handler_ will typically be @ref YM_DAH or @ref YM_DAH_RV (defined above). To install your
  *   own handler:
  *
  *   @code{cpp}
@@ -146,6 +151,20 @@ public:
     */
    static inline auto logAndReturn(ymassert_Base const & E, auto && r) noexcept {
       logAssert(E); return r;
+   }
+
+   /**
+    * @brief Throws the error and returns the desired value.
+    *
+    * - The return is to satisfy lack-of-return-value warnings.
+    *
+    * @param E -- Thrown exception.
+    * @param r -- Return value.
+    *
+    * @returns auto -- Supplied return value.
+    */
+   static inline auto throwAndReturn(ymassert_Base const & E, auto && r) noexcept {
+      throw E; return r;
    }
 
    /**

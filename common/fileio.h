@@ -27,13 +27,13 @@ namespace ym
  * auto filename = StackStrLit("ym/common/fileio/data.txt");
  * auto file = FileIO(&filename, "w");
  */
-class FileIO
+class FileIO : public StackBufferUser
 {
 public:
    explicit inline FileIO(void) noexcept = default;
    implicit inline FileIO(
-      str const Filename,
-      str const Mode = "rb") noexcept;
+      bound<StackBuffer_Base> const Filename,
+      str                     const Mode = "rb") noexcept;
 
    /// @brief Access mode bit positions.
    enum AccessModeFlags_T {
@@ -52,8 +52,8 @@ public:
    /// @}
 
    bool reset(
-      str const Filename,
-      str const Mode = "rb") noexcept;
+      bound<StackBuffer_Base> const Filename,
+      str                     const Mode = "rb") noexcept;
 
    std::size_t getSize(void) noexcept;
    std::optional<std::size_t> calculateSize(void) const noexcept;
@@ -75,9 +75,10 @@ public:
    std::optional<std::span<char>> fillBufferPiecewise(std::span<char> buffer) noexcept;
 
 private:
-   loose<std::FILE> _file {nullptr};
-   std::size_t      _size {  0uz  };
-   ByteBitset       _flags{       };
+   loose<std::FILE>        _file_ptr {nullptr};
+   bound<StackBuffer_Base> _filename_ptr;
+   std::size_t             _size     {  0uz  };
+   ByteBitset              _flags    {       };
 };
 
 /**

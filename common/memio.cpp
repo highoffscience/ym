@@ -9,9 +9,9 @@
 /**
  * @brief Returns a static pointer to a custom memory resource.
  *
- * @returns BoundPtr<std::pmr::memory_resource> -- Pointer to custom null memory resource.
+ * @returns bound<std::pmr::memory_resource> -- Pointer to custom null memory resource.
  */
-auto ym::MemIO::getNullMemResource(void) noexcept -> BoundPtr<std::pmr::memory_resource>
+auto ym::MemIO::getNullMemResource(void) noexcept -> bound<std::pmr::memory_resource>
 {
    class NullMemResource final : public std::pmr::memory_resource
    {
@@ -19,8 +19,7 @@ auto ym::MemIO::getNullMemResource(void) noexcept -> BoundPtr<std::pmr::memory_r
          [[maybe_unused]] std::size_t const Bytes,
          [[maybe_unused]] std::size_t const Alignment) override
       {
-         YMASSERT(false, ym_MemResourceError, YM_DAH, "Null memory resource");
-         return nullptr;
+         YMASSERT(false, ym_MemResourceError, YM_DAH_RV(nullptr), "Null memory resource");
       }
 
       virtual void do_deallocate(
@@ -37,4 +36,37 @@ auto ym::MemIO::getNullMemResource(void) noexcept -> BoundPtr<std::pmr::memory_r
 
    static NullMemResource resource;
    return {&resource, ym_AssumePtrNotNull{}};
+}
+
+// ----------------------------------------------------------------------------
+
+/**
+ * @brief Marks this buffer as claimed.
+ *
+ * @returns bool -- True if successfully claimed, false if there is already an assigned user.
+ */
+bool ym::StackBuffer_Base::addUser(void) noexcept
+{
+   auto success = true; // until told otherwise
+
+   switch (_nUsers)
+   { // figure out which mode we are in
+      case SingleUser_Unclaimed:
+      { // mark buffer as claimed
+         _nUsers = SingleUser_Claimed;
+         break;
+      }
+      case SingleUser_Claimed:
+      { // buffer already claimed - uh oh
+         success = false;
+         break;
+      }
+      default:
+      { // increment user count
+         _nUsers++;
+         break;
+      }
+   }
+
+   return success;
 }

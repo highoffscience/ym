@@ -41,14 +41,14 @@ namespace ym
 /// @brief Global memory resource error.
 YM_DECL_YMASSERT(ym_MemResourceError);
 
-// ---------------------- class list ----------------------
+// -------------------------------- class list --------------------------------
 
 // MemIO
 // StackBuffer_Base
 // StackBuffer
 // StackBufferUser
 
-// --------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 /**
  * @brief Provides memory management resources.
@@ -62,7 +62,7 @@ public:
 /**
  * @brief Custom base class for stack based memory resource management.
  *
- * - Users will have to register themselves using @ref setUser(). A user cannot unregister themselves,
+ * - Users will have to register themselves using @ref addUser(). A user cannot unregister themselves,
  *   as this could lead to users without valid buffers to exist. A user trying to register to
  *   an already claimed buffer will assert.
  *
@@ -75,18 +75,7 @@ class StackBuffer_Base : public std::pmr::monotonic_buffer_resource
 public:
    YM_DECL_YMASSERT(Error);
 
-   /**
-    * @brief Marks this buffer as claimed.
-    *
-    * @returns bool -- True if successfully claimed, false if there is already an assigned user.
-    */
-   // TODO move this to cpp file
-   bool setUser(void) noexcept {
-      auto success = false; // until told otherwise
-      if (_nUsers == SingleUser_Unclaimed) {
-         _nUsers = SingleUser_Claimed;
-      }
-   }
+   bool addUser(void) noexcept;
 
 protected:
    /**
@@ -102,7 +91,7 @@ protected:
             buffer_Ptr,
             BufferSize_bytes,
             MemIO::getNullMemResource()),
-         _nUsers {std::numeric_limits<decltype(_nUsers)>::max()}
+         _nUsers {SingleUser_Unclaimed}
    { }
 
    /**
@@ -110,7 +99,8 @@ protected:
     */
    explicit constexpr StackBuffer_Base(void) noexcept :
       std::pmr::monotonic_buffer_resource(
-         MemIO::getNullMemResource())
+         MemIO::getNullMemResource()),
+      _nUsers {MultiUser_Init}
    { }
 
    /// @brief Destructor.
@@ -141,6 +131,9 @@ public:
       StackBuffer_Base({_buffer.data(), ym_AssumePtrNotNull{}}, _buffer.size())
    { }
 
+   /// @brief Destructor.
+   inline virtual ~StackBuffer(void) noexcept = default;
+
    static constexpr inline auto _Size = N;
 
    /**
@@ -148,11 +141,11 @@ public:
     *
     * @tparam T -- Type to interpret the bytes as.
     *
-    * @returns loose<T> -- Pointer to data as the desired type.
+    * @returns bound<T> -- Pointer to data as the desired type.
     */
    template <typename T>
-   inline loose<T> get(void) const noexcept {
-      return std::start_lifetime_as<T>(_buffer.data());
+   inline bound<T> get(void) const noexcept {
+      return {std::start_lifetime_as<T>(_buffer.data()), ym_AssumePtrNotNull{}};
    }
 
 private:
@@ -171,10 +164,7 @@ public:
     * @param buffer_Ptr -- Buffer this user claims.
     */
    constexpr explicit StackBufferUser(bound<StackBuffer_Base> const buffer_Ptr) {
-      buffer_Ptr->setUser({this, ym_AssumePtrNotNull{}}); // TODO allow for multiple users?
-      // like unique_ptr vs shared_ptr?
-      // FileIO is a StackBufferUser, but holding a string literal buffer should allow multiple
-      //   users access because it is const data.
+      buffer_Ptr->addUser();
    }
 };
 
@@ -184,14 +174,13 @@ public:
 
 /**
  * @brief Represents a string literal
- *
  */
 class StackStrLit : public StackBuffer_Base
 {
 public:
    template <std::size_t N>
    implicit inline StackStrLit(char const (&Array) [N]) noexcept :
-      _Ptr  {Array},
+      _Ptr  {Array, ym_AssumePtrNotNull{}},
       _Size {  N  }
    { }
 
@@ -204,11 +193,11 @@ public:
 
    inline virtual ~StackStrLit(void) noexcept = default;
 
-   inline auto * get(void) const noexcept { return _Ptr; }
-   inline operator rawstr(void) const noexcept { return get(); }
+   inline auto getPtr(void) const noexcept { return _Ptr; }
+   inline operator rawstr(void) const noexcept { return getPtr(); }
 
 private:
-   rawstr      const _Ptr  {nullptr};
+   str         const _Ptr;
    std::size_t const _Size {  0uz  };
 };
 
