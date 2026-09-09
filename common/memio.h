@@ -11,6 +11,8 @@
 #include <alloca.h>
 #include <limits>
 #include <memory>
+#include <type_traits>
+#include <utility>
 
 namespace ym
 {
@@ -86,11 +88,13 @@ protected:
     */
    explicit constexpr StackBuffer_Base(
       bound<void> const buffer_Ptr,
-      std::size_t const BufferSize_bytes) noexcept :
+      std::size_t const Size) noexcept :
          std::pmr::monotonic_buffer_resource(
             buffer_Ptr,
-            BufferSize_bytes,
+            Size,
             MemIO::getNullMemResource()),
+         _Ptr    {     buffer_Ptr     },
+         _Size   {        Size        },
          _nUsers {SingleUser_Unclaimed}
    { }
 
@@ -106,12 +110,58 @@ protected:
    /// @brief Destructor.
    inline virtual ~StackBuffer_Base(void) noexcept = default;
 
+   /**
+    * @name StachBuffer_Base getters.
+    * @{
+    * @brief Interprets the data as another type.
+    *
+    * @tparam T -- Type to interpret the bytes as.
+    *
+    * @returns loose<T> -- Pointer to data as the desired type.
+    */
+   template <typename T>
+   constexpr loose<T> get(void) noexcept {
+      return {std::as_const(*this).get<T>(), ym_PtrCastPassKey{}};
+   }
+
+   template <typename T>
+   requires (!std::is_array_v<T>)
+   constexpr loose<T const> get(void) const noexcept {
+      return (_Size >= sizeof(T)) ? std::start_lifetime_as<T>(_Ptr) : nullptr;
+   }
+   template <typename T>
+   requires (std::is_array_v<T>)
+   constexpr loose<T const> get(void) const noexcept {
+      return (_Size >= sizeof(T)) ? std::start_lifetime_as_array<T>(_Ptr, _Size) : nullptr;
+   }
+   /// @}
+
+   /**
+    * @brief Interprets the data as a byte-like type.
+    *
+    * @tparam T -- Type to interpret the bytes as.
+    *
+    * @returns bound<T> -- Pointer to data as the desired type.
+    */
+   template <typename T = char const>
+   requires (sizeof(T) == 1uz)
+   constexpr bound<T> getBytes(void) noexcept {
+      return _Ptr;
+   }
+   template <typename T = char const>
+   requires (sizeof(T) == 1uz)
+   constexpr bound<T const> getBytes(void) const noexcept {
+      return _Ptr; // TODO
+   }
+
 private:
    static constexpr inline auto SingleUser_Unclaimed = std::numeric_limits<std::size_t>::max();
    static constexpr inline auto SingleUser_Claimed   = SingleUser_Unclaimed - 1uz;
    static constexpr inline auto MultiUser_Init       = 0uz;
 
-   std::size_t _nUsers {SingleUser_Unclaimed};
+   bound<void> const _Ptr;
+   std::size_t const _Size   {        0uz         };
+   std::size_t       _nUsers {SingleUser_Unclaimed};
 };
 
 /**
@@ -133,20 +183,6 @@ public:
 
    /// @brief Destructor.
    inline virtual ~StackBuffer(void) noexcept = default;
-
-   static constexpr inline auto _Size = N;
-
-   /**
-    * @brief Interprets the data as another type.
-    *
-    * @tparam T -- Type to interpret the bytes as.
-    *
-    * @returns bound<T> -- Pointer to data as the desired type.
-    */
-   template <typename T>
-   inline bound<T> get(void) const noexcept {
-      return {std::start_lifetime_as<T>(_buffer.data()), ym_AssumePtrNotNull{}};
-   }
 
 private:
    std::array<std::byte, N> _buffer{};
@@ -193,12 +229,10 @@ public:
 
    inline virtual ~StackStrLit(void) noexcept = default;
 
-   inline auto getPtr(void) const noexcept { return _Ptr; }
-   inline operator rawstr(void) const noexcept { return getPtr(); }
-
-private:
-   str         const _Ptr;
-   std::size_t const _Size {  0uz  };
+   // TODO
+   str getRaw(void) const noexcept {
+      return getBytes();
+   }
 };
 
 /// @brief TODO

@@ -534,7 +534,7 @@ public:
    /// @brief Casting constructor. Anything goes.
    template <typename U>
    implicit constexpr LoosePtr(
-      LoosePtr<U>        const & Other,
+      LoosePtr<U>       const & Other,
       ym_PtrCastPassKey const) noexcept :
          Ptr_Base<T, LoosePtr<T>>(ym_castPtrTo<T>(Other._value_ptr))
    { }
