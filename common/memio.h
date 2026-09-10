@@ -80,38 +80,38 @@ public:
    bool addUser(void) noexcept;
 
 protected:
+   /// @brief CV qualifier of storage pointed to by buffer.
+   enum class Qualifier_T
+   {
+      NonConst,
+      Const
+   };
+
    /**
     * @brief Constructor.
     *
-    * @param buffer_Ptr       -- Pointer to stack allocated buffer.
-    * @param BufferSize_bytes -- Size of buffer.
+    * @param buffer_Ptr -- Pointer to stack allocated buffer.
+    * @param Size       -- Size of buffer.
+    * @param Qualifier  -- Whether storage is const or non-const.
     */
    explicit constexpr StackBuffer_Base(
       bound<void> const buffer_Ptr,
-      std::size_t const Size) noexcept :
+      std::size_t const Size,
+      Qualifier_T const Qualifier = Qualifier_T::NonConst) noexcept :
          std::pmr::monotonic_buffer_resource(
             buffer_Ptr,
             Size,
             MemIO::getNullMemResource()),
          _Ptr    {     buffer_Ptr     },
          _Size   {        Size        },
-         _nUsers {SingleUser_Unclaimed}
-   { }
-
-   /**
-    * @brief Constructor.
-    */
-   explicit constexpr StackBuffer_Base(void) noexcept :
-      std::pmr::monotonic_buffer_resource(
-         MemIO::getNullMemResource()),
-      _nUsers {MultiUser_Init}
+         _nUsers {getNUsers(Qualifier)}
    { }
 
    /// @brief Destructor.
    inline virtual ~StackBuffer_Base(void) noexcept = default;
 
    /**
-    * @name StachBuffer_Base getters.
+    * @name StackBuffer_Base getters.
     * @{
     * @brief Interprets the data as another type.
     *
@@ -151,13 +151,23 @@ protected:
    template <typename T = char const>
    requires (sizeof(T) == 1uz)
    constexpr bound<T const> getBytes(void) const noexcept {
-      return _Ptr; // TODO
+      return _Ptr;
    }
 
 private:
    static constexpr inline auto SingleUser_Unclaimed = std::numeric_limits<std::size_t>::max();
    static constexpr inline auto SingleUser_Claimed   = SingleUser_Unclaimed - 1uz;
    static constexpr inline auto MultiUser_Init       = 0uz;
+
+   /// @cond INTERNAL
+   constexpr std::size_t getNUsers(Qualifier_T const Q) {
+      if (Q == Qualifier_T::Const) {
+         return MultiUser_Init;
+      } else {
+         return SingleUser_Unclaimed;
+      }
+   }
+   /// @endcond
 
    bound<void> const _Ptr;
    std::size_t const _Size   {        0uz         };
