@@ -88,24 +88,35 @@ protected:
    };
 
    /**
+    * @name StackBuffer_Base Constructors.
+    * @{
     * @brief Constructor.
     *
     * @param buffer_Ptr -- Pointer to stack allocated buffer.
     * @param Size       -- Size of buffer.
-    * @param Qualifier  -- Whether storage is const or non-const.
     */
    explicit constexpr StackBuffer_Base(
       bound<void> const buffer_Ptr,
-      std::size_t const Size,
-      Qualifier_T const Qualifier = Qualifier_T::NonConst) noexcept :
+      std::size_t const Size) noexcept :
          std::pmr::monotonic_buffer_resource(
             buffer_Ptr,
             Size,
             MemIO::getNullMemResource()),
-         _Ptr    {     buffer_Ptr     },
-         _Size   {        Size        },
-         _nUsers {getNUsers(Qualifier)}
+         _Ptr    {buffer_Ptr},
+         _Size   {   Size   },
+         _nUsers {getNUsers(Qualifier_T::NonConst)}
    { }
+
+   explicit constexpr StackBuffer_Base(
+      bound<void const> const buffer_Ptr,
+      std::size_t       const Size) noexcept :
+         std::pmr::monotonic_buffer_resource(
+            MemIO::getNullMemResource()),
+         _Ptr    {const_cast<void*>(buffer_Ptr.get())},
+         _Size   {            Size             },
+         _nUsers {getNUsers(Qualifier_T::Const)}
+   { }
+   /// @}
 
    /// @brief Destructor.
    inline virtual ~StackBuffer_Base(void) noexcept = default;
@@ -146,12 +157,12 @@ protected:
    template <typename T = char const>
    requires (sizeof(T) == 1uz)
    constexpr bound<T> getBytes(void) noexcept {
-      return _Ptr;
+      return {_Ptr, ym_PtrCastPassKey{}};
    }
    template <typename T = char const>
    requires (sizeof(T) == 1uz)
    constexpr bound<T const> getBytes(void) const noexcept {
-      return _Ptr;
+      return {_Ptr, ym_PtrCastPassKey{}};
    }
 
 private:
@@ -226,22 +237,20 @@ class StackStrLit : public StackBuffer_Base
 public:
    template <std::size_t N>
    implicit inline StackStrLit(char const (&Array) [N]) noexcept :
-      _Ptr  {Array, ym_AssumePtrNotNull{}},
-      _Size {  N  }
+      StackBuffer_Base(Array, N)
    { }
 
    implicit inline StackStrLit(
       rawstr      const Array,
       std::size_t const N) noexcept :
-         _Ptr  {Array},
-         _Size {  N  }
+         StackBuffer_Base(Array, N)
    { }
 
    inline virtual ~StackStrLit(void) noexcept = default;
 
    // TODO
    str getRaw(void) const noexcept {
-      return getBytes();
+      return {getBytes(), ym_PtrCastPassKey{}};
    }
 };
 

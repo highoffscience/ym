@@ -107,6 +107,7 @@ auto ym::unit::memio::TestSuite::StackString::run([[maybe_unused]] DataShuttle c
       std::pmr::string _internal;
    };
 
+   // call to StackBuffer_Base is ambiguous - doesn't know which bound<void> or bound<void const>
    auto form_buffer = StackBuffer<35>();
    StackString form(&form_buffer);
 

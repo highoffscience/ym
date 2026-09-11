@@ -163,7 +163,7 @@ public:
     *
     * @returns auto -- Supplied return value.
     */
-   static inline auto throwAndReturn(ymassert_Base const & E, auto && r) noexcept {
+   static inline auto throwAndReturn(ymassert_Base const & E, auto && r) {
       throw E; return r;
    }
 
