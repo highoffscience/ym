@@ -87,10 +87,17 @@ protected:
       Const
    };
 
+   /// @brief Tag to disambiguate constructors.
+   YM_CREATE_TAG_DISPATCH_TYPE(ConstBuffer)
+
    /**
     * @name StackBuffer_Base Constructors.
     * @{
     * @brief Constructor.
+    *
+    * - If you try to pass a const buffer wihtout the associated tag it will correctly
+    *   fail to compile. You are allowed to pass a non-const buffer as const, but that
+    *   would not make sense.
     *
     * @param buffer_Ptr -- Pointer to stack allocated buffer.
     * @param Size       -- Size of buffer.
@@ -109,7 +116,8 @@ protected:
 
    explicit constexpr StackBuffer_Base(
       bound<void const> const buffer_Ptr,
-      std::size_t       const Size) noexcept :
+      std::size_t       const Size,
+      ConstBuffer       const) noexcept :
          std::pmr::monotonic_buffer_resource(
             MemIO::getNullMemResource()),
          _Ptr    {const_cast<void*>(buffer_Ptr.get())},
@@ -120,6 +128,9 @@ protected:
 
    /// @brief Destructor.
    inline virtual ~StackBuffer_Base(void) noexcept = default;
+
+   YM_NO_COPY(StackBuffer_Base)
+   YM_NO_ASSIGN(StackBuffer_Base)
 
    /**
     * @name StackBuffer_Base getters.
@@ -235,22 +246,39 @@ public:
 class StackStrLit : public StackBuffer_Base
 {
 public:
+   /**
+    * @brief Constructor.
+    *
+    * @tparam N -- Size of array.
+    *
+    * @param Array -- Pointer to array.
+    */
    template <std::size_t N>
    implicit inline StackStrLit(char const (&Array) [N]) noexcept :
-      StackBuffer_Base(Array, N)
+      StackBuffer_Base(Array, N, ConstBuffer{})
    { }
 
+   /**
+    * @brief Constructor.
+    *
+    * - This overload should be rarely used as the above will bind to c-style string literals.
+    *   We use this to define a user defined literal.
+    *
+    * @param Array -- Pointer to array.
+    * @param N     -- Size of array.
+    */
    implicit inline StackStrLit(
       rawstr      const Array,
       std::size_t const N) noexcept :
-         StackBuffer_Base(Array, N)
+         StackBuffer_Base(Array, N, ConstBuffer{})
    { }
 
+   /// @brief Destructor.
    inline virtual ~StackStrLit(void) noexcept = default;
 
    // TODO
-   str getRaw(void) const noexcept {
-      return {getBytes(), ym_PtrCastPassKey{}};
+   inline str getRaw(void) const noexcept {
+      return getBytes();
    }
 };
 

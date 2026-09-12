@@ -298,7 +298,6 @@ public:
     *
     * @returns auto -- A new derived pointer value wrapper.
     */
-
    constexpr auto operator + (std::integral auto const N) const noexcept { return Derived_T(_value_ptr + N); }
    constexpr auto operator - (std::integral auto const N) const noexcept { return Derived_T(_value_ptr - N); }
 
@@ -307,7 +306,6 @@ public:
 
    constexpr auto & operator ++ (std::integral auto const) noexcept { return *this = *this + 1; }
    constexpr auto & operator -- (std::integral auto const) noexcept { return *this = *this - 1; }
-
    /// @}
 
 protected:
