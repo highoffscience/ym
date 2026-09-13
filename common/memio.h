@@ -126,6 +126,7 @@ protected:
    { }
    /// @}
 
+public:
    /// @brief Destructor.
    inline virtual ~StackBuffer_Base(void) noexcept = default;
 
@@ -133,7 +134,7 @@ protected:
    YM_NO_ASSIGN(StackBuffer_Base)
 
    /**
-    * @name StackBuffer_Base getters.
+    * @name StackBuffer_Base Getters.
     * @{
     * @brief Interprets the data as another type.
     *
@@ -159,22 +160,31 @@ protected:
    /// @}
 
    /**
+    * @name StackBuffer_Base Specialized Getters.
+    * @{
     * @brief Interprets the data as a byte-like type.
     *
     * @tparam T -- Type to interpret the bytes as.
     *
     * @returns bound<T> -- Pointer to data as the desired type.
     */
-   template <typename T = char const>
+   template <typename T = std::byte>
    requires (sizeof(T) == 1uz)
    constexpr bound<T> getBytes(void) noexcept {
       return {_Ptr, ym_PtrCastPassKey{}};
    }
-   template <typename T = char const>
+   template <typename T = std::byte const>
    requires (sizeof(T) == 1uz)
    constexpr bound<T const> getBytes(void) const noexcept {
       return {_Ptr, ym_PtrCastPassKey{}};
    }
+   constexpr str getStr(void) const noexcept {
+      return getBytes<char const>();
+   }
+   constexpr operator rawstr (void) const noexcept {
+      return getStr();
+   }
+   /// @}
 
 private:
    static constexpr inline auto SingleUser_Unclaimed = std::numeric_limits<std::size_t>::max();
@@ -231,7 +241,7 @@ public:
     *
     * @param buffer_Ptr -- Buffer this user claims.
     */
-   constexpr explicit StackBufferUser(bound<StackBuffer_Base> const buffer_Ptr) {
+   explicit constexpr StackBufferUser(bound<StackBuffer_Base> const buffer_Ptr) {
       buffer_Ptr->addUser();
    }
 };
@@ -254,7 +264,7 @@ public:
     * @param Array -- Pointer to array.
     */
    template <std::size_t N>
-   implicit inline StackStrLit(char const (&Array) [N]) noexcept :
+   implicit constexpr StackStrLit(char const (&Array) [N]) noexcept :
       StackBuffer_Base(Array, N, ConstBuffer{})
    { }
 
@@ -275,14 +285,16 @@ public:
 
    /// @brief Destructor.
    inline virtual ~StackStrLit(void) noexcept = default;
-
-   // TODO
-   inline str getRaw(void) const noexcept {
-      return getBytes();
-   }
 };
 
-/// @brief TODO
+/**
+ * @brief User defined literal to cast C-style string literal to custom type.
+ *
+ * @param S -- Pointer to string.
+ * @param N -- Size of string.
+ *
+ * @returns StackStrLit -- Desired type.
+ */
 constexpr inline auto operator""_ssl(rawstr const S, std::size_t const N) {
    return StackStrLit(S, N);
 }

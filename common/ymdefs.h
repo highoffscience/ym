@@ -152,11 +152,11 @@
  * - [Reference](https://stackoverflow.com/questions/11761703/overloading-macro-on-number-of-arguments).
  *
  * - Example:
- * @code{cpp}
- *    #define YM_MY_MACRO(...) YM_MACRO_OVERLOAD(YM_MY_MACRO, __VA_ARGS__)
- *    #define YM_MY_MACRO1(First) ...
- *    #define YM_MY_MACRO2(First, Second) ...
- * @endcode
+ *   @code{cpp}
+ *      #define YM_MY_MACRO(...) YM_MACRO_OVERLOAD(YM_MY_MACRO, __VA_ARGS__)
+ *      #define YM_MY_MACRO1(First) ...
+ *      #define YM_MY_MACRO2(First, Second) ...
+ *   @endcode
  *
  * @param MACRO_ -- Name of macro to overload.
  * @param ...    -- Args to pass to macro.
