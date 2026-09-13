@@ -71,12 +71,15 @@ public:
  * @note Do *not* dynamically allocate this class. The expected responsibility of this class
  *       is to not out-live the user, and thus there is only a way one communication, user to
  *       buffer, upon destruction to let the buffer know there is no user.
+ *
+ * __Unit Test__
+ * - @ref ym::unit::memio::TestSuite::Class_MemIO.
+ *
+ * @test Shall ?
  */
 class StackBuffer_Base : public std::pmr::monotonic_buffer_resource
 {
 public:
-   YM_DECL_YMASSERT(Error);
-
    bool addUser(void) noexcept;
 
 protected:

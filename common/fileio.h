@@ -27,6 +27,11 @@ namespace ym
  *      auto filename = StackStrLit("ym/common/fileio/data.txt");
  *      auto file = FileIO(&filename, "w");
  *   @endcode
+ *
+ * __Unit Test__
+ * - @ref ym::unit::fileio::TestSuite::Class_FileIO.
+ *
+ * @test Shall ?
  */
 class FileIO : public StackBufferUser
 {
