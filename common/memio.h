@@ -9,6 +9,7 @@
 #include "ymglobals.h"
 
 #include <alloca.h>
+#include <cstring>
 #include <limits>
 #include <memory>
 #include <type_traits>
@@ -284,6 +285,11 @@ public:
       rawstr      const Array,
       std::size_t const N) noexcept :
          StackBuffer_Base(Array, N, ConstBuffer{})
+   { }
+
+   // TODO
+   implicit inline StackStrLit(strlit const S) noexcept :
+      StackBuffer_Base(S.get(), std::strlen(S.get()), ConstBuffer{})
    { }
 
    /// @brief Destructor.
