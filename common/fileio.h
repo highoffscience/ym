@@ -26,6 +26,8 @@ namespace ym
  *   @code{cpp}
  *      auto filename = StackStrLit("ym/common/fileio/data.txt");
  *      auto file = FileIO(&filename, "w");
+ *      // or
+ *      auto file = FileIO("ym/common/fileio/data.txt", "w");
  *   @endcode
  *
  * __Unit Test__

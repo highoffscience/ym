@@ -215,7 +215,7 @@ private:
  *
  * @tparam N -- Size of buffer, in bytes.
  */
-template <std::size_t N>
+template <std::size_t N> // TODO add alignment requirements
 requires (N > 0uz)
 class StackBuffer : public StackBuffer_Base
 {
