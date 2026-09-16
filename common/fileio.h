@@ -14,7 +14,7 @@
 #include <optional>
 #include <span>
 #include <string>
-#include <tuple>
+#include <variant>
 
 namespace ym
 {
@@ -41,6 +41,10 @@ public:
    implicit inline FileIO(
       bound<StackBuffer_Base> const Filename,
       str                     const Mode = "rb") noexcept;
+
+   implicit inline FileIO(
+      strlit const Filename,
+      str    const Mode = "rb") noexcept;
 
    /// @brief Access mode bit positions.
    enum AccessModeFlags_T {
@@ -87,10 +91,12 @@ public:
    std::optional<std::span<char>> fillBufferPiecewise(std::span<char> buffer) noexcept;
 
 private:
-   loose<std::FILE>        _file     {nullptr};
-   bound<StackBuffer_Base> _filename_ptr;
-   std::size_t             _size     {  0uz  };
-   ByteBitset              _flags    {       };
+   using Filename_T = std::variant<strlit, bound<StackBuffer_Base>>;
+
+   loose<std::FILE> _file  {nullptr};
+   Filename_T       _filename;
+   std::size_t      _size  {  0uz  };
+   ByteBitset       _flags {       };
 };
 
 /**
@@ -103,6 +109,13 @@ inline FileIO::FileIO(
    bound<StackBuffer_Base> const Filename,
    str                     const Mode) noexcept :
       StackBufferUser(Filename),
+      _filename_ptr {Filename}
+{
+   std::ignore = reset(_filename_ptr, Mode);
+}
+inline FileIO::FileIO(
+   strlit const Filename,
+   str    const Mode) noexcept :
       _filename_ptr {Filename}
 {
    std::ignore = reset(_filename_ptr, Mode);

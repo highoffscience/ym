@@ -95,7 +95,6 @@ protected:
    YM_CREATE_TAG_DISPATCH_TYPE(ConstBuffer)
 
    /**
-    * @name StackBuffer_Base Constructors.
     * @{
     * @brief Constructor.
     *
@@ -138,7 +137,6 @@ public:
    YM_NO_ASSIGN(StackBuffer_Base)
 
    /**
-    * @name StackBuffer_Base Getters.
     * @{
     * @brief Interprets the data as another type.
     *
@@ -241,13 +239,16 @@ class StackBufferUser
 {
 public:
    /**
+    * @{
     * @brief Constructor.
     *
     * @param buffer_Ptr -- Buffer this user claims.
     */
-   explicit constexpr StackBufferUser(bound<StackBuffer_Base> const buffer_Ptr) {
+   explicit constexpr StackBufferUser(void) noexcept = default;
+   explicit constexpr StackBufferUser(bound<StackBuffer_Base> const buffer_Ptr) noexcept {
       buffer_Ptr->addUser();
    }
+   /// @}
 };
 
 // ----------------------------------------------------------------------------
