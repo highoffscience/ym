@@ -179,7 +179,7 @@ inline void ym::GlobalLogger::printf(
    { // printf can fail
       if (VFlag == VF::Errstream)
       { // error printing - print to err stream console
-         fmt::print(stderr, "WARNING: ");
+         fmt::print(stderr, "ERROR: ");
          fmt::vprintln(stderr, Format.get(), fmt::make_format_args(args...));
       }
       else if (VFlag == VF::Console)

@@ -42,33 +42,33 @@ auto ym::unit::fileio::TestSuite::InteractiveInspection::run([[maybe_unused]] Da
  */
 auto ym::unit::fileio::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto filename = "ym/common/fileio/data.txt"_ssl;
+   strlit const Filename = "ym/common/fileio/data.txt";
    strlit const TestData = "Go! Torchic!";
 
    { // write to file
-      FileIO outfile(&filename, "wb");
+      FileIO outfile(Filename, "wb");
       std::fputs(TestData, outfile);
    }
 
-   auto const Exists = FileIO::exists(filename.getStr());
+   auto const Exists = FileIO::exists(Filename);
    auto const NotExists = FileIO::exists("ym/common/fileio/no_exists.txt");
 
    std::array<char, 1024uz> buffer_1{'\0'};
    { // read file
-      FileIO infile(&filename);
+      FileIO infile(Filename);
       if (infile.fillBuffer(buffer_1))
       {
-         fmt::println("-->buffer_1_success {}<--", buffer_1.data());
+         fmt::println("<>buffer_1_success<>{}<>", buffer_1.data());
       }
       else
       {
-         fmt::println("-->buffer_1_fail<--");
+         fmt::println("<>buffer_1_fail<>");
       }
    }
 
    std::array<char, buffer_1.size()> buffer_2{'\0'};
    { // read file in a different way
-      FileIO infile(&filename);
+      FileIO infile(Filename);
       for (
          std::optional<std::span<char>> data{{buffer_2.data(), 100uz}};
          (data = infile.fillBufferPiecewise(*data));

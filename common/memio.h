@@ -162,7 +162,6 @@ public:
    /// @}
 
    /**
-    * @name StackBuffer_Base Specialized Getters.
     * @{
     * @brief Interprets the data as a byte-like type.
     *

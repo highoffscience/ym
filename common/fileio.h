@@ -12,6 +12,7 @@
 
 #include <cstdio>
 #include <optional>
+#include <memory>
 #include <span>
 #include <string>
 #include <variant>
@@ -37,6 +38,9 @@ namespace ym
  */
 class FileIO : public StackBufferUser
 {
+private:
+   using Filename_T = std::variant<strlit, bound<StackBuffer_Base>>;
+
 public:
    implicit inline FileIO(
       bound<StackBuffer_Base> const Filename,
@@ -45,6 +49,8 @@ public:
    implicit inline FileIO(
       strlit const Filename,
       str    const Mode = "rb") noexcept;
+
+
 
    /// @brief Access mode bit positions.
    enum AccessModeFlags_T {
@@ -58,30 +64,33 @@ public:
    /// @{
    /// @brief Getters.
    /// @returns auto -- Self explanatory.
-   inline bool isOpen(void) const noexcept { return _file; }
+   inline bool isOpen(void) const noexcept { return _file_ptr != nullptr; }
    inline operator bool(void) const noexcept { return isOpen(); }
    /// @}
 
    bool reset(
-      bound<StackBuffer_Base> const Filename,
-      str                     const Mode = "rb") noexcept;
+      Filename_T const Filename,
+      str        const Mode = "rb") noexcept;
 
-   std::optional<std::size_t> getSize(void) const noexcept;
+   std::optional<std::size_t> getSize(bool const Force = false) const noexcept;
 
    /// @name FileIO Getters.
    /// @{
    /// @brief Getter. Guaranteed not null.
    /// @throws ym_NullPtrError -- If underlying file handle is null.
    /// @returns std::FILE * -- Raw underlying file handle. Guaranteed not null.
-   inline auto * get                  (this auto && self) { return self._file.unwrap().get(); }
+   inline auto * get                  (this auto && self) { return self._file_ptr->get(); }
    inline        operator std::FILE * (this auto && self) { return self.get(); }
    inline auto * operator *           (this auto && self) { return self.get(); }
    /// @}
 
    /// @brief Gets filename.
    /// @returns str -- Filename.
-   inline auto getFilename(void) const noexcept {
-      return _filename_ptr->getStr();
+   inline str getFilename(void) const noexcept {
+      return std::visit(ym_visit_overloaded_t{
+         [](strlit                  const Arg) -> str { return Arg;           },
+         [](bound<StackBuffer_Base> const Arg) -> str { return Arg->getStr(); }
+      }, _filename);
    }
 
 #if (YM_USE_HEAP_AS_FALLBACK)
@@ -91,12 +100,21 @@ public:
    std::optional<std::span<char>> fillBufferPiecewise(std::span<char> buffer) noexcept;
 
 private:
-   using Filename_T = std::variant<strlit, bound<StackBuffer_Base>>;
+   /// @cond INTERNAL
+   struct Deleter {
+      using pointer = loose<std::FILE>;
+      inline void operator () (pointer f) const noexcept {
+         std::ignore = f.invoke(std::fclose);
+      }
+   };
+   /// @endcond
 
-   loose<std::FILE> _file  {nullptr};
-   Filename_T       _filename;
-   std::size_t      _size  {  0uz  };
-   ByteBitset       _flags {       };
+   std::unique_ptr<
+      std::FILE,
+      Deleter>  _file_ptr {nullptr};
+   Filename_T   _filename;
+   std::size_t  _size     {  0uz  };
+   ByteBitset   _flags    {       };
 };
 
 /**
@@ -109,16 +127,16 @@ inline FileIO::FileIO(
    bound<StackBuffer_Base> const Filename,
    str                     const Mode) noexcept :
       StackBufferUser(Filename),
-      _filename_ptr {Filename}
+      _filename {Filename}
 {
-   std::ignore = reset(_filename_ptr, Mode);
+   std::ignore = reset(_filename, Mode);
 }
 inline FileIO::FileIO(
    strlit const Filename,
    str    const Mode) noexcept :
-      _filename_ptr {Filename}
+      _filename {Filename}
 {
-   std::ignore = reset(_filename_ptr, Mode);
+   std::ignore = reset(_filename, Mode);
 }
 
 } // ym

@@ -23,6 +23,7 @@
 #include <memory_resource>
 #include <type_traits>
 #include <utility>
+#include <variant>
 
 #if (YM_CPP_STANDARD >= 23) && (YM_LITE == 0)
    #include <stacktrace>
@@ -171,6 +172,14 @@ union PtrInt_T
 // ----------------------------------------------------------------------------
 
 /**
+ * @brief Convience method for std::visit. [Reference](https://en.cppreference.com/cpp/utility/variant/visit2).
+ */
+template <typename... Ts>
+struct ym_visit_overloaded_t : Ts... { using Ts::operator()...; };
+
+// ----------------------------------------------------------------------------
+
+/**
  * @brief A more compact version of std::bitset.
  *
  * - This should only be if std::bitset (which uses u64), is too expensive.
@@ -248,6 +257,8 @@ public:
 private:
    std::byte _bits{0};
 };
+
+// ----------------------------------------------------------------------------
 
 /// @brief Global null pointer error.
 YM_DECL_YMASSERT(ym_NullPtrError)
@@ -340,7 +351,6 @@ public:
    constexpr BoundPtr_Base<T, Derived_T> & operator = (std::nullptr_t) = delete;
    /// @}
 
-   /// @name BoundPtr_Base Getter Functions.
    /// @{
    /// @brief Gets underlying pointer value.
    /// @returns auto (*) -- Underlying pointer value.
@@ -561,12 +571,21 @@ public:
       LoosePtr<T>(Other.get())
    { }
 
-   /// @name LoosePtr Comparison Operations.
    /// @{
    /// @brief Comparison overloads.
    constexpr auto operator <=> (LoosePtr<T> const &) const noexcept = default;
-   constexpr bool operator == (std::nullptr_t) const noexcept { return this->_value_ptr == nullptr; }
+   constexpr bool operator ==  (std::nullptr_t) const noexcept { return this->_value_ptr == nullptr; }
    /// @}
+
+   // TODO
+   // investigate std::forward_like
+   constexpr auto operator -> (this auto && self) noexcept {
+      std::optional<BoundPtr<T>> result = std::nullopt;
+      if (self) {
+         result = self.unwrap();
+      }
+      return result;
+   }
 
    /// @brief Returns true if contained pointer is not null, false otherwise.
    constexpr operator bool(void) const noexcept {
@@ -591,6 +610,28 @@ public:
     */
    constexpr BoundPtr<T> unwrap_or(BoundPtr<T> const Ptr) const noexcept {
       return (*this) ? unwrap() : Ptr;
+   }
+
+   // TODO
+   template <
+      typename    Func_T,
+      typename... Args_T>
+   requires (std::invocable<Func_T, T*, Args_T...>)
+   constexpr auto invoke(
+      Func_T &&    f,
+      Args_T &&... args)
+   {
+      std::optional<std::invoke_result_t<Func_T, T*, Args_T...>> result = std::nullopt;
+
+      if (*this)
+      { // valid pointer
+         result = std::invoke(
+            std::forward<Func_T>(f),
+            unwrap(),
+            std::forward<Args_T>(args)...);
+      }
+
+      return result;
    }
 };
 

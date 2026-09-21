@@ -27,7 +27,7 @@ ym::GlobalLogger::GlobalLogger(
       _slots[i]._seqN.store(i, std::memory_order_relaxed);
    }
 
-   // TODO enable groups like Global, Warning, Error, etc.
+   enable(VF::Global, VF::Warning, VF::Error);
 
    open();
 }

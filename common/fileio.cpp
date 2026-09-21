@@ -45,23 +45,24 @@ bool ym::FileIO::exists(str const Filename) noexcept
  * @param Mode     -- Opening mode (read/write/append, etc.)
  */
 bool ym::FileIO::reset(
-   bound<StackBuffer_Base> const Filename,
-   str                     const Mode) noexcept
+   Filename_T const Filename,
+   str        const Mode) noexcept
 {
    if (isOpen())
    { // close current file
-      std::ignore = std::fclose(get());
+      _file_ptr.reset();
    }
 
-   _file = std::fopen(*Filename, Mode);
+   _filename = std::move(Filename);
+   _file_ptr.reset(std::fopen(getFilename(), Mode));
 
    if (isOpen())
    { // file successfully opened
-      if (auto Size = getSize(); Size)
+      if (auto Size = getSize(true); Size)
       { // got size
          _size = *Size;
 
-         switch (fcntl(fileno(_file.unwrap()), F_GETFL) & O_ACCMODE)
+         switch (fcntl(fileno(_file_ptr->get()), F_GETFL) & O_ACCMODE)
          { // get file permissions
             case O_RDONLY:
             { // read permissions
@@ -82,14 +83,14 @@ bool ym::FileIO::reset(
             default:
             { // error
                ymLog(VF::Warning, "Could not get permissions for file {}", getFilename());
-               std::ignore = std::fclose(get());
+               _file_ptr.reset();
             }
          }
       }
       else
       { // error getting size
          ymLog(VF::Warning, "Could not get size of file {}", getFilename());
-         std::ignore = std::fclose(get());
+         _file_ptr.reset();
       }
    }
    else
@@ -103,20 +104,23 @@ bool ym::FileIO::reset(
 /**
  * @brief Gets the size of the current file.
  *
+ * @param Force -- Whether or not to recalculate size or get stored size.
+ *
  * @returns std::optional<std::size_t> -- Size of file or nullopt if an error occurred.
  */
-std::optional<std::size_t> ym::FileIO::getSize(void) const noexcept
+std::optional<std::size_t> ym::FileIO::getSize(bool const Force) const noexcept
 {
    std::optional<std::size_t> size{std::nullopt};
 
    if (isOpen())
    { // file opened
-      if (_flags.test(AccessModeFlags_T::Write))
+      if (_flags.test(AccessModeFlags_T::Write) || Force)
       { // size can change - recalculate
          struct stat st;
-         if (fstat(fileno(_file.unwrap()), &st) == 0)
+         if (fstat(fileno(_file_ptr->get()), &st) == 0)
          { // got size
             size = static_cast<std::size_t>(st.st_size);
+            ymLog(VF::Warning, "My size is {} ({}) ({})", *size, getFilename(), Force);
          }
          else
          { // error getting size
@@ -186,7 +190,7 @@ bool ym::FileIO::fillBuffer(
             { // we have room
                buffer[NRead] = '\0';
                // TODO
-               // fmt::println("-->buffer_1_place ({})({})({})<--", buffer.data(), buffer.size(), getSize());
+               ymLog(VF::Warning, "-->buffer_1_place ({})({})({})<--", buffer.data(), buffer.size(), *getSize());
             }
             else
             { // not enough room afterall
