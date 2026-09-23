@@ -730,7 +730,6 @@ public:
 template <typename T, std::size_t N>
 LoosePtr(T (&)[N]) -> LoosePtr<T[]>;
 
-/// @name Pointer aliases.
 /// @{
 /// @brief Convenience alias.
 template <typename T>
@@ -740,22 +739,21 @@ template <typename T>
 using loose = LoosePtr<T>;
 /// @}
 
-/// @name C-style string aliases.
 /// @{
 /// @brief Convenience alias.
 using str       = BoundPtr<char const>;   // string
 using strlit    = BoundPtr<char const[]>; // string literal
 using mutstr    = BoundPtr<char>;         // mutable string
-using optstr    = LoosePtr<char const>;    // optional string
-using optstrlit = LoosePtr<char const[]>;  // optional string literal
-using optmutstr = LoosePtr<char>;          // optional mutable string
+using optstr    = LoosePtr<char const>;   // optional string
+using optstrlit = LoosePtr<char const[]>; // optional string literal
+using optmutstr = LoosePtr<char>;         // optional mutable string
 /// @}
 
 /**
  * @brief Holds a polymorphic object that share a common base and whose sizes are all equivalent.
  *
  * @tparam Base_T -- Base class.
- * @tparam N      -- Size of derived classes (in bytes).
+ * @tparam N      -- Size of derived classes.
  *
  * __Unit Test__
  * - @ref ym::unit::ymutils::TestSuite::Class_PolyRaw.
@@ -777,11 +775,19 @@ class PolyRaw
 {
 public:
    /**
+    * @{
     * @brief Constructor.
+    *    1. Constructs derived class in place.
+    *    2. Copy constructor.
     *
-    * @throws std::exception -- From construct().
+    * @throws std::exception -- (1, 2) Derived object may throw on construction.
     *
-    * @param args -- Arguments to forward in construction of derived type.
+    * @tparam Derived_T -- Type of object to store.
+    * @tparam Args_T    -- Args used in construction of Derived_T.
+    *
+    * @param std::in_place_type_t<Derived_T> -- Dispatch type to call this overload.
+    * @param args                            -- Arguments to forward in construction of derived type.
+    * @param Other                           -- Source object.
     */
    template <
       typename    Derived_T,
@@ -796,13 +802,16 @@ public:
       construct(std::in_place_type<Derived_T>, std::forward<Args_T>(args)...);
    }
 
+   constexpr PolyRaw(PolyRaw<Base_T, MaxDerivedSize> const & Other) {
+      *this = Other;
+   }
+   /// @}
+
    /**
-    * @name PolyRaw Access Operations.
     * @{
-    *
     * @brief Returns (const) base object pointer.
     *
-    * @return BoundPtr<> -- Bound pointer to underlying object.
+    * @return BoundPtr -- Bound pointer to underlying object.
     */
    constexpr BoundPtr<Base_T const> operator -> (void) const noexcept {
       return {
@@ -816,35 +825,33 @@ public:
    constexpr BoundPtr<Base_T> operator -> (void) noexcept {
       return std::launder(ym_castPtrTo<Base_T>(_buffer.data()));
    }
-
    /// @}
 
-   /// @brief Copy constructor.
-   constexpr PolyRaw(PolyRaw<Base_T, MaxDerivedSize> const & Other) {
-      *this = Other;
-   }
-
-   /// @brief Copy assignment.
+   /**
+    * @brief Copy assignment.
+    *
+    * @param Other -- Source object.
+    *
+    * @returns auto & -- Reference to this object.
+    */
    constexpr auto & operator = (PolyRaw<Base_T, MaxDerivedSize> const & Other) {
-      if (this != &Other) { // prevent self assign
+      if (this != &Other)
+      { // prevent self assign
          Other->cloneAt(_buffer.data(), MaxDerivedSize);
       }
       return *this;
    }
-
-   /// @name PolyRaw Move Semantics.
-   /// @{
-   /// @brief Move constructor & move assignment doesn't make sense for use cases.
-   constexpr PolyRaw(PolyRaw<Base_T, MaxDerivedSize> && other) = delete;
-   constexpr PolyRaw<Base_T, MaxDerivedSize> & operator = (PolyRaw<Base_T, MaxDerivedSize> && other) = delete;
-   /// @}
 
    /**
     * @brief Constructs derived object in place.
     *
     * @throws std::exception -- From Derived_T's constructor.
     *
-    * @param args -- Arguments to forward in construction of derived type.
+    * @tparam Derived_T -- Type of object to store.
+    * @tparam Args_T    -- Args used in construction of Derived_T.
+    *
+    * @param std::in_place_type_t<Derived_T> -- Dispatch type to call this overload.
+    * @param args                            -- Arguments to forward in construction of derived type.
     */
    template <
       typename    Derived_T,
