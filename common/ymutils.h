@@ -300,9 +300,7 @@ protected:
 
 public:
    /**
-    * @name Ptr_Base Arithmetic Functions.
     * @{
-    *
     * @brief Returns the value of the incremented/decremented pointer value.
     *
     * @param N -- Value to increment/decrement by.
@@ -320,7 +318,7 @@ public:
    /// @}
 
 protected:
-   T * _value_ptr{nullptr};
+   T * _value_ptr {nullptr};
 };
 
 /**
@@ -345,15 +343,19 @@ protected:
    { }
 
 public:
-   /// @name BoundPtr_Base Compile Time Nullness Checks.
-   /// @{
+   /**
+    * @{
+    * @brief Compile-time nullness checks.
+    */
    constexpr BoundPtr_Base                            (std::nullptr_t) = delete;
    constexpr BoundPtr_Base<T, Derived_T> & operator = (std::nullptr_t) = delete;
    /// @}
 
-   /// @{
-   /// @brief Gets underlying pointer value.
-   /// @returns auto (*) -- Underlying pointer value.
+   /**
+    * @{
+    * @brief Gets underlying pointer value.
+    * @returns auto (*) -- Underlying pointer value.
+    */
    constexpr auto * get          (this auto && self) noexcept { return  self._value_ptr; }
    constexpr        operator T * (this auto && self) noexcept { return  self.get(); }
    constexpr auto & operator *   (this auto && self) noexcept { return *self.get(); }
@@ -396,63 +398,70 @@ class BoundPtr : public BoundPtr_Base<T, BoundPtr<T>>
 {
 public:
    /**
-    * @brief Constructor. Wrapper for custom bound pointer types.
+    * @{
+    * @brief Constructor.
+    *    1. Wrapper for custom bound pointer types.
+    *    2. Assumes pointer is not null, like from std::array::data().
+    *    3. Unsafe to convert between the two - deallocation strategies differ.
+    *    4. Only allow if str - it is de facto usage to treat character arrays as character pointers.
+    *    5. Restricted casting constructor.
+    *    6. Un-restricted casting constructor. Anything goes.
+    *    7. Compile time nullness check.
     *
-    * @throws ym_NullPtrError -- If value_Ptr is null.
+    * @throws ym_NullPtrError -- (1) If value_Ptr is null.
     *
-    * @param value_Ptr -- Pointer value to wrap.
+    * @tparam U -- (3, 4) Type of incoming pointer.
+    *
+    * @param value_Ptr           -- (1, 2) Pointer value to wrap.
+    * @param ym_AssumePtrNotNull -- (2) Dispatch type to call this overload.
+    * @param Other               -- (3, 4, 5, 6) Pointer to wrap.
+    * @param ym_PtrCastPassKey   -- (6) Dispatch type to call this overload.
+    * @param std::nullptr_t      -- (7) Type to call this overload (nullptr).
     */
-   implicit constexpr BoundPtr(T * const value_Ptr) :
+   implicit constexpr BoundPtr(T * const value_Ptr) : // (1)
       BoundPtr_Base<T, BoundPtr<T>>(value_Ptr)
    {
       YMASSERT(this->get(), ym_NullPtrError, YM_DAH, "Bound pointer cannot be null");
    }
 
-   /// @brief Constructor. Assumes pointer is not null, like from std::array<>.data().
-   implicit constexpr BoundPtr(
+   implicit constexpr BoundPtr( // (2)
       T * const value_Ptr,
       ym_AssumePtrNotNull) noexcept :
          BoundPtr_Base<T, BoundPtr<T>>(value_Ptr)
    { }
 
-   /// @brief Constructor. Unsafe to convert between the two - deallocation strategies differ.
    template <typename U>
    requires (std::is_array_v<U> && !ByteLikeable<T>)
-   implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept = delete;
+   implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept = delete; // (3)
 
-   /// @brief Constructor. Only allow if str - it is de facto usage to treat character arrays as character pointers.
    template <typename U>
    requires (std::is_array_v<U> && ByteLikeable<T>)
-   implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept :
+   implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept : // (4)
       BoundPtr<T>(Other.get(), ym_AssumePtrNotNull{})
    { }
 
-   /// @brief Casting constructor.
    template <typename U>
    requires (
       std::is_convertible_v<U*, T*> || // enforce legal casting
       std::is_same_v<T, uchar>      || // casting to byte representation is legal
       std::is_same_v<T, std::byte>)    // ...
-   implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept :
+   implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept : // (5)
       BoundPtr_Base<T, BoundPtr<T>>(ym_castPtrTo<T>(Other.get()))
    { }
 
-   /// @brief Casting constructor. Anything goes.
    template <typename U>
-   implicit constexpr BoundPtr(
+   implicit constexpr BoundPtr( // (6)
       BoundPtr<U>       const & Other,
       ym_PtrCastPassKey const) noexcept :
          BoundPtr_Base<T, BoundPtr<T>>(ym_castPtrTo<T>(Other.get()))
    { }
 
-   /// @name BoundPtr<> Creation Methods.
-   /// @{
-   /// @brief Compile time non-nullness checks.
-   constexpr BoundPtr                 (std::nullptr_t) = delete;
-   constexpr BoundPtr<T> & operator = (std::nullptr_t) = delete;
+   constexpr BoundPtr(std::nullptr_t) = delete; // (7)
    /// @}
 
-   /// @name BoundPtr<> Comparison Operations.
+   /// @brief Compile time nullness check.
+   constexpr BoundPtr<T> & operator = (std::nullptr_t) = delete;
+
    /// @{
    /// @brief Comparison overloads.
    constexpr auto operator <=> (BoundPtr<T> const &) const noexcept = default;
@@ -476,25 +485,36 @@ template <typename T>
 class BoundPtr<T[]> : public BoundPtr_Base<T, BoundPtr<T[]>>
 {
 public:
-   /// @brief Constructor. Wrapper for non-null pointer.
+   /**
+    * @{
+    * @brief Constructor.
+    *    1. Wrapper for non-null pointer.
+    *    2. Restricted casting constructor.
+    *    3. Compile time nullness check.
+    *
+    * @tparam N -- (1) Size of array.
+    * @tparam U -- (3, 4) Type if incoming pointer.
+    *
+    * @param array          -- (1) Pointer to C-style area.
+    * @param Other          -- (2) Pointer to wrap.
+    * @param std::nullptr_t -- (3) Type to call this overload (nullptr).
+    */
    template <std::size_t N>
-   implicit constexpr BoundPtr(T (&array) [N]) noexcept :
+   implicit constexpr BoundPtr(T (&array) [N]) noexcept : // (1)
       BoundPtr_Base<T, BoundPtr<T[]>>(array)
    { }
 
-   /// @brief Casting constructor.
    template <typename U>
    requires (std::is_convertible_v<U*, T*>) // enforce legal casting
-   implicit constexpr BoundPtr(BoundPtr<U[]> const & Other) noexcept :
+   implicit constexpr BoundPtr(BoundPtr<U[]> const & Other) noexcept : // (2)
       BoundPtr_Base<T, BoundPtr<T[]>>(Other)
    { }
 
-   /// @name BoundPtr<[]> Creation Methods.
-   /// @{
-   /// @brief Compile time non-nullness checks.
-   constexpr BoundPtr                   (std::nullptr_t) = delete;
-   constexpr BoundPtr<T[]> & operator = (std::nullptr_t) = delete;
+   constexpr BoundPtr(std::nullptr_t) = delete; // (3)
    /// @}
+
+   /// @brief Compile time nullness check
+   constexpr BoundPtr<T[]> & operator = (std::nullptr_t) = delete;
 };
 
 /// @brief Deduction guide - prevents pointer to array from decaying.
@@ -514,62 +534,73 @@ template <typename T>
 class LoosePtr : public Ptr_Base<T, LoosePtr<T>>
 {
 public:
-   /// @brief Constructor.
-   implicit constexpr LoosePtr(void) noexcept :
+   /**
+    * @{
+    * @brief Constructor.
+    *    1. Wrapper for custom loose pointer types.
+    *    2. Creates loose pointer from raw pointer.
+    *    3. Creates loose pointer from bound pointer.
+    *    4. Restricted casting constructor.
+    *    5. Un-restricted casting constructor.
+    *    6. Unsafe to convert between the two - deallocation strategies differ.
+    *    7. Only allow if str - it is de facto usage to treat character arrays as character pointers.
+    *    8. Unsafe to convert between the two - deallocation strategies differ.
+    *    9. Only allow if str - it is de facto usage to treat character arrays as character pointers.
+    *
+    * @tparam U -- (3, 4, 5, 6, 7, 8, 9) Type of incoming pointer.
+    *
+    * @param value_Ptr         -- (2, 3) Pointer value to wrap.
+    * @param Other             -- (4, 5, 6, 7, 8, 9) Pointer to wrap.
+    * @param ym_PtrCastPassKey -- (5) Dispatch type to call this overload.
+    */
+   implicit constexpr LoosePtr(void) noexcept : // (1)
       LoosePtr<T>(nullptr)
    { }
 
-   /// @brief Constructor.
-   implicit constexpr LoosePtr(T * const value_Ptr) noexcept :
+   implicit constexpr LoosePtr(T * const value_Ptr) noexcept : // (2)
       Ptr_Base<T, LoosePtr<T>>(value_Ptr)
    { }
 
-   /// @brief Constructor.
-   implicit constexpr LoosePtr(BoundPtr<T> const value_Ptr) noexcept :
+   implicit constexpr LoosePtr(BoundPtr<T> const value_Ptr) noexcept : // (3)
       Ptr_Base<T, LoosePtr<T>>(value_Ptr.get())
    { }
 
-   /// @brief Casting constructor.
    template <typename U>
    requires (
       std::is_convertible_v<U*, T*> || // enforce legal casting
       std::is_same_v<T, uchar>      || // casting to byte representation is legal
       std::is_same_v<T, std::byte>)    // ...
-   implicit constexpr LoosePtr(LoosePtr<U> const & Other) noexcept :
+   implicit constexpr LoosePtr(LoosePtr<U> const & Other) noexcept : // (4)
       Ptr_Base<T, LoosePtr<T>>(ym_castPtrTo<T>(Other._value_ptr))
    { }
 
-   /// @brief Casting constructor. Anything goes.
    template <typename U>
-   implicit constexpr LoosePtr(
+   implicit constexpr LoosePtr( // (5)
       LoosePtr<U>       const & Other,
       ym_PtrCastPassKey const) noexcept :
          Ptr_Base<T, LoosePtr<T>>(ym_castPtrTo<T>(Other._value_ptr))
    { }
 
-   /// @brief Constructor. Unsafe to convert between the two - deallocation strategies differ.
    template <typename U>
    requires (std::is_array_v<U> && !ByteLikeable<T>)
-   implicit constexpr LoosePtr(LoosePtr<U> const & Other) noexcept = delete;
+   implicit constexpr LoosePtr(LoosePtr<U> const & Other) noexcept = delete; // (6)
 
-   /// @brief Constructor. Only allow if str - it is de facto usage to treat character arrays as character pointers.
    template <typename U>
    requires (std::is_array_v<U> && ByteLikeable<T>)
-   implicit constexpr LoosePtr(LoosePtr<U> const & Other) noexcept :
+   implicit constexpr LoosePtr(LoosePtr<U> const & Other) noexcept : // (7)
       LoosePtr<T>(Other.get())
    { }
 
-   /// @brief Constructor. Unsafe to convert between the two - deallocation strategies differ.
    template <typename U>
    requires (std::is_array_v<U> && !ByteLikeable<T>)
-   implicit constexpr LoosePtr(BoundPtr<U> const & Other) noexcept = delete;
+   implicit constexpr LoosePtr(BoundPtr<U> const & Other) noexcept = delete; // (8)
 
-   /// @brief Constructor. Only allow if str - it is de facto usage to treat character arrays as character pointers.
    template <typename U>
    requires (std::is_array_v<U> && ByteLikeable<T>)
-   implicit constexpr LoosePtr(BoundPtr<U> const & Other) noexcept :
+   implicit constexpr LoosePtr(BoundPtr<U> const & Other) noexcept : // (9)
       LoosePtr<T>(Other.get())
    { }
+   /// @}
 
    /// @{
    /// @brief Comparison overloads.
@@ -648,28 +679,40 @@ template <typename T>
 class LoosePtr<T[]> : public Ptr_Base<T, LoosePtr<T[]>>
 {
 public:
-   /// @brief Constructor.
-   implicit constexpr LoosePtr(void) noexcept :
+   /**
+    * @{
+    * @brief Constructor.
+    *    1. Wrapper for pointers.
+    *    2. Wrapper for non-null pointer.
+    *    3. Wrapper for non-null pointer.
+    *    4. Restricted casting constructor.
+    *
+    * @tparam N -- (2) Size of array.
+    * @tparam U -- (3, 4) Type if incoming pointer.
+    *
+    * @param array     -- (2) Pointer to C-style area.
+    * @param value_Ptr -- (2) Pointer to wrap.
+    * @param Other     -- (3) Pointer to wrap.
+    */
+   implicit constexpr LoosePtr(void) noexcept : // (1)
       Ptr_Base<T, LoosePtr<T[]>>(nullptr)
    { }
 
-   /// @brief Wrapper for non-null pointer.
    template <std::size_t N>
-   implicit constexpr LoosePtr(T (&array) [N]) noexcept :
+   implicit constexpr LoosePtr(T (&array) [N]) noexcept : // (2)
       Ptr_Base<T, LoosePtr<T[]>>(array)
    { }
 
-   /// @brief Constructor.
-   implicit constexpr LoosePtr(BoundPtr<T[]> const value_Ptr) noexcept :
+   implicit constexpr LoosePtr(BoundPtr<T[]> const value_Ptr) noexcept : // (3)
       Ptr_Base<T, LoosePtr<T[]>>(value_Ptr.get())
    { }
 
-   /// @brief Casting constructor.
    template <typename U>
    requires (std::is_convertible_v<U*, T*>) // enforce legal casting
-   implicit constexpr LoosePtr(LoosePtr<U[]> const & Other) noexcept :
+   implicit constexpr LoosePtr(LoosePtr<U[]> const & Other) noexcept : // (4)
       Ptr_Base<T, LoosePtr<T[]>>(Other)
    { }
+   /// @}
 
    /**
     *  @brief Grabs the element at the specified index. No bounds checking.
