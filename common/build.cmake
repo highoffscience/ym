@@ -25,6 +25,7 @@ function(srcbuild-ym.common Ctx_JSON)
       litelogger.cpp
       logger.cpp
       memio.cpp
+      rng.cpp
       textlogger.cpp
       timer.cpp
       verbogroup.cpp
