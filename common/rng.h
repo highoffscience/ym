@@ -17,9 +17,9 @@
 // {
 
 // /** Randomable
-//  * 
+//  *
 //  * @brief Supported types the PRNG is able to generate.
-//  * 
+//  *
 //  * @tparam T -- Data type.
 //  */
 // template <typename T>
@@ -32,14 +32,14 @@
 // // -----------------------------------------------------------------------------
 
 // /** Prng
-//  * 
+//  *
 //  * @brief A pseudo-random number generator.
-//  * 
+//  *
 //  * @note Satisfies requirements of UniformRandomBitGenerator
-//  * 
-//  * @link <https://en.cppreference.com/w/cpp/named_req/UniformRandomBitGenerator>
-//  * @link <https://www.pcg-random.org/paper.html>
-//  * @link <https://en.wikipedia.org/wiki/Linear-feedback_shift_register>.
+//  *
+//  * <https://en.cppreference.com/w/cpp/named_req/UniformRandomBitGenerator>
+//  * <https://www.pcg-random.org/paper.html>
+//  * <https://en.wikipedia.org/wiki/Linear-feedback_shift_register>.
 //  */
 // class Prng
 // {
@@ -79,9 +79,9 @@
 // };
 
 // /** gen
-//  * 
+//  *
 //  * @brief Generates uniform positive integer values in the range [0..2^64).
-//  * 
+//  *
 //  * @note Changes internal state when called.
 //  *
 //  * @returns uint64 -- Random number in range.
@@ -98,9 +98,9 @@
 // }
 
 // /** gen
-//  * 
+//  *
 //  * @brief Generates uniform positive integer values in the range [0..2^32).
-//  * 
+//  *
 //  * @note Changes internal state when called.
 //  *
 //  * @returns uint32 -- Random number in range.
@@ -112,10 +112,10 @@
 // }
 
 // /** gen
-//  * 
+//  *
 //  * @brief Generates uniform real values in the range [0..1).
 //  *        Resolution is 2^23 (~8 million).
-//  * 
+//  *
 //  * @note Changes internal state when called.
 //  *
 //  * @returns float32 -- Random number in range.
@@ -127,10 +127,10 @@
 // }
 
 // /** gen
-//  * 
+//  *
 //  * @brief Generates uniform real values in the range [0..1).
 //  *        Resolution is 2^52 (~4 quadrillion).
-//  * 
+//  *
 //  * @note Changes internal state when called.
 //  *
 //  * @returns float64 -- Random number in range.
@@ -142,9 +142,9 @@
 // }
 
 // /** operator ()
-//  * 
+//  *
 //  * @brief Generates uniform positive integer values in the range of result_type.
-//  * 
+//  *
 //  * @note Changes internal state when called.
 //  *
 //  * @returns result_type -- Random number in range.
@@ -155,10 +155,10 @@
 // }
 
 // /** convertToFloat32
-//  * 
+//  *
 //  * @brief Generates uniform real values in the range [0..1).
 //  *        Resolution is 2^23 (~8 million).
-//  * 
+//  *
 //  * @param Val -- Value to convert.
 //  *
 //  * @returns float32 -- Random number in range.
@@ -183,10 +183,10 @@
 // }
 
 // /** convertToFloat64
-//  * 
+//  *
 //  * @brief Generates uniform real values in the range [0..1).
 //  *        Resolution is 2^52 (~4 quadrillion).
-//  * 
+//  *
 //  * @param Val -- Value to convert.
 //  *
 //  * @returns float64 -- Random number in range.
@@ -214,12 +214,12 @@
 // // -----------------------------------------------------------------------------
 
 // /** Trng
-//  * 
+//  *
 //  * @brief A true-random number generator.
-//  * 
+//  *
 //  * @note Satisfies requirements of UniformRandomBitGenerator
-//  * 
-//  * @link <https://en.cppreference.com/w/cpp/named_req/UniformRandomBitGenerator>
+//  *
+//  * <https://en.cppreference.com/w/cpp/named_req/UniformRandomBitGenerator>
 //  */
 // class Trng
 // {
@@ -244,12 +244,12 @@
 // };
 
 // /** gen
-//  * 
+//  *
 //  * @brief Generates uniform positive integer values in the range [0..2^64).
-//  * 
+//  *
 //  * @note Changes internal state when called.
-//  * 
-//  * @note __rdtsc() returns the cpu cycle count. @link <https://learn.microsoft.com/en-us/cpp/intrinsics/rdtsc?view=msvc-170>
+//  *
+//  * @note __rdtsc() returns the cpu cycle count. <https://learn.microsoft.com/en-us/cpp/intrinsics/rdtsc?view=msvc-170>
 //  *
 //  * @returns uint64 -- Random number in range.
 //  */
@@ -260,9 +260,9 @@
 // }
 
 // /** gen
-//  * 
+//  *
 //  * @brief Generates uniform positive integer values in the range [0..2^32).
-//  * 
+//  *
 //  * @note Changes internal state when called.
 //  *
 //  * @returns uint32 -- Random number in range.
@@ -274,10 +274,10 @@
 // }
 
 // /** gen
-//  * 
+//  *
 //  * @brief Generates uniform real values in the range [0..1).
 //  *        Resolution is 2^23 (~8 million).
-//  * 
+//  *
 //  * @note Changes internal state when called.
 //  *
 //  * @returns float32 -- Random number in range.
@@ -289,10 +289,10 @@
 // }
 
 // /** gen
-//  * 
+//  *
 //  * @brief Generates uniform real values in the range [0..1).
 //  *        Resolution is 2^52 (~4 quadrillion).
-//  * 
+//  *
 //  * @note Changes internal state when called.
 //  *
 //  * @returns float64 -- Random number in range.
@@ -304,9 +304,9 @@
 // }
 
 // /** operator ()
-//  * 
+//  *
 //  * @brief Generates uniform positive integer values in the range of result_type.
-//  * 
+//  *
 //  * @note Changes internal state when called.
 //  *
 //  * @returns result_type -- Random number in range.
