@@ -25,7 +25,7 @@ namespace ym
  *
  * - Example usage:
  *   @code{cpp}
- *      auto filename = StackStrLit("ym/common/fileio/data.txt");
+ *      auto filename = <some objectd derived from StackBuffer_Base>;
  *      auto file = FileIO(&filename, "w");
  *      // or
  *      auto file = FileIO("ym/common/fileio/data.txt", "w");
@@ -42,15 +42,30 @@ private:
    using Filename_T = std::variant<strlit, bound<StackBuffer_Base>>;
 
 public:
+   /**
+    * @{
+    * @brief Constructor.
+    *
+    * @param Filename -- Name of file to open.
+    * @param Mode     -- Opening mode (read/write/append, etc.)
+    */
    implicit inline FileIO(
       bound<StackBuffer_Base> const Filename,
-      str                     const Mode = "rb") noexcept;
+      str                     const Mode = "rb") noexcept :
+         StackBufferUser(Filename),
+         _filename {Filename}
+   {
+      std::ignore = reset(_filename, Mode);
+   }
 
    implicit inline FileIO(
       strlit const Filename,
-      str    const Mode = "rb") noexcept;
-
-
+      str    const Mode = "rb") noexcept :
+         _filename {Filename}
+   {
+      std::ignore = reset(_filename, Mode);
+   }
+   /// @}
 
    /// @brief Access mode bit positions.
    enum AccessModeFlags_T {
@@ -60,10 +75,12 @@ public:
 
    static bool exists(str const Filename) noexcept;
 
-   /// @name FileIO Queryers.
-   /// @{
-   /// @brief Getters.
-   /// @returns auto -- Self explanatory.
+   /**
+    * @{
+    * @brief Determines if file is opened.
+    *
+    * @returns auto -- True if file opened, false otherwise.
+    */
    inline bool isOpen(void) const noexcept { return _file_ptr != nullptr; }
    inline operator bool(void) const noexcept { return isOpen(); }
    /// @}
@@ -74,18 +91,24 @@ public:
 
    std::optional<std::size_t> getSize(bool const Force = false) const noexcept;
 
-   /// @name FileIO Getters.
-   /// @{
-   /// @brief Getter. Guaranteed not null.
-   /// @throws ym_NullPtrError -- If underlying file handle is null.
-   /// @returns std::FILE * -- Raw underlying file handle. Guaranteed not null.
+   /**
+    * @{
+    * @brief Getter. Guaranteed not null.
+    *
+    * @throws ym_NullPtrError -- If underlying file handle is null.
+    *
+    * @returns std::FILE * -- Raw underlying file handle. Guaranteed not null.
+    */
    inline auto * get                  (this auto && self) { return self._file_ptr->get(); }
    inline        operator std::FILE * (this auto && self) { return self.get(); }
    inline auto * operator *           (this auto && self) { return self.get(); }
    /// @}
 
-   /// @brief Gets filename.
-   /// @returns str -- Filename.
+   /**
+    * @brief Gets filename.
+    *
+    * @return str -- Filename.
+    */
    inline str getFilename(void) const noexcept {
       return std::visit(ym_visit_overloaded_t{
          [](strlit                  const Arg) -> str { return Arg;           },
@@ -102,7 +125,7 @@ public:
 private:
    /// @cond INTERNAL
    struct Deleter {
-      using pointer = loose<std::FILE>;
+      using pointer = loose<std::FILE>; // must define fancy pointer
       inline void operator () (pointer f) const noexcept {
          std::ignore = f.invoke(std::fclose);
       }
@@ -116,27 +139,5 @@ private:
    std::size_t  _size     {  0uz  };
    ByteBitset   _flags    {       };
 };
-
-/**
- * @brief Constructor.
- *
- * @param Filename -- Name of file to open.
- * @param Mode     -- Opening mode (read/write/append, etc.)
- */
-inline FileIO::FileIO(
-   bound<StackBuffer_Base> const Filename,
-   str                     const Mode) noexcept :
-      StackBufferUser(Filename),
-      _filename {Filename}
-{
-   std::ignore = reset(_filename, Mode);
-}
-inline FileIO::FileIO(
-   strlit const Filename,
-   str    const Mode) noexcept :
-      _filename {Filename}
-{
-   std::ignore = reset(_filename, Mode);
-}
 
 } // ym

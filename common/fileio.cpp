@@ -53,7 +53,7 @@ bool ym::FileIO::reset(
       _file_ptr.reset();
    }
 
-   _filename = std::move(Filename);
+   _filename = Filename;
    _file_ptr.reset(std::fopen(getFilename(), Mode));
 
    if (isOpen())
@@ -120,11 +120,6 @@ std::optional<std::size_t> ym::FileIO::getSize(bool const Force) const noexcept
          if (fstat(fileno(_file_ptr->get()), &st) == 0)
          { // got size
             size = static_cast<std::size_t>(st.st_size);
-            ymLog(VF::Warning, "My size is {} ({}) ({})", *size, getFilename(), Force);
-         }
-         else
-         { // error getting size
-            ymLog(VF::Warning, "Could not get size of file {}", getFilename());
          }
       }
       else
@@ -189,8 +184,6 @@ bool ym::FileIO::fillBuffer(
             if (buffer.size() > getSize())
             { // we have room
                buffer[NRead] = '\0';
-               // TODO
-               ymLog(VF::Warning, "-->buffer_1_place ({})({})({})<--", buffer.data(), buffer.size(), *getSize());
             }
             else
             { // not enough room afterall
