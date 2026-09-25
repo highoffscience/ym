@@ -9,16 +9,14 @@
 #include <algorithm>
 #include <stdexcept>
 
-/** TestSuiteBase
- *
+/**
  * @brief Constructor.
  */
 ym::unit::TestSuiteBase::TestSuiteBase(std::string name) noexcept :
    PermaNameable_NV(std::move(name))
 { }
 
-/** runTestCase
- *
+/**
  * @brief Runs specified test case.
  *
  * @throws std::runtime_error -- If requested test case is not found.

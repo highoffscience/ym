@@ -94,20 +94,11 @@ public:
    constexpr auto max(void) const noexcept { return std::numeric_limits<result_type>::max(); }
    /// @}
 
-   /**
-    * @brief Generates uniform positive integer values in the range of result_type.
-    *
-    * - Changes internal state when called.
-    *
-    * @returns result_type -- Random number in range.
-    */
-   inline result_type operator () (void) noexcept {
-      return gen<result_type>();
-   }
+   inline result_type operator () (void) noexcept;
 
 private:
-   static inline float32 convertToFloat32(uint32 const Val);
-   static inline float64 convertToFloat64(uint64 const Val);
+   static inline float32 convertToFloat32(uint32 const Val) noexcept;
+   static inline float64 convertToFloat64(uint64 const Val) noexcept;
 
    static constexpr auto _s_Mult = 6364136223846793005_u64;
    static constexpr auto _s_Plus = 1442695040888963407_u64;
@@ -171,6 +162,20 @@ template <>
 inline auto Prng::gen<float64>(void) noexcept -> float64
 {
    return convertToFloat64(gen<uint64>());
+}
+
+/**
+ * @brief Generates uniform positive integer values in the range of result_type.
+ *
+ * - Changes internal state when called.
+ *
+ * @internal NOTE: Must be declared after the gen<>() functions.
+ *
+ * @returns result_type -- Random number in range.
+ */
+inline auto Prng::operator () (void) noexcept -> result_type
+{
+   return gen<result_type>();
 }
 
 /**
@@ -263,16 +268,7 @@ public:
    template <Randomable Randomable_T>
    inline Randomable_T gen(void) noexcept;
 
-   /**
-    * @brief Generates uniform positive integer values in the range of result_type.
-    *
-    * - Changes internal state when called.
-    *
-    * @returns result_type -- Random number in range.
-    */
-   inline result_type operator () (void) noexcept {
-      return gen<uint64>();
-   }
+   inline result_type operator () (void) noexcept;
 
 private:
    Prng _prng{};
@@ -331,6 +327,20 @@ template <>
 inline auto Trng::gen<float64>(void) noexcept -> float64
 {
    return Prng::convertToFloat64(gen<uint64>());
+}
+
+/**
+ * @brief Generates uniform positive integer values in the range of result_type.
+ *
+ * - Changes internal state when called.
+ *
+ * @internal NOTE: Must be declared after the gen<>() functions.
+ *
+ * @returns result_type -- Random number in range.
+ */
+inline auto Trng::operator () (void) noexcept -> result_type
+{
+   return gen<uint64>();
 }
 
 } // ym

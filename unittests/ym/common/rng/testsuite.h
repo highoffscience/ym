@@ -6,15 +6,15 @@
 
 #pragma once
 
-#include "utdefs.h"
+#define YM_UNITTEST_ACTIVE_DEFINED
+#include "ymdefs.h"
 
 #include "testsuitebase.h"
 
-namespace ym::unit
+namespace ym::unit::rng
 {
 
-/** TestSuite
- *
+/**
  * @brief Test suite for Random.
  */
 class TestSuite : public TestSuiteBase
@@ -23,8 +23,10 @@ public:
    explicit TestSuite(void);
    virtual ~TestSuite(void) = default;
 
+   YM_UNIT_TESTCASE(InteractiveInspection)
+   YM_UNIT_TESTCASE(SmokeTest)
    YM_UNIT_TESTCASE(ZerosAndOnes);
-   YM_UNIT_TESTCASE(UniformBins );
+   YM_UNIT_TESTCASE(UniformBins);
 };
 
-} // ym::unit
+} // ym::unit::rng

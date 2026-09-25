@@ -23,8 +23,7 @@
 namespace ym::unit
 {
 
-/** TestSuiteBase
- *
+/**
  * @brief Base class for unit test suites.
  */
 class TestSuiteBase : public PermaNameable_NV<>

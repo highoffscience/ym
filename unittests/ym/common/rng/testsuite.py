@@ -4,16 +4,12 @@
 # @author  Forrest Jablonski
 #
 
-import os
 import sys
-import unittest
 
 import numpy as np
 from scipy.stats import binom as bn
 
 try:
-   # @note Grabs the first directory in the chain named unittests/.
-   sys.path.append(os.path.join(os.getcwd().split("unittests")[0], "unittests/"))
    import testsuitebase
 except:
    print("Cannot import testsuitebase - path set correctly?")
@@ -35,16 +31,16 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Acting constructor.
       """
-
-      super().setUpBaseClass(filepath="ym/common",
-                             filename="rng")
+      super().setUpBaseClass(
+         filepath="ym/common",
+         filename="rng")
 
    @classmethod
    def tearDownClass(cls):
       """
       Acting destructor.
       """
-      pass
+      super().tearDownBaseClass()
 
    def setUp(self):
       """
@@ -58,6 +54,27 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       pass
 
+   def test_InteractiveInspection(self):
+      """
+      Analyzes results from test case.
+      """
+      from cppyy.gbl import std # type:ignore
+      from cppyy.gbl import ym  # type:ignore
+
+      # uncomment to run test
+      # results = self.run_test_case(self._testMethodName.removeprefix("test_"), assert_results=False)
+      pass
+
+   def test_SmokeTest(self):
+      """
+      Analyzes results from test case.
+      """
+      from cppyy.gbl import std # type: ignore
+      from cppyy.gbl import ym  # type: ignore
+
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"), assert_results=False)
+      pass
+
    def test_ZerosAndOnes(self):
       """
       Analyzes results from test case.
@@ -65,7 +82,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      results = self.run_test_case("ZerosAndOnes")
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
 
       set_bit_vector = results.get[std.vector[std.pair[ym.uint64, ym.uint64]]]("SetBitVector")
       for set_bits in set_bit_vector:
@@ -82,7 +99,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import std # type:ignore
       from cppyy.gbl import ym  # type:ignore
 
-      results = self.run_test_case("UniformBins")
+      results = self.run_test_case(self._testMethodName.removeprefix("test_"))
 
       for bin_name in ["u32", "u64", "f32", "f64"]:
          bin_counts = np.array(results.get[std.vector[ym.uint64]](f"{bin_name}Bins"))
@@ -93,8 +110,6 @@ class TestSuite(testsuitebase.TestSuiteBase):
 
 # kick-off
 if __name__ == "__main__":
-   if os.path.basename(os.getcwd()) != "rng":
-      print("Needs to be run in the rng/ directory")
-      sys.exit(1)
-
-   unittest.main()
+   TestSuite.runSuite()
+else:
+   TestSuite.runSuite()

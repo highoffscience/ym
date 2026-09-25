@@ -83,12 +83,6 @@ auto ym::unit::memio::TestSuite::StackAlloc::run([[maybe_unused]] DataShuttle co
  */
 auto ym::unit::memio::TestSuite::StackString::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto f = []([[maybe_unused]] bound<StackBuffer_Base> buf) {
-
-   };
-   auto sss = "hello"_ssl;
-   f(&sss);
-
    struct StackString : public StackBufferUser
    {
       constexpr StackString(BoundPtr<StackBuffer_Base> const buffer_Ptr) :
@@ -116,15 +110,6 @@ auto ym::unit::memio::TestSuite::StackString::run([[maybe_unused]] DataShuttle c
    fmt::println("{}", *form);
    *form = "Go! Pumpkaboo! My hero!";
    fmt::println("{}", *form);
-
-   [[maybe_unused]]
-   auto const Name = StackStrLit("Torchic");
-
-   // [[maybe_unused]]
-   // auto buffer = ss.createStackBuffer<100>();
-
-   // TODO also provide a macro for alloca()
-   //      YM_STACKBUFFER_DYN_ALLOC(ss, 100);
 
    return {};
 }

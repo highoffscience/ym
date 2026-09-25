@@ -4,43 +4,60 @@
  * @author  Forrest Jablonski
  */
 
-#include "ymdefs.h"
 #include "testsuite.h"
+#include "ymglobals.h"
 
-#include "rng.h"
-#include "textlogger.h"
-#include "ymerror.h"
+#include "rng.h" // Structures under test
+
+#include "fmt/format.h"
 
 #include <algorithm>
 #include <bitset>
 #include <utility>
 #include <vector>
 
-/** TestSuite
- *
+/**
  * @brief Constructor.
  */
-ym::unit::TestSuite::TestSuite(void)
-   : TestSuiteBase("Rng")
+ym::unit::rng::TestSuite::TestSuite(void) :
+   TestSuiteBase("Rng")
 {
+   addTestCase<InteractiveInspection>();
+   addTestCase<SmokeTest>();
    addTestCase<ZerosAndOnes>();
    addTestCase<UniformBins >();
 }
 
-/** run
+/**
+ * @brief Interactive inspection - for debug purposes.
  *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::unit::rng::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   return {};
+}
+
+/**
+ * @brief Basic integrity test
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::unit::rng::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   return {};
+}
+
+/**
  * @brief Runs zeros and ones test.
- * 
- * @note Amount of zeros and ones should be about equal.
- * 
- * @note That's what a relationship is. We average our misery.
+ *
+ * - Amount of zeros and ones should be about equal.
+ * - That's what a relationship is. We average our misery.
  *
  * @returns DataShuttle -- Important values acquired during run of test case.
  */
-auto ym::unit::TestSuite::ZerosAndOnes::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::rng::TestSuite::ZerosAndOnes::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest_Rng);
-
    ym::Prng rand;
 
    std::vector<std::pair<uint64, uint64>> setBitVector;
@@ -62,18 +79,15 @@ auto ym::unit::TestSuite::ZerosAndOnes::run([[maybe_unused]] DataShuttle const &
    };
 }
 
-/** run
- *
+/**
  * @brief Runs uniform bins test.
- * 
+ *
  * @note Amount of entries in each bin should be about equal.
  *
  * @returns DataShuttle -- Important values acquired during run of test case.
  */
-auto ym::unit::TestSuite::UniformBins::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::rng::TestSuite::UniformBins::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
-   auto const SE = ymLogPushEnable(VF::UnitTest_Rng);
-
    ym::Prng rand;
 
    constexpr auto BitShiftAmount = 16_u64;

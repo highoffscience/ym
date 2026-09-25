@@ -14,7 +14,7 @@
 namespace ym::unit::datalogger
 {
 
-/** TestSuite
+/* TestSuite
  *
  * @brief Test suite for DataLogger.
  */

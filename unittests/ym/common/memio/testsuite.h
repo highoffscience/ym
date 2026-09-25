@@ -16,15 +16,14 @@
 namespace ym::unit::memio
 {
 
-/** TestSuite
- *
+/**
  * @brief Test suite for MemIO.
  */
 class TestSuite : public TestSuiteBase
 {
 public:
    explicit TestSuite(void);
-   virtual ~TestSuite(void) = default; // TODO we don't need this explicitly defaulted - it is virtual by default
+   virtual ~TestSuite(void) = default;
 
    YM_UNIT_TESTCASE(InteractiveInspection)
    YM_UNIT_TESTCASE(SmokeTest)
