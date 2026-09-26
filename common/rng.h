@@ -41,6 +41,11 @@ concept Randomable =
  * - Satisfies requirements of [UniformRandomBitGenerator](https://en.cppreference.com/w/cpp/named_req/UniformRandomBitGenerator).
  * - Implementation based on [PCG Algorithms](https://www.pcg-random.org/paper.html).
  * - Theory behind implementation found in the [Wiki](https://en.wikipedia.org/wiki/Linear-feedback_shift_register).
+ *
+ * __Unit Test__
+ * - @ref ym::unit::rng::TestSuite::Class_Prng.
+ *
+ * @test Shall ?
  */
 class Prng
 {
@@ -236,6 +241,11 @@ inline auto ym::Prng::convertToFloat64(uint64 const Val) noexcept -> float64
  * @brief A true-random number generator.
  *
  * - Satisfies requirements of [UniformRandomBitGenerator](https://en.cppreference.com/w/cpp/named_req/UniformRandomBitGenerator).
+ *
+ * __Unit Test__
+ * - @ref ym::unit::rng::TestSuite::Class_Trng.
+ *
+ * @test Shall ?
  */
 class Trng
 {
