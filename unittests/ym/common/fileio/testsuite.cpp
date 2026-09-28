@@ -9,6 +9,7 @@
 
 #include "fileio.h" // Structures under test
 
+#include "catch2/catch_test_macros.hpp"
 #include "fmt/format.h"
 
 #include <array>
@@ -23,10 +24,13 @@ ym::unit::fileio::TestSuite::TestSuite(void) :
 {
    addTestCase<InteractiveInspection>();
    addTestCase<SmokeTest>();
+   addTestCase<Class_FileIO>();
 }
 
 /**
  * @brief Interactive inspection - for debug purposes.
+ *
+ * @param InData -- Important values to use during run of test.
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
@@ -38,9 +42,23 @@ auto ym::unit::fileio::TestSuite::InteractiveInspection::run([[maybe_unused]] Da
 /**
  * @brief Basic integrity test.
  *
+ * @param InData -- Important values to use during run of test.
+ *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
 auto ym::unit::fileio::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+{
+   return {};
+}
+
+/**
+ * - @ref ym::common::FileIO Shall ?
+ *
+ * @param InData -- Important values to use during run of test.
+ *
+ * @returns DataShuttle -- Important values acquired during run of test.
+ */
+auto ym::unit::fileio::TestSuite::Class_FileIO::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    strlit const Filename = "ym/common/fileio/data.txt";
    strlit const TestData = "Go! Torchic!";
@@ -73,6 +91,9 @@ auto ym::unit::fileio::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle co
    auto const Equaled =
       (std::strncmp(buffer_1.data(), buffer_2.data(), buffer_2.size()) == 0) &&
       (std::strncmp(buffer_1.data(), TestData, buffer_2.size()) == 0);
+
+   INFO("Testing that file exists");
+   REQUIRE(Exists);
 
    return {
       {"Exists", Exists},

@@ -25,6 +25,7 @@ public:
 
    YM_UNIT_TESTCASE(InteractiveInspection)
    YM_UNIT_TESTCASE(SmokeTest)
+   YM_UNIT_TESTCASE(Class_FileIO)
 };
 
 } // ym::unit::fileio

@@ -11,6 +11,8 @@
 
 /**
  * @brief Constructor.
+ *
+ * @param name -- Name of test suite.
  */
 ym::unit::TestSuiteBase::TestSuiteBase(std::string name) noexcept :
    PermaNameable_NV(std::move(name))

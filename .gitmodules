@@ -4,3 +4,6 @@
 [submodule "extlibs/fmt"]
 	path = extlibs/fmt
 	url = https://github.com/fmtlib/fmt.git
+[submodule "extlibs/Catch2"]
+	path = extlibs/Catch2
+	url = https://github.com/catchorg/Catch2.git

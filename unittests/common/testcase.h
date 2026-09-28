@@ -18,8 +18,7 @@
 namespace ym::unit
 {
 
-/** YM_UNIT_TESTCASE
- *
+/**
  * @brief Defines a test case.
  *
  * @param Name_ -- Name of test case.
@@ -32,8 +31,7 @@ namespace ym::unit
       virtual DataShuttle run(DataShuttle const & InData = {}) override; \
    };
 
-/** TestCase
- *
+/**
  * @brief Represents a test case.
  */
 class TestCase : public PermaNameable_NV<>
@@ -41,7 +39,7 @@ class TestCase : public PermaNameable_NV<>
 public:
    explicit inline TestCase(std::string name) noexcept :
       PermaNameable_NV(std::move(name))
-   {}
+   { }
    virtual ~TestCase(void) = default;
 
    virtual DataShuttle run(DataShuttle const & InData = {}) = 0;
