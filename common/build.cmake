@@ -6,8 +6,7 @@
 
 cmake_minimum_required(VERSION 3.27)
 
-## srcbuild-ym.common
-#
+##
 # @brief Defines target to build ym.common shared library.
 #
 # @param Ctx_JSON -- Context object.
@@ -22,7 +21,6 @@ function(srcbuild-ym.common Ctx_JSON)
       datalogger.cpp
       fileio.cpp
       globallogger.cpp
-      litelogger.cpp
       logger.cpp
       memio.cpp
       rng.cpp

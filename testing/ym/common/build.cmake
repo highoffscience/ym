@@ -6,15 +6,65 @@
 
 cmake_minimum_required(VERSION 3.27)
 
-## unitbuild-ym.common
-#
-# @brief Defines target to build all child unittests.
+##
+# @brief Defines target to build all child unit tests.
 #
 # @param Ctx_JSON -- Context object.
 #
 # @note Library directory (see README for description).
 #
 function(unitbuild-ym.common Ctx_JSON)
+
+   set(BaseBuild ym.common)
+   set(TargetAll ${BaseBuild}-unittests)
+   set(TargetInt ${BaseBuild}-interface)
+
+   string(REPLACE "." "/" BaseBuildDir ${BaseBuild})
+
+   add_custom_target(${TargetAll})
+   add_library(${TargetInt} INTERFACE)
+
+   target_link_libraries(${TargetInt} INTERFACE ym-interface)
+
+   include(${YM_ProjRootDir}/${BaseBuildDir}/build.cmake)
+   cmake_language(CALL srcbuild-${BaseBuild} ${Ctx_JSON})
+   target_link_libraries(${TargetInt} INTERFACE ${BaseBuild})
+   target_link_libraries(${BaseBuild} PRIVATE ${TargetInt})
+   set_target_properties(${BaseBuild} PROPERTIES VERSION ${PROJECT_VERSION})
+   set_target_properties(${BaseBuild} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_CustomLibsDir})
+
+   set(SubBuilds argparser datalogger fileio logger memio rng textlogger timer verbogroup ymassert ymdefs ymutils)
+   foreach(SubBuild ${SubBuilds})
+
+      set(SubBaseBuild ${BaseBuild}.${SubBuild})
+      set(SubTarget    ${BaseBuild}.${SubBuild}-unittests)
+
+      set(SubBuildDir ${YM_UnitTestDir}/${BaseBuildDir}/${SubBuild})
+
+      if(EXISTS  ${SubBuildDir}/build.cmake)
+         include(${SubBuildDir}/build.cmake)
+         cmake_language(CALL unitbuild-${SubBaseBuild} Ctx_JSON)
+      else()
+         add_library(${SubTarget} SHARED)
+         target_sources(${SubTarget} PRIVATE ${SubBuildDir}/testsuite.cpp)
+         target_link_libraries(${SubTarget} PRIVATE ${TargetInt})
+         set_target_properties(${SubTarget} PROPERTIES VERSION ${PROJECT_VERSION})
+         set_target_properties(${SubTarget} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_CustomLibsDir})
+      endif()
+
+      add_dependencies(${TargetAll} ${SubTarget})
+
+   endforeach()
+endfunction()
+
+##
+# @brief Defines target to build all child integration tests.
+#
+# @param Ctx_JSON -- Context object.
+#
+# @note Library directory (see README for description).
+#
+function(intgbuild-ym.common Ctx_JSON)
 
    set(BaseBuild ym.common)
    set(TargetAll ${BaseBuild}-unittests)

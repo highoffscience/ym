@@ -6,8 +6,7 @@
 
 cmake_minimum_required(VERSION 3.27)
 
-## unitbuild-ym
-#
+##
 # @brief Defines target to build all child unittests.
 #
 # @param Ctx_JSON -- Context object.
@@ -18,7 +17,7 @@ function(unitbuild-ym Ctx_JSON)
 
    set(BaseBuild ym)
    set(TargetAll ${BaseBuild}-unittests)
-   set(TargetRun ${BaseBuild}-run)
+   set(TargetRun ${BaseBuild}-unittests-run) # TODO renamed
    set(TargetInt ${BaseBuild}-interface)
 
    string(REPLACE "." "/" BaseBuildDir ${BaseBuild})
