@@ -1028,7 +1028,7 @@ WARN_LOGFILE           =
 
 INPUT                  = \
    "@CMAKE_SOURCE_DIR@/common" \
-   "@CMAKE_SOURCE_DIR@/unittests/ym/common/ymdefs"
+   "@CMAKE_SOURCE_DIR@/testing/ym/common/ymdefs"
 
 # This tag can be used to specify the character encoding of the source files
 # that Doxygen parses. Internally Doxygen uses the UTF-8 encoding. Doxygen uses
@@ -2532,7 +2532,7 @@ SEARCH_INCLUDES        = YES
 # This tag requires that the tag SEARCH_INCLUDES is set to YES.
 
 INCLUDE_PATH           = \
-   "@CMAKE_SOURCE_DIR@/unittests/common"
+   "@CMAKE_SOURCE_DIR@/testing/common"
 
 # You can use the INCLUDE_FILE_PATTERNS tag to specify one or more wildcard
 # patterns (like *.h and *.hpp) to filter out the header-files in the

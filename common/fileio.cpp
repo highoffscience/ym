@@ -43,6 +43,8 @@ bool ym::FileIO::exists(str const Filename) noexcept
  *
  * @param Filename -- Name of file to open.
  * @param Mode     -- Opening mode (read/write/append, etc.)
+ *
+ * @returns bool -- True if successful, false otherwise.
  */
 bool ym::FileIO::reset(
    Filename_T const Filename,

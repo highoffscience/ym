@@ -106,6 +106,8 @@ def gen_source_file(args: argparse.Namespace):
       writeln(f"/**                                                                       ")
       writeln(f" * @brief Interactive inspection - for debug purposes.                    ")
       writeln(f" *                                                                        ")
+      writeln(f" * @param InData -- Important values to use during run of test.           ")
+      writeln(f" *                                                                        ")
       writeln(f" * @returns DataShuttle -- Important values acquired during run of test.  ")
       writeln(f" */                                                                       ")
       writeln(f"auto ym::unit::{args.filename}::TestSuite::InteractiveInspection" \
@@ -116,6 +118,8 @@ def gen_source_file(args: argparse.Namespace):
       writeln(f"                                                                          ")
       writeln(f"/**                                                                       ")
       writeln(f" * @brief Basic integrity test.                                           ")
+      writeln(f" *                                                                        ")
+      writeln(f" * @param InData -- Important values to use during run of test.           ")
       writeln(f" *                                                                        ")
       writeln(f" * @returns DataShuttle -- Important values acquired during run of test.  ")
       writeln(f" */                                                                       ")

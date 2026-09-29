@@ -45,7 +45,7 @@ WORKDIR ${WORK_DIR}/ym/extlibs
 RUN cmake -S . --preset default -DYM_BUILD_LLVM=OFF
 RUN cmake --build build
 
-WORKDIR ${WORK_DIR}/ym/unittests
+WORKDIR ${WORK_DIR}/ym/testing
 RUN python -m venv venv
 RUN ./venv/bin/python -m pip install -r requirements.txt
 RUN cmake -S . --preset test
