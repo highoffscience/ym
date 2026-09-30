@@ -62,7 +62,6 @@ endif()
 #       YM_UNITTEST is a source-wide define that edits properties that make inspecting
 #       code easier for clients easier.
 target_compile_definitions(YMRootIntLib INTERFACE YM_UNITTEST=${YM_UNITTEST})
-
 target_compile_definitions(YMRootIntLib INTERFACE YM_PRINT_TO_SCREEN=${YM_PRINT_TO_SCREEN})
 target_compile_definitions(YMRootIntLib INTERFACE YM_DEBUG=${YM_DEBUG})
 target_compile_definitions(YMRootIntLib INTERFACE YM_LITE=${YM_LITE})

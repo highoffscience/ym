@@ -7,23 +7,19 @@
 cmake_minimum_required(VERSION 3.27)
 
 ##
-# @brief Defines target to build all child unittests.
+# @brief Defines target to build all child unit tests.
 #
 # @param Ctx_JSON -- Context object.
 #
-# @note Container directory (see README for description).
-#
 function(unitbuild-ym Ctx_JSON)
 
-   set(BaseBuild ym)
+   string(REGEX REPLACE "^[^-]+-" ""  BaseBuild    ${CMAKE_CURRENT_FUNCTION})
+   string(      REPLACE "."       "/" BaseBuildDir ${BaseBuild})
+
    set(TargetAll ${BaseBuild}-unittests)
-   set(TargetRun ${BaseBuild}-unittests-run) # TODO renamed
    set(TargetInt ${BaseBuild}-interface)
 
-   string(REPLACE "." "/" BaseBuildDir ${BaseBuild})
-
    add_custom_target(${TargetAll})
-   add_custom_target(${TargetRun})
    add_library(${TargetInt} INTERFACE)
 
    target_link_libraries(${TargetInt} INTERFACE YMRootIntLib)
