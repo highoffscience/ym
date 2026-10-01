@@ -28,6 +28,7 @@ function(unitbuild-ym Ctx_JSON)
    foreach(SubBuild ${SubBuilds})
       include(${YM_UnitTestDir}/${BaseBuildDir}/${SubBuild}/build.cmake)
       cmake_language(CALL unitbuild-${BaseBuild}.${SubBuild} ${Ctx_JSON})
+      add_dependencies(${TargetAll} ${BaseBuild}.${SubBuild})
    endforeach()
 
 endfunction()

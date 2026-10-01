@@ -113,4 +113,5 @@ set(YM_TopLevelSubBuilds ym)
 foreach(SubBuild ${YM_TopLevelSubBuilds})
    include(${YM_UnitTestDir}/${SubBuild}/build.cmake)
    cmake_language(CALL unitbuild-${SubBuild} ${YM_Ctx_JSON})
+   # target "all" implicitly set to build all targets - no need to explicitly add dependency
 endforeach()

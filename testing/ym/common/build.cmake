@@ -32,22 +32,7 @@ function(unitbuild-ym.common Ctx_JSON)
    foreach(SubBuild ${SubBuilds})
       include(${YM_UnitTestDir}/${BaseBuildDir}/${SubBuild}/build.cmake)
       cmake_language(CALL unitbuild-${BaseBuild}.${SubBuild} ${Ctx_JSON})
-
-      set(SubBaseBuild ${BaseBuild}.${SubBuild})
-      set(SubTarget    ${BaseBuild}.${SubBuild}-unittests)
-
-      set(SubBuildDir ${YM_UnitTestDir}/${BaseBuildDir}/${SubBuild})
-
-      if(EXISTS  ${SubBuildDir}/build.cmake)
-         include(${SubBuildDir}/build.cmake)
-         cmake_language(CALL unitbuild-${SubBaseBuild} Ctx_JSON)
-      else()
-         add_library(${SubTarget} SHARED)
-         target_sources(${SubTarget} PRIVATE ${SubBuildDir}/testsuite.cpp)
-         target_link_libraries(${SubTarget} PRIVATE ${TargetInt})
-      endif()
-
-      add_dependencies(${TargetAll} ${SubTarget})
-
+      add_dependencies(${TargetAll} ${BaseBuild}.${SubBuild})
    endforeach()
+
 endfunction()
