@@ -9,6 +9,8 @@
 
 #include "logger.h" // Structures under test
 
+#include "globallogger.h"
+
 #include "fmt/format.h"
 
 /**

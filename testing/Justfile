@@ -13,6 +13,12 @@ build tar=default_target:
    fi
    cmake --build {{default_build_dir}} --target {{tar}}
 
+rebuild tar=default_target:
+   just clean-all
+   just build {{tar}}
+
 clean dir=default_build_dir:
-   @rm -rf "{{dir}}"
-   @mkdir -p "{{dir}}"
+   cmake --build {{dir}} --target clean
+
+clean-all dir=default_build_dir:
+   @rm -rf {{dir}}

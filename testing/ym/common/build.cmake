@@ -26,13 +26,14 @@ function(unitbuild-ym.common Ctx_JSON)
 
    include(${YM_ProjRootDir}/${BaseBuildDir}/build.cmake)
    cmake_language(CALL srcbuild-${BaseBuild} ${Ctx_JSON})
+   target_link_libraries(${BaseBuild} PRIVATE YMRootIntLib)
    target_link_libraries(${TargetInt} INTERFACE ${BaseBuild})
 
    set(SubBuilds argparser datalogger fileio logger memio rng textlogger timer verbogroup ymassert ymdefs ymutils)
    foreach(SubBuild ${SubBuilds})
       include(${YM_UnitTestDir}/${BaseBuildDir}/${SubBuild}/build.cmake)
       cmake_language(CALL unitbuild-${BaseBuild}.${SubBuild} ${Ctx_JSON})
-      add_dependencies(${TargetAll} ${BaseBuild}.${SubBuild})
+      add_dependencies(${TargetAll} ${BaseBuild}.${SubBuild}-unittests)
    endforeach()
 
 endfunction()

@@ -81,7 +81,7 @@ auto ym::unit::ymutils::TestSuite::Func_castPtrTo::run([[maybe_unused]] DataShut
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::ymutils::TestSuite::Func_castPtrTo::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::unit::ymutils::TestSuite::Func_binarySearch::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    auto binarySearchSuccess = false;
    {
