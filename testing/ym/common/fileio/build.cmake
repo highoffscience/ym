@@ -17,13 +17,15 @@ function(unitbuild-ym.common.fileio Ctx_JSON)
    string(      REPLACE "."       "/" BaseBuildDir ${BaseBuild})
 
    set(Target ${BaseBuild}-unittests)
-   add_library(${Target} SHARED)
+   add_executable(${Target})
 
    target_link_libraries(${Target} PRIVATE ym.common-interface)
 
    target_sources(${Target} PRIVATE ${YM_UnitTestDir}/${BaseBuildDir}/testsuite.cpp)
 
+   #TODO custom libraries and exes don't always go to their desired output directory
+
    set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
-   set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_CustomLibsDir})
+   set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_CustomExesDir})
 
 endfunction()

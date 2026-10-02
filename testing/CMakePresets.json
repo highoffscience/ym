@@ -35,6 +35,7 @@
          "toolchainFile": "${sourceDir}/toolchain.cmake",
          "cacheVariables": {
             "YM_CustomLibsDir": "${sourceDir}/build/customlibs",
+            "YM_CustomExesDir": "${sourceDir}/build/customexes",
             "YM_CovEnabled": false
          }
       },
@@ -47,6 +48,7 @@
          "toolchainFile": "${sourceDir}/cov_toolchain.cmake",
          "cacheVariables": {
             "YM_CustomLibsDir": "${sourceDir}/cov_build/customlibs",
+            "YM_CustomExesDir": "${sourceDir}/cov_build/customexes",
             "YM_CovEnabled": true
          }
       }

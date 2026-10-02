@@ -94,6 +94,15 @@ else()
    message(FATAL_ERROR "Catch2 lib not found. Must build external libraries first.")
 endif()
 
+find_library(YM_CATCH2MAIN_LIB
+   NAMES Catch2Main
+   PATHS ${YM_ExtLibsDir}/build/Catch2/src)
+if (YM_CATCH2MAIN_LIB)
+   target_link_libraries(YMRootIntLib INTERFACE ${YM_CATCH2MAIN_LIB})
+else()
+   message(FATAL_ERROR "Catch2Main lib not found. Must build external libraries first.")
+endif()
+
 target_link_directories(YMRootIntLib INTERFACE ${YM_CustomLibsDir})
 
 add_custom_target(check-venv)
