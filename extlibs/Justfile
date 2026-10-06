@@ -1,0 +1,23 @@
+##
+# @file    Justfile
+# @version 1.0.0
+# @author  Forrest Jablonski
+#
+
+default_build_dir := "build"
+
+build:
+   @if [ ! -f "{{default_build_dir}}/CMakeCache.txt" ]; then \
+      cmake -S . --preset default; \
+   fi
+   cmake --build {{default_build_dir}}
+
+rebuild:
+   just clean-all
+   just build
+
+clean:
+   cmake --build {{default_build_dir}} --target clean
+
+clean-all:
+   @rm -rf {{default_build_dir}}
