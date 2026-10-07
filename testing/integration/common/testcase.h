@@ -2,8 +2,6 @@
  * @file    testcase.h
  * @version 1.0.0
  * @author  Forrest Jablonski
- *
- * @note File used in unittests - maximum standard C++20.
  */
 
 #pragma once
@@ -15,7 +13,7 @@
 
 #include <string>
 
-namespace ym::unit
+namespace ym::intg
 {
 
 /**
@@ -45,4 +43,4 @@ public:
    virtual DataShuttle run(DataShuttle const & InData = {}) = 0;
 };
 
-} // ym::unit
+} // ym::intg

@@ -2,8 +2,6 @@
  * @file    testsuitebase.h
  * @version 1.0.0
  * @author  Forrest Jablonski
- *
- * @note File used in unittests - maximum standard C++20.
  */
 
 #pragma once
@@ -20,7 +18,7 @@
 #include <utility>
 #include <vector>
 
-namespace ym::unit
+namespace ym::intg
 {
 
 /**
@@ -51,7 +49,7 @@ private:
  *
  * @brief Adds test case to list of known test cases.
  *
- * @throws Whatever std::make_unique() throws.
+ * @throws std::exception -- Whatever std::make_unique() throws.
  *
  * @tparam DerivedTestCase_T -- Test case to add.
  * @tparam Args_T            -- Type of additional arguments to test case.
@@ -70,4 +68,4 @@ void TestSuiteBase::addTestCase(Args_T &&... args)
          std::forward<Args_T>(args)...));
 }
 
-} // ym::unit
+} // ym::intg

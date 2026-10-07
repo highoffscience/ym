@@ -2,8 +2,6 @@
  * @file    datashuttle.h
  * @version 1.0.0
  * @author  Forrest Jablonski
- *
- * @note File used in unittests - maximum standard C++20.
  */
 
 #pragma once
@@ -16,13 +14,12 @@
 #include <string>
 #include <unordered_map>
 
-namespace ym::unit
+namespace ym::intg
 {
 
-/** DataShuttle
- *
+/**
  * @brief A dictionary to aid in communicating data between the server (source code) and
- *        the client (python script).
+ *    the client (python script).
  */
 class DataShuttle
 {
@@ -46,12 +43,11 @@ private:
    Data_T _data{};
 };
 
-/** get
- *
+/**
  * @brief Returns value of named variable.
  *
- * @throws Whatever Data_T::at() throws.
- * @throws Whatever std::any_cast() throws.
+ * @throws std::exception -- Whatever Data_T::at() throws.
+ * @throws std::exception -- Whatever std::any_cast() throws.
  *
  * @tparam T -- Type to cast named variable to.
  *
@@ -65,10 +61,9 @@ inline T DataShuttle::get(std::string const & Name)
    return std::any_cast<T>(_data.at(Name));
 }
 
-/** get
- *
+/**
  * @brief Returns value of named variable. If the variable doesn't exists return the
- *        specified default value.
+ *    specified default value.
  *
  * @tparam T -- Type to cast named variable to.
  *
@@ -96,4 +91,4 @@ T DataShuttle::get(
    return val;
 }
 
-} // ym::unit
+} // ym::intg
