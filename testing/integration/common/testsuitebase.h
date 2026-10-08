@@ -6,6 +6,7 @@
 
 #pragma once
 
+// TODO we shouldn't have these libraries here.
 #include "nameable.h"
 #include "ymdefs.h"
 
@@ -45,8 +46,7 @@ private:
    TestCaseArray_T _testCases{};
 };
 
-/** addTestCase
- *
+/**
  * @brief Adds test case to list of known test cases.
  *
  * @throws std::exception -- Whatever std::make_unique() throws.
