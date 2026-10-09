@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include "ymdefs.h"
-
 #include <any>
 #include <initializer_list>
 #include <stdexcept>

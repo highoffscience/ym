@@ -2,8 +2,6 @@
  * @file    nameable.h
  * @version 1.0.0
  * @author  Forrest Jablonski
- *
- * @note File used in unittests - maximum standard C++20.
  */
 
 #pragma once

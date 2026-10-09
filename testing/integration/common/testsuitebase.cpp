@@ -14,8 +14,8 @@
  *
  * @param name -- Name of test suite.
  */
-ym::unit::TestSuiteBase::TestSuiteBase(std::string name) noexcept :
-   PermaNameable_NV(std::move(name))
+ym::intg::TestSuiteBase::TestSuiteBase(std::string name) noexcept :
+   _Name {std::move(name)}
 { }
 
 /**
@@ -29,15 +29,15 @@ ym::unit::TestSuiteBase::TestSuiteBase(std::string name) noexcept :
  *
  * @returns DataShuttle -- Results of test case.
  */
-auto ym::unit::TestSuiteBase::runTestCase(
+auto ym::intg::TestSuiteBase::runTestCase(
    std::string const & Name,
    DataShuttle const & InData) -> DataShuttle
 {
    DataShuttle ds{};
 
    auto const It = std::find_if(_testCases.begin(), _testCases.end(),
-      [Name](TestCaseArray_T::value_type const & Uptr) {
-         return Uptr->getName() == Name;
+      [Name](TestCaseArray_T::value_type const & Ptr) {
+         return Ptr->getName() == Name;
       }
    );
 

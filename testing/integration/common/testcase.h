@@ -6,9 +6,6 @@
 
 #pragma once
 
-#include "nameable.h"
-#include "ymdefs.h"
-
 #include "datashuttle.h"
 
 #include <string>
@@ -32,15 +29,20 @@ namespace ym::intg
 /**
  * @brief Represents a test case.
  */
-class TestCase : public PermaNameable_NV<>
+class TestCase
 {
 public:
    explicit inline TestCase(std::string name) noexcept :
-      PermaNameable_NV(std::move(name))
+      _Name {std::move(name)}
    { }
    virtual ~TestCase(void) = default;
 
    virtual DataShuttle run(DataShuttle const & InData = {}) = 0;
+
+   inline auto const & getName(void) const noexcept { return _Name; }
+
+private:
+   std::string const _Name{};
 };
 
 } // ym::intg

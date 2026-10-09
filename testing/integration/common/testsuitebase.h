@@ -6,10 +6,6 @@
 
 #pragma once
 
-// TODO we shouldn't have these libraries here.
-#include "nameable.h"
-#include "ymdefs.h"
-
 #include "datashuttle.h"
 #include "testcase.h"
 
@@ -25,7 +21,7 @@ namespace ym::intg
 /**
  * @brief Base class for unit test suites.
  */
-class TestSuiteBase : public PermaNameable_NV<>
+class TestSuiteBase
 {
 public:
    using TestCaseArray_T = std::vector<std::unique_ptr<TestCase>>;
@@ -42,8 +38,11 @@ public:
       std::string const & Name,
       DataShuttle const & InData = {});
 
+   inline auto const & getName(void) const noexcept { return _Name; }
+
 private:
-   TestCaseArray_T _testCases{};
+   std::string const _Name      {};
+   TestCaseArray_T   _testCases {};
 };
 
 /**
