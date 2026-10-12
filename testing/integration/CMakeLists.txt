@@ -12,9 +12,9 @@ cmake_minimum_required(VERSION 3.27)
 # TODO add ctest support
 
 project(
-   UnitTest
+   IntegrationTesting
    VERSION     1.0.0
-   DESCRIPTION "Builds unittest shared libraries and runs them")
+   DESCRIPTION "Builds integration shared libraries")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
@@ -34,21 +34,13 @@ target_compile_options(YMRootIntLib INTERFACE
    -fmax-errors=1)
 
 target_include_directories(YMRootIntLib INTERFACE
-   ${YM_UnitTestDir}/common
-   ${YM_UnitTestDir}/ym/common
+   ${YM_IntgTestDir}/common
+   ${YM_IntgTestDir}/ym/common
    ${YM_ProjRootDir}/ym/common)
-
-set(YM_UTPYTHONPATHS ${YM_ProjRootDir}/ym:${YM_UnitTestDir})
-if ($ENV{PYTHONPATH})
-   set(ENV{PYTHONPATH} ${YM_UTPYTHONPATHS}:$ENV{PYTHONPATH})
-else()
-   set(ENV{PYTHONPATH} ${YM_UTPYTHONPATHS})
-endif()
-unset(YM_UTPYTHONPATHS)
 
 if (YM_CovEnabled)
    message("Compiling for coverage...")
-   file(MAKE_DIRECTORY ${YM_UnitTestDir}/cov_build/profiles)
+   file(MAKE_DIRECTORY ${YM_IntgTestDir}/cov_build/profiles)
    set(YM_CovFlags -fprofile-instr-generate -fcoverage-mapping)
    target_compile_options(YMRootIntLib INTERFACE ${YM_CovFlags})
    target_link_options(   YMRootIntLib INTERFACE ${YM_CovFlags})
@@ -57,11 +49,7 @@ elseif (NOT YM_DEBUG)
    target_compile_options(YMRootIntLib INTERFACE -O2)
 endif()
 
-# @note YM_UNITTEST_ACTIVE_DEFINED is to compile this header *only* in objects with
-#       testsuites that include them.
-#       YM_UNITTEST is a source-wide define that edits properties that make inspecting
-#       code easier for clients easier.
-target_compile_definitions(YMRootIntLib INTERFACE YM_UNITTEST=${YM_UNITTEST})
+target_compile_definitions(YMRootIntLib INTERFACE YM_INTEGRATIONTEST=${YM_INTEGRATIONTEST})
 target_compile_definitions(YMRootIntLib INTERFACE YM_PRINT_TO_SCREEN=${YM_PRINT_TO_SCREEN})
 target_compile_definitions(YMRootIntLib INTERFACE YM_DEBUG=${YM_DEBUG})
 target_compile_definitions(YMRootIntLib INTERFACE YM_LITE=${YM_LITE})
@@ -73,54 +61,22 @@ if (YM_DEBUG)
    target_link_libraries(YMRootIntLib INTERFACE stdc++exp)
 endif()
 
-find_library(YM_FMT_LIB
-   NAMES fmt
-   PATHS ${YM_ExtLibsDir}/build/fmt)
-if (YM_FMT_LIB)
-   target_link_libraries(YMRootIntLib INTERFACE ${YM_FMT_LIB})
-   target_include_directories(YMRootIntLib INTERFACE ${YM_ExtLibsDir}/fmt/include)
-else()
-   message(FATAL_ERROR "fmt lib not found. Must build external libraries first.")
-endif()
-
-find_library(YM_CATCH2_LIB
-   NAMES Catch2
-   PATHS ${YM_ExtLibsDir}/build/Catch2/src)
-if (YM_CATCH2_LIB)
-   target_link_libraries(YMRootIntLib INTERFACE ${YM_CATCH2_LIB})
-   target_include_directories(YMRootIntLib INTERFACE ${YM_ExtLibsDir}/Catch2/src)
-   target_include_directories(YMRootIntLib INTERFACE ${YM_ExtLibsDir}/build/Catch2/generated-includes)
-else()
-   message(FATAL_ERROR "Catch2 lib not found. Must build external libraries first.")
-endif()
-
-find_library(YM_CATCH2MAIN_LIB
-   NAMES Catch2Main
-   PATHS ${YM_ExtLibsDir}/build/Catch2/src)
-if (YM_CATCH2MAIN_LIB)
-   target_link_libraries(YMRootIntLib INTERFACE ${YM_CATCH2MAIN_LIB})
-else()
-   message(FATAL_ERROR "Catch2Main lib not found. Must build external libraries first.")
-endif()
+include(${YM_ExtLibsDir}/targets.cmake)
+cmake_language(CALL link-to-fmt YMRootIntLib)
 
 target_link_directories(YMRootIntLib INTERFACE ${YM_CustomLibsDir})
-
-add_custom_target(check-venv)
-add_custom_command(TARGET check-venv # specialized command to run at build (run) time, not configure time
-   PRE_BUILD
-   WORKING_DIRECTORY ${YM_UnitTestDir}
-   COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/check_venv.cmake)
 
 add_custom_target(clean-all
    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
    COMMAND rm -rf build/)
 
-add_subdirectory(${YM_UnitTestDir}/common)
-target_link_libraries(YMRootIntLib INTERFACE unit.common)
+include(${YM_IntgTestDir}/common)
+cmake_language(CALL intgbuild-intg.common ${YM_Ctx_JSON})
+target_link_libraries(YMRootIntLib INTERFACE intg.common)
 
-set(YM_TopLevelSubBuilds ym)
+set(YM_TopLevelSubBuilds file_handling)
 foreach(SubBuild ${YM_TopLevelSubBuilds})
-   include(${YM_UnitTestDir}/${SubBuild}/build.cmake)
-   cmake_language(CALL unitbuild-${SubBuild} ${YM_Ctx_JSON})
+   include(${YM_IntgTestDir}/${SubBuild}/build.cmake)
+   cmake_language(CALL intgbuild-${SubBuild} ${YM_Ctx_JSON})
    # target "all" implicitly set to build all targets - no need to explicitly add dependency
 endforeach()

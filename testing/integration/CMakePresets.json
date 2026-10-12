@@ -15,10 +15,10 @@
          "cacheVariables": {
             "YM_Python": "python3",
             "YM_ProjRootDir": "${sourceParentDir}/..",
-            "YM_UnitTestDir": "${sourceDir}",
+            "YM_IntgTestDir": "${sourceDir}",
             "YM_ExtLibsDir": "${sourceParentDir}/extlibs",
 
-            "YM_UNITTEST": "1",
+            "YM_INTEGRATIONTEST": "1",
             "YM_PRINT_TO_SCREEN": "1",
             "YM_DEBUG": "1",
             "YM_LITE": "0",
@@ -30,7 +30,7 @@
          "name": "test",
          "displayName": "test",
          "inherits": "base",
-         "description": "Builds unittests",
+         "description": "Builds integration tests",
          "binaryDir": "${sourceDir}/build",
          "toolchainFile": "${sourceDir}/toolchain.cmake",
          "cacheVariables": {
@@ -43,7 +43,7 @@
          "name": "cov",
          "displayName": "cov",
          "inherits": "base",
-         "description": "Builds unittests for coverage",
+         "description": "Builds integration tests for coverage",
          "binaryDir": "${sourceDir}/cov_build",
          "toolchainFile": "${sourceDir}/cov_toolchain.cmake",
          "cacheVariables": {
