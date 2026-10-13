@@ -20,7 +20,7 @@ except:
 
 class TestSuite(testsuitebase.TestSuiteBase):
    """
-   Collection of all tests for suite FileIO.
+   Collection of all tests for suite File Handling.
    """
 
    @classmethod
@@ -30,7 +30,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       super().setUpBaseClass(
          filepath="ym/common",
-         filename="fileio")
+         filename=None)
 
    @classmethod
    def tearDownClass(cls):
@@ -43,7 +43,6 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Set up logic that is run before each test.
       """
-      # </dev/urandom tr -dc '[:alnum:]' | head -c 1000 > data.txt
       pass
 
    def tearDown(self):
@@ -60,7 +59,6 @@ class TestSuite(testsuitebase.TestSuiteBase):
       from cppyy.gbl import ym  # type:ignore
 
       # results = self.run_test_case(self._testMethodName.removeprefix("test_"), assert_results=False)
-      # print(f"--> {results.get[cppyy.gbl.char]('E0')}")
       pass
 
    def test_SmokeTest(self):

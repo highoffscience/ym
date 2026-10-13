@@ -49,7 +49,7 @@
       #define YM_CPP_STANDARD 23
    #endif
 #else
-   #if defined(YM_UNITTEST_ACTIVE_DEFINED)
+   #if defined(YM_INTG_TESTING_ACTIVE_DEFINED)
       #if (__cplusplus == 202002L)
          #define YM_CPP_STANDARD 20
       #else

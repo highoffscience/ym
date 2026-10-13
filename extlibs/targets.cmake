@@ -7,7 +7,7 @@
 ##
 # @brief Links target to fmt library.
 #
-macro(link-to-fmt Target)
+macro(ym-link-to-fmt Target)
 
    find_library(YM_FMT_LIB
       NAMES fmt

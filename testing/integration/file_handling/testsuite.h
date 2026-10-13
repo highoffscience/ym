@@ -6,12 +6,12 @@
 
 #pragma once
 
-#define YM_UNITTEST_ACTIVE_DEFINED
+#define YM_INTG_TESTING_ACTIVE_DEFINED
 #include "ymdefs.h"
 
 #include "testsuitebase.h"
 
-namespace ym::unit::fileio
+namespace ym::intg::file_handling
 {
 
 /**
@@ -28,4 +28,4 @@ public:
    YM_UNIT_TESTCASE(Class_FileIO)
 };
 
-} // ym::unit::fileio
+} // ym::intg::file_handling

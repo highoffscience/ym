@@ -62,7 +62,7 @@ if (YM_DEBUG)
 endif()
 
 include(${YM_ExtLibsDir}/targets.cmake)
-cmake_language(CALL link-to-fmt YMRootIntLib)
+cmake_language(CALL ym-link-to-fmt YMRootIntLib)
 
 target_link_directories(YMRootIntLib INTERFACE ${YM_CustomLibsDir})
 

@@ -31,6 +31,6 @@ function(intgbuild-intg.common Ctx_JSON)
       CXX_STANDARD 20 # maximum standard allowed by cppyy which uses these files
       CXX_STANDARD_REQUIRED ON)
 
-   cmake_language(CALL link-to-fmt ${Target})
+   cmake_language(CALL ym-link-to-fmt ${Target})
 
 endfunction()

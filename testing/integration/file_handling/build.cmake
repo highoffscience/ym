@@ -1,0 +1,29 @@
+##
+# @file    build.cmake
+# @version 1.0.0
+# @author  Forrest Jablonski
+#
+
+cmake_minimum_required(VERSION 3.27)
+
+##
+# @brief Defines target to build specified integration test.
+#
+# @param Ctx_JSON -- Context object.
+#
+function(intgbuild-file_handling Ctx_JSON)
+
+   string(REGEX REPLACE "^[^-]+-" ""  BaseBuild    ${CMAKE_CURRENT_FUNCTION})
+   string(      REPLACE "."       "/" BaseBuildDir ${BaseBuild})
+
+   set(Target ${BaseBuild}-tests)
+   add_library(${Target} SHARED)
+
+   target_link_libraries(${Target} PRIVATE YMRootIntLib)
+
+   target_sources(${Target} PRIVATE ${YM_UnitTestDir}/${BaseBuildDir}/testsuite.cpp)
+
+   set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
+   set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_CustomLibsDir})
+
+endfunction()

@@ -7,9 +7,8 @@
 #include "testsuite.h"
 #include "ymglobals.h"
 
-#include "fileio.h" // Structures under test
+#include "fileio.h"
 
-#include "catch2/catch_test_macros.hpp"
 #include "fmt/format.h"
 
 #include <array>
@@ -19,8 +18,8 @@
 /**
  * @brief Constructor.
  */
-ym::unit::fileio::TestSuite::TestSuite(void) :
-   TestSuiteBase("FileIO")
+ym::intg::file_handling::TestSuite::TestSuite(void) :
+   TestSuiteBase("File Handling")
 {
    addTestCase<InteractiveInspection>();
    addTestCase<SmokeTest>();
@@ -34,7 +33,7 @@ ym::unit::fileio::TestSuite::TestSuite(void) :
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::fileio::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::intg::file_handling::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {};
 }
@@ -46,7 +45,7 @@ auto ym::unit::fileio::TestSuite::InteractiveInspection::run([[maybe_unused]] Da
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::fileio::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::intg::file_handling::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {};
 }
@@ -58,7 +57,7 @@ auto ym::unit::fileio::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle co
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::unit::fileio::TestSuite::Class_FileIO::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::intg::file_handling::TestSuite::Class_FileIO::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    strlit const Filename = "ym/common/fileio/data.txt";
    strlit const TestData = "Go! Torchic!";
