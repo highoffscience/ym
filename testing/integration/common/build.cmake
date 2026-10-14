@@ -9,7 +9,7 @@
 #
 # @param Ctx_JSON -- Context object.
 #
-function(intgbuild-intg.common Ctx_JSON)
+function(ym-intgbuild-intg.common Ctx_JSON)
 
    string(REGEX REPLACE "^[^-]+-" ""  BaseBuild    ${CMAKE_CURRENT_FUNCTION})
    string(      REPLACE "."       "/" BaseBuildDir ${BaseBuild})

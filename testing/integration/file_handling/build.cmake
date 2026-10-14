@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 3.27)
 #
 # @param Ctx_JSON -- Context object.
 #
-function(intgbuild-file_handling Ctx_JSON)
+function(ym-intgbuild-file_handling Ctx_JSON)
 
    string(REGEX REPLACE "^[^-]+-" ""  BaseBuild    ${CMAKE_CURRENT_FUNCTION})
    string(      REPLACE "."       "/" BaseBuildDir ${BaseBuild})

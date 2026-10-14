@@ -70,13 +70,13 @@ add_custom_target(clean-all
    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
    COMMAND rm -rf build/)
 
-include(${YM_IntgTestDir}/common)
-cmake_language(CALL intgbuild-intg.common ${YM_Ctx_JSON})
+include(${YM_IntgTestDir}/common/build.cmake)
+cmake_language(CALL ym-intgbuild-intg.common ${YM_Ctx_JSON})
 target_link_libraries(YMRootIntLib INTERFACE intg.common)
 
 set(YM_TopLevelSubBuilds file_handling)
 foreach(SubBuild ${YM_TopLevelSubBuilds})
    include(${YM_IntgTestDir}/${SubBuild}/build.cmake)
-   cmake_language(CALL intgbuild-${SubBuild} ${YM_Ctx_JSON})
+   cmake_language(CALL ym-intgbuild-${SubBuild} ${YM_Ctx_JSON})
    # target "all" implicitly set to build all targets - no need to explicitly add dependency
 endforeach()
