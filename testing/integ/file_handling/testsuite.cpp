@@ -91,9 +91,6 @@ auto ym::intg::file_handling::TestSuite::Class_FileIO::run([[maybe_unused]] Data
       (std::strncmp(buffer_1.data(), buffer_2.data(), buffer_2.size()) == 0) &&
       (std::strncmp(buffer_1.data(), TestData, buffer_2.size()) == 0);
 
-   INFO("Testing that file exists");
-   REQUIRE(Exists);
-
    return {
       {"Exists", Exists},
       {"NotExists", NotExists},

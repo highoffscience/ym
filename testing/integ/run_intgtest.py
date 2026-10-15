@@ -1,11 +1,11 @@
 ##
-# @file    run_unittest.py
+# @file    run_intgtest.py
 # @version 1.0.0
 # @author  Forrest Jablonski
 #
 
 """
-Script that controls running unittests - to be called from cmake.
+Script that controls running integration tests.
 """
 
 import ympyutils as ympy
@@ -44,10 +44,10 @@ def cacheCovProfiles(
 
 def main():
    """
-   Runs the given unittest and conditionally runs coverage.
+   Runs the given integration and conditionally runs coverage.
    """
    parser = argparse.ArgumentParser()
-   parser.add_argument("--unittestdir", required=True, help="Absolute path to unittest directory")
+   parser.add_argument("--intgtestdir", required=True, help="Absolute path to integration test directory")
    parser.add_argument("--projrootdir", required=True, help="Absolute path of project directory")
    parser.add_argument("--builddir",    required=True, help="Absolute path to build directory")
    parser.add_argument("--suitename",   required=True, help="Qualified testsuite name")
@@ -65,7 +65,7 @@ def main():
    os.environ["LLVM_PROFILE_FILE"] = LLVM_PROFILE_FILE
 
    ympy.runCmd(f"python -m {args.suitename}.testsuite -v " \
-      f"--unittestdir={args.unittestdir} " \
+      f"--intgtestdir={args.intgtestdir} " \
       f"--projrootdir={args.projrootdir} " \
       f"--builddir={args.builddir}",
       cwd=args.unittestdir, per_line_action_func=print)

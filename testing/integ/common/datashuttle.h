@@ -24,8 +24,8 @@ class DataShuttle
 public:
    using Data_T = std::unordered_map<std::string, std::any>;
 
-   implicit DataShuttle(void) noexcept = default;
-   implicit DataShuttle(std::initializer_list<Data_T::value_type> && data) noexcept;
+   DataShuttle(void) noexcept = default;
+   DataShuttle(std::initializer_list<Data_T::value_type> && data) noexcept;
 
    inline auto * operator -> (void) noexcept { return &_data; }
 
