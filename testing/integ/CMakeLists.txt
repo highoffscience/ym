@@ -3,11 +3,11 @@
 # @version 1.0.0
 # @author  Forrest Jablonski
 #
-# @note God will make sure evil gets punished.
-#       Yeah? Then explain Europe to me.
+# God will make sure evil gets punished.
+# Yeah? Then explain Europe to me.
 #
 
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.27...4.4.4) # 4-est version
 
 # TODO add ctest support
 
@@ -34,13 +34,13 @@ target_compile_options(YMRootIntLib INTERFACE
    -fmax-errors=1)
 
 target_include_directories(YMRootIntLib INTERFACE
-   ${YM_IntgTestDir}/common
-   ${YM_IntgTestDir}/ym/common
+   ${YM_IntegTestDir}/common
+   ${YM_IntegTestDir}/ym/common
    ${YM_ProjRootDir}/ym/common)
 
 if (YM_CovEnabled)
    message("Compiling for coverage...")
-   file(MAKE_DIRECTORY ${YM_IntgTestDir}/cov_build/profiles)
+   file(MAKE_DIRECTORY ${YM_IntegTestDir}/cov_build/profiles)
    set(YM_CovFlags -fprofile-instr-generate -fcoverage-mapping)
    target_compile_options(YMRootIntLib INTERFACE ${YM_CovFlags})
    target_link_options(   YMRootIntLib INTERFACE ${YM_CovFlags})
@@ -70,13 +70,14 @@ add_custom_target(clean-all
    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
    COMMAND rm -rf build/)
 
-include(${YM_IntgTestDir}/common/build.cmake)
-cmake_language(CALL ym-intgbuild-intg.common ${YM_Ctx_JSON})
-target_link_libraries(YMRootIntLib INTERFACE intg.common)
+include(${YM_IntegTestDir}/common/build.cmake)
+cmake_language(CALL ym-integbuild-integ.common ${YM_Ctx_JSON})
+target_link_libraries(YMRootIntLib INTERFACE integ.common)
 
-set(YM_TopLevelSubBuilds file_handling)
+add_custom_target(integ-tests) # aka TargetAll
+set(YM_TopLevelSubBuilds core)
 foreach(SubBuild ${YM_TopLevelSubBuilds})
-   include(${YM_IntgTestDir}/${SubBuild}/build.cmake)
-   cmake_language(CALL ym-intgbuild-${SubBuild} ${YM_Ctx_JSON})
-   # target "all" implicitly set to build all targets - no need to explicitly add dependency
+   include(${YM_IntegTestDir}/${SubBuild}/build.cmake)
+   cmake_language(CALL ym-build-integ.${SubBuild} ${YM_Ctx_JSON})
+   add_dependencies(integ-tests integ.${SubBuild}-tests)
 endforeach()

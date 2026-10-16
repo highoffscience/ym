@@ -14,7 +14,7 @@
  *
  * @param name -- Name of test suite.
  */
-ym::intg::TestSuiteBase::TestSuiteBase(std::string name) noexcept :
+ym::integ::TestSuiteBase::TestSuiteBase(std::string name) noexcept :
    _Name {std::move(name)}
 { }
 
@@ -29,7 +29,7 @@ ym::intg::TestSuiteBase::TestSuiteBase(std::string name) noexcept :
  *
  * @returns DataShuttle -- Results of test case.
  */
-auto ym::intg::TestSuiteBase::runTestCase(
+auto ym::integ::TestSuiteBase::runTestCase(
    std::string const & Name,
    DataShuttle const & InData) -> DataShuttle
 {

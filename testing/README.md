@@ -123,7 +123,7 @@ Type 4:
 
 TODO code in testing/ym/common/
 
-function(intgbuild-ym.common Ctx_JSON)
+function(integbuild-ym.common Ctx_JSON)
 
    set(BaseBuild ym.common)
    set(TargetAll ${BaseBuild}-unittests)

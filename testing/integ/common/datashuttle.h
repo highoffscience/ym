@@ -12,7 +12,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace ym::intg
+namespace ym::integ
 {
 
 /**
@@ -89,4 +89,4 @@ T DataShuttle::get(
    return val;
 }
 
-} // ym::intg
+} // ym::integ

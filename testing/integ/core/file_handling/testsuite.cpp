@@ -18,7 +18,7 @@
 /**
  * @brief Constructor.
  */
-ym::intg::file_handling::TestSuite::TestSuite(void) :
+ym::integ::file_handling::TestSuite::TestSuite(void) :
    TestSuiteBase("File Handling")
 {
    addTestCase<InteractiveInspection>();
@@ -33,7 +33,7 @@ ym::intg::file_handling::TestSuite::TestSuite(void) :
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::intg::file_handling::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::integ::file_handling::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {};
 }
@@ -45,7 +45,7 @@ auto ym::intg::file_handling::TestSuite::InteractiveInspection::run([[maybe_unus
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::intg::file_handling::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::integ::file_handling::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {};
 }
@@ -57,7 +57,7 @@ auto ym::intg::file_handling::TestSuite::SmokeTest::run([[maybe_unused]] DataShu
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::intg::file_handling::TestSuite::Class_FileIO::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::integ::file_handling::TestSuite::Class_FileIO::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    strlit const Filename = "ym/common/fileio/data.txt";
    strlit const TestData = "Go! Torchic!";

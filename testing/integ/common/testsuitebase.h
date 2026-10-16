@@ -15,11 +15,11 @@
 #include <utility>
 #include <vector>
 
-namespace ym::intg
+namespace ym::integ
 {
 
 /**
- * @brief Base class for unit test suites.
+ * @brief Base class for integration test suites.
  */
 class TestSuiteBase
 {
@@ -67,4 +67,4 @@ void TestSuiteBase::addTestCase(Args_T &&... args)
          std::forward<Args_T>(args)...));
 }
 
-} // ym::intg
+} // ym::integ

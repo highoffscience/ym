@@ -1,5 +1,5 @@
 ##
-# @file    run_intgtest.py
+# @file    run_test.py
 # @version 1.0.0
 # @author  Forrest Jablonski
 #
@@ -47,7 +47,7 @@ def main():
    Runs the given integration and conditionally runs coverage.
    """
    parser = argparse.ArgumentParser()
-   parser.add_argument("--intgtestdir", required=True, help="Absolute path to integration test directory")
+   parser.add_argument("--testdir",     required=True, help="Absolute path to integration test directory")
    parser.add_argument("--projrootdir", required=True, help="Absolute path of project directory")
    parser.add_argument("--builddir",    required=True, help="Absolute path to build directory")
    parser.add_argument("--suitename",   required=True, help="Qualified testsuite name")
@@ -65,7 +65,7 @@ def main():
    os.environ["LLVM_PROFILE_FILE"] = LLVM_PROFILE_FILE
 
    ympy.runCmd(f"python -m {args.suitename}.testsuite -v " \
-      f"--intgtestdir={args.intgtestdir} " \
+      f"--integtestdir={args.integtestdir} " \
       f"--projrootdir={args.projrootdir} " \
       f"--builddir={args.builddir}",
       cwd=args.unittestdir, per_line_action_func=print)

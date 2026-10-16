@@ -15,7 +15,7 @@
          "cacheVariables": {
             "YM_Python": "python3",
             "YM_ProjRootDir": "${sourceParentDir}/../..",
-            "YM_IntgTestDir": "${sourceDir}",
+            "YM_IntegTestDir": "${sourceDir}",
             "YM_ExtLibsDir": "${sourceParentDir}/../extlibs",
 
             "YM_INTEGRATIONTEST": "1",

@@ -6,12 +6,12 @@
 
 #pragma once
 
-#define YM_INTG_TESTING_ACTIVE_DEFINED
+#define YM_INTEG_TESTING_ACTIVE_DEFINED
 #include "ymdefs.h"
 
 #include "testsuitebase.h"
 
-namespace ym::intg::file_handling
+namespace ym::integ::file_handling
 {
 
 /**
@@ -23,9 +23,9 @@ public:
    explicit TestSuite(void);
    virtual ~TestSuite(void) = default;
 
-   YM_UNIT_TESTCASE(InteractiveInspection)
-   YM_UNIT_TESTCASE(SmokeTest)
-   YM_UNIT_TESTCASE(Class_FileIO)
+   YM_INTEG_TESTCASE(InteractiveInspection)
+   YM_INTEG_TESTCASE(SmokeTest)
+   YM_INTEG_TESTCASE(Class_FileIO)
 };
 
-} // ym::intg::file_handling
+} // ym::integ::file_handling

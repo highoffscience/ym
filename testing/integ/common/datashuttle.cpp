@@ -13,6 +13,6 @@
  *
  * @param data -- List of elements to populate data shuttle with.
  */
-ym::intg::DataShuttle::DataShuttle(std::initializer_list<Data_T::value_type> && data) noexcept :
+ym::integ::DataShuttle::DataShuttle(std::initializer_list<Data_T::value_type> && data) noexcept :
    _data {std::move(data)}
 { }

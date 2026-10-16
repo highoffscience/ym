@@ -10,7 +10,7 @@
 
 #include <string>
 
-namespace ym::intg
+namespace ym::integ
 {
 
 /**
@@ -18,7 +18,7 @@ namespace ym::intg
  *
  * @param Name_ -- Name of test case.
  */
-#define YM_UNIT_TESTCASE(Name_)                                          \
+#define YM_INTEG_TESTCASE(Name_)                                         \
    class Name_ : public TestCase                                         \
    {                                                                     \
    public:                                                               \
@@ -45,4 +45,4 @@ private:
    std::string const _Name{};
 };
 
-} // ym::intg
+} // ym::integ

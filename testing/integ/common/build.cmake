@@ -9,7 +9,7 @@
 #
 # @param Ctx_JSON -- Context object.
 #
-function(ym-intgbuild-intg.common Ctx_JSON)
+function(ym-build-integ.common Ctx_JSON)
 
    string(REGEX REPLACE "^[^-]+-" ""  BaseBuild    ${CMAKE_CURRENT_FUNCTION})
    string(      REPLACE "."       "/" BaseBuildDir ${BaseBuild})
@@ -20,7 +20,7 @@ function(ym-intgbuild-intg.common Ctx_JSON)
    set(Srcs
       datashuttle.cpp
       testsuitebase.cpp)
-   list(TRANSFORM Srcs PREPEND ${YM_IntgTestDir}/common/)
+   list(TRANSFORM Srcs PREPEND ${YM_IntegTestDir}/common/)
    target_sources(${Target} PRIVATE ${Srcs})
 
    set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})

@@ -4,14 +4,12 @@
 # @author  Forrest Jablonski
 #
 
-cmake_minimum_required(VERSION 3.27)
-
 ##
-# @brief Defines target to build specified integration test.
+# @brief Defines target to build specified integration tests.
 #
 # @param Ctx_JSON -- Context object.
 #
-function(ym-intgbuild-file_handling Ctx_JSON)
+function(ym-build-integ.core.file_handling Ctx_JSON)
 
    string(REGEX REPLACE "^[^-]+-" ""  BaseBuild    ${CMAKE_CURRENT_FUNCTION})
    string(      REPLACE "."       "/" BaseBuildDir ${BaseBuild})
@@ -19,9 +17,11 @@ function(ym-intgbuild-file_handling Ctx_JSON)
    set(Target ${BaseBuild}-tests)
    add_library(${Target} SHARED)
 
-   target_link_libraries(${Target} PRIVATE YMRootIntLib)
+   target_link_libraries(${Target} PRIVATE integ.core-interface)
 
-   target_sources(${Target} PRIVATE ${YM_IntgTestDir}/${BaseBuildDir}/testsuite.cpp)
+   target_sources(${Target} PRIVATE ${YM_IntegTestDir}/${BaseBuildDir}/testsuite.cpp)
+
+   # TODO custom libraries and exes don't always go to their desired output directory
 
    set_target_properties(${Target} PROPERTIES VERSION ${PROJECT_VERSION})
    set_target_properties(${Target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${YM_CustomLibsDir})
