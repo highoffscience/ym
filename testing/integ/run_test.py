@@ -65,10 +65,10 @@ def main():
    os.environ["LLVM_PROFILE_FILE"] = LLVM_PROFILE_FILE
 
    ympy.runCmd(f"python -m {args.suitename}.testsuite -v " \
-      f"--integtestdir={args.integtestdir} " \
+      f"--testdir={args.integtestdir} " \
       f"--projrootdir={args.projrootdir} " \
       f"--builddir={args.builddir}",
-      cwd=args.unittestdir, per_line_action_func=print)
+      cwd=args.testdir, per_line_action_func=print)
 
    if args.covenabled:
       MERGED_PROFILE_FILE = LLVM_PROFILE_FILE.replace(".profraw", ".profdata")

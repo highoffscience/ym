@@ -21,7 +21,7 @@ class TestSuiteBase(unittest.TestCase):
    Base class representing a test suite.
    """
    # these to be set before running suite
-   unittestdir         = None
+   testdir             = None
    projrootdir         = None
    builddir            = None
    filepath            = None
@@ -32,25 +32,25 @@ class TestSuiteBase(unittest.TestCase):
 
    @classmethod
    def customBaseInit(cls,
-         unittestdir: str,
+         testdir:     str,
          projrootdir: str,
-         builddir: str):
+         builddir:    str):
       """
       Initializes variables.
 
       Args:
-         unittestdir: Absolute path of unittest directory.
+         testdir:     Absolute path of test directory.
          projrootdir: Absolute path of project directory.
          builddir:    Absolute path to build directory.
       """
-      cls.unittestdir = unittestdir
+      cls.testdir     = testdir
       cls.projrootdir = projrootdir
       cls.builddir    = builddir
 
    @classmethod
    def setUpBaseClass(cls,
          filepath: str,
-         filename: str):
+         filename: str): # TODO filename not needed - we can get namespace of suite from path alone
       """
       Acting constructor.
 
@@ -183,7 +183,7 @@ class TestSuiteBase(unittest.TestCase):
       Args:
          id: String to print.
       """
-      print(f"DBG --<> {id} <>--", flush=True)
+      print(f"DBG --< {id} >--", flush=True)
 
 # kick-off
 if __name__ == "__main__":

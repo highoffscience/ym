@@ -29,7 +29,7 @@ class TestSuite(testsuitebase.TestSuiteBase):
       Acting constructor.
       """
       super().setUpBaseClass(
-         filepath="ym/common",
+         filepath="core/file_handling",
          filename=None)
 
    @classmethod
