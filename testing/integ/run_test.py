@@ -65,7 +65,7 @@ def main():
    os.environ["LLVM_PROFILE_FILE"] = LLVM_PROFILE_FILE
 
    ympy.runCmd(f"python -m {args.suitename}.testsuite -v " \
-      f"--testdir={args.integtestdir} " \
+      f"--testdir={args.testdir} " \
       f"--projrootdir={args.projrootdir} " \
       f"--builddir={args.builddir}",
       cwd=args.testdir, per_line_action_func=print)

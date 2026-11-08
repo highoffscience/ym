@@ -21,14 +21,14 @@ class TestSuiteBase(unittest.TestCase):
    Base class representing a test suite.
    """
    # these to be set before running suite
-   testdir             = None
-   projrootdir         = None
-   builddir            = None
-   filepath            = None
-   filename            = None
-   abs_unit_suite_path = None
-   abs_src_path        = None
-   cpp_suite_instance  = None
+   testdir            = None
+   projrootdir        = None
+   builddir           = None
+   filepath           = None
+   filename           = None
+   abs_suite_path     = None
+   abs_src_path       = None
+   cpp_suite_instance = None
 
    @classmethod
    def customBaseInit(cls,
@@ -48,45 +48,41 @@ class TestSuiteBase(unittest.TestCase):
       cls.builddir    = builddir
 
    @classmethod
-   def setUpBaseClass(cls,
-         filepath: str,
-         filename: str): # TODO filename not needed - we can get namespace of suite from path alone
+   def setUpBaseClass(cls, filepath: str):
       """
       Acting constructor.
 
       Args:
-         filepath: Path of suite relative to unittests/ directory.
-         filename: Name of suite file.
+         filepath: Path of suite relative to testing/integ/ directory.
       """
       if not cls.unittestdir or not cls.projrootdir or not cls.builddir:
-         print(f"Testsuite for file {filename} not setup correctly")
+         print(f"Testsuite for {filepath} not setup correctly")
          sys.exit(1)
 
       cls.filepath = filepath
-      cls.filename = filename
 
-      cls.abs_unit_suite_path = os.path.join(cls.unittestdir, cls.filepath, cls.filename)
-      cls.abs_src_path        = os.path.join(cls.projrootdir, cls.filepath)
+      cls.abs_suite_path = os.path.join(cls.testdir, cls.filepath)
+      cls.abs_src_path   = os.path.join(cls.projrootdir, cls.filepath)
 
       cls.processCompileCommands()
       cls.configCppyy()
 
       from cppyy.gbl import ym # type: ignore
-      cls.cpp_suite_instance = getattr(ym.unit, cls.filename).TestSuite()
+      cls.cpp_suite_instance = getattr(ym.integ, cls.filepath).TestSuite() # TODO
 
    @classmethod
    def tearDownBaseClass(cls):
       """
       Acting destructor.
       """
-      cls.unittestdir         = None
-      cls.projrootdir         = None
-      cls.builddir            = None
-      cls.filepath            = None
-      cls.filename            = None
-      cls.abs_unit_suite_path = None
-      cls.abs_src_path        = None
-      cls.cpp_suite_instance  = None
+      cls.unittestdir        = None
+      cls.projrootdir        = None
+      cls.builddir           = None
+      cls.filepath           = None
+      cls.filename           = None
+      cls.abs_suite_path     = None
+      cls.abs_src_path       = None
+      cls.cpp_suite_instance = None
 
    @classmethod
    def processCompileCommands(cls):
@@ -111,14 +107,14 @@ class TestSuiteBase(unittest.TestCase):
       """
       Configures the test suite environment.
       """
-      cppyy.add_include_path(os.path.join(cls.unittestdir, "common/"))
-      cppyy.add_include_path(cls.abs_unit_suite_path)
+      cppyy.add_include_path(os.path.join(cls.testdir, "common/"))
+      cppyy.add_include_path(cls.abs_suite_path)
       cppyy.add_include_path(cls.abs_src_path)
 
-      cppyy.include(os.path.join(cls.abs_unit_suite_path, "testsuite.h"))
+      cppyy.include(os.path.join(cls.abs_suite_path, "testsuite.h"))
 
       cppyy.add_library_path(os.path.join(cls.builddir, "customlibs/"))
-      cppyy.load_library(f"lib{os.path.join(cls.filepath, cls.filename).replace('/', '.')}-unittests")
+      cppyy.load_library(f"lib{cls.filepath.replace('/', '.')}-tests") # TODO
 
    @classmethod
    def runSuite(cls):
@@ -126,13 +122,13 @@ class TestSuiteBase(unittest.TestCase):
       Runs this test suite instance.
       """
       parser = argparse.ArgumentParser()
-      parser.add_argument("--unittestdir", required=True, help="Absolute path of unittest directory")
+      parser.add_argument("--unittestdir", required=True, help="Absolute path of test directory")
       parser.add_argument("--projrootdir", required=True, help="Absolute path of project directory")
       parser.add_argument("--builddir",    required=True, help="Absolute path to build directory")
       parser.add_argument("-v", "--verbosity", action="store_true", help="Enable verbosity")
       args = parser.parse_args()
 
-      cls.customBaseInit(args.unittestdir, args.projrootdir, args.builddir)
+      cls.customBaseInit(args.testdir, args.projrootdir, args.builddir)
 
       suite = unittest.TestSuite()
       loader = unittest.TestLoader()
