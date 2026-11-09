@@ -4,6 +4,8 @@
  * @author  Forrest Jablonski
  */
 
+#define YM_INTEG_TESTING_ACTIVE_DEFINED
+
 #include "testsuite.h"
 #include "ymglobals.h"
 
@@ -18,7 +20,7 @@
 /**
  * @brief Constructor.
  */
-ym::integ::file_handling::TestSuite::TestSuite(void) :
+ym::integ::core::file_handling::TestSuite::TestSuite(void) :
    TestSuiteBase("File Handling")
 {
    addTestCase<InteractiveInspection>();
@@ -33,7 +35,7 @@ ym::integ::file_handling::TestSuite::TestSuite(void) :
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::integ::file_handling::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::integ::core::file_handling::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {};
 }
@@ -45,7 +47,7 @@ auto ym::integ::file_handling::TestSuite::InteractiveInspection::run([[maybe_unu
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::integ::file_handling::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::integ::core::file_handling::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    return {};
 }
@@ -57,7 +59,7 @@ auto ym::integ::file_handling::TestSuite::SmokeTest::run([[maybe_unused]] DataSh
  *
  * @returns DataShuttle -- Important values acquired during run of test.
  */
-auto ym::integ::file_handling::TestSuite::Class_FileIO::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
+auto ym::integ::core::file_handling::TestSuite::Class_FileIO::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
    strlit const Filename = "ym/common/fileio/data.txt";
    strlit const TestData = "Go! Torchic!";

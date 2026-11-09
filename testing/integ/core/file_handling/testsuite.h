@@ -6,12 +6,11 @@
 
 #pragma once
 
-#define YM_INTEG_TESTING_ACTIVE_DEFINED
-#include "ymdefs.h"
+// TODO change setup_scaffold.py
 
 #include "testsuitebase.h"
 
-namespace ym::integ::file_handling // TODO ::core::file_handling
+namespace ym::integ::core::file_handling
 {
 
 /**
@@ -28,4 +27,4 @@ public:
    YM_INTEG_TESTCASE(Class_FileIO)
 };
 
-} // ym::integ::file_handling
+} // ym::integ::core::file_handling

@@ -68,7 +68,10 @@ class TestSuiteBase(unittest.TestCase):
       cls.configCppyy()
 
       from cppyy.gbl import ym # type: ignore
-      cls.cpp_suite_instance = getattr(ym.integ, cls.filepath).TestSuite() # TODO
+      namespace = ym.integ
+      for subspace in cls.filepath.split('/'):
+         namespace = getattr(namespace, subspace)
+      cls.cpp_suite_instance = namespace.TestSuite()
 
    @classmethod
    def tearDownBaseClass(cls):
@@ -114,7 +117,7 @@ class TestSuiteBase(unittest.TestCase):
       cppyy.include(os.path.join(cls.abs_suite_path, "testsuite.h"))
 
       cppyy.add_library_path(os.path.join(cls.builddir, "customlibs/"))
-      cppyy.load_library(f"lib{cls.filepath.replace('/', '.')}-tests") # TODO
+      cppyy.load_library(f"lib{cls.filepath.replace('/', '.')}-tests")
 
    @classmethod
    def runSuite(cls):
@@ -122,7 +125,7 @@ class TestSuiteBase(unittest.TestCase):
       Runs this test suite instance.
       """
       parser = argparse.ArgumentParser()
-      parser.add_argument("--unittestdir", required=True, help="Absolute path of test directory")
+      parser.add_argument("--testdir",     required=True, help="Absolute path of test directory")
       parser.add_argument("--projrootdir", required=True, help="Absolute path of project directory")
       parser.add_argument("--builddir",    required=True, help="Absolute path to build directory")
       parser.add_argument("-v", "--verbosity", action="store_true", help="Enable verbosity")
