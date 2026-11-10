@@ -23,6 +23,8 @@
 *.profraw
 *.profdata
 
+devcontainer-lock.json
+
 tmp/
 
 # tmp python files
