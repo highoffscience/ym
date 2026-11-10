@@ -1,0 +1,31 @@
+{
+  "name": "Common Utilities & Testing Framework",
+
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": ".."
+  },
+
+  "features": {
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.debugpy",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.vscode-python-envs",
+        "ms-vscode.cpptools",
+        "twxs.cmake",
+        "bierner.markdown-mermaid"
+      ]
+    }
+  },
+
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind"
+  ],
+
+  "workspaceFolder": "/workspace"
+}
