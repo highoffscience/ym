@@ -6,6 +6,8 @@
 
 #include "rng.h"
 
+#include <x86intrin.h>
+
 /**
  * @brief Sets the seed for the PRNG.
  *
@@ -42,4 +44,20 @@ void ym::Prng::jump(uint64 nJumps) noexcept
    }
 
    _state = (_state * acc_mult) + acc_plus;
+}
+
+// -----------------------------------------------------------------------------
+
+/**
+ * @brief Creates entropy via the butterfly-effect, high resolution CPU counter (jitter effect),
+ *    and a user specified constant.
+ *
+ * @note __rdtsc() returns the cpu cycle count.
+ *    [Reference](https://learn.microsoft.com/en-us/cpp/intrinsics/rdtsc?view=msvc-170).
+ *
+ * @param Salt -- User specified constant.
+ */
+void ym::Trng::stir(State_T const Salt) noexcept
+{
+   _entropy = moremur_mix(_entropy ^ fasthash_mix(__rdtsc()) ^ Salt);
 }

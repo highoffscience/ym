@@ -10,7 +10,6 @@
 
 #include <limits>
 #include <type_traits>
-#include <x86intrin.h>
 
 namespace ym
 {
@@ -251,6 +250,7 @@ class Trng
 {
 public:
    using result_type = uint64;
+   using State_T     = result_type;
 
    /**
     * @{
@@ -261,9 +261,9 @@ public:
     * @param Seed -- (2) Seed.
     */
    explicit inline Trng(void) noexcept = default;
-   explicit inline Trng(Prng::State_T const Seed) noexcept {
-      _prng.setSeed(Seed);
-   }
+   explicit inline Trng(Prng::State_T const Seed) noexcept :
+      _prng(Seed)
+   { }
    /// @}
 
    /**
@@ -280,8 +280,46 @@ public:
 
    inline result_type operator () (void) noexcept;
 
+   // some hard-coded random number
+   void stir(State_T const Salt = 0xbea9'9ee9'2681'3ea1_u64) noexcept;
+
+   /**
+    * @brief To be used as a half mixer.
+    *
+    * - [Reference](https://github.com/ryogrid/create_pg_super_document/blob/master/generated_docs/f/fasthash_mix.md).
+    *
+    * @param h -- Value to hash.
+    *
+    * @returns State_T -- Hashed value.
+    */
+   static constexpr State_T fasthash_mix(State_T h) noexcept {
+      h ^= h >> 23_u64;
+      h *= 0x2127599bf4325c37_u64;
+      h ^= h >> 47_u64;
+      return h;
+   }
+
+   /**
+    * @brief To be used as a full mixer.
+    *
+    * - [Reference](https://mostlymangling.blogspot.com/2019/12/stronger-better-morer-moremur-better.html).
+    *
+    * @param h -- Value to hash.
+    *
+    * @returns State_T -- Hashed value.
+    */
+   static constexpr State_T moremur_mix(State_T h) noexcept {
+      h ^= h >> 27_u64;
+      h *= 0x3c79ac492ba7b653_u64;
+      h ^= h >> 33_u64;
+      h *= 0x1c69b3f74ac4ae35_u64;
+      h ^= h >> 27_u64;
+      return h;
+   }
+
 private:
-   Prng _prng{};
+   Prng    _prng    {};
+   State_T _entropy {0x57ed'0828'64d5'9bc9_u64}; // some hard-coded random number
 };
 
 /**
@@ -289,15 +327,13 @@ private:
  *
  * - Changes internal state when called.
  *
- * @note __rdtsc() returns the cpu cycle count.
- *    [Reference](https://learn.microsoft.com/en-us/cpp/intrinsics/rdtsc?view=msvc-170).
- *
  * @returns uint64 -- Random number in range.
  */
 template <>
 inline auto Trng::gen<uint64>(void) noexcept -> uint64
 {
-   return _prng.gen<uint64>() ^ __rdtsc();
+   stir(); // changes _entropy
+   return _prng.gen<uint64>() ^ _entropy;
 }
 
 /**
