@@ -7,6 +7,7 @@
 import argparse
 import json
 import os
+import pathlib
 import sys
 import unittest
 
@@ -25,16 +26,15 @@ class TestSuiteBase(unittest.TestCase):
    projrootdir        = None
    builddir           = None
    filepath           = None
-   filename           = None
    abs_suite_path     = None
    abs_src_path       = None
    cpp_suite_instance = None
 
    @classmethod
    def customBaseInit(cls,
-         testdir:     str,
-         projrootdir: str,
-         builddir:    str):
+         testdir:     str | os.PathLike[str],
+         projrootdir: str | os.PathLike[str],
+         builddir:    str | os.PathLike[str]):
       """
       Initializes variables.
 
@@ -43,33 +43,33 @@ class TestSuiteBase(unittest.TestCase):
          projrootdir: Absolute path of project directory.
          builddir:    Absolute path to build directory.
       """
-      cls.testdir     = testdir
-      cls.projrootdir = projrootdir
-      cls.builddir    = builddir
+      cls.testdir     = pathlib.Path(testdir)
+      cls.projrootdir = pathlib.Path(projrootdir)
+      cls.builddir    = pathlib.Path(builddir)
 
    @classmethod
-   def setUpBaseClass(cls, filepath: str):
+   def setUpBaseClass(cls, filepath: str | os.PathLike[str]):
       """
       Acting constructor.
 
       Args:
          filepath: Path of suite relative to testing/integ/ directory.
       """
-      if not cls.unittestdir or not cls.projrootdir or not cls.builddir:
+      if not cls.testdir or not cls.projrootdir or not cls.builddir:
          print(f"Testsuite for {filepath} not setup correctly")
          sys.exit(1)
 
-      cls.filepath = filepath
+      cls.filepath = pathlib.Path(filepath)
 
-      cls.abs_suite_path = os.path.join(cls.testdir, cls.filepath)
-      cls.abs_src_path   = os.path.join(cls.projrootdir, cls.filepath)
+      cls.abs_suite_path = cls.testdir     / cls.filepath
+      cls.abs_src_path   = cls.projrootdir / cls.filepath
 
       cls.processCompileCommands()
       cls.configCppyy()
 
       from cppyy.gbl import ym # type: ignore
       namespace = ym.integ
-      for subspace in cls.filepath.split('/'):
+      for subspace in cls.filepath.parts:
          namespace = getattr(namespace, subspace)
       cls.cpp_suite_instance = namespace.TestSuite()
 
@@ -78,11 +78,10 @@ class TestSuiteBase(unittest.TestCase):
       """
       Acting destructor.
       """
-      cls.unittestdir        = None
+      cls.testdir            = None
       cls.projrootdir        = None
       cls.builddir           = None
       cls.filepath           = None
-      cls.filename           = None
       cls.abs_suite_path     = None
       cls.abs_src_path       = None
       cls.cpp_suite_instance = None
@@ -97,10 +96,10 @@ class TestSuiteBase(unittest.TestCase):
 
          Reason for EXPORTS exception can be found at <https://cmake.org/cmake/help/v3.0/prop_tgt/DEFINE_SYMBOL.html>.
       """
-      with open(os.path.join(cls.builddir, "compile_commands.json"), "r") as ccfile:
+      with open(cls.builddir / "compile_commands.json", "r") as ccfile:
          data = json.load(ccfile)
          for d in data:
-            if d["file"].endswith(os.path.join(cls.filename, "testsuite.cpp")):
+            if d["file"].endswith(str(cls.filepath / "testsuite.cpp")):
                for arg in d["command"].split():
                   if arg.startswith("-D") and not arg.endswith("_EXPORTS"):
                      cppyy.cppdef(f"#define {arg[2:].replace('=', ' ')}")
@@ -110,14 +109,14 @@ class TestSuiteBase(unittest.TestCase):
       """
       Configures the test suite environment.
       """
-      cppyy.add_include_path(os.path.join(cls.testdir, "common/"))
-      cppyy.add_include_path(cls.abs_suite_path)
-      cppyy.add_include_path(cls.abs_src_path)
+      cppyy.add_include_path(str(cls.testdir / "common"))
+      cppyy.add_include_path(str(cls.abs_suite_path))
+      cppyy.add_include_path(str(cls.abs_src_path))
 
-      cppyy.include(os.path.join(cls.abs_suite_path, "testsuite.h"))
+      cppyy.include(str(cls.abs_suite_path / "testsuite.h"))
 
-      cppyy.add_library_path(os.path.join(cls.builddir, "customlibs/"))
-      cppyy.load_library(f"lib{cls.filepath.replace('/', '.')}-tests")
+      cppyy.add_library_path(str(cls.builddir / "customlibs"))
+      cppyy.load_library(f"lib{str(cls.filepath).replace('/', '.')}-tests")
 
    @classmethod
    def runSuite(cls):
@@ -149,7 +148,7 @@ class TestSuiteBase(unittest.TestCase):
 
       Args:
          test_case_name: Name of test case to run.
-         assert_results: True if asserting the unittest returns data, false if not.
+         assert_results: True if asserting the test returns data, false if not.
 
       Returns:
          DataShuttle: Dictionary containing results of test case.
