@@ -21,6 +21,7 @@ class TestSuiteBase(unittest.TestCase):
    """
    Base class representing a test suite.
    """
+
    # these to be set before running suite
    testdir            = None
    projrootdir        = None
@@ -43,6 +44,7 @@ class TestSuiteBase(unittest.TestCase):
          projrootdir: Absolute path of project directory.
          builddir:    Absolute path to build directory.
       """
+
       cls.testdir     = pathlib.Path(testdir)
       cls.projrootdir = pathlib.Path(projrootdir)
       cls.builddir    = pathlib.Path(builddir)
@@ -55,6 +57,7 @@ class TestSuiteBase(unittest.TestCase):
       Args:
          filepath: Path of suite relative to testing/integ/ directory.
       """
+
       if not cls.testdir or not cls.projrootdir or not cls.builddir:
          print(f"Testsuite for {filepath} not setup correctly")
          sys.exit(1)
@@ -78,6 +81,7 @@ class TestSuiteBase(unittest.TestCase):
       """
       Acting destructor.
       """
+
       cls.testdir            = None
       cls.projrootdir        = None
       cls.builddir           = None
@@ -96,6 +100,7 @@ class TestSuiteBase(unittest.TestCase):
 
          Reason for EXPORTS exception can be found at <https://cmake.org/cmake/help/v3.0/prop_tgt/DEFINE_SYMBOL.html>.
       """
+
       with open(cls.builddir / "compile_commands.json", "r") as ccfile:
          data = json.load(ccfile)
          for d in data:
@@ -109,6 +114,7 @@ class TestSuiteBase(unittest.TestCase):
       """
       Configures the test suite environment.
       """
+
       cppyy.add_include_path(str(cls.testdir / "common"))
       cppyy.add_include_path(str(cls.abs_suite_path))
       cppyy.add_include_path(str(cls.abs_src_path))
@@ -123,6 +129,7 @@ class TestSuiteBase(unittest.TestCase):
       """
       Runs this test suite instance.
       """
+
       parser = argparse.ArgumentParser()
       parser.add_argument("--testdir",     required=True, help="Absolute path of test directory")
       parser.add_argument("--projrootdir", required=True, help="Absolute path of project directory")
@@ -153,6 +160,7 @@ class TestSuiteBase(unittest.TestCase):
       Returns:
          DataShuttle: Dictionary containing results of test case.
       """
+      
       class NullExc:
          def what(self):
             return None

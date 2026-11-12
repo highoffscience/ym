@@ -6,8 +6,6 @@
 
 #pragma once
 
-// TODO change setup_scaffold.py
-
 #include "testsuitebase.h"
 
 namespace ym::integ::core::file_handling

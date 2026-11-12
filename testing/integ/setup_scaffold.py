@@ -1,11 +1,12 @@
 ##
-# @file    setup_ut_scaffold.py
+# @file    setup_scaffold.py
 # @version 1.0.0
 # @author  Forrest Jablonski
 #
 
 import argparse
 import os
+import pathlib
 import sys
 
 def gen_header_file(args: argparse.Namespace):
@@ -16,9 +17,9 @@ def gen_header_file(args: argparse.Namespace):
       args: Supplied options.
    """
 
-   hdr_file = os.path.join(args.filepath, args.filename, "testsuite.h")
+   hdr_file: pathlib.Path = args.filepath / "testsuite.h"
 
-   if os.path.exists(hdr_file):
+   if hdr_file.exists():
       if not args.hdr:
          return
  # else - continue...
@@ -26,6 +27,8 @@ def gen_header_file(args: argparse.Namespace):
    with open(hdr_file, "w") as outfile:
       def writeln(line):
          outfile.write(f"{line.rstrip()}\n")
+
+      namespace = f"ym::integ::{args.filename.as_posix().replace('/', '::')}"
 
       writeln(f"/**                                         ")
       writeln(f" * @file    testsuite.h                     ")
@@ -38,12 +41,9 @@ def gen_header_file(args: argparse.Namespace):
       writeln(f"                                            ")
       writeln(f"#pragma once                                ")
       writeln(f"                                            ")
-      writeln(f"#define YM_UNITTEST_ACTIVE_DEFINED          ")
-      writeln(f"#include \"ymdefs.h\"                       ")
-      writeln(f"                                            ")
       writeln(f"#include \"testsuitebase.h\"                ")
       writeln(f"                                            ")
-      writeln(f"namespace ym::unit::{args.filename}         ")
+      writeln(f"namespace {namespace}                       ")
       writeln(f"{{                                          ")
       writeln(f"                                            ")
       writeln(f"/**                                         ")
@@ -59,7 +59,7 @@ def gen_header_file(args: argparse.Namespace):
       writeln(f"   YM_UNIT_TESTCASE(SmokeTest)              ")
       writeln(f"}};                                         ")
       writeln(f"                                            ")
-      writeln(f"}} // ym::unit                              ")
+      writeln(f"}} // {namespace}                           ")
 
 def gen_source_file(args: argparse.Namespace):
    """
@@ -86,10 +86,14 @@ def gen_source_file(args: argparse.Namespace):
       writeln(f" * @author  Forrest Jablonski                                             ")
       writeln(f" */                                                                       ")
       writeln(f"                                                                          ")
+      writeln(f"#define YM_INTEG_TESTING_ACTIVE_DEFINED                                   ")
+      writeln(f"                                                                          ")
       writeln(f"#include \"testsuite.h\"                                                  ")
       writeln(f"#include \"ymglobals.h\"                                                  ")
       writeln(f"                                                                          ")
-      writeln(f"#include \"{args.filename}.h\" // Structures under test                   ")
+      writeln(f"// Begin - Structure(s) under test                                        ")
+      writeln(f"// List includes here...                                                  ")
+      writeln(f"// End - Structure(s) under test                                          ")
       writeln(f"                                                                          ")
       writeln(f"#include \"fmt/format.h\"                                                 ")
       writeln(f"                                                                          ")
@@ -235,28 +239,27 @@ def gen_runner_file(args: argparse.Namespace):
 
 def main():
    """
-   Sets up the unittest scaffolding.
+   Sets up the testing scaffolding.
 
    Notes:
       For example...
          --filepath  ym/common/
-         --filename  ymdefs (w/out extension)
          --suitename YmDefs
    """
-   if os.path.basename(os.getcwd()) != "unittests":
-      print("Needs to be run in the unittests/ directory")
+
+   if os.path.basename(os.getcwd()) != "integ":
+      print("Needs to be run in the integ/ directory")
       sys.exit(1)
 
    parser = argparse.ArgumentParser()
-   parser.add_argument("--filepath",    required=True, help="Relative path file exists in")
-   parser.add_argument("--filename",    required=True, help="Name of file (w/out extension)")
-   parser.add_argument("--suitename",   required=True, help="Structure(s) under test")
-   parser.add_argument("--hdr", action="store_true",   help="Generates/overwrites header")
-   parser.add_argument("--src", action="store_true",   help="Generates/overwrites source")
-   parser.add_argument("--run", action="store_true",   help="Generates/overwrites runner")
+   parser.add_argument("--filepath",  required=True, help="Relative path suite exists in", type=pathlib.Path)
+   parser.add_argument("--suitename", required=True, help="Name of testing suite",         type=pathlib.Path)
+   parser.add_argument("--hdr", action="store_true", help="Generates/overwrites header")
+   parser.add_argument("--src", action="store_true", help="Generates/overwrites source")
+   parser.add_argument("--run", action="store_true", help="Generates/overwrites runner")
    args = parser.parse_args()
 
-   os.makedirs(os.path.join(args.filepath, args.filename), exist_ok=True)
+   os.makedirs(args.filepath, exist_ok=True)
 
    gen_header_file(args)
    gen_source_file(args)

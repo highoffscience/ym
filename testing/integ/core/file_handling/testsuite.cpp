@@ -9,7 +9,9 @@
 #include "testsuite.h"
 #include "ymglobals.h"
 
+// Begin - Structure(s) under test
 #include "fileio.h"
+// End - Structure(s) under test
 
 #include "fmt/format.h"
 
