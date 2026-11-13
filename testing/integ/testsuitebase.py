@@ -24,7 +24,7 @@ class TestSuiteBase(unittest.TestCase):
 
    # these to be set before running suite
    testdir            = None
-   projrootdir        = None
+   projdir            = None
    builddir           = None
    filepath           = None
    abs_suite_path     = None
@@ -33,21 +33,21 @@ class TestSuiteBase(unittest.TestCase):
 
    @classmethod
    def customBaseInit(cls,
-         testdir:     str | os.PathLike[str],
-         projrootdir: str | os.PathLike[str],
-         builddir:    str | os.PathLike[str]):
+         testdir:  str | os.PathLike[str],
+         projdir:  str | os.PathLike[str],
+         builddir: str | os.PathLike[str]):
       """
       Initializes variables.
 
       Args:
-         testdir:     Absolute path of test directory.
-         projrootdir: Absolute path of project directory.
-         builddir:    Absolute path to build directory.
+         testdir:  Absolute path of test directory.
+         projdir:  Absolute path of project directory.
+         builddir: Absolute path to build directory.
       """
 
-      cls.testdir     = pathlib.Path(testdir)
-      cls.projrootdir = pathlib.Path(projrootdir)
-      cls.builddir    = pathlib.Path(builddir)
+      cls.testdir  = pathlib.Path(testdir)
+      cls.projdir  = pathlib.Path(projdir)
+      cls.builddir = pathlib.Path(builddir)
 
    @classmethod
    def setUpBaseClass(cls, filepath: str | os.PathLike[str]):
@@ -58,14 +58,14 @@ class TestSuiteBase(unittest.TestCase):
          filepath: Path of suite relative to testing/integ/ directory.
       """
 
-      if not cls.testdir or not cls.projrootdir or not cls.builddir:
+      if not cls.testdir or not cls.projdir or not cls.builddir:
          print(f"Testsuite for {filepath} not setup correctly")
          sys.exit(1)
 
       cls.filepath = pathlib.Path(filepath)
 
-      cls.abs_suite_path = cls.testdir     / cls.filepath
-      cls.abs_src_path   = cls.projrootdir / cls.filepath
+      cls.abs_suite_path = cls.testdir / cls.filepath
+      cls.abs_src_path   = cls.projdir / cls.filepath
 
       cls.processCompileCommands()
       cls.configCppyy()
@@ -83,7 +83,7 @@ class TestSuiteBase(unittest.TestCase):
       """
 
       cls.testdir            = None
-      cls.projrootdir        = None
+      cls.projdir            = None
       cls.builddir           = None
       cls.filepath           = None
       cls.abs_suite_path     = None
@@ -131,13 +131,13 @@ class TestSuiteBase(unittest.TestCase):
       """
 
       parser = argparse.ArgumentParser()
-      parser.add_argument("--testdir",     required=True, help="Absolute path of test directory")
-      parser.add_argument("--projrootdir", required=True, help="Absolute path of project directory")
-      parser.add_argument("--builddir",    required=True, help="Absolute path to build directory")
+      parser.add_argument("--testdir",  required=True, help="Absolute path of test directory")
+      parser.add_argument("--projdir",  required=True, help="Absolute path of project directory")
+      parser.add_argument("--builddir", required=True, help="Absolute path to build directory")
       parser.add_argument("-v", "--verbosity", action="store_true", help="Enable verbosity")
       args = parser.parse_args()
 
-      cls.customBaseInit(args.testdir, args.projrootdir, args.builddir)
+      cls.customBaseInit(args.testdir, args.projdir, args.builddir)
 
       suite = unittest.TestSuite()
       loader = unittest.TestLoader()
@@ -160,7 +160,7 @@ class TestSuiteBase(unittest.TestCase):
       Returns:
          DataShuttle: Dictionary containing results of test case.
       """
-      
+
       class NullExc:
          def what(self):
             return None

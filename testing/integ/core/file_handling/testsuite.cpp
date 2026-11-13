@@ -33,9 +33,9 @@ ym::integ::core::file_handling::TestSuite::TestSuite(void) :
 /**
  * @brief Interactive inspection - for debug purposes.
  *
- * @param InData -- Important values to use during run of test.
+ * @param InData -- Important values for test.
  *
- * @returns DataShuttle -- Important values acquired during run of test.
+ * @returns DataShuttle -- Important values acquired during test.
  */
 auto ym::integ::core::file_handling::TestSuite::InteractiveInspection::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
@@ -45,9 +45,9 @@ auto ym::integ::core::file_handling::TestSuite::InteractiveInspection::run([[may
 /**
  * @brief Basic integrity test.
  *
- * @param InData -- Important values to use during run of test.
+ * @param InData -- Important values for test.
  *
- * @returns DataShuttle -- Important values acquired during run of test.
+ * @returns DataShuttle -- Important values acquired during test.
  */
 auto ym::integ::core::file_handling::TestSuite::SmokeTest::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
@@ -57,9 +57,9 @@ auto ym::integ::core::file_handling::TestSuite::SmokeTest::run([[maybe_unused]] 
 /**
  * - @ref ym::common::FileIO Shall ?
  *
- * @param InData -- Important values to use during run of test.
+ * @param InData -- Important values for test.
  *
- * @returns DataShuttle -- Important values acquired during run of test.
+ * @returns DataShuttle -- Important values acquired during test.
  */
 auto ym::integ::core::file_handling::TestSuite::Class_FileIO::run([[maybe_unused]] DataShuttle const & InData) -> DataShuttle
 {
