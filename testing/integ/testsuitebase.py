@@ -28,7 +28,7 @@ class TestSuiteBase(unittest.TestCase):
    builddir           = None
    filepath           = None
    abs_suite_path     = None
-   abs_src_path       = None
+   abs_src_paths      = None
    cpp_suite_instance = None
 
    @classmethod
@@ -44,28 +44,29 @@ class TestSuiteBase(unittest.TestCase):
          projdir:  Absolute path of project directory.
          builddir: Absolute path to build directory.
       """
-
       cls.testdir  = pathlib.Path(testdir)
       cls.projdir  = pathlib.Path(projdir)
       cls.builddir = pathlib.Path(builddir)
 
    @classmethod
-   def setUpBaseClass(cls, filepath: str | os.PathLike[str]):
+   def setUpBaseClass(cls,
+         suite_filepath:     str | os.PathLike[str],
+         src_filepaths: list[str | os.PathLike[str]]):
       """
       Acting constructor.
 
       Args:
-         filepath: Path of suite relative to testing/integ/ directory.
+         suite_filepath: Path of suite relative to testing/integ/.
+         src_filepaths: Path of srcs/incs relative to project root.
       """
-
       if not cls.testdir or not cls.projdir or not cls.builddir:
-         print(f"Testsuite for {filepath} not setup correctly")
+         print(f"Testsuite for {suite_filepath} not setup correctly")
          sys.exit(1)
 
-      cls.filepath = pathlib.Path(filepath)
+      cls.filepath = pathlib.Path(suite_filepath)
 
       cls.abs_suite_path = cls.testdir / cls.filepath
-      cls.abs_src_path   = cls.projdir / cls.filepath
+      cls.abs_src_paths  = [cls.projdir / p for p in src_filepaths]
 
       cls.processCompileCommands()
       cls.configCppyy()
@@ -81,13 +82,12 @@ class TestSuiteBase(unittest.TestCase):
       """
       Acting destructor.
       """
-
       cls.testdir            = None
       cls.projdir            = None
       cls.builddir           = None
       cls.filepath           = None
       cls.abs_suite_path     = None
-      cls.abs_src_path       = None
+      cls.abs_src_paths      = None
       cls.cpp_suite_instance = None
 
    @classmethod
@@ -100,7 +100,6 @@ class TestSuiteBase(unittest.TestCase):
 
          Reason for EXPORTS exception can be found at <https://cmake.org/cmake/help/v3.0/prop_tgt/DEFINE_SYMBOL.html>.
       """
-
       with open(cls.builddir / "compile_commands.json", "r") as ccfile:
          data = json.load(ccfile)
          for d in data:
@@ -114,22 +113,21 @@ class TestSuiteBase(unittest.TestCase):
       """
       Configures the test suite environment.
       """
-
       cppyy.add_include_path(str(cls.testdir / "common"))
       cppyy.add_include_path(str(cls.abs_suite_path))
-      cppyy.add_include_path(str(cls.abs_src_path))
+      for p in cls.abs_src_paths:
+         cppyy.add_include_path(str(p))
 
       cppyy.include(str(cls.abs_suite_path / "testsuite.h"))
 
       cppyy.add_library_path(str(cls.builddir / "customlibs"))
-      cppyy.load_library(f"lib{str(cls.filepath).replace('/', '.')}-tests")
+      cppyy.load_library(f"libinteg.{str(cls.filepath).replace('/', '.')}-tests")
 
    @classmethod
    def runSuite(cls):
       """
       Runs this test suite instance.
       """
-
       parser = argparse.ArgumentParser()
       parser.add_argument("--testdir",  required=True, help="Absolute path of test directory")
       parser.add_argument("--projdir",  required=True, help="Absolute path of project directory")
@@ -160,7 +158,6 @@ class TestSuiteBase(unittest.TestCase):
       Returns:
          DataShuttle: Dictionary containing results of test case.
       """
-
       class NullExc:
          def what(self):
             return None

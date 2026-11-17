@@ -36,9 +36,9 @@ target_compile_options(YMRootIntLib INTERFACE
 target_include_directories(YMRootIntLib INTERFACE
    ${YM_UnitTestDir}/common
    ${YM_UnitTestDir}/ym/common
-   ${YM_ProjRootDir}/ym/common)
+   ${YM_ProjDir}/ym/common)
 
-set(YM_UTPYTHONPATHS ${YM_ProjRootDir}/ym:${YM_UnitTestDir})
+set(YM_UTPYTHONPATHS ${YM_ProjDir}/ym:${YM_UnitTestDir})
 if ($ENV{PYTHONPATH})
    set(ENV{PYTHONPATH} ${YM_UTPYTHONPATHS}:$ENV{PYTHONPATH})
 else()

@@ -11,8 +11,8 @@
 #
 function(ym-build-integ.core Ctx_JSON)
 
-   string(REGEX REPLACE "^[^-]+-" ""  BaseBuild    ${CMAKE_CURRENT_FUNCTION})
-   string(      REPLACE "."       "/" BaseBuildDir ${BaseBuild})
+   string(REGEX REPLACE "ym-build-" ""  BaseBuild    ${CMAKE_CURRENT_FUNCTION})
+   string(      REPLACE "."         "/" BaseBuildDir ${BaseBuild})
 
    set(TargetAll ${BaseBuild}-tests)
    set(TargetInt ${BaseBuild}-interface)
@@ -24,7 +24,7 @@ function(ym-build-integ.core Ctx_JSON)
 
    set(SubBuilds file_handling)
    foreach(SubBuild ${SubBuilds})
-      include(${YM_IntegTestDir}/${BaseBuildDir}/${SubBuild}/build.cmake)
+      include(${YM_TestDir}/${BaseBuildDir}/${SubBuild}/build.cmake)
       cmake_language(CALL  ym-build-${BaseBuild}.${SubBuild} ${Ctx_JSON})
       add_dependencies(${TargetAll} ${BaseBuild}.${SubBuild}-tests)
    endforeach()

@@ -11,15 +11,15 @@
 #
 function(ym-build-integ.core.file_handling Ctx_JSON)
 
-   string(REGEX REPLACE "^[^-]+-" ""  BaseBuild    ${CMAKE_CURRENT_FUNCTION})
-   string(      REPLACE "."       "/" BaseBuildDir ${BaseBuild})
+   string(REGEX REPLACE "ym-build-" ""  BaseBuild    ${CMAKE_CURRENT_FUNCTION})
+   string(      REPLACE "."         "/" BaseBuildDir ${BaseBuild})
 
    set(Target ${BaseBuild}-tests)
    add_library(${Target} SHARED)
 
    target_link_libraries(${Target} PRIVATE integ.core-interface)
 
-   target_sources(${Target} PRIVATE ${YM_IntegTestDir}/${BaseBuildDir}/testsuite.cpp)
+   target_sources(${Target} PRIVATE ${YM_TestDir}/${BaseBuildDir}/testsuite.cpp)
 
    # TODO custom libraries and exes don't always go to their desired output directory
 

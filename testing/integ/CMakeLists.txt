@@ -36,7 +36,7 @@ target_compile_options(YMRootIntLib INTERFACE
 target_include_directories(YMRootIntLib INTERFACE
    ${YM_IntegTestDir}/common
    ${YM_IntegTestDir}/ym/common
-   ${YM_ProjRootDir}/ym/common)
+   ${YM_ProjDir}/ym/common)
 
 if (YM_CovEnabled)
    message("Compiling for coverage...")
@@ -71,7 +71,7 @@ add_custom_target(clean-all
    COMMAND rm -rf build/)
 
 include(${YM_IntegTestDir}/common/build.cmake)
-cmake_language(CALL ym-integbuild-integ.common ${YM_Ctx_JSON})
+cmake_language(CALL ym-build-integ.common ${YM_Ctx_JSON})
 target_link_libraries(YMRootIntLib INTERFACE integ.common)
 
 add_custom_target(integ-tests) # aka TargetAll

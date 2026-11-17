@@ -11,8 +11,8 @@
 #
 function(ym-build-integ.common Ctx_JSON)
 
-   string(REGEX REPLACE "^[^-]+-" ""  BaseBuild    ${CMAKE_CURRENT_FUNCTION})
-   string(      REPLACE "."       "/" BaseBuildDir ${BaseBuild})
+   string(REGEX REPLACE "ym-build-" ""  BaseBuild    ${CMAKE_CURRENT_FUNCTION})
+   string(      REPLACE "."         "/" BaseBuildDir ${BaseBuild})
 
    set(Target ${BaseBuild})
    add_library(${Target} SHARED)

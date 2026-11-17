@@ -28,7 +28,9 @@ class TestSuite(testsuitebase.TestSuiteBase):
       """
       Acting constructor.
       """
-      super().setUpBaseClass(filepath="core/file_handling")
+      super().setUpBaseClass(
+         suite_filepath="core/file_handling",
+         src_filepaths=["ym/common"])
 
    @classmethod
    def tearDownClass(cls):

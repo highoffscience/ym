@@ -8,12 +8,14 @@
 Script that controls running integration tests.
 """
 
-import ympyutils as ympy
-
 import argparse
 import json
 import os
 import pathlib
+import sys
+
+sys.path.append(str(pathlib.Path(__file__).resolve().parent.parent.parent))
+import ympyutils as ympy
 
 def cacheCovProfiles(
       args: argparse.ArgumentParser,

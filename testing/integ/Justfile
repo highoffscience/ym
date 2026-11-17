@@ -17,6 +17,14 @@ rebuild tar=default_target:
    just clean-all
    just build {{tar}}
 
+run tar=default_target:
+   python run_test.py \
+      --testdir /home/forrest/code/ym/testing/integ \
+      --projdir /home/forrest/code \
+      --builddir /home/forrest/code/ym/testing/integ/build \
+      --suitename core.file_handling \
+      --libname libinteg.core.file_handling-tests.so
+
 clean dir=default_build_dir:
    cmake --build {{dir}} --target clean
 

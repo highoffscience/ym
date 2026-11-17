@@ -24,7 +24,7 @@ function(unitbuild-ym.common Ctx_JSON)
 
    target_link_libraries(${TargetInt} INTERFACE ym-interface)
 
-   include(${YM_ProjRootDir}/${BaseBuildDir}/build.cmake)
+   include(${YM_ProjDir}/${BaseBuildDir}/build.cmake)
    cmake_language(CALL srcbuild-${BaseBuild} ${Ctx_JSON})
    target_link_libraries(${BaseBuild} PRIVATE YMRootIntLib)
    target_link_libraries(${TargetInt} INTERFACE ${BaseBuild})

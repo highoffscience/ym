@@ -14,7 +14,7 @@
          "$comment": "true values should be 1, false values should be 0",
          "cacheVariables": {
             "YM_Python": "python3",
-            "YM_ProjRootDir": "${sourceParentDir}/..",
+            "YM_ProjDir": "${sourceParentDir}/..",
             "YM_UnitTestDir": "${sourceDir}",
             "YM_ExtLibsDir": "${sourceParentDir}/extlibs",
 
