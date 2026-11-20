@@ -22,7 +22,7 @@ function(ym-build-integ.core Ctx_JSON)
 
    target_link_libraries(${TargetInt} INTERFACE YMRootIntLib)
 
-   set(SubBuilds file_handling)
+   set(SubBuilds file_handling pointers)
    foreach(SubBuild ${SubBuilds})
       include(${YM_TestDir}/${BaseBuildDir}/${SubBuild}/build.cmake)
       cmake_language(CALL  ym-build-${BaseBuild}.${SubBuild} ${Ctx_JSON})

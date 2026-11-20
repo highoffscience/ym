@@ -64,7 +64,7 @@ bool ym::FileIO::reset(
       { // got size
          _size = *Size;
 
-         switch (fcntl(fileno(_file_ptr->get()), F_GETFL) & O_ACCMODE)
+         switch (fcntl(fileno(get()), F_GETFL) & O_ACCMODE)
          { // get file permissions
             case O_RDONLY:
             { // read permissions
@@ -119,7 +119,7 @@ std::optional<std::size_t> ym::FileIO::getSize(bool const Force) const noexcept
       if (_flags.test(AccessModeFlags_T::Write) || Force)
       { // size can change - recalculate
          struct stat st;
-         if (fstat(fileno(_file_ptr->get()), &st) == 0)
+         if (fstat(fileno(get()), &st) == 0)
          { // got size
             size = static_cast<std::size_t>(st.st_size);
          }

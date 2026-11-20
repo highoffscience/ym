@@ -80,11 +80,11 @@ auto ym::ArgParser::parse(void) -> ParseResult_T
 
          if (token[1] == '-')
          { // longhand arg found ("--")
-            result = parseLonghand(token + 2);
+            result = parseLonghand(str {token.get() + 2});
          }
          else
          { // shorthand arg found ("-")
-            result = parseShorthand(token + 1);
+            result = parseShorthand(str {token.get() + 1});
          }
 
          if (result == ParseResult_T::HelpMenuCalled)
@@ -192,7 +192,7 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 
       if (it->isFlag())
       { // marked as flag
-         YMASSERT(Val, Error, YM_DAH, "Arg '{}' is a flag yet not initialized");
+         YMASSERT(Val != nullptr, Error, YM_DAH, "Arg '{}' is a flag yet not initialized");
          YMASSERT(std::strcmp(Val.unwrap(), "0") == 0 || std::strcmp(Val.unwrap(), "1") == 0, Error, YM_DAH,
             "Arg '{}' is a flag - cannot have arbitrary value", Key);
       }
@@ -222,7 +222,7 @@ void ym::ArgParser::organizeAndValidateArgHandlerVector(void)
 
       if (it->isReqd())
       { // required argument
-         YMASSERT(Val, Error, YM_DAH, "Arg '{}' is required but not set");
+         YMASSERT(Val != nullptr, Error, YM_DAH, "Arg '{}' is required but not set");
       }
    }
 }
@@ -261,7 +261,7 @@ void ym::ArgParser::displayHelpMenu(void) const
    for (auto it = BeginIt; it != EndIt; it++)
    { // go through all registered arguments
       auto const KeyLen = std::strlen(it->getName());
-      ymLog(VF::ArgParser, " --{}{} : {}", it->getName(), spaces_Ptr + KeyLen, it->getDesc());
+      ymLog(VF::ArgParser, " --{}{} : {}", it->getName(), mutstr {spaces_Ptr.get() + KeyLen}, it->getDesc());
 
       if (auto const Abbr = it->getAbbr(); isValidChar(Abbr))
       { // this arg has an abbreviation
@@ -292,7 +292,7 @@ auto ym::ArgParser::getNextToken(void) -> optstr
                static_cast<unsigned char>(
                   *_tidx.str_idx.unwrap_or("~"))) != 0)
          { // advance stream to next token
-            _tidx.str_idx++;
+            _tidx.str_idx.reset(_tidx.str_idx.get() + 1);
          }
       }
       else
@@ -302,7 +302,7 @@ auto ym::ArgParser::getNextToken(void) -> optstr
                static_cast<unsigned char>(
                   *_tidx.str_idx.unwrap_or(" "))) == 0)
          { // advance stream to next token separator
-            _tidx.str_idx++;
+            _tidx.str_idx.reset(_tidx.str_idx.get() + 1);
          }
 
          while (
@@ -310,7 +310,7 @@ auto ym::ArgParser::getNextToken(void) -> optstr
                static_cast<unsigned char>(
                   *_tidx.str_idx.unwrap_or("~"))) != 0)
          { // advance stream to next token
-            _tidx.str_idx++;
+            _tidx.str_idx.reset(_tidx.str_idx.get() + 1);
          }
       }
 
@@ -387,7 +387,7 @@ auto ym::ArgParser::getArgPtrFromPrefix(str const Prefix) -> bound<Arg>
       }
    }
 
-   YMASSERT(arg_fptr, Error, YM_DAH, "Prefix '{}' doesn't match any handlers", PrefixSV);
+   YMASSERT(arg_fptr != nullptr, Error, YM_DAH, "Prefix '{}' doesn't match any handlers", PrefixSV);
 
    return arg_fptr.unwrap();
 }
@@ -409,7 +409,7 @@ auto ym::ArgParser::getArgPtrFromAbbr(char const Abbr) -> bound<Arg>
 
    auto arg_fptr = _abbrs[getAbbrIdx(Abbr)];
 
-   YMASSERT(arg_fptr, Error, YM_DAH, "Abbr '{}' not registered", Abbr);
+   YMASSERT(arg_fptr != nullptr, Error, YM_DAH, "Abbr '{}' not registered", Abbr);
 
    return arg_fptr.unwrap();
 }
@@ -438,7 +438,7 @@ auto ym::ArgParser::parseLonghand(str token) -> ParseResult_T
    else
    { // standard arg
       auto const IsNeg = (std::strncmp(token, "no-", 3uz) == 0);
-      token += (IsNeg) ? 3 : 0;
+      token = str {token.get() + ((IsNeg) ? 3 : 0)};
       result = parseLonghand(getArgPtrFromPrefix(token), IsNeg);
    }
 
@@ -511,7 +511,7 @@ auto ym::ArgParser::parseLonghand(
    { // value is next command line argument
 
       auto token = getNextToken();
-      YMASSERT(token, Error, YM_DAH, "No value for arg '{}'", arg_Ptr->getName());
+      YMASSERT(token != nullptr, Error, YM_DAH, "No value for arg '{}'", arg_Ptr->getName());
       arg_Ptr->defval(token.unwrap());
 
       if (arg_Ptr->isList())
@@ -532,7 +532,7 @@ auto ym::ArgParser::parseLonghand(
             }
          }
 
-         YMASSERT(token, Error, YM_DAH, "List '{}' doesn't have {} elements as promised",
+         YMASSERT(token != nullptr, Error, YM_DAH, "List '{}' doesn't have {} elements as promised",
             arg_Ptr->getName(), arg_Ptr->_nvals)
       }
    }
@@ -634,7 +634,7 @@ auto ym::ArgParser::Arg::getVal(std::size_t const Idx) const -> optstr
    { // access the requested element
       YMASSERT(Idx < _nvals, Error, YM_DAH,
          "Invalid index {} for arg {} in [0..{})", Idx, getName(), _nvals);
-      retVal += Idx; // retVal is a pointer to an element in _Argv_Ptr
+      retVal.reset(retVal.get() + Idx); // retVal is a pointer to an element in _Argv_Ptr
    }
 
    return retVal;

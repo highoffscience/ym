@@ -99,7 +99,7 @@ public:
     *
     * @returns std::FILE * -- Raw underlying file handle. Guaranteed not null.
     */
-   inline auto * get                  (this auto && self) { return self._file_ptr->get(); }
+   inline auto * get                  (this auto && self) { return self._file_ptr.get().unwrap().get(); }
    inline        operator std::FILE * (this auto && self) { return self.get(); }
    inline auto * operator *           (this auto && self) { return self.get(); }
    /// @}

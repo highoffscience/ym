@@ -69,7 +69,7 @@ auto ym::TextLogger::populateFormattedTime(
          }
 
          *writePtr = ' ';
-         writePtr = writePtr + 1uz;
+         writePtr = mutstr {writePtr.get() + 1uz};
 
          auto const Time_hr  = std::chrono::duration_cast<std::chrono::hours>(elapsed);
          elapsed -= Time_hr;

@@ -21,6 +21,7 @@
 #include <iterator>
 #include <memory>
 #include <memory_resource>
+#include <optional>
 #include <type_traits>
 #include <utility>
 #include <variant>
@@ -44,6 +45,10 @@ namespace ym
  *
  * - U can be either const or non-const.
  *
+ * - Constness of the source is propagated to the result. Casting away constness
+ *   through a byte/void round-trip is never implicit - if a mutable view is truly
+ *   needed, the caller must const_cast explicitly.
+ *
  * @tparam To_T   -- Data type to cast to.
  * @tparam From_T -- (Deduced) data type to cast from.
  *
@@ -61,12 +66,9 @@ template <
    typename From_T>
 constexpr auto * ym_castPtrTo(From_T * const data_Ptr) noexcept
 {
-   return static_cast<To_T *>(
-      static_cast<typename std::conditional_t<
-         std::is_const_v<From_T>,
-            void const *,
-            void *>
-         >(data_Ptr));
+    using Void_T = std::conditional_t<std::is_const_v<From_T>, void const, void>;
+    using Cast_T = std::conditional_t<std::is_const_v<From_T>, std::add_const_t<To_T>, To_T>;
+    return static_cast<Cast_T *>(static_cast<Void_T *>(data_Ptr));
 }
 
 /**
@@ -270,24 +272,46 @@ YM_CREATE_TAG_DISPATCH_TYPE(ym_AssumePtrNotNull)
 YM_CREATE_TAG_DISPATCH_TYPE(ym_PtrCastPassKey)
 
 /**
+ * @brief Concept describing when a pointer's byte-representation view is legal.
+ *
+ * - The target must be a byte-like type, and the view shall never cast away the
+ *   constness of the source (a const source may only be viewed as const bytes).
+ *
+ * @tparam Target_T -- Type the pointer would be viewed as.
+ * @tparam Source_T -- Type the pointer currently points to.
+ */
+template <typename Target_T, typename Source_T>
+concept ym_ByteViewable =
+   ByteLikeable<Target_T> &&
+   (std::is_const_v<Target_T> || !std::is_const_v<Source_T>);
+
+/**
+ * @brief Concept describing when a type can be wrapped by the pointer wrappers.
+ *
+ * - Named (rather than a bare expression) so partial specializations of the
+ *   wrappers can satisfy constraint subsumption, which is syntax-based.
+ *
+ * @tparam T -- Candidate type.
+ */
+template <typename T>
+concept ym_Pointable = !std::is_array_v<T>; // arrays are std::span territory
+
+/**
  * @brief Common operations/fields for pointer wrapper classes.
  *
  * - BoundPtr and LoosePtr are agnostic to ownership.
  *
- * @tparam T         -- Type of pointer.
- * @tparam Derived_T -- Type of derived class.
+ * - Pointer arithmetic is intentionally not provided - wrappers hold (possibly)
+ *   singular addresses; span/array views are the proper tool for arithmetic.
+ *
+ * - Comparison semantics mirror std smart pointers: operations compare the stored
+ *   pointer values, ordering uses std::less to provide a total order.
+ *
+ * @tparam T -- Type of pointer.
  */
-template <
-   typename T,
-   typename Derived_T>
+template <typename T>
 class Ptr_Base
 {
-   template <typename U>
-   friend class LoosePtr;
-
-   template <typename U>
-   friend class BoundPtr;
-
 protected:
    /**
     * @brief Constructor. Wrapper for custom pointer types.
@@ -301,90 +325,44 @@ protected:
 public:
    /**
     * @{
-    * @brief Returns the value of the incremented/decremented pointer value.
+    * @brief Accessors mirroring std smart pointer interface.
     *
-    * @param N -- Value to increment/decrement by.
-    *
-    * @returns auto -- A new derived pointer value wrapper.
+    * @returns auto -- Underlying pointer value / nullness of stored pointer.
     */
-   constexpr auto operator + (std::integral auto const N) const noexcept { return Derived_T(_value_ptr + N); }
-   constexpr auto operator - (std::integral auto const N) const noexcept { return Derived_T(_value_ptr - N); }
-
-   constexpr auto & operator += (std::integral auto const N) noexcept { return *this = *this + N; }
-   constexpr auto & operator -= (std::integral auto const N) noexcept { return *this = *this - N; }
-
-   constexpr auto & operator ++ (std::integral auto const) noexcept { return *this = *this + 1; }
-   constexpr auto & operator -- (std::integral auto const) noexcept { return *this = *this - 1; }
+   constexpr auto * get (this auto && self) noexcept { return  self._value_ptr; }
+   constexpr explicit operator bool (void) const noexcept { return _value_ptr != nullptr; }
    /// @}
 
+   /// @brief Comparison against nullptr.
+   constexpr bool operator == (std::nullptr_t) const noexcept { return _value_ptr == nullptr; }
+
 protected:
+   /// @{
+   /// @brief Comparisons of the stored pointer (std smart pointer parity).
+   friend constexpr bool operator == (Ptr_Base const & Lhs, Ptr_Base const & Rhs) noexcept {
+      return Lhs._value_ptr == Rhs._value_ptr;
+   }
+
+   friend constexpr std::strong_ordering operator <=> (Ptr_Base const & Lhs, Ptr_Base const & Rhs) noexcept {
+      return
+         std::less<T *>{}(Lhs._value_ptr, Rhs._value_ptr) ? std::strong_ordering::less :
+            (Lhs._value_ptr == Rhs._value_ptr ? std::strong_ordering::equal : std::strong_ordering::greater);
+   }
+   /// @}
+
    T * _value_ptr {nullptr};
 };
 
 /**
- * @brief Common operations for bound pointer wrapper classes.
- *
- * @tparam T         -- Type of pointer.
- * @tparam Derived_T -- Type of derived class.
- */
-template <
-   typename T,
-   typename Derived_T>
-class BoundPtr_Base : public Ptr_Base<T, Derived_T>
-{
-protected:
-   /**
-    * @brief Constructor. Wrapper for custom bound pointer types.
-    *
-    * @param value_Ptr -- Pointer value to wrap.
-    */
-   implicit constexpr BoundPtr_Base(T * const value_Ptr) noexcept :
-      Ptr_Base<T, Derived_T>(value_Ptr)
-   { }
-
-public:
-   /**
-    * @{
-    * @brief Compile-time nullness checks.
-    */
-   constexpr BoundPtr_Base                            (std::nullptr_t) = delete;
-   constexpr BoundPtr_Base<T, Derived_T> & operator = (std::nullptr_t) = delete;
-   /// @}
-
-   /**
-    * @{
-    * @brief Gets underlying pointer value.
-    * @returns auto (*) -- Underlying pointer value.
-    */
-   constexpr auto * get          (this auto && self) noexcept { return  self._value_ptr; }
-   constexpr        operator T * (this auto && self) noexcept { return  self.get(); }
-   constexpr auto & operator *   (this auto && self) noexcept { return *self.get(); }
-   constexpr auto * operator ->  (this auto && self) noexcept { return  self.get(); }
-   /// @}
-
-   /**
-    * @brief Grabs the element at the specified index. No bounds checking.
-    *
-    * - This, in theory, only belongs to @ref BoundPtr<T[]> classes, since it is important to
-    *   disambiguate between pointers to objects vs pointers to array of objects. Some examples
-    *   where this function is useful for @ref BoundPtr<T>:
-    *    - Many C level functions return T*, but actually represent arrays.
-    *    - Conversion between strlit to str, but str is expected to behave like a character array.
-    *
-    * @param Idx -- Index of desired object.
-    *
-    * @returns auto & -- Reference to desired object.
-    */
-   constexpr auto & operator [] (this auto && self, std::integral auto const Idx) noexcept {
-      return self.get()[Idx];
-   }
-};
-
-/**
- * @brief Warpper class for non-null pointers. Checked at construction.
+ * @brief Wrapper class for non-null pointers. Checked at construction.
  *
  * - Throwing in the constructor is preferable because you cannot swallow the
  *   exception and use BoundPtr in an unacceptable state.
+ *
+ * - The null-check bypass for provably non-null pointers (arrays decaying,
+ *   string literals, std::array::data()) is the ym_AssumePtrNotNull constructor
+ *   and/or compiler constant folding - there is deliberately no T[] specialization;
+ *   use std::span when array extent/bounds matter.
  *
  * @tparam T -- Type of pointer.
  *
@@ -394,132 +372,96 @@ public:
  * @test Shall ?
  */
 template <typename T>
-class BoundPtr : public BoundPtr_Base<T, BoundPtr<T>>
+requires ym_Pointable<T> // wrap objects only - arrays are std::span territory
+class BoundPtr : public Ptr_Base<T>
 {
 public:
    /**
     * @{
     * @brief Constructor.
-    *    1. Wrapper for custom bound pointer types.
-    *    2. Assumes pointer is not null, like from std::array::data().
-    *    3. Unsafe to convert between the two - deallocation strategies differ.
-    *    4. Only allow if str - it is de facto usage to treat character arrays as character pointers.
-    *    5. Restricted casting constructor.
-    *    6. Un-restricted casting constructor. Anything goes.
-    *    7. Compile time nullness check.
+    *    1. Wrapper for custom bound pointer types. Checked.
+    *    2. Assumes pointer is not null, like from std::array::data(). Debug-checked only.
+    *    3. Restricted casting constructor.
+    *    4. Un-restricted casting constructor. Anything goes, except casting away constness.
+    *    5. Compile time nullness check.
     *
-    * @throws ym_NullPtrError -- (1) If value_Ptr is null.
+    * @throws ym_NullPtrError -- (1) If value_Ptr is null. (2) In debug builds only.
     *
     * @tparam U -- (3, 4) Type of incoming pointer.
     *
     * @param value_Ptr           -- (1, 2) Pointer value to wrap.
     * @param ym_AssumePtrNotNull -- (2) Dispatch type to call this overload.
-    * @param Other               -- (3, 4, 5, 6) Pointer to wrap.
-    * @param ym_PtrCastPassKey   -- (6) Dispatch type to call this overload.
-    * @param std::nullptr_t      -- (7) Type to call this overload (nullptr).
+    * @param Other               -- (3, 4) Pointer to wrap.
+    * @param ym_PtrCastPassKey   -- (4) Dispatch type to call this overload.
+    * @param std::nullptr_t      -- (5) Type to call this overload (nullptr).
     */
    implicit constexpr BoundPtr(T * const value_Ptr) : // (1)
-      BoundPtr_Base<T, BoundPtr<T>>(value_Ptr)
+      Ptr_Base<T>(value_Ptr)
    {
       YMASSERT(this->get(), ym_NullPtrError, YM_DAH, "Bound pointer cannot be null");
    }
 
    implicit constexpr BoundPtr( // (2)
       T * const value_Ptr,
-      ym_AssumePtrNotNull) noexcept :
-         BoundPtr_Base<T, BoundPtr<T>>(value_Ptr)
-   { }
-
-   template <typename U>
-   requires (std::is_array_v<U> && !ByteLikeable<T>)
-   implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept = delete; // (3)
-
-   template <typename U>
-   requires (std::is_array_v<U> && ByteLikeable<T>)
-   implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept : // (4)
-      BoundPtr<T>(Other.get(), ym_AssumePtrNotNull{})
-   { }
+      ym_AssumePtrNotNull) YMNOEXC :
+         Ptr_Base<T>(value_Ptr)
+   {
+      #if (YM_DEBUG)
+         YMASSERT(this->get() != nullptr, ym_NullPtrError, YM_DAH, "Assumed non-null pointer is null");
+      #endif
+   }
 
    template <typename U>
    requires (
       std::is_convertible_v<U*, T*> || // enforce legal casting
-      std::is_same_v<T, uchar>      || // casting to byte representation is legal
-      std::is_same_v<T, std::byte>)    // ...
-   implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept : // (5)
-      BoundPtr_Base<T, BoundPtr<T>>(ym_castPtrTo<T>(Other.get()))
+      ym_ByteViewable<T, U>            // casting to byte representation is legal
+   )
+   implicit constexpr BoundPtr(BoundPtr<U> const & Other) noexcept : // (3)
+      Ptr_Base<T>(ym_castPtrTo<T>(Other.get()))
    { }
 
    template <typename U>
-   implicit constexpr BoundPtr( // (6)
+   requires (!std::is_const_v<U> || std::is_const_v<T>) // never cast away constness
+   implicit constexpr BoundPtr( // (4)
       BoundPtr<U>       const & Other,
       ym_PtrCastPassKey const) noexcept :
-         BoundPtr_Base<T, BoundPtr<T>>(ym_castPtrTo<T>(Other.get()))
+         Ptr_Base<T>(ym_castPtrTo<T>(Other.get()))
    { }
 
-   constexpr BoundPtr(std::nullptr_t) = delete; // (7)
+   constexpr BoundPtr(std::nullptr_t) = delete; // (5)
    /// @}
 
    /// @brief Compile time nullness check.
    constexpr BoundPtr<T> & operator = (std::nullptr_t) = delete;
 
-   /// @{
-   /// @brief Comparison overloads.
-   constexpr auto operator <=> (BoundPtr<T> const &) const noexcept = default;
-   constexpr bool operator == (std::nullptr_t) const noexcept { return false; }
-   /// @}
-};
-
-/**
- * @brief Wrapper class for pointers to C-style arrays. See note about non-nullness.
- *
- * @note Compiling with the pedantic flag is recommended to prevent allowing arrays
- *       with zero size. If you are using 0-sized arrays, you'll need to modify
- *       the check conditions of this class.
- *
- * __Unit Test__
- * - @ref ym::unit::ymutils::TestSuite::Class_BoundPtr.
- *
- * @test Shall ?
- */
-template <typename T>
-class BoundPtr<T[]> : public BoundPtr_Base<T, BoundPtr<T[]>>
-{
-public:
    /**
     * @{
-    * @brief Constructor.
-    *    1. Wrapper for non-null pointer.
-    *    2. Restricted casting constructor.
-    *    3. Compile time nullness check.
-    *
-    * @tparam N -- (1) Size of array.
-    * @tparam U -- (3, 4) Type if incoming pointer.
-    *
-    * @param array          -- (1) Pointer to C-style area.
-    * @param Other          -- (2) Pointer to wrap.
-    * @param std::nullptr_t -- (3) Type to call this overload (nullptr).
+    * @brief Dereference accessors. Pointer is guaranteed non-null.
+    * @returns auto (*) -- Underlying pointer value / pointee.
     */
-   template <std::size_t N>
-   implicit constexpr BoundPtr(T (&array) [N]) noexcept : // (1)
-      BoundPtr_Base<T, BoundPtr<T[]>>(array)
-   { }
-
-   template <typename U>
-   requires (std::is_convertible_v<U*, T*>) // enforce legal casting
-   implicit constexpr BoundPtr(BoundPtr<U[]> const & Other) noexcept : // (2)
-      BoundPtr_Base<T, BoundPtr<T[]>>(Other)
-   { }
-
-   constexpr BoundPtr(std::nullptr_t) = delete; // (3)
+   constexpr        operator T * (this auto && self) noexcept { return  self.get(); }
+   constexpr auto & operator *   (this auto && self) noexcept { return *self.get(); }
+   constexpr auto * operator ->  (this auto && self) noexcept { return  self.get(); }
    /// @}
 
-   /// @brief Compile time nullness check
-   constexpr BoundPtr<T[]> & operator = (std::nullptr_t) = delete;
-};
+   /**
+    * @brief Grabs the element at the specified index. No bounds checking.
+    *
+    * - Intended for pointers that represent sequences:
+    *    - Many C level functions return T*, but actually represent arrays.
+    *    - Character data is expected to behave like a character array.
+    *
+    * @param Idx -- Index of desired object.
+    *
+    * @returns auto & -- Reference to desired object.
+    */
+   constexpr auto & operator [] (this auto && self, std::integral auto const Idx) noexcept {
+      return self.get()[Idx];
+   }
 
-/// @brief Deduction guide - prevents pointer to array from decaying.
-template <typename T, std::size_t N>
-BoundPtr(T (&)[N]) -> BoundPtr<T[]>;
+   /// @brief Null comparison is a compile-time constant - the invariant guarantees non-null.
+   constexpr bool operator == (std::nullptr_t) const noexcept { return false; }
+};
 
 /**
  * @brief Wrapper class that represents a possibly null pointer. No access is allowed without first
@@ -531,26 +473,23 @@ BoundPtr(T (&)[N]) -> BoundPtr<T[]>;
  * @test Shall ?
  */
 template <typename T>
-class LoosePtr : public Ptr_Base<T, LoosePtr<T>>
+requires ym_Pointable<T> // wrap objects only - arrays are std::span territory
+class LoosePtr : public Ptr_Base<T>
 {
 public:
    /**
     * @{
     * @brief Constructor.
-    *    1. Wrapper for custom loose pointer types.
+    *    1. Creates null loose pointer.
     *    2. Creates loose pointer from raw pointer.
     *    3. Creates loose pointer from bound pointer.
     *    4. Restricted casting constructor.
-    *    5. Un-restricted casting constructor.
-    *    6. Unsafe to convert between the two - deallocation strategies differ.
-    *    7. Only allow if str - it is de facto usage to treat character arrays as character pointers.
-    *    8. Unsafe to convert between the two - deallocation strategies differ.
-    *    9. Only allow if str - it is de facto usage to treat character arrays as character pointers.
+    *    5. Un-restricted casting constructor. Anything goes, except casting away constness.
     *
-    * @tparam U -- (3, 4, 5, 6, 7, 8, 9) Type of incoming pointer.
+    * @tparam U -- (4, 5) Type of incoming pointer.
     *
     * @param value_Ptr         -- (2, 3) Pointer value to wrap.
-    * @param Other             -- (4, 5, 6, 7, 8, 9) Pointer to wrap.
+    * @param Other             -- (4, 5) Pointer to wrap.
     * @param ym_PtrCastPassKey -- (5) Dispatch type to call this overload.
     */
    implicit constexpr LoosePtr(void) noexcept : // (1)
@@ -558,70 +497,41 @@ public:
    { }
 
    implicit constexpr LoosePtr(T * const value_Ptr) noexcept : // (2)
-      Ptr_Base<T, LoosePtr<T>>(value_Ptr)
+      Ptr_Base<T>(value_Ptr)
    { }
 
    implicit constexpr LoosePtr(BoundPtr<T> const value_Ptr) noexcept : // (3)
-      Ptr_Base<T, LoosePtr<T>>(value_Ptr.get())
+      Ptr_Base<T>(value_Ptr.get())
    { }
 
    template <typename U>
    requires (
       std::is_convertible_v<U*, T*> || // enforce legal casting
-      std::is_same_v<T, uchar>      || // casting to byte representation is legal
-      std::is_same_v<T, std::byte>)    // ...
+      ym_ByteViewable<T, U>            // casting to byte representation is legal
+   )
    implicit constexpr LoosePtr(LoosePtr<U> const & Other) noexcept : // (4)
-      Ptr_Base<T, LoosePtr<T>>(ym_castPtrTo<T>(Other._value_ptr))
+      Ptr_Base<T>(ym_castPtrTo<T>(Other.get()))
    { }
 
    template <typename U>
+   requires (!std::is_const_v<U> || std::is_const_v<T>) // never cast away constness
    implicit constexpr LoosePtr( // (5)
       LoosePtr<U>       const & Other,
       ym_PtrCastPassKey const) noexcept :
-         Ptr_Base<T, LoosePtr<T>>(ym_castPtrTo<T>(Other._value_ptr))
-   { }
-
-   template <typename U>
-   requires (std::is_array_v<U> && !ByteLikeable<T>)
-   implicit constexpr LoosePtr(LoosePtr<U> const & Other) noexcept = delete; // (6)
-
-   template <typename U>
-   requires (std::is_array_v<U> && ByteLikeable<T>)
-   implicit constexpr LoosePtr(LoosePtr<U> const & Other) noexcept : // (7)
-      LoosePtr<T>(Other.get())
-   { }
-
-   template <typename U>
-   requires (std::is_array_v<U> && !ByteLikeable<T>)
-   implicit constexpr LoosePtr(BoundPtr<U> const & Other) noexcept = delete; // (8)
-
-   template <typename U>
-   requires (std::is_array_v<U> && ByteLikeable<T>)
-   implicit constexpr LoosePtr(BoundPtr<U> const & Other) noexcept : // (9)
-      LoosePtr<T>(Other.get())
+         Ptr_Base<T>(ym_castPtrTo<T>(Other.get()))
    { }
    /// @}
 
-   /// @{
-   /// @brief Comparison overloads.
-   constexpr auto operator <=> (LoosePtr<T> const &) const noexcept = default;
-   constexpr bool operator ==  (std::nullptr_t) const noexcept { return this->_value_ptr == nullptr; }
+   /**
+    * @{
+    * @brief Checked dereference accessors (std smart pointer ergonomics, throwing
+    *        semantics). Unlike std, a null pointer is a reported error, not UB.
+    *
+    * @throws ym_NullPtrError -- If the stored pointer is null.
+    */
+   constexpr auto operator -> (this auto && self) { return self.unwrap(); }
+   constexpr auto & operator *  (this auto && self) { return *self.unwrap(); }
    /// @}
-
-   // TODO
-   // investigate std::forward_like
-   constexpr auto operator -> (this auto && self) noexcept {
-      std::optional<BoundPtr<T>> result = std::nullopt;
-      if (self) {
-         result = self.unwrap();
-      }
-      return result;
-   }
-
-   /// @brief Returns true if contained pointer is not null, false otherwise.
-   constexpr operator bool(void) const noexcept {
-      return *this != nullptr;
-   }
 
    /**
     * @brief Returns a @ref BoundPtr to the contained pointer.
@@ -631,7 +541,7 @@ public:
     * @returns BoundPtr<T> -- A BoundPtr of the underlying pointer value.
     */
    constexpr BoundPtr<T> unwrap(void) const {
-      return this->_value_ptr;
+      return BoundPtr<T>(this->_value_ptr);
    }
 
    /**
@@ -643,92 +553,64 @@ public:
       return (*this) ? unwrap() : Ptr;
    }
 
-   // TODO
+   /**
+    * @brief Replaces the stored pointer (std smart pointer parity).
+    *
+    * @param value_Ptr -- New pointer value. Defaults to null.
+    */
+   constexpr void reset(T * const value_Ptr = nullptr) noexcept {
+      this->_value_ptr = value_Ptr;
+   }
+
+   /**
+    * @brief Invokes f with the contained pointer, if not null.
+    *
+    * - Non-void callables: returns the result in a std::optional, nullopt if never invoked.
+    * - Void callables: returns true if f was invoked, false if the pointer was null.
+    *
+    * @tparam Func_T  -- Callable type, invocable with (T*, Args_T...).
+    * @tparam Args_T  -- Extra argument types forwarded after the pointer.
+    *
+    * @param f    -- Callable.
+    * @param args -- Arguments forwarded after the pointer.
+    *
+    * @returns auto -- std::optional<Result_T>, or bool for void callables.
+    */
    template <
       typename    Func_T,
       typename... Args_T>
    requires (std::invocable<Func_T, T*, Args_T...>)
    constexpr auto invoke(
       Func_T &&    f,
-      Args_T &&... args)
+      Args_T &&... args) const
    {
-      std::optional<std::invoke_result_t<Func_T, T*, Args_T...>> result = std::nullopt;
+      using Result_T = std::invoke_result_t<Func_T, T *, Args_T...>;
 
-      if (*this)
-      { // valid pointer
-         result = std::invoke(
-            std::forward<Func_T>(f),
-            unwrap(),
-            std::forward<Args_T>(args)...);
+      if constexpr (std::is_void_v<Result_T>)
+      { // nothing to propagate - report whether the call happened
+         bool invoked = false;
+
+         if (*this)
+         { // valid pointer
+            std::invoke(std::forward<Func_T>(f), this->get(), std::forward<Args_T>(args)...);
+            invoked = true;
+         }
+
+         return invoked;
       }
+      else
+      {
+         std::optional<Result_T> result = std::nullopt;
 
-      return result;
+         if (*this)
+         { // valid pointer
+            result = std::invoke(std::forward<Func_T>(f), this->get(), std::forward<Args_T>(args)...);
+         }
+
+         return result;
+      }
    }
 };
-
-/**
- * @brief Wrapper class that represents a possibly null pointer. No access is allowed without first
- *        converting to a BoundPtr.
- *
- * __Unit Test__
- * - @ref ym::unit::ymutils::TestSuite::Class_LoosePtr.
- *
- * @test Shall ?
- */
-template <typename T>
-class LoosePtr<T[]> : public Ptr_Base<T, LoosePtr<T[]>>
-{
-public:
-   /**
-    * @{
-    * @brief Constructor.
-    *    1. Wrapper for pointers.
-    *    2. Wrapper for non-null pointer.
-    *    3. Wrapper for non-null pointer.
-    *    4. Restricted casting constructor.
-    *
-    * @tparam N -- (2) Size of array.
-    * @tparam U -- (3, 4) Type if incoming pointer.
-    *
-    * @param array     -- (2) Pointer to C-style area.
-    * @param value_Ptr -- (2) Pointer to wrap.
-    * @param Other     -- (3) Pointer to wrap.
-    */
-   implicit constexpr LoosePtr(void) noexcept : // (1)
-      Ptr_Base<T, LoosePtr<T[]>>(nullptr)
-   { }
-
-   template <std::size_t N>
-   implicit constexpr LoosePtr(T (&array) [N]) noexcept : // (2)
-      Ptr_Base<T, LoosePtr<T[]>>(array)
-   { }
-
-   implicit constexpr LoosePtr(BoundPtr<T[]> const value_Ptr) noexcept : // (3)
-      Ptr_Base<T, LoosePtr<T[]>>(value_Ptr.get())
-   { }
-
-   template <typename U>
-   requires (std::is_convertible_v<U*, T*>) // enforce legal casting
-   implicit constexpr LoosePtr(LoosePtr<U[]> const & Other) noexcept : // (4)
-      Ptr_Base<T, LoosePtr<T[]>>(Other)
-   { }
-   /// @}
-
-   /**
-    *  @brief Grabs the element at the specified index. No bounds checking.
-    *
-    * @param Idx -- Index of desired object.
-    *
-    * @returns auto & -- Reference to desired object.
-    */
-   constexpr auto & operator [] (this auto && self, std::integral auto const Idx) noexcept {
-      return self.get()[Idx];
-   }
-};
-
-/// @brief Deduction guide - prevents pointer to array from decaying.
-template <typename T, std::size_t N>
-LoosePtr(T (&)[N]) -> LoosePtr<T[]>;
 
 /// @{
 /// @brief Convenience alias.
@@ -741,12 +623,12 @@ using loose = LoosePtr<T>;
 
 /// @{
 /// @brief Convenience alias.
-using str       = BoundPtr<char const>;   // string
-using strlit    = BoundPtr<char const[]>; // string literal
-using mutstr    = BoundPtr<char>;         // mutable string
-using optstr    = LoosePtr<char const>;   // optional string
-using optstrlit = LoosePtr<char const[]>; // optional string literal
-using optmutstr = LoosePtr<char>;         // optional mutable string
+using str       = BoundPtr<char const>; // string
+using strlit    = BoundPtr<char const>; // string literal - documentation alias of str
+using mutstr    = BoundPtr<char>;       // mutable string
+using optstr    = LoosePtr<char const>; // optional string
+using optstrlit = LoosePtr<char const>; // optional string literal - documentation alias of optstr
+using optmutstr = LoosePtr<char>;       // optional mutable string
 /// @}
 
 /**
@@ -823,7 +705,12 @@ public:
    }
 
    constexpr BoundPtr<Base_T> operator -> (void) noexcept {
-      return std::launder(ym_castPtrTo<Base_T>(_buffer.data()));
+      return {
+         std::launder(
+            ym_castPtrTo<Base_T>(_buffer.data())
+         ),
+         ym_AssumePtrNotNull{} // _buffer guaranteed to have non-zero memory
+      };
    }
    /// @}
 
@@ -873,6 +760,24 @@ private:
 
 // ----------------------------------------------------------------------------
 
+/**
+ * @brief Hash specializations for pointer wrappers (std smart pointer parity) -
+ *        hash of the stored pointer.
+ */
+template <typename T>
+struct std::hash<ym::BoundPtr<T>>
+{
+   std::size_t operator() (ym::BoundPtr<T> const & Ptr) const noexcept { return std::hash<T *>()(Ptr.get()); }
+};
+
+template <typename T>
+struct std::hash<ym::LoosePtr<T>>
+{
+   std::size_t operator() (ym::LoosePtr<T> const & Ptr) const noexcept { return std::hash<T *>()(Ptr.get()); }
+};
+
+// ----------------------------------------------------------------------------
+
 namespace fmt
 {
 
@@ -883,15 +788,6 @@ template <>
 struct formatter<ym::str> : public fmt::formatter<fmt::string_view>
 {
    auto format(ym::str s, fmt::format_context & ctx_ref) const -> fmt::format_context::iterator;
-};
-
-/**
- * @brief Helper class to format ym::strlit types for use in the fmt library.
- */
-template <>
-struct formatter<ym::strlit> : public fmt::formatter<fmt::string_view>
-{
-   auto format(ym::strlit s, fmt::format_context & ctx_ref) const -> fmt::format_context::iterator;
 };
 
 /**

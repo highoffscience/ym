@@ -28,7 +28,7 @@ def gen_header_file(args: argparse.Namespace):
       def writeln(line):
          outfile.write(f"{line.rstrip()}\n")
 
-      namespace = f"ym::integ::{args.filename.as_posix().replace('/', '::')}"
+      namespace = f"ym::integ::{args.filepath.as_posix().replace('/', '::')}"
 
       writeln(f"/**                                         ")
       writeln(f" * @file    testsuite.h                     ")
@@ -77,7 +77,7 @@ def gen_source_file(args: argparse.Namespace):
       def writeln(line):
          outfile.write(f"{line.rstrip()}\n")
 
-      namespace = f"ym::integ::{args.filename.as_posix().replace('/', '::')}"
+      namespace = f"ym::integ::{args.filepath.as_posix().replace('/', '::')}"
 
       writeln(f"/**                                                               ")
       writeln(f" * @file    testsuite.cpp                                         ")

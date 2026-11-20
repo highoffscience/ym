@@ -12,6 +12,7 @@
 
 #if (YM_EXCEPTIONS_ENABLED == 0)
    #include <csignal>
+   #include <cstdlib>
 #endif
 
 #if (YM_CPP_STANDARD >= 23) && (YM_LITE == 0)
@@ -33,7 +34,12 @@
 #else // exceptions disabled
 
    /**
-    * @brief Logs the error message and raises interrupt.
+    * @brief Logs the error message, raises interrupt, then aborts.
+    *
+    * - The abort is essential: if a process traps SIGTERM (common for daemons),
+    *   raise() returns and execution would resume in an invalid state - eg. a
+    *   BoundPtr silently constructed with null, violating its core invariant.
+    *   Callers wanting log-and-continue semantics use YM_DAH_RV/logAndReturn.
     *
     * @param E -- Raised error.
     */
@@ -41,6 +47,7 @@
    {
       logAssert(E);
       std::raise(SIGTERM);
+      std::abort();
    }
 
    /**
