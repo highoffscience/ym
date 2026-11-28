@@ -45,10 +45,6 @@ namespace ym
  *
  * - U can be either const or non-const.
  *
- * - Constness of the source is propagated to the result. Casting away constness
- *   through a byte/void round-trip is never implicit - if a mutable view is truly
- *   needed, the caller must const_cast explicitly.
- *
  * @tparam To_T   -- Data type to cast to.
  * @tparam From_T -- (Deduced) data type to cast from.
  *
@@ -69,7 +65,19 @@ constexpr auto * ym_castPtrTo(From_T * const data_Ptr) noexcept
     using Void_T = std::conditional_t<std::is_const_v<From_T>, void const, void>;
     using Cast_T = std::conditional_t<std::is_const_v<From_T>, std::add_const_t<To_T>, To_T>;
     return static_cast<Cast_T *>(static_cast<Void_T *>(data_Ptr));
-}
+
+
+
+
+
+
+
+
+
+
+
+
+   }
 
 /**
  * @brief Returns an iterator to the searched for element, or last

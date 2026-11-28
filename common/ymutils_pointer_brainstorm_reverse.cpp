@@ -161,6 +161,10 @@ int main(void)
    using ExclusiveBound = bound<std::unique_ptr<Sensor>>;
    ExclusiveBound exclusive {std::make_unique<Sensor>(7)};
 
+   using T = ExclusiveBound::element_type;
+   T sensie{8};
+   std::printf("sensie %d\n", sensie.id());
+
    static_assert(!std::is_copy_constructible_v<ExclusiveBound>);      // inherited: move-only
    static_assert( std::is_move_constructible_v<ExclusiveBound>);
    static_assert(sizeof(ExclusiveBound) == sizeof(std::unique_ptr<Sensor>)); // one pointer
